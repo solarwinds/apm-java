@@ -1,61 +1,43 @@
 ## Introduction
+This repository is built on the exmaple in https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/examples/distro , which serves as a prototype of extending functionality of OpenTelemetry Java instrumentation agent.
 
-This repository serves as a collection of examples of extending functionality of OpenTelemetry Java instrumentation agent.
-It demonstrates how to repackage the aforementioned agent adding custom functionality.
-For every extension point provided by OpenTelemetry Java instrumentation, this repository contains an example of
-its usage.
+This approach is a middleground of the other 2 approaches:
+1. AO as a pure OT extension, isolated from the OT agent - https://github.com/appoptics/appoptics-opentelemetry-java#opentelemetry-auto-agent
+2. AO as a fork of OT java instrumentation agent - https://github.com/open-telemetry/opentelemetry-java-instrumentation
+
+The advantage of this approach:
+1. More control over the OT agent logic, for example we can have another layer of agent and modify the OT agent entry point by [changing the MANIFEST file](https://github.com/appoptics/opentelemetry-custom-distro/blob/master/agent/build.gradle#L48)
+2. Since this is a separate repo from the OT java instrumentation, we have loose coupling here. Updates from OT java instrumentation and changes in this repo are less likely to have conflicts with eachother.
+3. We can easily solve the classloading issue encountered in the [extension approach](https://github.com/appoptics/appoptics-opentelemetry-java/pull/5) as
+  - Muzzling is relatively easy to invoke here, though we still need to manually copy the `buildsrc` to this project. Though there's [plan](https://github.com/open-telemetry/opentelemetry-java-instrumentation/discussions/3350#discussioncomment-919197) to export the Muzzle plugin so external repo/project like this can run Muzzle directly as a plugin (as opposed to using `buildsrc`)
+  - We no longer need to explicitly append core/metrics dependencies to bootstrap classpath, we simply need to include them as separate dependencies in [agent gradle build](https://github.com/appoptics/opentelemetry-custom-distro/blob/master/agent/build.gradle#L17). Such that they will be copied to the final agent w/o muzzling (ensure the core/metrics dependencies are `compiledOnly` for `custom` and `instrumentation`, which are muzzled by moving into `inst` folder with `classfile` extension). Since the final agent is appended to the bootstrap classloader by the OT bootstrap logic, our `core`/`metrics` classes will also be avaialble in bootstrap w/o extra work
+4. The startup jvm args are simplier as we can package most of the extra properties in [AppOpticsPropertySource](https://github.com/appoptics/opentelemetry-custom-distro/blob/master/custom/src/main/java/com/appoptics/opentelemetry/extensions/AppOpticsPropertySource.java)
+
+The disadvantage of this approach:
+1. Whenever OT provides a newer version of agent, we will need to rebuild the agent on this repo too if we want the updates.
+
 
 ## General structure
 
 This repository has four main submodules:
 
-* `custom` contains all custom functionality, SPI and other extensions
-* `agent` contains the main repackaging functionality and, optionally, an entry point to the agent, if one wishes to
-customize that
-* `instrumentation` contains custom instrumentations added by vendor
-* `smoke-tests` contains simple tests to verify that resulting agent builds and applies correctly
+* `custom` contains all custom functionality, SPI and other extensions - Currently we have all the AO tracer/sampler/span exporter here
+* `agent` contains the main repackaging functionality and, optionally, an entry point to the agent. Currently we modified `gradle.build` to include `core`/`metrics` w/o muzzling
+* `instrumentation` contains custom instrumentations - Currently we have the JDBC custom instrumentation which simply add backtrace to the existing OT JDBC span reporting
 
-## Extensions examples
+## Build
+Simply run `gradle bulid` at the root folder.
 
-* [DemoIdGenerator](custom/src/main/java/com/example/javaagent/DemoIdGenerator.java) - custom `IdGenerator`
-* [DemoPropagator](custom/src/main/java/com/example/javaagent/DemoPropagator.java) - custom `TextMapPropagator`
-* [DemoPropertySource](custom/src/main/java/com/example/javaagent/DemoPropertySource.java) - default configuration
-* [DemoSampler](custom/src/main/java/com/example/javaagent/DemoSampler.java) - custom `Sampler`
-* [DemoSpanProcessor](custom/src/main/java/com/example/javaagent/DemoSpanProcessor.java) - custom `SpanProcessor`
-* [DemoSpanExporter](custom/src/main/java/com/example/javaagent/DemoSpanExporter.java) - custom `SpanExporter`
-* [DemoServlet3InstrumentationModule](instrumentation/servlet-3/src/main/java/com/example/javaagent/instrumentation/DemoServlet3InstrumentationModule.java) - additional instrumentation
+The agent should be built at `agent\build\libs\agent-1.0-SNAPSHOT-all.jar`
 
-## Instrumentation customisation
+## Usage
+Attach the agent to jvm process arg such as:
+`-javaagent:"C:\Users\patson.luk\git\opentelemetry-custom-distro\agent\build\libs\agent-1.0-SNAPSHOT-all.jar" -Dotel.appoptics.service.key=<service key here>`
 
-There are several options to override or customise instrumentation provided by the upstream agent.
-The following description follows one specific use-case:
+Upon successful initialization, the log should print such as:
+```
+[otel.javaagent 2021-06-30 13:04:07:759 -0700] [main] INFO com.appoptics.opentelemetry.extensions.AppOpticsTracerProviderConfigurer - Successfully initialized AppOptics OpenTelemetry extensions with service key ec3d********************************************************5468:ot
+```
 
-> Instrumentation X from Otel distribution creates span that I don't like and I want to change it in my vendor distro.
 
-As an example, let us take some database client instrumentation that creates a span for database call
-and extracts data from db connection to provide attributes for that span.
 
-### I don't want this span at all
-The easiest case. You can just pre-configure your distribution and disable given instrumentation.
-
-### I want to add/modify some attributes and their values does NOT depend on a specific db connection instance.
-E.g. you want to add some data from call stack as span attribute. 
-In this case just provide your custom `SpanProcessor`.
-No need for touching instrumentation itself.
-
-### I want to add/modify some attributes and their values depend on a specific db connection instance.
-Write a _new_ instrumentation which injects its own advice into the same method as the original one.
-Use `getOrder` method to ensure it is run after the original instrumentation.
-Now you can augment current span with new information.
-
-See [DemoServlet3Instrumentation](instrumentation/servlet-3/src/main/java/com/example/javaagent/instrumentation/DemoServlet3Instrumentation.java).
-
-### I want to remove some attributes
-Write custom exporter or use attribute filtering functionality in Collector.
-
-### I don't like Otel span at all. I want to significantly modify it and its lifecycle
-Disable existing instrumentation.
-Write a new one, which injects `Advice` into the same (or better) method as the original instrumentation.
-Write your own `Advice` for this.
-Use existing `Tracer` directly or extend it.
-As you have your own `Advice`, you can control which `Tracer` you use.
