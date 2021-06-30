@@ -1,0 +1,24 @@
+apply from: "$rootDir/gradle/instrumentation.gradle"
+
+//apply plugin: "otel.javaagent-instrumentation"
+//muzzle {
+//
+//}
+
+dependencies {
+  compileOnly "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}"
+  implementation "com.appoptics.agent.java:core:6.23.0"
+  implementation project(":appoptics-opentelemetry-sdk")
+  implementation project(":custom")
+
+
+//  implementation "io.opentelemetry.javaagent:opentelemetry-javaagent-api:1.1.0-alpha"
+//  implementation "io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:1.1.0-alpha"
+//  implementation "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:1.1.0-alpha"
+//  implementation "com.google.guava:guava:30.1-jre" //why
+
+//  compileOnly "com.appoptics.agent.java:appoptics-opentelemetry-sdk:6.23.0"
+//  implementation "com.appoptics.agent.java:appoptics-opentelemetry-java-extensions:6.23.0"
+}
+
+

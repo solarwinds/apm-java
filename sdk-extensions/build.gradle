@@ -1,0 +1,36 @@
+plugins {
+  id("com.github.johnrengelman.shadow") version "6.0.0"
+}
+
+apply from: "$rootDir/gradle/shadow.gradle"
+
+def relocatePackages = ext.relocatePackages
+
+configurations {
+}
+
+dependencies {
+//  customShadow project(path: ":custom", configuration: "shadow")
+//  customShadow project(path: ":instrumentation", configuration: "shadow")
+  implementation project(":instrumentation")
+  implementation project(":custom")
+  implementation "com.appoptics.agent.java:core:6.23.0"
+  implementation "com.appoptics.agent.java:metrics:6.23.0"
+}
+
+tasks {
+  shadowJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    mergeServiceFiles {
+      include("inst/META-INF/services/*")
+    }
+    exclude("**/module-info.class")
+
+    relocatePackages(it)
+  }
+
+  assemble {
+    dependsOn(shadowJar)
+  }
+}
