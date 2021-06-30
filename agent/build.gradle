@@ -14,6 +14,8 @@ dependencies {
   customShadow project(path: ":custom", configuration: "shadow")
   customShadow project(path: ":instrumentation", configuration: "shadow")
   implementation "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}:all"
+  implementation "com.appoptics.agent.java:core:6.23.0"
+  implementation "com.appoptics.agent.java:metrics:6.23.0"
 }
 
 CopySpec isolateSpec() {

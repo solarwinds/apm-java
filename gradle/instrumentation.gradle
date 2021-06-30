@@ -1,6 +1,10 @@
 apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
 
+import io.opentelemetry.instrumentation.gradle.bytebuddy.ByteBuddyPluginConfigurator
+
+apply plugin: 'net.bytebuddy.byte-buddy'
+
 apply from: "$rootDir/gradle/shadow.gradle"
 
 def relocatePackages = ext.relocatePackages
@@ -8,12 +12,23 @@ def relocatePackages = ext.relocatePackages
 configurations {
   testInstrumentation
   testAgent
+  toolingRuntime {
+    canBeConsumed = false
+    canBeResolved = true
+  }
+
+  bootstrapRuntime {
+    canBeConsumed = false
+    canBeResolved = true
+  }
 }
 
 dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-api:${versions.opentelemetryJavaagentAlpha}")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
+  //compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions.opentelemetryJavaagentAlpha}")
+  implementation "org.slf4j:slf4j-api:1.6.2"
 
   compileOnly deps.bytebuddy
   compileOnly deps.bytebuddyagent
@@ -26,6 +41,24 @@ dependencies {
   testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagentAlpha}")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing:${versions.opentelemetry}")
   testImplementation("org.assertj:assertj-core:3.19.0")
+}
+
+afterEvaluate {
+  dependencies {
+    compileOnly "io.opentelemetry.javaagent:opentelemetry-javaagent-api:${versions.opentelemetryJavaagentAlpha}"
+    compileOnly "io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}"
+    compileOnly "net.bytebuddy:byte-buddy:${versions.bytebuddy}"
+    compileOnly "io.opentelemetry:opentelemetry-api:${versions.opentelemetry}"
+//    toolingRuntime(project(path: ":javaagent-tooling", configuration: 'instrumentationMuzzle'))
+//    toolingRuntime(project(path: ":javaagent-extension-api", configuration: 'instrumentationMuzzle'))
+    toolingRuntime "io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}"
+
+
+  }
+  def pluginName = 'io.opentelemetry.javaagent.tooling.muzzle.collector.MuzzleCodeGenerationPlugin'
+  new ByteBuddyPluginConfigurator(project, sourceSets.main, pluginName,
+          configurations.toolingRuntime + configurations.runtimeClasspath
+  ).configure()
 }
 
 shadowJar {
