@@ -1,5 +1,87 @@
 ## Introduction
-This repository is built on the exmaple in https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/examples/distro , which serves as a prototype of extending functionality of OpenTelemetry Java instrumentation agent.
+This repository contains AppOptics implementation that work with OpenTelemetry SDK and Auto agent. This is built on demo repo https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/examples/distro and added sub-projects by merging changes from https://github.com/appoptics/appoptics-opentelemetry-java
+
+Here is the summary of the sub-projects:
+- agent : Builds the full OT auto agent with extra AppOptics components. This is simply a repackaging build script that pull OT agent and our sub-projects to construct a new auto agent
+- appoptics-opentelemetry-sdk : Builds the SDK artifact which has exactly the same interface as our existing AppOptics java agent SDK https://github.com/librato/joboe/tree/master/api . This is to be used with the OT sdk without the OT agent
+- appoptics-opentelemetry-sdk-shaded : Same as appoptics-opentelemetry-sdk but to be used with the OT agent
+- custom : Extra AppOptics components, contains all custom functionality, SPI and other extensions (for example Sampler, Tracer Provider etc) to be loaded by OT's agent classloader
+- core-bootstrap : Core AppOptics components that need to be made available to bootstrap classloader. This is important for `appoptics-opentelemetry-sdk` as the classes from `appoptics-opentelemetry-sdk` are loaded by app loader, which has no access to OT's agent classloader which loads `custom` 
+- instrumentation : Additional instrumentation provided by us using the OT instrumentation framework (ByteBuddy)
+- sdk-extensions : Builds the AO extension jar which runs with the original OT agent (vs the agent built from `agent` sub-project)
+
+More details for each of the sub-projects are listed in "Sub-Projects section"
+
+
+## Build
+#### Agent/Extensions Jars
+Simply run `gradle build` at the root folder.
+
+The agent should be built at `agent\build\libs\agent-1.0-SNAPSHOT-all.jar`.
+The sdk-extensions jar should be built at `sdk-extensions\build\libs\sdk-extensions-1.0-SNAPSHOT-all.jar`.
+
+#### SDK artifacts
+To build the `appoptics-opentelemetry-sdk` and `appoptics-opentelemetry-sdk-shaded` artifacts, use
+`gradle :appoptics-opentelemetry-sdk:publishToMavenLocal` and
+`gradle :appoptics-opentelemetry-sdk-shaded:publishToMavenLocal`
+
+The artifacts will be published to local maven repo and can be used by adding `dependency` to `pom.xml` such as:
+```
+<dependency>
+			<groupId>com.appoptics.agent.java</groupId>
+			<artifactId>appoptics-opentelemetry-sdk-shaded</artifactId>
+			<version>1.0-SNAPSHOT</version>
+</dependency>
+ ```   
+
+## Usage
+#### Agent Jar
+Attach the agent to jvm process arg such as:
+`-javaagent:"C:\Users\patson.luk\git\opentelemetry-custom-distro\agent\build\libs\agent-1.0-SNAPSHOT-all.jar" -Dotel.appoptics.service.key=<service key here>`
+
+Upon successful initialization, the log should print such as:
+```
+[otel.javaagent 2021-06-30 13:04:07:759 -0700] [main] INFO com.appoptics.opentelemetry.extensions.AppOpticsTracerProviderConfigurer - Successfully initialized AppOptics OpenTelemetry extensions with service key ec3d********************************************************5468:ot
+```
+#### Extension Jar
+1. Either download the auto agent directly from https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent-all.jar or build from source. To build from source:
+  - Checkout https://github.com/open-telemetry/opentelemetry-java-instrumentation
+Navigate to the project directory, then gradlew build -x test (-x test is for skipping tests, remove the option if tests are to be run). Use java 9 or above => export JAVA_HOME=<Java 9+ path>.
+  - The java agent jar can be found in ...\git\opentelemetry-java-instrumentation\javaagent\build\libs
+2. Attach the OT agent and our AO extension to the jvm process arg such as:
+```
+-javaagent:"C:\Users\patson.luk\Downloads\opentelemetry-javaagent-all-1.3.1.jar"
+-Dotel.javaagent.experimental.initializer.jar="C:\Users\patson.luk\git\opentelemetry-custom-distro\sdk-extensions\build\libs\sdk-extensions-1.0-SNAPSHOT-all.jar"
+-Dotel.traces.exporter=appoptics
+-Dotel.traces.sampler=appoptics
+-Dotel.metrics.exporter=none
+-Dotel.propagators=tracecontext,baggage,appoptics
+-Dotel.appoptics.service.key=<service key here>
+-Xbootclasspath/a:"C:\Users\patson.luk\git\joboe\core\target\core-6.23.0.jar;C:\Users\patson.luk\git\joboe\dependencies\target\dependencies-6.23.0.jar"
+```
+
+Upon successful initialization, the log should print such as:
+```
+[otel.javaagent 2021-07-07 15:10:59:649 -0700] [main] INFO com.appoptics.opentelemetry.extensions.AppOpticsTracerProviderConfigurer - Successfully initialized AppOptics OpenTelemetry extensions with service key ec3d********************************************************5468:ot
+```
+
+## Debug
+Various flags can be enabled to enable debugging
+
+#### AppOptics core logs
+(WIP)
+
+#### Muzzling
+OT provides Muzzling which matches classes/fields/methods used by instrumentation vs the ones available on the running JVM. If there are any mismatch, the instrumentation will be silently disabled unless debugging flag such as below is provided in the JVM args:
+```
+-Dio.opentelemetry.javaagent.slf4j.simpleLogger.log.muzzleMatcher=DEBUG
+```
+
+## Sub Projects
+#### agent
+Repackage the OT original agent with our custom compoenents (such as Sampler, Tracer) and instrumentation. Custom shadowing (moving classes to `inst` folder and rename extension from `class` to `classdata`) are performed on sub project `custom` and `instrumentation` to make them available to the [OT agent classloader](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/javaagent-bootstrap/src/main/java/io/opentelemetry/javaagent/bootstrap/AgentClassLoader.java).
+
+This produces a new agent, that contains both the OT agent and our changes.
 
 This approach is a middleground of the other 2 approaches:
 1. AO as a pure OT extension, isolated from the OT agent - https://github.com/appoptics/appoptics-opentelemetry-java#opentelemetry-auto-agent
@@ -16,28 +98,51 @@ The advantage of this approach:
 The disadvantage of this approach:
 1. Whenever OT provides a newer version of agent, we will need to rebuild the agent on this repo too if we want the updates.
 
+#### appoptics-opentelemetry-sdk
+An SDK artifact that is expected to run with the [OpenTelemetry SDK](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk), this `appoptics-opentelemetry-sdk` artifact has the same interfaces as our existing appoptics SDK (https://librato.github.io/java-agent-sdk-javadoc/com/appoptics/api/ext/package-summary.html), under the hood, this translates SDK calls into OT operations (spans), therefore it can work with application that has existing manual OT SDK instrumentation.
 
-## General structure
+In fact this artifact is currently not working on its own (missing dependency on `custom` and `core-bootstrap` in the built artifact). There is no strong use case of this artifact, the more useful case is `appoptics-opentelemetry-sdk-shaded` which is built on top of this artifact.
 
-This repository has four main submodules:
+#### appoptics-opentelemetry-sdk-shaded
+Repackage `appoptics-opentelemetry-sdk` to [shaded name space](https://github.com/appoptics/opentelemetry-custom-distro/blob/master/gradle/shadow.gradle), for example `io.opentelemetry.api` -> `io.opentelemetry.javaagent.shaded.io.opentelemetry.api` so SDK calls works with the shaded classes in OT auto agent.
 
-* `custom` contains all custom functionality, SPI and other extensions - Currently we have all the AO tracer/sampler/span exporter here
-* `agent` contains the main repackaging functionality and, optionally, an entry point to the agent. Currently we modified `gradle.build` to include `core`/`metrics` w/o muzzling
-* `instrumentation` contains custom instrumentations - Currently we have the JDBC custom instrumentation which simply add backtrace to the existing OT JDBC span reporting
+This is expected to be used with the enhanced OT auto agent repackaged by our sub-project `agent` or the pure OT agent with our extension jar from sub-projec `sdk-extension`.
 
-## Build
-Simply run `gradle bulid` at the root folder.
+The use case would be someone using our existing AppOptics agent with SDK calls can migrate to use our enhanced OT agent with this `appoptics-opentelemetry-sdk-shaded` artifact. There should be no code change except changes to build process to reference this new artifact instead of the existing appoptics SDK
 
-The agent should be built at `agent\build\libs\agent-1.0-SNAPSHOT-all.jar`
+#### custom
+Our main implementation for OT SPI - which scans implementation using Java service loader. We provide our "implementation" to various OT services such as Sampler, Tracer to enable various AO specific features - AO sampling, profiling, detailed trace reporting/export etc. This also contains various intiailization code and resource files such as default config, SSL cert for gRPC to collector etc.
 
-## Usage
-Attach the agent to jvm process arg such as:
-`-javaagent:"C:\Users\patson.luk\git\opentelemetry-custom-distro\agent\build\libs\agent-1.0-SNAPSHOT-all.jar" -Dotel.appoptics.service.key=<service key here>`
+This is used by both the sub-projects `agent` and `sdk-extensions`
 
-Upon successful initialization, the log should print such as:
+#### core-bootstrap 
+Similar to `custom`, but this contains core AppOptics components that need to be made available to bootstrap classloader. This is important for `appoptics-opentelemetry-sdk` as classes from `appoptics-opentelemetry-sdk` are loaded by app loader, which has no access to OT's agent classloader which loads `custom` 
+
+#### instrumentation
+Our custom instrumentation added on top of the existing OT auto agent instrumentation. 
+
+We follow the practice of exiting OT auto agent instrumentation which contains:
+- `InstrumentationModule` - declares a list of `TypeInstrumentation` for a particular module (for example JDBC). Take note that we need to override isHelperClass
 ```
-[otel.javaagent 2021-06-30 13:04:07:759 -0700] [main] INFO com.appoptics.opentelemetry.extensions.AppOpticsTracerProviderConfigurer - Successfully initialized AppOptics OpenTelemetry extensions with service key ec3d********************************************************5468:ot
-```
+@Override
+public boolean isHelperClass(String className) {
+  return className.startsWith("com.appoptics.opentelemetry.");
+}
+``` 
+so the muzzle plugin will inject our `Tracer` to the application classloader
+- `TypeInstrumentation`- declares instrumentaiton point of what "Type" (class) and what criteria (method name match, annotations on method) should instrumentation (as Advices) be applied to
+- `Advice` - Advices defines what code to be injected to the instrumetnation points. Take note that even though Advices look very much like regular java code, they are actually translated to bytecode and injected on first classloading. Which means debug breakpoints on advice does not work. And code in advice also has various restrictions, see [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/contributing/writing-instrumentation-module.md#advice-classes) for details. Therefore advice code is usually left simple and mostly delegate to `Tracer` which is regular java code
+- `Tracer` - Code that performs actual instrumentation action (ie extract useful KVs, construct and report spans etc)
+
+
+#### sdk-extensions
+Repackages and builds the AO extension jar which runs with the original OT agent (vs the agent built from `agent` sub-project). Take note that since classes from this jar are appended via `-Dotel.javaagent.experimental.initializer.jar` which is loaded by application classloader (instead of OT agent classloader), no custom shadowing is formed (no putting in `inst` and renaming extension from `class` to `classdata`). Regular shadowing/shading is still applied (`io.opentelemetry.xyz` -> `io.opentelemetry.javaagent.shaded.io.opentelemetry.xyz`) as this is run with the OT original agent which some OT class references are still shaded.
+
+
+
+
+
+
 
 
 
