@@ -247,7 +247,7 @@ public class TraceHandler implements ITraceHandler {
 //            System.out.println(declaredMethod);
 //        }
 //        System.out.println(RootSpan.class.getProtectionDomain().getCodeSource().getLocation());
-        Span rootSpan = RootSpan.fromContextOrNull(Context.current());
+        Span rootSpan = RootSpan.fromTraceId(Span.current().getSpanContext().getTraceId());
         if (rootSpan == null) {
             return false;
         }
