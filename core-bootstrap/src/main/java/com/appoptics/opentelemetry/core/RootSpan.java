@@ -6,27 +6,31 @@
 package com.appoptics.opentelemetry.core;
 
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.context.Context;
-import io.opentelemetry.context.ContextKey;
-import org.checkerframework.checker.nullness.qual.Nullable;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * This class encapsulates the context key for storing the current {@link SpanKind#SERVER} span in
- * the {@link Context}.
+ * This class stores the root span of a particular trace by its trace ID.
+ *
+ * Code logic can then perform lookup to get the root span of a particular trace anywhere by providing trace ID.
+ *
+ * Take note that this cannot be implemented using <code>io.opentelemetry.context.Context</code> similar to
+ * <code>io.opentelemetry.instrumentation.api.tracer.ServerSpan</code> as the context can be overwritten
+ * by OT Tracer's instrumentation
  */
 public final class RootSpan {
-  // Keeps track of the root span for the current trace.
-  private static final ContextKey<Span> KEY =
-      ContextKey.named("appoptics-root-span-key");
+  private static final ConcurrentHashMap<String, Span> rootSpanLookup = new ConcurrentHashMap<>();
 
-  @Nullable
-  public static Span fromContextOrNull(Context context) {
-    return context.get(KEY);
+  public static Span fromTraceId(String traceId) {
+    return rootSpanLookup.get(traceId);
   }
 
-  public static Context with(Context context, Span rootSpan) {
-    return context.with(KEY, rootSpan);
+  public static void setRootSpan(Span rootSpan) {
+    rootSpanLookup.put(rootSpan.getSpanContext().getTraceId(), rootSpan);
+  }
+
+  public static Span clearRootSpan(String traceId) {
+    return rootSpanLookup.remove(traceId);
   }
 
   private RootSpan() {}
