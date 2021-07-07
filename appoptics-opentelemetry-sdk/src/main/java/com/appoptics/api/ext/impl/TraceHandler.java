@@ -240,19 +240,13 @@ public class TraceHandler implements ITraceHandler {
         if (!Span.current().getSpanContext().isValid()) {
             return false;
         }
-//        long traceId = Util.toTraceId(Span.current().getSpanContext().getTraceIdBytes());
-//        TracePropertyDictionary.getTracePropertiesByTraceId(traceId).put(com.tracelytics.joboe.span.impl.Span.TraceProperty.TRANSACTION_NAME, transactionName);
 
-//        for (Method declaredMethod : RootSpan.class.getDeclaredMethods()) {
-//            System.out.println(declaredMethod);
-//        }
-//        System.out.println(RootSpan.class.getProtectionDomain().getCodeSource().getLocation());
         Span rootSpan = RootSpan.fromTraceId(Span.current().getSpanContext().getTraceId());
         if (rootSpan == null) {
             return false;
         }
 
-        rootSpan.setAttribute("TransactionName", transactionName);
+        Util.setSpanAttributes(rootSpan, Collections.singletonMap("TransactionName", transactionName));
 
         return true;
     }
