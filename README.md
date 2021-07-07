@@ -25,14 +25,7 @@ To build the `appoptics-opentelemetry-sdk` and `appoptics-opentelemetry-sdk-shad
 `gradle :appoptics-opentelemetry-sdk:publishToMavenLocal` and
 `gradle :appoptics-opentelemetry-sdk-shaded:publishToMavenLocal`
 
-The artifacts will be published to local maven repo and can be used by adding `dependency` to `pom.xml` such as:
-```
-<dependency>
-			<groupId>com.appoptics.agent.java</groupId>
-			<artifactId>appoptics-opentelemetry-sdk-shaded</artifactId>
-			<version>1.0-SNAPSHOT</version>
-</dependency>
- ```   
+The artifacts will be published to local maven repo.
 
 ## Usage
 #### Agent Jar
@@ -64,6 +57,15 @@ Upon successful initialization, the log should print such as:
 ```
 [otel.javaagent 2021-07-07 15:10:59:649 -0700] [main] INFO com.appoptics.opentelemetry.extensions.AppOpticsTracerProviderConfigurer - Successfully initialized AppOptics OpenTelemetry extensions with service key ec3d********************************************************5468:ot
 ```
+#### SDK artifact
+After the artifact `appoptics-opentelemetry-sdk-shaded` is built and published to local maven, it can be used by adding `dependency` to `pom.xml` such as:
+```
+<dependency>
+	<groupId>com.appoptics.agent.java</groupId>
+	<artifactId>appoptics-opentelemetry-sdk-shaded</artifactId>
+	<version>1.0-SNAPSHOT</version>
+</dependency>
+ ```   
 
 ## Debug
 Various flags can be enabled to enable debugging
@@ -79,7 +81,7 @@ OT provides Muzzling which matches classes/fields/methods used by instrumentatio
 
 ## Sub Projects
 #### agent
-Repackage the OT original agent with our custom compoenents (such as Sampler, Tracer) and instrumentation. Custom shadowing (moving classes to `inst` folder and rename extension from `class` to `classdata`) are performed on sub project `custom` and `instrumentation` to make them available to the [OT agent classloader](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/javaagent-bootstrap/src/main/java/io/opentelemetry/javaagent/bootstrap/AgentClassLoader.java).
+Repackages the OT original agent with our custom compoenents (such as Sampler, Tracer) and instrumentation. Custom shadowing (moving classes to `inst` folder and rename extension from `class` to `classdata`) is performed on sub project `custom` and `instrumentation` to make them available to the [OT agent classloader](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/javaagent-bootstrap/src/main/java/io/opentelemetry/javaagent/bootstrap/AgentClassLoader.java).
 
 This produces a new agent, that contains both the OT agent and our changes.
 
@@ -99,9 +101,9 @@ The disadvantage of this approach:
 1. Whenever OT provides a newer version of agent, we will need to rebuild the agent on this repo too if we want the updates.
 
 #### appoptics-opentelemetry-sdk
-An SDK artifact that is expected to run with the [OpenTelemetry SDK](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk), this `appoptics-opentelemetry-sdk` artifact has the same interfaces as our existing appoptics SDK (https://librato.github.io/java-agent-sdk-javadoc/com/appoptics/api/ext/package-summary.html), under the hood, this translates SDK calls into OT operations (spans), therefore it can work with application that has existing manual OT SDK instrumentation.
+An SDK artifact that has the same interfaces as our existing appoptics SDK (https://librato.github.io/java-agent-sdk-javadoc/com/appoptics/api/ext/package-summary.html), under the hood, this translates SDK calls into OT operations (spans), therefore it can work with application that has existing manual OT SDK instrumentation.
 
-In fact this artifact is currently not working on its own (missing dependency on `custom` and `core-bootstrap` in the built artifact). There is no strong use case of this artifact, the more useful case is `appoptics-opentelemetry-sdk-shaded` which is built on top of this artifact.
+In fact this artifact is currently not working on its own (missing dependency on `custom` and `core-bootstrap` in the built artifact). There is no strong use case for this artifact, the more useful case is addressed by `appoptics-opentelemetry-sdk-shaded` which is built on top of this artifact.
 
 #### appoptics-opentelemetry-sdk-shaded
 Repackage `appoptics-opentelemetry-sdk` to [shaded name space](https://github.com/appoptics/opentelemetry-custom-distro/blob/master/gradle/shadow.gradle), for example `io.opentelemetry.api` -> `io.opentelemetry.javaagent.shaded.io.opentelemetry.api` so SDK calls works with the shaded classes in OT auto agent.
