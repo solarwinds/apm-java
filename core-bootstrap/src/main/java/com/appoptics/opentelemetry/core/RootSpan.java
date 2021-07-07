@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.appoptics.opentelemetry.extensions;
+package com.appoptics.opentelemetry.core;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
@@ -25,7 +25,7 @@ public final class RootSpan {
     return context.get(KEY);
   }
 
-  static Context with(Context context, Span rootSpan) {
+  public static Context with(Context context, Span rootSpan) {
     return context.with(KEY, rootSpan);
   }
 

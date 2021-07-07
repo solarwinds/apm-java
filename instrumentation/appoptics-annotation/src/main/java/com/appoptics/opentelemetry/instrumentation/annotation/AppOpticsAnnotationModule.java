@@ -72,10 +72,14 @@ public class AppOpticsAnnotationModule extends InstrumentationModule {
 
 
   //TODO this does NOT work as it finds too many classes and trigger exception. See https://github.com/appoptics/appoptics-opentelemetry-java/pull/5#issue-668569209
+//  @Override
+//  public boolean isHelperClass(String className) {
+//    return (!className.startsWith("com.appoptics.ext") || className.startsWith("com.appoptics.ext.google"))
+//    && (className.startsWith("com.appoptics.") || className.startsWith("com.tracelytics."));
+//  }
   @Override
   public boolean isHelperClass(String className) {
-    return (!className.startsWith("com.appoptics.ext") || className.startsWith("com.appoptics.ext.google"))
-    && (className.startsWith("com.appoptics.") || className.startsWith("com.tracelytics."));
+    return className.startsWith("com.appoptics.opentelemetry.");
   }
 
   public static class AnnotatedLogMethodInstrumentation implements TypeInstrumentation {
@@ -95,7 +99,7 @@ public class AppOpticsAnnotationModule extends InstrumentationModule {
     public void transform(TypeTransformer transformer) {
       transformer.applyAdviceToMethod(
               annotatedMethodMatcher,
-              AppOpticsLogMethodAnnotationAdvice.class.getName());
+              "com.appoptics.opentelemetry.instrumentation.annotation.AppOpticsLogMethodAnnotationAdvice");
     }
   }
 
@@ -116,7 +120,7 @@ public class AppOpticsAnnotationModule extends InstrumentationModule {
     public void transform(TypeTransformer transformer) {
       transformer.applyAdviceToMethod(
               annotatedMethodMatcher,
-              AppOpticsProfileMethodAnnotationAdvice.class.getName());
+              "com.appoptics.opentelemetry.instrumentation.annotation.AppOpticsProfileMethodAnnotationAdvice");
     }
   }
 }

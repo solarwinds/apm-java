@@ -31,8 +31,12 @@ public class AoSpringWebMvcInstrumentationModule extends InstrumentationModule {
     );
   }
 
-  @Override
-  public boolean isHelperClass(String className) {
-    return className.startsWith("com.appoptics.") || className.startsWith("com.tracelytics.");
-  }
+//  @Override
+//  public boolean isHelperClass(String className) {
+//    return className.startsWith("com.appoptics.") || className.startsWith("com.tracelytics.");
+//  }
+    @Override
+    public boolean isHelperClass(String className) {
+      return className.startsWith("com.appoptics.opentelemetry.instrumentation");
+    }
 }

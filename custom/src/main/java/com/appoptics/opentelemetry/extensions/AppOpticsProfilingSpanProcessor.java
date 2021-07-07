@@ -1,5 +1,6 @@
 package com.appoptics.opentelemetry.extensions;
 
+import com.appoptics.opentelemetry.core.Util;
 import com.tracelytics.joboe.Metadata;
 import com.tracelytics.joboe.RpcEventReporter;
 import com.tracelytics.joboe.config.ConfigManager;
@@ -14,7 +15,7 @@ import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 
-import static com.appoptics.opentelemetry.extensions.Constants.*;
+import static com.appoptics.opentelemetry.core.Constants.*;
 
 public class AppOpticsProfilingSpanProcessor implements SpanProcessor {
     private static ProfilerSetting profilerSetting = (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);

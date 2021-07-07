@@ -1,5 +1,6 @@
 package com.appoptics.opentelemetry.extensions;
 
+import com.appoptics.opentelemetry.core.RootSpan;
 import com.tracelytics.ext.google.common.cache.Cache;
 import com.tracelytics.ext.google.common.cache.CacheBuilder;
 import io.opentelemetry.api.trace.Span;

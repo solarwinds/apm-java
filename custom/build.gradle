@@ -14,6 +14,7 @@ dependencies {
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
   //compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions.opentelemetryJavaagentAlpha}")
   compileOnly("org.checkerframework:checker-qual:3.13.0")
+  implementation project(path: ":core-bootstrap")
 
   implementation "org.slf4j:slf4j-api:1.6.2"
   compileOnly "com.appoptics.agent.java:core:6.23.0"

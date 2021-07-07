@@ -3,12 +3,9 @@ package com.appoptics.api.ext.impl;
 import com.appoptics.api.ext.TraceContext;
 import com.tracelytics.joboe.Metadata;
 import com.tracelytics.joboe.OboeException;
-import com.tracelytics.joboe.span.impl.ScopeContextSnapshot;
-import com.tracelytics.joboe.span.impl.ScopeManager;
 import com.tracelytics.logging.Logger;
 import com.tracelytics.logging.LoggerFactory;
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 
 public class TraceContextHandler implements ITraceContextHandler {

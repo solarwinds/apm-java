@@ -18,7 +18,6 @@ import java.lang.reflect.Method;
 import static com.appoptics.opentelemetry.instrumentation.annotation.AppOpticsAnnotationTracer.tracer;
 
 public class AppOpticsProfileMethodAnnotationAdvice {
-
     @Advice.OnMethodEnter()
     public static void onEnter(
             @Advice.Origin Method method,

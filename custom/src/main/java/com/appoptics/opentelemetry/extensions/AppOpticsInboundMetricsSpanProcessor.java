@@ -1,5 +1,6 @@
 package com.appoptics.opentelemetry.extensions;
 
+import com.appoptics.opentelemetry.core.Constants;
 import com.tracelytics.joboe.span.impl.MetricSpanReporter;
 import com.tracelytics.joboe.span.impl.Span;
 import com.tracelytics.metrics.MetricKey;

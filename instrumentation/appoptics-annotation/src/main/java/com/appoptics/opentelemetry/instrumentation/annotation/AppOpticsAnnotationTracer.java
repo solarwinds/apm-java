@@ -8,8 +8,8 @@ package com.appoptics.opentelemetry.instrumentation.annotation;
 import com.appoptics.api.ext.LogMethod;
 import com.appoptics.api.ext.ProfileMethod;
 import com.appoptics.api.ext.impl.SdkUtil;
-import com.appoptics.opentelemetry.extensions.Constants;
-import com.appoptics.opentelemetry.extensions.Util;
+import com.appoptics.opentelemetry.core.Constants;
+import com.appoptics.opentelemetry.core.Util;
 import com.tracelytics.joboe.EventValueConverter;
 import com.tracelytics.joboe.config.ConfigManager;
 import com.tracelytics.joboe.config.ConfigProperty;
@@ -102,7 +102,6 @@ public class AppOpticsAnnotationTracer extends BaseTracer {
 
   @Override
   public void end(Context context) {
-    System.out.println("!!!!!!!!!!! " + Span.fromContext(context));
     super.end(context);
   }
 }

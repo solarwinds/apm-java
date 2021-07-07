@@ -2,6 +2,8 @@ rootProject.name = 'opentelemetry-java-instrumentation-custom-distro'
 
 include "agent"
 include "appoptics-opentelemetry-sdk"
+include "appoptics-opentelemetry-sdk-shaded"
+include "core-bootstrap"
 include "custom"
 include "instrumentation"
 //include "instrumentation:servlet-3"
@@ -9,3 +11,4 @@ include "instrumentation:jdbc"
 include "instrumentation:appoptics-annotation"
 include "instrumentation:spring:spring-webmvc-3.1"
 include "sdk-extensions"
+include "test-shadow"

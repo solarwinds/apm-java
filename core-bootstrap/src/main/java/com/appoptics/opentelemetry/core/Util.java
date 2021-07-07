@@ -1,4 +1,4 @@
-package com.appoptics.opentelemetry.extensions;
+package com.appoptics.opentelemetry.core;
 
 import com.tracelytics.ext.google.common.base.Strings;
 import com.tracelytics.joboe.Metadata;
@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.appoptics.opentelemetry.extensions.Constants.*;
+import static com.appoptics.opentelemetry.core.Constants.*;
 
 public class Util {
     private static Logger logger = LoggerFactory.getLogger(Util.class.getName());
@@ -43,7 +43,7 @@ public class Util {
         return exitContext;
     }
 
-    static String buildXTraceId(String traceId, String spanId, boolean isSampled) {
+    public static String buildXTraceId(String traceId, String spanId, boolean isSampled) {
         final String HEADER = "2B";
         String hexString = HEADER +
                 Strings.padEnd(traceId, Constants.MAX_TASK_ID_LEN * 2, '0') +
@@ -86,7 +86,7 @@ public class Util {
                 : SpanContext.create(w3TraceContext.traceId, w3TraceContext.spanId, w3TraceContext.traceFlags, TraceState.getDefault());
     }
 
-    static W3TraceContextHolder toW3TraceContext(String xTrace) {
+    public static W3TraceContextHolder toW3TraceContext(String xTrace) {
         Metadata metadata;
         try {
             metadata = new Metadata(xTrace);
@@ -115,10 +115,10 @@ public class Util {
     }
 
 
-    static class W3TraceContextHolder {
-        final String traceId;
-        final String spanId;
-        final TraceFlags traceFlags;
+    public static class W3TraceContextHolder {
+        public final String traceId;
+        public final String spanId;
+        public final TraceFlags traceFlags;
 
         W3TraceContextHolder(String traceId, String spanId, TraceFlags traceFlags) {
             this.traceId = traceId;

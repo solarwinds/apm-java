@@ -1,11 +1,10 @@
 package com.appoptics.api.ext.impl;
 
 import com.appoptics.api.ext.TraceEvent;
-import com.appoptics.api.ext.model.OpenTelemetryTraceEvent;
 import com.appoptics.api.ext.model.NoOpEvent;
-import com.appoptics.opentelemetry.extensions.RootSpan;
-import com.appoptics.opentelemetry.extensions.Util;
-import com.tracelytics.joboe.NoopEvent;
+import com.appoptics.api.ext.model.OpenTelemetryTraceEvent;
+import com.appoptics.opentelemetry.core.RootSpan;
+import com.appoptics.opentelemetry.core.Util;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
@@ -16,7 +15,6 @@ import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapGetter;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
@@ -245,10 +243,10 @@ public class TraceHandler implements ITraceHandler {
 //        long traceId = Util.toTraceId(Span.current().getSpanContext().getTraceIdBytes());
 //        TracePropertyDictionary.getTracePropertiesByTraceId(traceId).put(com.tracelytics.joboe.span.impl.Span.TraceProperty.TRANSACTION_NAME, transactionName);
 
-        for (Method declaredMethod : RootSpan.class.getDeclaredMethods()) {
-            System.out.println(declaredMethod);
-        }
-        System.out.println(RootSpan.class.getProtectionDomain().getCodeSource().getLocation());
+//        for (Method declaredMethod : RootSpan.class.getDeclaredMethods()) {
+//            System.out.println(declaredMethod);
+//        }
+//        System.out.println(RootSpan.class.getProtectionDomain().getCodeSource().getLocation());
         Span rootSpan = RootSpan.fromContextOrNull(Context.current());
         if (rootSpan == null) {
             return false;

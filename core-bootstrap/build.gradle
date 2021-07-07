@@ -1,0 +1,17 @@
+plugins {
+  id "java"
+  id("com.github.johnrengelman.shadow") version "6.0.0"
+}
+
+apply from: "$rootDir/gradle/shadow.gradle"
+
+dependencies {
+  compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
+  compileOnly("io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}")
+  compileOnly("org.checkerframework:checker-qual:3.13.0")
+  compileOnly "org.slf4j:slf4j-api:1.6.2"
+
+  compileOnly "com.appoptics.agent.java:core:6.23.0"
+  compileOnly "com.appoptics.agent.java:metrics:6.23.0"
+}
+

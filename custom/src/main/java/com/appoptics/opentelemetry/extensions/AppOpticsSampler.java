@@ -1,5 +1,7 @@
 package com.appoptics.opentelemetry.extensions;
 
+import com.appoptics.opentelemetry.core.Constants;
+import com.appoptics.opentelemetry.core.Util;
 import com.google.auto.service.AutoService;
 import com.tracelytics.joboe.TraceDecision;
 import com.tracelytics.joboe.TraceDecisionUtil;

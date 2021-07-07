@@ -1,5 +1,6 @@
 package com.appoptics.opentelemetry.extensions;
 
+import com.appoptics.opentelemetry.core.Util;
 import com.tracelytics.instrumentation.HeaderConstants;
 import com.tracelytics.joboe.Metadata;
 import io.opentelemetry.api.trace.Span;

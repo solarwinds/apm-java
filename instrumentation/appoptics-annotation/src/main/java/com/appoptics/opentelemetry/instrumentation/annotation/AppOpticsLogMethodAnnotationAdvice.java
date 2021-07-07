@@ -32,9 +32,9 @@ public class AppOpticsLogMethodAnnotationAdvice {
         context = tracer().startSpan(current, annotation, method, kind);
         scope = context.makeCurrent();
     }
-
-    //@Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
-    @Advice.OnMethodExit
+//
+    @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
+    //@Advice.OnMethodExit
     public static void stopSpan(
             @Advice.Local("otelContext") Context context,
             @Advice.Local("otelScope") Scope scope,

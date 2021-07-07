@@ -1,4 +1,4 @@
-package com.appoptics.opentelemetry.extensions;
+package com.appoptics.opentelemetry.core;
 
 public interface Constants {
     String AO_INTERNAL_ATTRIBUTE_PREFIX = "ao.internal.";
