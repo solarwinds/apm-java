@@ -1,0 +1,50 @@
+plugins {
+  id("com.github.johnrengelman.shadow") version "6.0.0"
+  id("maven-publish")
+  id("java")
+}
+
+//apply plugin: "maven"
+apply from: "$rootDir/gradle/shadow.gradle"
+
+group = "com.appoptics.agent.java"
+
+def relocatePackages = ext.relocatePackages
+
+configurations {
+  customShadow
+}
+
+dependencies {
+  customShadow project(path: ":appoptics-opentelemetry-sdk", configuration: "shadow")
+  implementation project(path: ":appoptics-opentelemetry-sdk")
+}
+
+shadowJar {
+  archiveClassifier = ''
+}
+
+publishing {
+  publications {
+    shadow(MavenPublication) { publication ->
+      from project.shadow.component(publication)
+    }
+  }
+}
+
+
+tasks {
+  shadowJar {
+    relocatePackages(it)
+  }
+
+  assemble {
+    dependsOn(shadowJar)
+  }
+
+//  install {
+//    dependsOn(shadowJar)
+//    dependsOn(publish)
+//  }
+}
+
