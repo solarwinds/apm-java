@@ -4,7 +4,7 @@ This repository contains AppOptics implementation that works with OpenTelemetry 
 Here is the summary of the sub-projects:
 - agent : Builds the full OT auto agent with extra AppOptics components. This is simply a repackaging build script that pull OT agent and our sub-projects to construct a new auto agent
 - appoptics-opentelemetry-sdk : Builds the SDK artifact which has exactly the same interface as our existing AppOptics java agent SDK https://github.com/librato/joboe/tree/master/api . This is to be used as a base for `appoptics-opentelemetry-sdk-shaded`
-- appoptics-opentelemetry-sdk-shaded : Same as appoptics-opentelemetry-sdk but to be used with the OT agent
+- appoptics-opentelemetry-sdk-shaded : Same as appoptics-opentelemetry-sdk but can be used with the OT agent with shaded class names
 - custom : Extra AppOptics components, contains all custom functionality, SPI and other extensions (for example Sampler, Tracer Provider etc) to be loaded by OT's agent classloader
 - core-bootstrap : Core AppOptics components that need to be made available to bootstrap classloader. This is important for `appoptics-opentelemetry-sdk` as the classes from `appoptics-opentelemetry-sdk` are loaded by app loader, which has no access to OT's agent classloader which loads `custom` 
 - instrumentation : Additional instrumentation provided by us using the OT instrumentation framework (ByteBuddy)
