@@ -10,7 +10,7 @@ Here is the summary of the sub-projects:
 - instrumentation : Additional instrumentation provided by us using the OT instrumentation framework (ByteBuddy)
 - sdk-extensions : Builds the AO extension jar which runs with the original OT agent (vs the agent built from `agent` sub-project)
 
-More details for each of the sub-projects are listed in "Sub-Projects section"
+More details for each of the sub-projects are listed in [Sub-Projects](#sub-projects) section
 
 
 ## Build
