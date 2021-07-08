@@ -57,6 +57,9 @@ Upon successful initialization, the log should print such as:
 ```
 [otel.javaagent 2021-07-07 15:10:59:649 -0700] [main] INFO com.appoptics.opentelemetry.extensions.AppOpticsTracerProviderConfigurer - Successfully initialized AppOptics OpenTelemetry extensions with service key ec3d********************************************************5468:ot
 ```
+
+**There are certain challenges for classloading with extension jar, more details in https://github.com/open-telemetry/opentelemetry-java-instrumentation/discussions/3350** 
+
 #### SDK artifact
 After the artifact `appoptics-opentelemetry-sdk-shaded` is built and published to local maven, it can be used by adding `dependency` to `pom.xml` such as:
 ```
