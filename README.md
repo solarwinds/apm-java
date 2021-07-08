@@ -1,5 +1,5 @@
 ## Introduction
-This repository contains AppOptics implementation that works with OpenTelemetry SDK and Auto agent. This is built on demo repo https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/examples/distro and added sub-projects by merging changes from https://github.com/appoptics/appoptics-opentelemetry-java
+This repository contains AppOptics implementation that works with OpenTelemetry SDK and Auto agent. This is built on demo repo https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/examples/distro and added sub-projects by merging changes from https://github.com/appoptics/appoptics-opentelemetry-java (now archived)
 
 Here is the summary of the sub-projects:
 - agent : Builds the full OT auto agent with extra AppOptics components. This is simply a repackaging build script that pull OT agent and our sub-projects to construct a new auto agent
