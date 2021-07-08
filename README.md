@@ -1,5 +1,5 @@
 ## Introduction
-This repository contains AppOptics implementation that works with OpenTelemetry SDK and Auto agent. This is built on demo repo https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/examples/distro and added sub-projects by merging changes from https://github.com/appoptics/appoptics-opentelemetry-java
+This repository contains AppOptics implementation that works with OpenTelemetry SDK and Auto agent. This is built on demo repo https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/examples/distro and added sub-projects by merging changes from https://github.com/appoptics/appoptics-opentelemetry-java (now archived)
 
 Here is the summary of the sub-projects:
 - agent : Builds the full OT auto agent with extra AppOptics components. This is simply a repackaging build script that pull OT agent and our sub-projects to construct a new auto agent
@@ -55,8 +55,12 @@ Navigate to the project directory, then gradlew build -x test (-x test is for sk
 
 Upon successful initialization, the log should print such as:
 ```
-[otel.javaagent 2021-07-07 15:10:59:649 -0700] [main] INFO com.appoptics.opentelemetry.extensions.AppOpticsTracerProviderConfigurer - Successfully initialized AppOptics OpenTelemetry extensions with service key ec3d********************************************************5468:ot
+[otel.javaagent 2021-07-08 10:41:16:650 -0700] [main] INFO io.opentelemetry.javaagent.tooling.VersionLogger - opentelemetry-javaagent - version: 1.3.1
+[otel.javaagent 2021-07-08 10:41:19:141 -0700] [main] INFO com.appoptics.opentelemetry.extensions.AppOpticsTracerProviderConfigurer - Successfully initialized AppOptics OpenTelemetry extensions with service key ec3d********************************************************5468:ot
 ```
+
+**There are certain challenges for classloading with extension jar, more details in https://github.com/open-telemetry/opentelemetry-java-instrumentation/discussions/3350** 
+
 #### SDK artifact
 After the artifact `appoptics-opentelemetry-sdk-shaded` is built and published to local maven, it can be used by adding `dependency` to `pom.xml` such as:
 ```
