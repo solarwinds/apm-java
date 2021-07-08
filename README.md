@@ -9,6 +9,7 @@ Here is the summary of the sub-projects:
 - core-bootstrap : Core AppOptics components that need to be made available to bootstrap classloader. This is important for `appoptics-opentelemetry-sdk` as the classes from `appoptics-opentelemetry-sdk` are loaded by app loader, which has no access to OT's agent classloader which loads `custom` 
 - instrumentation : Additional instrumentation provided by us using the OT instrumentation framework (ByteBuddy)
 - sdk-extensions : Builds the AO extension jar which runs with the original OT agent (vs the agent built from `agent` sub-project)
+- sdk-extensions-bootstrap : Builds the AO extension jar dependencies that should be made available to bootstrap loader. It basically package the `core` and `metrics` from joboe
 
 More details for each of the sub-projects are listed in [Sub-Projects](#sub-projects) section
 
@@ -50,7 +51,7 @@ Navigate to the project directory, then gradlew build -x test (-x test is for sk
 -Dotel.metrics.exporter=none
 -Dotel.propagators=tracecontext,baggage,appoptics
 -Dotel.appoptics.service.key=<service key here>
--Xbootclasspath/a:"C:\Users\patson.luk\git\joboe\core\target\core-6.23.0.jar;C:\Users\patson.luk\git\joboe\dependencies\target\dependencies-6.23.0.jar"
+-Xbootclasspath/a:"C:\Users\patson.luk\git\opentelemetry-custom-distro\sdk-extensions-bootstrap\build\libs\sdk-extensions-bootstrap-1.0-SNAPSHOT.jar"
 ```
 
 Upon successful initialization, the log should print such as:
@@ -142,8 +143,12 @@ so the muzzle plugin will inject our `Tracer` to the application classloader
 
 
 #### sdk-extensions
-Repackages and builds the AO extension jar which runs with the original OT agent (vs the agent built from `agent` sub-project). Take note that since classes from this jar are appended via `-Dotel.javaagent.experimental.initializer.jar` which is loaded by application classloader (instead of OT agent classloader), no custom shadowing is formed (no putting in `inst` and renaming extension from `class` to `classdata`). Regular shadowing/shading is still applied (`io.opentelemetry.xyz` -> `io.opentelemetry.javaagent.shaded.io.opentelemetry.xyz`) as this is run with the OT original agent which some OT class references are still shaded.
+Repackages and builds the AO extension jar which runs with the original OT agent (vs the agent built from `agent` sub-project). Take note that since classes from this jar are appended via `-Dotel.javaagent.experimental.initializer.jar` which is loaded by application classloader (instead of OT agent classloader), no custom shadowing is performed (no putting in `inst` and renaming extension from `class` to `classdata`). Regular shadowing/shading is still applied (`io.opentelemetry.xyz` -> `io.opentelemetry.javaagent.shaded.io.opentelemetry.xyz`) as this is run with the OT original agent which some OT class references are still shaded. Take note that in order ot use this extension, it has to be augmented with `-Xbootclasspath` to append `sdk-extensions-bootstrap` jar to bootstrap class path (see [sdk-extensions-bootstrap](sdk-extensions-bootstrap) for details)
 
+#### sdk-extensions-bootstrap
+Repackages `core` and `metric` from joboe and append the classes the bootstrap classpath. This is necessary as sdk-extension's instrumentation classes are injected into application's current classloader, these instrumentation referes our classes in joboe `core` and `metrics`. If the `core` classes are included in the sdk-extension via `-Dotel.javaagent.experimental.initializer.jar`, then they are unavailable to such classloader.
+
+As discussed in https://github.com/open-telemetry/opentelemetry-java-instrumentation/discussions/3350, one approach is to append the `core` and `metrics` classes to bootstrap classloader by using a separate jar, which is produced by this sub-project
 
 
 
