@@ -43,53 +43,14 @@ public class AoStatementInstrumentation implements TypeInstrumentation {
                 AoStatementInstrumentation.class.getName() + "$StatementAdvice");
     }
 
-//  @Override
-//  public Map<? extends ElementMatcher<? super MethodDescription>, String> transformers() {
-//    return singletonMap(
-//            nameStartsWith("execute").and(takesArgument(0, String.class)).and(isPublic()),
-//            AoStatementInstrumentation.class.getName() + "$StatementAdvice");
-//  }
+    public static class StatementAdvice {
+        @Advice.OnMethodEnter(suppress = Throwable.class)
+        public static void onEnter() {
+            if (CallDepthThreadLocalMap.getCallDepth(Statement.class).get() != 1) { //only report back when depth is one to avoid duplications
+                return;
+            }
+            AoStatementTracer.writeStackTrace(Context.current());
+        }
+    }
 
-      public static class StatementAdvice {
-          //    @Advice.OnMethodEnter//(suppress = Throwable.class)
-//    public static void onEnter(
-//            @Advice.Argument(0) String sql,
-//            @Advice.This Statement statement) {
-//      if (CallDepthThreadLocalMap.getCallDepth(Statement.class).get() != 1) { //only report back when depth is one to avoid duplications
-//        return;
-//      }
-//
-//      AoStatementTracer.writeStackTrace(Context.current());
-//    }
-          @Advice.OnMethodEnter(suppress = Throwable.class)
-          public static void onEnter(
-                  @Advice.Argument(0) String sql,
-                  @Advice.This Statement statement) {
-              try {
-                  System.out.println("!!!!!!!!!!!!!!!!??????????????? :X");
-                  if (CallDepthThreadLocalMap.getCallDepth(Statement.class).get() != 1) { //only report back when depth is one to avoid duplications
-                      return;
-                  }
-
-
-                  AoStatementTracer.writeStackTrace(Context.current());
-              } catch (Throwable e) {
-                  System.out.println(":( !!!!!!!!!!!!!!!");
-                  e.printStackTrace();
-              }
-          }
-
-          @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
-          public static void stopSpan(
-                  @Advice.Thrown Throwable throwable) {
-
-              System.out.println("????????????? :D ~");
-//              if (scope == null) {
-//                  return;
-//              }
-//              CallDepthThreadLocalMap.reset(Statement.class);
-
-              //scope.close();
-          }
-      }
 }

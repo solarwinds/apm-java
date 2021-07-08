@@ -17,11 +17,6 @@ gradlePlugin {
       id = "muzzle"
       implementationClass = "io.opentelemetry.instrumentation.gradle.muzzle.MuzzlePlugin"
     }
-
-    create("test-plugin") {
-      id ="sayHello"
-      implementationClass = "io.opentelemetry.instrumentation.gradle.muzzle.HelloPlugin"
-    }
   }
 }
 
