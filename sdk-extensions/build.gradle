@@ -14,8 +14,10 @@ dependencies {
 //  customShadow project(path: ":instrumentation", configuration: "shadow")
   implementation project(":instrumentation")
   implementation project(":custom")
-  implementation "com.appoptics.agent.java:core:6.23.0"
-  implementation "com.appoptics.agent.java:metrics:6.23.0"
+
+  //core and metrics will be made available in jar from sdk-extensions-bootstrap, appended to bootstrap via `-Xbootclasspath/a:`
+  compileOnly "com.appoptics.agent.java:core:${versions.appoptics}"
+  compileOnly "com.appoptics.agent.java:metrics:${versions.appoptics}"
 }
 
 tasks {

@@ -1,0 +1,22 @@
+plugins {
+  id "java"
+  id("com.github.johnrengelman.shadow") version "6.0.0"
+}
+
+apply from: "$rootDir/gradle/shadow.gradle"
+
+dependencies {
+  runtimeOnly "com.appoptics.agent.java:core:${versions.appoptics}"
+  runtimeOnly "com.appoptics.agent.java:metrics:${versions.appoptics}"
+}
+
+
+tasks {
+  shadowJar {
+    classifier = "" //make it overwrite the original file instead of generating an extra one with `-all` suffix
+  }
+
+  assemble {
+    dependsOn(shadowJar)
+  }
+}

@@ -17,8 +17,8 @@ dependencies {
   implementation project(path: ":core-bootstrap")
 
   implementation "org.slf4j:slf4j-api:1.6.2"
-  compileOnly "com.appoptics.agent.java:core:6.23.0"
-  compileOnly "com.appoptics.agent.java:metrics:6.23.0"
+  compileOnly "com.appoptics.agent.java:core:${versions.appoptics}"
+  compileOnly "com.appoptics.agent.java:metrics:${versions.appoptics}"
 
   compileOnly "com.google.auto.service:auto-service-annotations:1.0-rc6"
   annotationProcessor "com.google.auto.service:auto-service:1.0-rc6"
