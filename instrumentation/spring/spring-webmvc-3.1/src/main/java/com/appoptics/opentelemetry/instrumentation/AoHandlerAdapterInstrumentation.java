@@ -56,7 +56,6 @@ public class AoHandlerAdapterInstrumentation implements TypeInstrumentation {
       if (serverSpan != null) {
         String transactionName = AoSpringWebMvcTracer.spanNameOnHandle(handler);
         serverSpan.setAttribute("TransactionName", transactionName);
-        System.out.println("AO INSTRUMENTATION: Set TransactionName " + transactionName);
       }
     }
   }
