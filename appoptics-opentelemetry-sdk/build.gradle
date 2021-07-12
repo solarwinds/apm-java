@@ -6,8 +6,7 @@ group = "com.appoptics.agent.java"
 dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:${versions.opentelemetryJavaagentAlpha}")
-
-          compileOnly "com.appoptics.agent.java:core:${versions.appoptics}"
+  compileOnly "com.appoptics.agent.java:core:${versions.appoptics}"
   compileOnly "com.appoptics.agent.java:metrics:${versions.appoptics}"
   compileOnly project(":custom")
   compileOnly project(":core-bootstrap")

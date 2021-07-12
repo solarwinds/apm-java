@@ -9,7 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * TODO this might not be necessary as when the extension is loaded, it should already block for init
+ *  Checker on the OT/AO agent or extension status. Provide a method to block until it's ready (ie ready to trace - remote trace settings are downloaded)
  *
  * @author pluk
  */
@@ -58,9 +58,16 @@ public class AgentChecker {
     public static boolean waitUntilAgentReady(long timeout, TimeUnit unit) {
         if (isExtensionAvailable && serviceKey != null) {
             try {
-                Future<?> future = Initializer.initialize(serviceKey);
-                future.get(timeout, unit);
-                return true;
+                //Future<?> future = Initializer.initialize(serviceKey);
+                Future<?> future = Initializer.getStartupTasksFuture();
+                if (future != null) {
+                    future.get(timeout, unit);
+                    return true;
+                } else {
+                    logger.warning("AppOptics can only be used with javaagent");
+                    return false;
+                }
+
             } catch (Exception e) {
                 logger.warning("Agent is still not ready after waiting for " + timeout + " " + unit);
                 return false;

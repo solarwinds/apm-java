@@ -12,18 +12,14 @@ import org.slf4j.LoggerFactory;
 
 @AutoService(SdkTracerProviderConfigurer.class)
 public class AppOpticsTracerProviderConfigurer implements SdkTracerProviderConfigurer {
-    private static final String APPOPTICS_SERVICE_KEY = "otel.appoptics.service.key";
     //private Logger log = LoggerFactory.getLogger(AgentInstaller.class);
     private Logger logger = LoggerFactory.getLogger(getClass());
     public AppOpticsTracerProviderConfigurer() {
-        String serviceKey = System.getProperty(APPOPTICS_SERVICE_KEY);
         try {
-            Initializer.initialize(serviceKey);
-            logger.info("Successfully initialized AppOptics OpenTelemetry extensions with service key " + ServiceKeyUtils.maskServiceKey(serviceKey));
+            Initializer.initialize();
         } catch (InvalidConfigException e) {
-            logger.warn("Failed to initialize AppOptics OpenTelemetry extensions due to config error: " + e.getMessage(), e);
+            logger.warn(e.getMessage());
         }
-
     }
 
     @Override
