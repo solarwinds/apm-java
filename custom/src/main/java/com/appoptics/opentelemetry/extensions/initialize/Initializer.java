@@ -30,6 +30,9 @@ import java.util.concurrent.Future;
 public class Initializer {
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(Initializer.class.getName());
     private static final String VERSION_PROPERTIES_FILE = "/version.properties";
+    private static final String APPOPTICS_SERVICE_KEY = "otel.appoptics.service.key";
+    private static Future<?> startupTasksFuture;
+
     static {
         ConfigProperty.AGENT_LOGGING.setParser(LogSettingParser.INSTANCE);
         ConfigProperty.AGENT_LOG_FILE.setParser(new LogFileStringParser());
@@ -46,18 +49,22 @@ public class Initializer {
         ConfigProperty.PROFILER.setParser(ProfilerSettingParser.INSTANCE);
     }
 
-    public static Future<?> initialize(String serviceKey) throws InvalidConfigException {
+    public static Future<?> initialize() throws InvalidConfigException {
+        String serviceKey = System.getProperty(APPOPTICS_SERVICE_KEY);
+
         InvalidConfigException exception = null;
         Future<?> future = null;
         try {
             initializeConfig(serviceKey);
-            future = executeStartupTasks();
+            //future = executeStartupTasks(); //Cannot call this here, see https://github.com/appoptics/opentelemetry-custom-distro/issues/7
             registerShutdownTasks();
         } catch (InvalidConfigException e) {
             exception = e;
+            logger.warn("Failed to initialize AppOptics OpenTelemetry extensions due to config error: " + e.getMessage(), e);
             throw e;
         } finally {
             reportInit(exception);
+            logger.info("Successfully initialized AppOptics OpenTelemetry extensions with service key " + ServiceKeyUtils.maskServiceKey(serviceKey));
             return future;
         }
     }
@@ -79,15 +86,17 @@ public class Initializer {
         Runtime.getRuntime().addShutdownHook(shutdownThread);
     }
 
-    public static Future<?> executeStartupTasks() {
+    public static void executeStartupTasks() {
         ExecutorService service = Executors.newSingleThreadExecutor(DaemonThreadFactory.newInstance("post-startup-tasks"));
 
-        Future<?> future = service.submit(new Runnable() {
+        startupTasksFuture = service.submit(new Runnable() {
             public void run() {
                 try {
+                    logger.info("Starting startup task");
                     // trigger init on the Settings reader
                     CountDownLatch settingsLatch = null;
 
+                    logger.info("Initializing HostUtils");
                     HostInfoUtils.init(ServerHostInfoReader.INSTANCE);
                     try {
                         HostInfoUtils.NetworkAddressInfo networkAddressInfo = HostInfoUtils.getNetworkAddressInfo();
@@ -99,9 +108,13 @@ public class Initializer {
                     } catch (ClientException e) {
                         logger.debug("Failed to initialize RpcSettingsReader : " + e.getMessage());
                     }
+                    logger.info("Initialized HostUtils");
 
+                    logger.info("Building reporter");
                     EventImpl.setDefaultReporter(RpcEventReporter.buildReporter(RpcClientManager.OperationType.TRACING));
+                    logger.info("Built reporter");
 
+                    logger.info("Starting System monitor");
                     SystemMonitorController.startWithBuilder(new SystemMonitorBuilder() {
                         @Override
                         public List<SystemMonitor<?, ?>> build() {
@@ -121,6 +134,7 @@ public class Initializer {
                             }.buildMonitors();
                         }
                     });
+                    logger.info("Started System monitor");
                     //SystemMonitorController.start();
 
                     ProfilerSetting profilerSetting = (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);
@@ -144,10 +158,13 @@ public class Initializer {
                 }
             }
         });
+        logger.info("Submitted startup task");
 
         service.shutdown();
+    }
 
-        return future;
+    public static Future<?> getStartupTasksFuture() {
+        return startupTasksFuture;
     }
 
     private static void initializeConfig(String serviceKey) throws InvalidConfigException {
@@ -206,11 +223,12 @@ public class Initializer {
             exceptions.add(new InvalidConfigReadSourceException(e.getConfigProperty(), ConfigSourceType.ENV_VAR, null, container, e));
         }
 
+        //JVM args are currently not supported as the OT initialization does not pass them down
 //        try {
 //            //Secondly, read from Java Agent Arguments
-//            logger.fine("Start reading configs from -javaagent arguments");
+//            logger.debug("Start reading configs from -javaagent arguments");
 //            new JavaAgentArgumentConfigReader(agentArgs).read(container);
-//            logger.fine("Finished reading configs from -javaagent arguments");
+//            logger.debug("Finished reading configs from -javaagent arguments");
 //        } catch (InvalidConfigException e) {
 //            exceptions.add(new InvalidConfigReadSourceException(e.getConfigProperty(), ConfigSourceType.JVM_ARG, null, container, e));
 //        }
