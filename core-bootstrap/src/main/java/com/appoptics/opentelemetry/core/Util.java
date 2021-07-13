@@ -20,6 +20,14 @@ public class Util {
     private static Logger logger = LoggerFactory.getLogger(Util.class.getName());
     private static String APPOPTICS_TRACE_STATE_KEY = "appoptics";
     private static byte EXIT_OP_ID_MASK = 0xf;
+
+    /**
+     * Build an AO x-trace ID from OT span context. Take note that we will have to check the value of `appoptics` in
+     * `tracestate` first as AO x-trace ID has longer task ID than its OT counterpart traceid. More details in
+     * https://github.com/librato/joboe/issues/1079
+     * @param context
+     * @return
+     */
     public static String buildXTraceId(SpanContext context) {
         String aoId = context.getTraceState().get(APPOPTICS_TRACE_STATE_KEY);
 
@@ -34,6 +42,14 @@ public class Util {
         return buildXTraceId(traceId, context.getSpanId(), context.isSampled());
     }
 
+    /**
+     * Generates the AO metadata for the "exit event" of an OT span.
+     *
+     * Since OT has no concept of "exit event", we will need to generate the AO op-id for the metadata of AO exit event
+     *
+     * @param context
+     * @return
+     */
     public static Metadata buildSpanExitMetadata(SpanContext context) {
         Metadata entryContext = buildMetadata(context);
         byte[] exitOpID = Arrays.copyOf(entryContext.getOpID(), entryContext.getOpID().length);
@@ -43,6 +59,14 @@ public class Util {
         return exitContext;
     }
 
+    /**
+     * Builds an AO x-trace ID with OT trace id and span id
+     *
+     * @param traceId
+     * @param spanId
+     * @param isSampled
+     * @return
+     */
     public static String buildXTraceId(String traceId, String spanId, boolean isSampled) {
         final String HEADER = "2B";
         String hexString = HEADER +
@@ -54,6 +78,12 @@ public class Util {
         return hexString.toUpperCase();
     }
 
+    /**
+     * Builds an AO metadata with OT span context
+     *
+     * @param context
+     * @return
+     */
     public static Metadata buildMetadata(SpanContext context) {
         try {
             Metadata metadata = new Metadata(buildXTraceId(context));
@@ -79,6 +109,12 @@ public class Util {
         return value;
     }
 
+    /**
+     * Builds an OT span context with AO x-trace ID
+     * @param xTrace
+     * @param isRemote
+     * @return
+     */
     public static SpanContext toSpanContext(String xTrace, boolean isRemote) {
         W3TraceContextHolder w3TraceContext = toW3TraceContext(xTrace);
         return isRemote
@@ -86,6 +122,11 @@ public class Util {
                 : SpanContext.create(w3TraceContext.traceId, w3TraceContext.spanId, w3TraceContext.traceFlags, TraceState.getDefault());
     }
 
+    /**
+     * Builds a w3c formatted trace context with AO x-trace ID
+     * @param xTrace
+     * @return
+     */
     public static W3TraceContextHolder toW3TraceContext(String xTrace) {
         Metadata metadata;
         try {
@@ -145,6 +186,14 @@ public class Util {
         return map;
     }
 
+    /**
+     * A convenient method to set span attributes with a Map with values of any types.
+     *
+     * Take note that if the type is not supported, its `toString` value will be used.
+     *
+     * @param span
+     * @param attributes
+     */
     public static void setSpanAttributes(Span span, Map<String, ?> attributes) {
         for (Map.Entry<String, ?> entry : attributes.entrySet()) {
             Object value = entry.getValue();
@@ -168,6 +217,14 @@ public class Util {
         }
     }
 
+    /**
+     * A convenient method to set span builder attributes with a Map with values of any types.
+     *
+     * Take note that if the type is not supported, its `toString` value will be used.
+     *
+     * @param spanBuilder
+     * @param attributes
+     */
     public static void setSpanAttributes(SpanBuilder spanBuilder, Map<String, ?> attributes) {
         for (Map.Entry<String, ?> entry : attributes.entrySet()) {
             Object value = entry.getValue();
