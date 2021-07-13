@@ -6,9 +6,9 @@ import io.opentelemetry.javaagent.spi.config.PropertySource;
 import java.util.HashMap;
 import java.util.Map;
 
-//public class AppOpticsPropertySource {
-//    //1.1.0 does not have this
-//}
+/**
+ * Provide various default properties when running OT agent with AO SPI implementations
+ */
 @AutoService(PropertySource.class)
 public class AppOpticsPropertySource implements PropertySource {
     private static final Map<String, String> PROPERTIES = new HashMap<>();

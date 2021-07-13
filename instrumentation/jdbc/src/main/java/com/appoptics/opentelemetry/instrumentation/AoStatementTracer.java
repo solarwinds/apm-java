@@ -5,6 +5,7 @@
 
 package com.appoptics.opentelemetry.instrumentation;
 
+import com.appoptics.opentelemetry.core.Constants;
 import com.tracelytics.util.BackTraceUtil;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
@@ -20,8 +21,7 @@ public class AoStatementTracer extends BaseTracer {
 
     if (span.getSpanContext().isSampled()) {
       String backTraceString = BackTraceUtil.backTraceToString(BackTraceUtil.getBackTrace(1));
-      //span.setAttribute(Constants.AO_KEY_PREFIX + "Backtrace", backTraceString);
-      span.setAttribute("ao." + "Backtrace", backTraceString);
+      span.setAttribute(Constants.AO_KEY_PREFIX + "Backtrace", backTraceString);
     }
   }
 

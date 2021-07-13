@@ -18,6 +18,10 @@ import java.util.List;
 
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
+/**
+ * Experimental instrumentation to process @LogMethod and @ProfileMethod usage from
+ * our AO/OT SDK
+ */
 @AutoService(InstrumentationModule.class)
 public class AppOpticsAnnotationModule extends InstrumentationModule {
 
@@ -30,13 +34,6 @@ public class AppOpticsAnnotationModule extends InstrumentationModule {
     return Arrays.asList(new AnnotatedLogMethodInstrumentation(), new AnnotatedProfileMethodInstrumentation());
   }
 
-
-  //Using isHelperClass as below does NOT work as it finds too many classes and trigger exception. See https://github.com/appoptics/appoptics-opentelemetry-java/pull/5#issue-668569209
-//  @Override
-//  public boolean isHelperClass(String className) {
-//    return (!className.startsWith("com.appoptics.ext") || className.startsWith("com.appoptics.ext.google"))
-//    && (className.startsWith("com.appoptics.") || className.startsWith("com.tracelytics."));
-//  }
 
   @Override
   public boolean isHelperClass(String className) {

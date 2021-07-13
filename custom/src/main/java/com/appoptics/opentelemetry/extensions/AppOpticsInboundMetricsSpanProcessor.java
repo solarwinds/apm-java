@@ -25,6 +25,9 @@ import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Span processor to record inbound metrics
+ */
 public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
     private static final AttributeKey<Boolean> AO_METRICS_KEY = AttributeKey.booleanKey(Constants.AO_METRICS);
     public static final OpenTelemetryInboundMeasurementReporter measurementReporter = new OpenTelemetryInboundMeasurementReporter();

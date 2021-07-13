@@ -21,6 +21,9 @@ import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.
 import static io.opentelemetry.javaagent.extension.matcher.ClassLoaderMatcher.hasClassesNamed;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
+/**
+ * Experimental instrumentation to set `TransactionName` KV to OT Trace root span for Spring MVC
+ */
 public class AoHandlerAdapterInstrumentation implements TypeInstrumentation {
 
   @Override

@@ -15,28 +15,19 @@ import static java.util.Arrays.asList;
 
 @AutoService(InstrumentationModule.class)
 public class AoSpringWebMvcInstrumentationModule extends InstrumentationModule {
-  public AoSpringWebMvcInstrumentationModule() {
-    super("ao-spring-webmvc", "ao-spring-webmvc-3.1");
-  }
+    public AoSpringWebMvcInstrumentationModule() {
+        super("ao-spring-webmvc", "ao-spring-webmvc-3.1");
+    }
 
-//  @Override
-//  protected String[] additionalHelperClassNames() {
-//    return new String [] {AoSpringWebMvcTracer.class.getName() };
-//  }
+    @Override
+    public List<TypeInstrumentation> typeInstrumentations() {
+        return asList(
+                new AoHandlerAdapterInstrumentation()
+        );
+    }
 
-  @Override
-  public List<TypeInstrumentation> typeInstrumentations() {
-    return asList(
-        new AoHandlerAdapterInstrumentation()
-    );
-  }
-
-//  @Override
-//  public boolean isHelperClass(String className) {
-//    return className.startsWith("com.appoptics.") || className.startsWith("com.tracelytics.");
-//  }
     @Override
     public boolean isHelperClass(String className) {
-      return className.startsWith("com.appoptics.opentelemetry.instrumentation");
+        return className.startsWith("com.appoptics.opentelemetry.instrumentation");
     }
 }

@@ -35,6 +35,14 @@ public class AppOpticsPropagator implements TextMapPropagator {
         return FIELDS;
     }
 
+    /**
+     * Injects the both the AppOptics x-trace ID and the updated w3c `tracestate` with our x-trace ID prepended
+     * into the carrier with values provided by current context
+     * @param context
+     * @param carrier
+     * @param setter
+     * @param <C>
+     */
     @Override
     public <C> void inject(Context context, @Nullable C carrier, TextMapSetter<C> setter) {
         if (context == null || setter == null) {
@@ -70,6 +78,15 @@ public class AppOpticsPropagator implements TextMapPropagator {
         }
     }
 
+    /**
+     * Extract context from the carrier, first scanning for appoptics x-trace header.
+     * If not found, try the w3c `tracestate`
+     * @param context
+     * @param carrier
+     * @param getter
+     * @param <C>
+     * @return
+     */
     @Override
     public <C> Context extract(Context context, @Nullable C carrier, TextMapGetter<C> getter) {
         if (context == null || getter == null) {

@@ -24,6 +24,11 @@ import static io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge
 import static java.util.Collections.singletonMap;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
+/**
+ * Experimental instrumentation to add back traces to existing OT spans.
+ *
+ * This only works for `Statement` at this moment (ie no `PreparedStatement`)
+ */
 public class AoStatementInstrumentation implements TypeInstrumentation {
 
     @Override
@@ -44,7 +49,8 @@ public class AoStatementInstrumentation implements TypeInstrumentation {
     }
 
     public static class StatementAdvice {
-        @Advice.OnMethodEnter(suppress = Throwable.class)
+        //@Advice.OnMethodEnter(suppress = Throwable.class)
+        @Advice.OnMethodEnter
         public static void onEnter() {
             if (CallDepthThreadLocalMap.getCallDepth(Statement.class).get() != 1) { //only report back when depth is one to avoid duplications
                 return;

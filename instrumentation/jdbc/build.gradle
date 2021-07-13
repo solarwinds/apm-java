@@ -8,6 +8,7 @@ apply from: "$rootDir/gradle/instrumentation.gradle"
 //}
 
 dependencies {
+  compileOnly project(":core-bootstrap")
   compileOnly "javax.servlet:javax.servlet-api:3.0.1"
 
   compileOnly "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}"

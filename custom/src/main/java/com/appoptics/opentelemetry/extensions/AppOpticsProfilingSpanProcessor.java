@@ -17,6 +17,9 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
 
 import static com.appoptics.opentelemetry.core.Constants.*;
 
+/**
+ * Span process to perform code profiling
+ */
 public class AppOpticsProfilingSpanProcessor implements SpanProcessor {
     private static ProfilerSetting profilerSetting = (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);
     private static final boolean PROFILER_ENABLED = profilerSetting != null && profilerSetting.isEnabled();

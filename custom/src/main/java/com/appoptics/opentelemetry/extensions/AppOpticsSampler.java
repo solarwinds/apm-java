@@ -20,6 +20,11 @@ import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
 import java.util.List;
 
+/**
+ * Sampler that uses trace decision logic from our joboe core (consult local and remote settings)
+ *
+ * Also inject various AppOptics specific sampling KVs into the `SampleResult`
+ */
 @AutoService(Sampler.class)
 public class AppOpticsSampler implements Sampler {
     private SamplingResult PARENT_SAMPLED = SamplingResult.create(SamplingDecision.RECORD_AND_SAMPLE,
@@ -46,7 +51,6 @@ public class AppOpticsSampler implements Sampler {
                     AttributeKey.booleanKey(Constants.AO_METRICS), false,
                     AttributeKey.booleanKey(Constants.AO_SAMPLER), true));
 
-    //public static TraceDecision shouldTraceRequest(String layer, String inXTraceID, XTraceOptions xTraceOptions, String resource) {
     @Override
     public SamplingResult shouldSample(Context parentContext, String traceId, String name, SpanKind spanKind, Attributes attributes, List<LinkData> parentLinks) {
         SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
