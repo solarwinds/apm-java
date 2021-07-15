@@ -69,7 +69,7 @@ Upon successful initialization, the log should print such as:
 **There are certain challenges for classloading with extension jar, more details in https://github.com/open-telemetry/opentelemetry-java-instrumentation/discussions/3350** 
 
 #### SDK artifact
-After the artifact `appoptics-opentelemetry-sdk-shaded` is built and published to local maven, it can be used by adding `dependency` to `pom.xml` such as:
+After the artifact `appoptics-opentelemetry-sdk-shaded` is built and published to local maven, it can be used by any java maven projects by adding `dependency` to `pom.xml` such as:
 ```
 <dependency>
 	<groupId>com.appoptics.agent.java</groupId>
