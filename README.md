@@ -15,6 +15,12 @@ More details for each of the sub-projects are listed in [Sub-Projects](#sub-proj
 
 
 ## Build
+#### Preparations
+Since this project has dependencies on various internal artifacts from [joboe](https://github.com/librato/joboe), the build machine would need access to those artifacts. We currently do NOT have any internal maven server to host those artifacts. Hence the easiest way is to build and install those artifacts from joboe on the build machine:
+1. Check out the dependency project (joboe) git clone https://github.com/librato/joboe.git
+2. Navigate to the cloned joboe, check out the relevant branch `git checkout AO-16083-ot-v1` (this will change in the future if we merge this branch back to `develop`/`main`, in such case we will check out the joboe version referenced by this distro instead)
+3. Build the joboe and install all the artifacts by executing `mvn clean install` at the project root (add -DskipTests flag to skip tests, possible to only build dependencies, core and metrics, as they are the only ones required by our OT implementation, though it might be easier to just build all)
+
 #### Agent/Extensions Jars
 Simply run `gradle build` at the root folder.
 
@@ -63,7 +69,7 @@ Upon successful initialization, the log should print such as:
 **There are certain challenges for classloading with extension jar, more details in https://github.com/open-telemetry/opentelemetry-java-instrumentation/discussions/3350** 
 
 #### SDK artifact
-After the artifact `appoptics-opentelemetry-sdk-shaded` is built and published to local maven, it can be used by adding `dependency` to `pom.xml` such as:
+After the artifact `appoptics-opentelemetry-sdk-shaded` is built and published to local maven, it can be used by any java maven projects by adding `dependency` to `pom.xml` such as:
 ```
 <dependency>
 	<groupId>com.appoptics.agent.java</groupId>
