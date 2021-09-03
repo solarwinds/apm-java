@@ -31,6 +31,7 @@ public class Initializer {
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(Initializer.class.getName());
     private static final String VERSION_PROPERTIES_FILE = "/version.properties";
     private static final String APPOPTICS_SERVICE_KEY = "otel.appoptics.service.key";
+    private static final String APPOPTICS_CONFIG_FILE = "otel.appoptics.configfile";
     private static Future<?> startupTasksFuture;
 
     static {
@@ -212,6 +213,11 @@ public class Initializer {
             container.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, explicitServiceKey);
         }
 
+        String configFile = System.getProperty(APPOPTICS_CONFIG_FILE);
+        if (configFile != null) {
+            container.putByStringValue(ConfigProperty.AGENT_CONFIG, configFile);
+        }
+
         List<InvalidConfigException> exceptions = new ArrayList<InvalidConfigException>();
 
         try {
@@ -251,7 +257,7 @@ public class Initializer {
 
             }
             new JsonConfigReader(config).read(container);
-            logger.debug("Finished reading configs from config file: " + location);
+            logger.info("Finished reading configs from config file: " + location);
         } catch (InvalidConfigException e) {
             exceptions.add(new InvalidConfigReadSourceException(e.getConfigProperty(), ConfigSourceType.JSON_FILE, location, container, e));
         }
