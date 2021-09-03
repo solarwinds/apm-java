@@ -384,11 +384,12 @@ public class Initializer {
             finalProfilerSetting = new ProfilerSetting(finalEnabled, profilerSettingsFromConfigFile.getExcludePackages(), finalInterval, profilerSettingsFromConfigFile.getCircuitBreakerDurationThreshold(), profilerSettingsFromConfigFile.getCircuitBreakerCountThreshold());
         } else if (profilerEnabledFromEnvVar != null || profilerIntervalFromEnvVar != null) {
             finalProfilerSetting = new ProfilerSetting(profilerEnabledFromEnvVar != null ? profilerEnabledFromEnvVar : false, profilerIntervalFromEnvVar != null ? profilerIntervalFromEnvVar : ProfilerSetting.DEFAULT_INTERVAL);
+        } else {
+            finalProfilerSetting = new ProfilerSetting(false, ProfilerSetting.DEFAULT_INTERVAL);
         }
 
-        if (finalProfilerSetting != null) {
-            configs.put(ConfigProperty.PROFILER, finalProfilerSetting, true);
-        }
+        // always put a profiler setting as we fall back to a default (disabled) one if no setting exists.
+        configs.put(ConfigProperty.PROFILER, finalProfilerSetting, true);
 
         ConfigManager.initialize(configs);
     }
