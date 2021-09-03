@@ -1,1 +1,16 @@
+# explicitly list all the build directories instead of an asterisk (**/build/) to avoid possible unwanted match
 /instrumentation/build/
+/agent/build/
+/appoptics-opentelemetry-sdk-shaded/build/
+/appoptics-opentelemetry-sdk/build/
+/buildSrc/build/
+/core-bootstrap/build/
+/custom/build/
+/instrumentation/appoptics-annotation/build/
+/instrumentation/jdbc/build/
+/instrumentation/spring/build/
+/instrumentation/spring/spring-webmvc-3.1/build/
+/sdk-extensions-bootstrap/build/
+/sdk-extensions/build/
+
+.gradle/
