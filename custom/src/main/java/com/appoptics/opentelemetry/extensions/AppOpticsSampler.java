@@ -8,9 +8,7 @@ import com.tracelytics.joboe.TraceDecisionUtil;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.*;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
@@ -27,6 +25,7 @@ import java.util.List;
  */
 @AutoService(Sampler.class)
 public class AppOpticsSampler implements Sampler {
+    private static final String SW_TRACESTATE_KEY = "sw";
     private SamplingResult PARENT_SAMPLED = SamplingResult.create(SamplingDecision.RECORD_AND_SAMPLE,
             Attributes.of(
                     AttributeKey.booleanKey(Constants.AO_DETAILED_TRACING), true,
@@ -54,18 +53,42 @@ public class AppOpticsSampler implements Sampler {
     @Override
     public SamplingResult shouldSample(Context parentContext, String traceId, String name, SpanKind spanKind, Attributes attributes, List<LinkData> parentLinks) {
         SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
+        TraceState traceState = parentSpanContext.getTraceState();
+        TraceStateBuilder traceStateBuilder = traceState.toBuilder();
 
-        if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) { //then a root span of this service
-            String xTraceId = null;
-            if (parentSpanContext.isRemote()) {
-                xTraceId = Util.buildXTraceId(parentSpanContext);
-            }
-            String resource = getResource(attributes);
-            TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, xTraceId, null, resource);
-            return toOtSamplingResult(aoTraceDecision);
-        } else { //follow parent's decision
-            return parentSpanContext.isSampled() ? PARENT_SAMPLED : PARENT_NOT_SAMPLED;
+        if (!parentSpanContext.isValid() || traceState.isEmpty()) {
+            // TODO: new sample decision, create new tracestate
+            return PARENT_NOT_SAMPLED;
         }
+
+        String swVal = traceState.get(SW_TRACESTATE_KEY);
+        String resource = getResource(attributes);
+
+        if (swVal == null) {
+            // TODO: new sample decision, prepend sw in tracestate
+            // TODO: FIXME: how to get the new trace/span id here???
+            TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, null, null, resource);
+            return toOtSamplingResult(aoTraceDecision);
+        } else {
+            boolean sampled = false;
+            // TODO parse sw tracestate
+            if (sampled) {
+                // TODO: update sw in tracestate
+            } else {
+                // TODO: continue non-sampled trace, update tracestate
+            }
+        }
+//        if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) { //then a root span of this service
+//            String xTraceId = null;
+//            if (parentSpanContext.isRemote()) {
+//                xTraceId = Util.buildXTraceId(parentSpanContext);
+//            }
+//            String resource = getResource(attributes);
+//            TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, xTraceId, null, resource);
+//            return toOtSamplingResult(aoTraceDecision);
+//        } else { //follow parent's decision
+//            return parentSpanContext.isSampled() ? PARENT_SAMPLED : PARENT_NOT_SAMPLED;
+//        }
     }
 
     private String getResource(Attributes attributes) {
