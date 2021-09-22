@@ -17,7 +17,6 @@ public class AppOpticsPropertySource implements PropertySource {
         PROPERTIES.put("otel.traces.exporter", "appoptics");
         PROPERTIES.put("otel.traces.sampler", "appoptics");
         PROPERTIES.put("otel.metrics.exporter", "none");
-        PROPERTIES.put("otel.propagators", "tracecontext,baggage,appoptics");
     }
 
     @Override
