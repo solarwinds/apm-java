@@ -15,6 +15,8 @@ import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.sdk.trace.samplers.SamplingDecision;
 import io.opentelemetry.sdk.trace.samplers.SamplingResult;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.SW_TRACESTATE_KEY;
+import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.SW_SPAN_PLACEHOLDER;
 
 import java.util.List;
 
@@ -25,26 +27,25 @@ import java.util.List;
  */
 @AutoService(Sampler.class)
 public class AppOpticsSampler implements Sampler {
-    private static final String SW_TRACESTATE_KEY = "sw";
-    private SamplingResult PARENT_SAMPLED = SamplingResult.create(SamplingDecision.RECORD_AND_SAMPLE,
+    private final SamplingResult PARENT_SAMPLED = SamplingResult.create(SamplingDecision.RECORD_AND_SAMPLE,
             Attributes.of(
                     AttributeKey.booleanKey(Constants.AO_DETAILED_TRACING), true,
                     AttributeKey.booleanKey(Constants.AO_METRICS), true,
                     AttributeKey.booleanKey(Constants.AO_SAMPLER), true));
-    private SamplingResult PARENT_NOT_SAMPLED = SamplingResult.create(SamplingDecision.DROP,
+    private final SamplingResult PARENT_NOT_SAMPLED = SamplingResult.create(SamplingDecision.DROP,
             Attributes.of(
                     AttributeKey.booleanKey(Constants.AO_DETAILED_TRACING), false,
                     AttributeKey.booleanKey(Constants.AO_METRICS), false,
                     AttributeKey.booleanKey(Constants.AO_SAMPLER), true));
 
-    private SamplingResult METRICS_ONLY = SamplingResult.create(SamplingDecision.RECORD_ONLY,
+    private final SamplingResult METRICS_ONLY = SamplingResult.create(SamplingDecision.RECORD_ONLY,
             Attributes.of(
                     AttributeKey.booleanKey(Constants.AO_DETAILED_TRACING), false,
                     AttributeKey.booleanKey(Constants.AO_METRICS), true,
                     AttributeKey.booleanKey(Constants.AO_SAMPLER), true
             ));
 
-    private SamplingResult NOT_TRACED = SamplingResult.create(SamplingDecision.DROP,
+    private final SamplingResult NOT_TRACED = SamplingResult.create(SamplingDecision.DROP,
             Attributes.of(
                     AttributeKey.booleanKey(Constants.AO_DETAILED_TRACING), false,
                     AttributeKey.booleanKey(Constants.AO_METRICS), false,
@@ -53,42 +54,36 @@ public class AppOpticsSampler implements Sampler {
     @Override
     public SamplingResult shouldSample(Context parentContext, String traceId, String name, SpanKind spanKind, Attributes attributes, List<LinkData> parentLinks) {
         SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
-        TraceState traceState = parentSpanContext.getTraceState();
-        TraceStateBuilder traceStateBuilder = traceState.toBuilder();
+        TraceState traceState = parentSpanContext.getTraceState() != null ? parentSpanContext.getTraceState() : TraceState.getDefault();
+        String resource = getResource(attributes);
 
         if (!parentSpanContext.isValid() || traceState.isEmpty()) {
-            // TODO: new sample decision, create new tracestate
-            return PARENT_NOT_SAMPLED;
+            // new sample decision, create new tracestate
+            return toOtSamplingResult(TraceDecisionUtil.shouldTraceRequest(name, null, null, resource), TraceState.getDefault());
         }
 
         String swVal = traceState.get(SW_TRACESTATE_KEY);
-        String resource = getResource(attributes);
-
-        if (swVal == null) {
-            // TODO: new sample decision, prepend sw in tracestate
-            // TODO: FIXME: how to get the new trace/span id here???
+        if (!isValidSWTraceStateKey(swVal)) {
             TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, null, null, resource);
-            return toOtSamplingResult(aoTraceDecision);
+            return toOtSamplingResult(aoTraceDecision, traceState);
         } else {
-            boolean sampled = false;
-            // TODO parse sw tracestate
-            if (sampled) {
-                // TODO: update sw in tracestate
+            if (swVal.equals(SW_SPAN_PLACEHOLDER)) {
+                return (parentSpanContext.isSampled() ? Sampler.alwaysOn() : Sampler.alwaysOff())
+                        .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks);
             } else {
-                // TODO: continue non-sampled trace, update tracestate
+                TraceFlags traceFlags = TraceFlags.fromByte(swVal.split("-")[1].getBytes()[1]);
+                return (traceFlags.isSampled() ? Sampler.alwaysOn() : Sampler.alwaysOff())
+                        .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks);
             }
         }
-//        if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) { //then a root span of this service
-//            String xTraceId = null;
-//            if (parentSpanContext.isRemote()) {
-//                xTraceId = Util.buildXTraceId(parentSpanContext);
-//            }
-//            String resource = getResource(attributes);
-//            TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, xTraceId, null, resource);
-//            return toOtSamplingResult(aoTraceDecision);
-//        } else { //follow parent's decision
-//            return parentSpanContext.isSampled() ? PARENT_SAMPLED : PARENT_NOT_SAMPLED;
-//        }
+    }
+
+    private boolean isValidSWTraceStateKey(String swVal) {
+        if (swVal == null || !swVal.contains("-")) {
+            return false;
+        }
+        String traceFlagStr = swVal.split("-")[1];
+        return traceFlagStr.equals("00") || traceFlagStr.equals("01");
     }
 
     private String getResource(Attributes attributes) {
@@ -102,26 +97,33 @@ public class AppOpticsSampler implements Sampler {
         return "AppOptics Sampler";
     }
 
-    private SamplingResult toOtSamplingResult(TraceDecision aoTraceDecision) {
+    private SamplingResult toOtSamplingResult(TraceDecision aoTraceDecision, TraceState traceState) {
+        SamplingResult result = NOT_TRACED;
+
         if (aoTraceDecision.isSampled()) {
             SamplingDecision samplingDecision = SamplingDecision.RECORD_AND_SAMPLE;
             AttributesBuilder builder = Attributes.builder();
             builder.put(Constants.AO_KEY_PREFIX + "SampleRate", aoTraceDecision.getTraceConfig().getSampleRate());
             builder.put(Constants.AO_KEY_PREFIX + "SampleSource", aoTraceDecision.getTraceConfig().getSampleRateSourceValue());
-            builder.put(Constants.AO_KEY_PREFIX + "BucketRate",aoTraceDecision.getTraceConfig().getBucketRate(aoTraceDecision.getRequestType().getBucketType()));
-            builder.put(Constants.AO_KEY_PREFIX + "BucketCapacity",aoTraceDecision.getTraceConfig().getBucketCapacity(aoTraceDecision.getRequestType().getBucketType()));
+            builder.put(Constants.AO_KEY_PREFIX + "BucketRate", aoTraceDecision.getTraceConfig().getBucketRate(aoTraceDecision.getRequestType().getBucketType()));
+            builder.put(Constants.AO_KEY_PREFIX + "BucketCapacity", aoTraceDecision.getTraceConfig().getBucketCapacity(aoTraceDecision.getRequestType().getBucketType()));
             builder.put(Constants.AO_KEY_PREFIX + "RequestType", aoTraceDecision.getRequestType().name());
             builder.put(Constants.AO_DETAILED_TRACING, aoTraceDecision.isSampled());
             builder.put(Constants.AO_METRICS, aoTraceDecision.isReportMetrics());
             builder.put(Constants.AO_SAMPLER, true); //mark that it has been sampled by us
+
+            if (!traceState.isEmpty()) {
+                builder.put(Constants.AO_KEY_PREFIX + "UpstreamTraceVendors", String.join(",", traceState.asMap().keySet()));
+            }
             Attributes attributes = builder.build();
-            return SamplingResult.create(samplingDecision, attributes);
+            result = SamplingResult.create(samplingDecision, attributes);
         } else {
             if (aoTraceDecision.isReportMetrics()) {
-                return METRICS_ONLY; // is this correct? probably not...
+                result = METRICS_ONLY; // is this correct? probably not...
             } else {
-                return NOT_TRACED;
+                result = NOT_TRACED;
             }
         }
+        return TraceStateSamplingResult.wrap(result);
     }
 }
