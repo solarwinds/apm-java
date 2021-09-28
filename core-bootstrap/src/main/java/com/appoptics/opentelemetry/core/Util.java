@@ -29,17 +29,7 @@ public class Util {
      * @return
      */
     public static String buildXTraceId(SpanContext context) {
-        String aoId = context.getTraceState().get(APPOPTICS_TRACE_STATE_KEY);
-
-        String traceId = context.getTraceId();
-        if (aoId != null) {
-            try {
-                traceId = new Metadata(aoId).taskHexString();
-            } catch (OboeException e) {
-                logger.warn("Failed to convert appoptics trace state [" + aoId + "] to OT trace id", e);
-            }
-        }
-        return buildXTraceId(traceId, context.getSpanId(), context.isSampled());
+        return buildXTraceId(context.getTraceId(), context.getSpanId(), context.isSampled());
     }
 
     /**
@@ -67,7 +57,7 @@ public class Util {
      * @param isSampled
      * @return
      */
-    public static String buildXTraceId(String traceId, String spanId, boolean isSampled) {
+    private static String buildXTraceId(String traceId, String spanId, boolean isSampled) {
         final String HEADER = "2B";
         String hexString = HEADER +
                 Strings.padEnd(traceId, Constants.MAX_TASK_ID_LEN * 2, '0') +

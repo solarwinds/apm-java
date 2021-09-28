@@ -17,6 +17,7 @@ import io.opentelemetry.sdk.trace.samplers.SamplingResult;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.*;
 
@@ -69,17 +70,29 @@ public class AppOpticsSampler implements Sampler {
                 samplingResult = toOtSamplingResult(aoTraceDecision);
             } else { // follow the upstream sw trace decision
                 TraceFlags traceFlags = TraceFlags.fromByte(swVal.split("-")[1].getBytes()[1]);
-                // TODO: roll the dice!
-                samplingResult = (traceFlags.isSampled() ? Sampler.alwaysOn() : Sampler.alwaysOff())
-                        .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks);
+                if (parentSpanContext.isRemote()) { // root span needs to roll the dice
+                    String xTraceId = Util.buildXTraceId(parentSpanContext);
+                    TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, xTraceId, null, resource);
+                    samplingResult = toOtSamplingResult(aoTraceDecision);
+                } else { // non-root span just follows the parent span's decision
+                    samplingResult = (traceFlags.isSampled() ? Sampler.alwaysOn() : Sampler.alwaysOff())
+                            .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks);
+                }
                 if (parentSpanContext.isRemote()) {
                     additionalAttributesBuilder.put(SW_PARENT_ID, swVal.split("-")[0]);
                 }
             }
         }
 
-        if (!traceState.isEmpty()) {
-            additionalAttributesBuilder.put(SW_UPSTREAM_VENDORS, String.join(",", traceState.asMap().keySet()));
+        if (parentSpanContext.isRemote() && !traceState.isEmpty()) {
+            String upstreamVendors = traceState.asMap()
+                    .keySet()
+                    .stream()
+                    .filter(key->!key.equals(SW_TRACESTATE_KEY))
+                    .collect(Collectors.joining(","));
+            if (!upstreamVendors.isEmpty()) {
+                additionalAttributesBuilder.put(SW_UPSTREAM_VENDORS, upstreamVendors);
+            }
         }
         return TraceStateSamplingResult.wrap(samplingResult, additionalAttributesBuilder.build());
     }
@@ -93,7 +106,7 @@ public class AppOpticsSampler implements Sampler {
             return false;
         }
 
-        return swTraceState[0].length() == 16
+        return (swTraceState[0].equals(SW_SPAN_PLACEHOLDER) || swTraceState[0].length() == 16) // 16 is the HEXLENGTH of the Otel trace id
                 && (swTraceState[1].equals("00") || swTraceState[1].equals("01"));
     }
 
