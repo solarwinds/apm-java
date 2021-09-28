@@ -60,16 +60,16 @@ public class AppOpticsSampler implements Sampler {
         String resource = getResource(attributes);
         SamplingResult samplingResult;
         AttributesBuilder additionalAttributesBuilder = Attributes.builder();
-        if (!parentSpanContext.isValid() || traceState.isEmpty()) {
-            // new sample decision, create new tracestate
-            samplingResult = toOtSamplingResult(TraceDecisionUtil.shouldTraceRequest(name, null, null, resource), TraceState.getDefault());
+        if (!parentSpanContext.isValid() || traceState.isEmpty()) { // no traceparent or tracestate, treat it as a new trace
+            samplingResult = toOtSamplingResult(TraceDecisionUtil.shouldTraceRequest(name, null, null, resource));
         } else {
             String swVal = traceState.get(SW_TRACESTATE_KEY);
-            if (!isValidSWTraceStateKey(swVal)) {
+            if (!isValidSWTraceStateKey(swVal)) { // broken or non-exist sw tracestate, treat it as a new trace
                 TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, null, null, resource);
-                samplingResult = toOtSamplingResult(aoTraceDecision, traceState);
-            } else {
+                samplingResult = toOtSamplingResult(aoTraceDecision);
+            } else { // follow the upstream sw trace decision
                 TraceFlags traceFlags = TraceFlags.fromByte(swVal.split("-")[1].getBytes()[1]);
+                // TODO: roll the dice!
                 samplingResult = (traceFlags.isSampled() ? Sampler.alwaysOn() : Sampler.alwaysOff())
                         .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks);
                 if (parentSpanContext.isRemote()) {
@@ -106,26 +106,22 @@ public class AppOpticsSampler implements Sampler {
         return "AppOptics Sampler";
     }
 
-    private SamplingResult toOtSamplingResult(TraceDecision aoTraceDecision, TraceState traceState) {
+    private SamplingResult toOtSamplingResult(TraceDecision aoTraceDecision) {
         SamplingResult result = NOT_TRACED;
 
         if (aoTraceDecision.isSampled()) {
             SamplingDecision samplingDecision = SamplingDecision.RECORD_AND_SAMPLE;
-            AttributesBuilder builder = Attributes.builder();
-            builder.put(Constants.AO_KEY_PREFIX + "SampleRate", aoTraceDecision.getTraceConfig().getSampleRate());
-            builder.put(Constants.AO_KEY_PREFIX + "SampleSource", aoTraceDecision.getTraceConfig().getSampleRateSourceValue());
-            builder.put(Constants.AO_KEY_PREFIX + "BucketRate", aoTraceDecision.getTraceConfig().getBucketRate(aoTraceDecision.getRequestType().getBucketType()));
-            builder.put(Constants.AO_KEY_PREFIX + "BucketCapacity", aoTraceDecision.getTraceConfig().getBucketCapacity(aoTraceDecision.getRequestType().getBucketType()));
-            builder.put(Constants.AO_KEY_PREFIX + "RequestType", aoTraceDecision.getRequestType().name());
-            builder.put(Constants.AO_DETAILED_TRACING, aoTraceDecision.isSampled());
-            builder.put(Constants.AO_METRICS, aoTraceDecision.isReportMetrics());
-            builder.put(Constants.AO_SAMPLER, true); //mark that it has been sampled by us
+            AttributesBuilder aoAttributesBuilder = Attributes.builder();
+            aoAttributesBuilder.put(Constants.AO_KEY_PREFIX + "SampleRate", aoTraceDecision.getTraceConfig().getSampleRate());
+            aoAttributesBuilder.put(Constants.AO_KEY_PREFIX + "SampleSource", aoTraceDecision.getTraceConfig().getSampleRateSourceValue());
+            aoAttributesBuilder.put(Constants.AO_KEY_PREFIX + "BucketRate", aoTraceDecision.getTraceConfig().getBucketRate(aoTraceDecision.getRequestType().getBucketType()));
+            aoAttributesBuilder.put(Constants.AO_KEY_PREFIX + "BucketCapacity", aoTraceDecision.getTraceConfig().getBucketCapacity(aoTraceDecision.getRequestType().getBucketType()));
+            aoAttributesBuilder.put(Constants.AO_KEY_PREFIX + "RequestType", aoTraceDecision.getRequestType().name());
+            aoAttributesBuilder.put(Constants.AO_DETAILED_TRACING, aoTraceDecision.isSampled());
+            aoAttributesBuilder.put(Constants.AO_METRICS, aoTraceDecision.isReportMetrics());
+            aoAttributesBuilder.put(Constants.AO_SAMPLER, true); //mark that it has been sampled by us
 
-            if (!traceState.isEmpty()) {
-                builder.put(Constants.AO_KEY_PREFIX + "UpstreamTraceVendors", String.join(",", traceState.asMap().keySet()));
-            }
-            Attributes attributes = builder.build();
-            result = SamplingResult.create(samplingDecision, attributes);
+            result = SamplingResult.create(samplingDecision, aoAttributesBuilder.build());
         } else {
             if (aoTraceDecision.isReportMetrics()) {
                 result = METRICS_ONLY; // is this correct? probably not...
