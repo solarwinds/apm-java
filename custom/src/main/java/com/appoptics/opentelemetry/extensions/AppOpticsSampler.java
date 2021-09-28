@@ -64,13 +64,14 @@ public class AppOpticsSampler implements Sampler {
         AttributesBuilder additionalAttributesBuilder = Attributes.builder();
         XTraceOptions xTraceOptions = parentContext.get(TriggerTraceContextKey.KEY);
 
-        if (!parentSpanContext.isValid() || traceState.isEmpty()) { // no traceparent or tracestate, treat it as a new trace
+        if (!parentSpanContext.isValid()) { // no valid traceparent, it is a new trace
             samplingResult = toOtSamplingResult(TraceDecisionUtil.shouldTraceRequest(name, null, xTraceOptions, resource));
         } else {
             String swVal = traceState.get(SW_TRACESTATE_KEY);
+            String parentId;
             if (!isValidSWTraceStateKey(swVal)) { // broken or non-exist sw tracestate, treat it as a new trace
-                TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, null, xTraceOptions, resource);
-                samplingResult = toOtSamplingResult(aoTraceDecision);
+                samplingResult = toOtSamplingResult(TraceDecisionUtil.shouldTraceRequest(name, null, xTraceOptions, resource));
+                parentId = "unknown";
             } else { // follow the upstream sw trace decision
                 TraceFlags traceFlags = TraceFlags.fromByte(swVal.split("-")[1].getBytes()[1]);
                 if (parentSpanContext.isRemote()) { // root span needs to roll the dice
@@ -81,9 +82,10 @@ public class AppOpticsSampler implements Sampler {
                     samplingResult = (traceFlags.isSampled() ? Sampler.alwaysOn() : Sampler.alwaysOff())
                             .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks);
                 }
-                if (parentSpanContext.isRemote()) {
-                    additionalAttributesBuilder.put(SW_PARENT_ID, swVal.split("-")[0]);
-                }
+                parentId = swVal.split("-")[0];
+            }
+            if (parentSpanContext.isRemote()) {
+                additionalAttributesBuilder.put(SW_PARENT_ID, parentId);
             }
         }
 
