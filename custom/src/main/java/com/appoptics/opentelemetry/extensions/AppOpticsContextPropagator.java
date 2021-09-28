@@ -1,14 +1,10 @@
 package com.appoptics.opentelemetry.extensions;
 
-import com.appoptics.opentelemetry.core.Util;
 import com.tracelytics.instrumentation.HeaderConstants;
-import com.tracelytics.joboe.Metadata;
-import com.tracelytics.joboe.XTraceHeader;
 import com.tracelytics.joboe.XTraceOptions;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceState;
-import io.opentelemetry.api.trace.TraceStateBuilder;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
@@ -25,8 +21,8 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
     private static final String TRACE_STATE_APPOPTICS_KEY = "sw";
     static final String TRACE_PARENT = "traceparent";
     static final String TRACE_STATE = "tracestate";
-    static final String XTRACE_OPTIONS = "xtrace-options";
-    static final String XTRACE_OPTIONS_SIGNATURE = "xtrace-options-signature";
+    static final String X_TRACE_OPTIONS = "X-Trace-Options";
+    static final String X_TRACE_OPTIONS_SIGNATURE = "X-Trace-Options-Signature";
     private static final List<String> FIELDS =
             Collections.unmodifiableList(Arrays.asList(TRACE_PARENT, TRACE_STATE, HeaderConstants.XTRACE_HEADER));
     private static final int TRACESTATE_MAX_SIZE = 512;
@@ -72,10 +68,10 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
         String traceOptions = context.get(TriggerTraceContextKey.XTRACE_OPTIONS);
         String traceOptionsSignature = context.get(TriggerTraceContextKey.XTRACE_OPTIONS_SIGNATURE);
         if (traceOptions != null) {
-            setter.set(carrier, XTRACE_OPTIONS, traceOptions);
+            setter.set(carrier, X_TRACE_OPTIONS, traceOptions);
         }
         if (traceOptionsSignature != null) {
-            setter.set(carrier, XTRACE_OPTIONS_SIGNATURE, traceOptionsSignature);
+            setter.set(carrier, X_TRACE_OPTIONS_SIGNATURE, traceOptionsSignature);
         }
     }
 
@@ -90,8 +86,8 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
      */
     @Override
     public <C> Context extract(Context context, @Nullable C carrier, TextMapGetter<C> getter) {
-        String traceOptions = getter.get(carrier, XTRACE_OPTIONS);
-        String traceOptionsSignature = getter.get(carrier, XTRACE_OPTIONS_SIGNATURE);
+        String traceOptions = getter.get(carrier, X_TRACE_OPTIONS);
+        String traceOptionsSignature = getter.get(carrier, X_TRACE_OPTIONS_SIGNATURE);
         XTraceOptions xTraceOptions = XTraceOptions.getXTraceOptions(traceOptions, traceOptionsSignature);
         if (xTraceOptions != null) {
             context = context.with(TriggerTraceContextKey.KEY, xTraceOptions);
