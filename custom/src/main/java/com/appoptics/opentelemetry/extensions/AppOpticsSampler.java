@@ -67,14 +67,9 @@ public class AppOpticsSampler implements Sampler {
             TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, null, null, resource);
             return toOtSamplingResult(aoTraceDecision, traceState);
         } else {
-            if (swVal.equals(SW_SPAN_PLACEHOLDER_SAMPLED)) {
-                return (parentSpanContext.isSampled() ? Sampler.alwaysOn() : Sampler.alwaysOff())
-                        .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks);
-            } else {
-                TraceFlags traceFlags = TraceFlags.fromByte(swVal.split("-")[1].getBytes()[1]);
-                return (traceFlags.isSampled() ? Sampler.alwaysOn() : Sampler.alwaysOff())
-                        .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks);
-            }
+            TraceFlags traceFlags = TraceFlags.fromByte(swVal.split("-")[1].getBytes()[1]);
+            return TraceStateSamplingResult.wrap((traceFlags.isSampled() ? Sampler.alwaysOn() : Sampler.alwaysOff())
+                    .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks));
         }
     }
 
@@ -82,8 +77,13 @@ public class AppOpticsSampler implements Sampler {
         if (swVal == null || !swVal.contains("-")) {
             return false;
         }
-        String traceFlagStr = swVal.split("-")[1];
-        return traceFlagStr.equals("00") || traceFlagStr.equals("01");
+        String[] swTraceState = swVal.split("-");
+        if (swTraceState.length != 2) {
+            return false;
+        }
+
+        return swTraceState[0].length() == 16
+                && (swTraceState[1].equals("00") || swTraceState[1].equals("01"));
     }
 
     private String getResource(Attributes attributes) {
