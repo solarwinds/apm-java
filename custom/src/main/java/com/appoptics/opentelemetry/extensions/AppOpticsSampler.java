@@ -15,10 +15,10 @@ import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.sdk.trace.samplers.SamplingDecision;
 import io.opentelemetry.sdk.trace.samplers.SamplingResult;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
-import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.SW_TRACESTATE_KEY;
-import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.SW_SPAN_PLACEHOLDER;
 
 import java.util.List;
+
+import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.*;
 
 /**
  * Sampler that uses trace decision logic from our joboe core (consult local and remote settings)
@@ -67,7 +67,7 @@ public class AppOpticsSampler implements Sampler {
             TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, null, null, resource);
             return toOtSamplingResult(aoTraceDecision, traceState);
         } else {
-            if (swVal.equals(SW_SPAN_PLACEHOLDER)) {
+            if (swVal.equals(SW_SPAN_PLACEHOLDER_SAMPLED)) {
                 return (parentSpanContext.isSampled() ? Sampler.alwaysOn() : Sampler.alwaysOff())
                         .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks);
             } else {
@@ -87,9 +87,7 @@ public class AppOpticsSampler implements Sampler {
     }
 
     private String getResource(Attributes attributes) {
-        String resource = Util.parsePath(attributes.get(SemanticAttributes.HTTP_URL));
-        //TODO consider other resource too like MQ
-        return resource;
+        return Util.parsePath(attributes.get(SemanticAttributes.HTTP_URL));
     }
 
     @Override
@@ -120,8 +118,6 @@ public class AppOpticsSampler implements Sampler {
         } else {
             if (aoTraceDecision.isReportMetrics()) {
                 result = METRICS_ONLY; // is this correct? probably not...
-            } else {
-                result = NOT_TRACED;
             }
         }
         return TraceStateSamplingResult.wrap(result);
