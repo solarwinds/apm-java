@@ -6,7 +6,7 @@ import io.opentelemetry.sdk.trace.samplers.SamplingDecision;
 import io.opentelemetry.sdk.trace.samplers.SamplingResult;
 
 /**
- * A SamplingResult wrapper offering the `sw=spanIdPlaceHolder` tracestate
+ * A SamplingResult wrapper offering the `sw=spanIdPlaceHolder` tracestate and additional attributes
  */
 public class TraceStateSamplingResult implements SamplingResult {
     public static final String SW_TRACESTATE_KEY = "sw";
@@ -15,15 +15,17 @@ public class TraceStateSamplingResult implements SamplingResult {
     public static final String SW_SPAN_PLACEHOLDER_NOT_SAMPLED = SW_SPAN_PLACEHOLDER + "-00";
     private final SamplingResult delegated;
     private final String swTraceState;
+    private final Attributes additionalAttributes;
 
-    private TraceStateSamplingResult(SamplingResult delegated) {
+    private TraceStateSamplingResult(SamplingResult delegated, Attributes additionalAttributes) {
         this.delegated = delegated;
         this.swTraceState = (delegated.getDecision() == SamplingDecision.RECORD_AND_SAMPLE
                 ? SW_SPAN_PLACEHOLDER_SAMPLED : SW_SPAN_PLACEHOLDER_NOT_SAMPLED);
+        this.additionalAttributes = additionalAttributes;
     }
 
-    public static SamplingResult wrap(SamplingResult result) {
-        return new TraceStateSamplingResult(result);
+    public static SamplingResult wrap(SamplingResult result, Attributes additionalAttributes) {
+        return new TraceStateSamplingResult(result, additionalAttributes);
     }
 
     @Override
@@ -33,7 +35,7 @@ public class TraceStateSamplingResult implements SamplingResult {
 
     @Override
     public Attributes getAttributes() {
-        return delegated.getAttributes();
+        return delegated.getAttributes().toBuilder().putAll(additionalAttributes).build();
     }
 
     @Override

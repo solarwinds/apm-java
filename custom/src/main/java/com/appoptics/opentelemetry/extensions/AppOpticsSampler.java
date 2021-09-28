@@ -27,6 +27,8 @@ import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.*;
  */
 @AutoService(Sampler.class)
 public class AppOpticsSampler implements Sampler {
+    private static final String SW_UPSTREAM_VENDORS = "ao.UpstreamTraceVendors";
+    private static final String SW_PARENT_ID = "ao.SWParentID";
     private final SamplingResult PARENT_SAMPLED = SamplingResult.create(SamplingDecision.RECORD_AND_SAMPLE,
             Attributes.of(
                     AttributeKey.booleanKey(Constants.AO_DETAILED_TRACING), true,
@@ -56,21 +58,30 @@ public class AppOpticsSampler implements Sampler {
         SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
         TraceState traceState = parentSpanContext.getTraceState() != null ? parentSpanContext.getTraceState() : TraceState.getDefault();
         String resource = getResource(attributes);
-
+        SamplingResult samplingResult;
+        AttributesBuilder additionalAttributesBuilder = Attributes.builder();
         if (!parentSpanContext.isValid() || traceState.isEmpty()) {
             // new sample decision, create new tracestate
-            return toOtSamplingResult(TraceDecisionUtil.shouldTraceRequest(name, null, null, resource), TraceState.getDefault());
+            samplingResult = toOtSamplingResult(TraceDecisionUtil.shouldTraceRequest(name, null, null, resource), TraceState.getDefault());
+        } else {
+            String swVal = traceState.get(SW_TRACESTATE_KEY);
+            if (!isValidSWTraceStateKey(swVal)) {
+                TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, null, null, resource);
+                samplingResult = toOtSamplingResult(aoTraceDecision, traceState);
+            } else {
+                TraceFlags traceFlags = TraceFlags.fromByte(swVal.split("-")[1].getBytes()[1]);
+                samplingResult = (traceFlags.isSampled() ? Sampler.alwaysOn() : Sampler.alwaysOff())
+                        .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks);
+                if (parentSpanContext.isRemote()) {
+                    additionalAttributesBuilder.put(SW_PARENT_ID, swVal.split("-")[0]);
+                }
+            }
         }
 
-        String swVal = traceState.get(SW_TRACESTATE_KEY);
-        if (!isValidSWTraceStateKey(swVal)) {
-            TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, null, null, resource);
-            return toOtSamplingResult(aoTraceDecision, traceState);
-        } else {
-            TraceFlags traceFlags = TraceFlags.fromByte(swVal.split("-")[1].getBytes()[1]);
-            return TraceStateSamplingResult.wrap((traceFlags.isSampled() ? Sampler.alwaysOn() : Sampler.alwaysOff())
-                    .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks));
+        if (!traceState.isEmpty()) {
+            additionalAttributesBuilder.put(SW_UPSTREAM_VENDORS, String.join(",", traceState.asMap().keySet()));
         }
+        return TraceStateSamplingResult.wrap(samplingResult, additionalAttributesBuilder.build());
     }
 
     private boolean isValidSWTraceStateKey(String swVal) {
@@ -120,6 +131,6 @@ public class AppOpticsSampler implements Sampler {
                 result = METRICS_ONLY; // is this correct? probably not...
             }
         }
-        return TraceStateSamplingResult.wrap(result);
+        return result;
     }
 }
