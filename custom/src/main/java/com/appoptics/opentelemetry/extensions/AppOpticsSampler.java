@@ -5,6 +5,7 @@ import com.appoptics.opentelemetry.core.Util;
 import com.google.auto.service.AutoService;
 import com.tracelytics.joboe.TraceDecision;
 import com.tracelytics.joboe.TraceDecisionUtil;
+import com.tracelytics.joboe.XTraceOptions;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
@@ -61,18 +62,20 @@ public class AppOpticsSampler implements Sampler {
         String resource = getResource(attributes);
         SamplingResult samplingResult;
         AttributesBuilder additionalAttributesBuilder = Attributes.builder();
+        XTraceOptions xTraceOptions = parentContext.get(TriggerTraceContextKey.KEY);
+
         if (!parentSpanContext.isValid() || traceState.isEmpty()) { // no traceparent or tracestate, treat it as a new trace
-            samplingResult = toOtSamplingResult(TraceDecisionUtil.shouldTraceRequest(name, null, null, resource));
+            samplingResult = toOtSamplingResult(TraceDecisionUtil.shouldTraceRequest(name, null, xTraceOptions, resource));
         } else {
             String swVal = traceState.get(SW_TRACESTATE_KEY);
             if (!isValidSWTraceStateKey(swVal)) { // broken or non-exist sw tracestate, treat it as a new trace
-                TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, null, null, resource);
+                TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, null, xTraceOptions, resource);
                 samplingResult = toOtSamplingResult(aoTraceDecision);
             } else { // follow the upstream sw trace decision
                 TraceFlags traceFlags = TraceFlags.fromByte(swVal.split("-")[1].getBytes()[1]);
                 if (parentSpanContext.isRemote()) { // root span needs to roll the dice
                     String xTraceId = Util.buildXTraceId(parentSpanContext);
-                    TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, xTraceId, null, resource);
+                    TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, xTraceId, xTraceOptions, resource);
                     samplingResult = toOtSamplingResult(aoTraceDecision);
                 } else { // non-root span just follows the parent span's decision
                     samplingResult = (traceFlags.isSampled() ? Sampler.alwaysOn() : Sampler.alwaysOff())

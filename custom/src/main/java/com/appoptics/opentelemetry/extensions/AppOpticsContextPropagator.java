@@ -3,6 +3,8 @@ package com.appoptics.opentelemetry.extensions;
 import com.appoptics.opentelemetry.core.Util;
 import com.tracelytics.instrumentation.HeaderConstants;
 import com.tracelytics.joboe.Metadata;
+import com.tracelytics.joboe.XTraceHeader;
+import com.tracelytics.joboe.XTraceOptions;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceState;
@@ -23,6 +25,8 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
     private static final String TRACE_STATE_APPOPTICS_KEY = "sw";
     static final String TRACE_PARENT = "traceparent";
     static final String TRACE_STATE = "tracestate";
+    static final String XTRACE_OPTIONS = "xtrace-options";
+    static final String XTRACE_OPTIONS_SIGNATURE = "xtrace-options-signature";
     private static final List<String> FIELDS =
             Collections.unmodifiableList(Arrays.asList(TRACE_PARENT, TRACE_STATE, HeaderConstants.XTRACE_HEADER));
     private static final int TRACESTATE_MAX_SIZE = 512;
@@ -64,6 +68,15 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
                     }
                 });
         setter.set(carrier, TRACE_STATE, traceStateBuilder.toString());
+
+        String traceOptions = context.get(TriggerTraceContextKey.XTRACE_OPTIONS);
+        String traceOptionsSignature = context.get(TriggerTraceContextKey.XTRACE_OPTIONS_SIGNATURE);
+        if (traceOptions != null) {
+            setter.set(carrier, XTRACE_OPTIONS, traceOptions);
+        }
+        if (traceOptionsSignature != null) {
+            setter.set(carrier, XTRACE_OPTIONS_SIGNATURE, traceOptionsSignature);
+        }
     }
 
     /**
@@ -77,7 +90,16 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
      */
     @Override
     public <C> Context extract(Context context, @Nullable C carrier, TextMapGetter<C> getter) {
-        // do nothing
+        String traceOptions = getter.get(carrier, XTRACE_OPTIONS);
+        String traceOptionsSignature = getter.get(carrier, XTRACE_OPTIONS_SIGNATURE);
+        XTraceOptions xTraceOptions = XTraceOptions.getXTraceOptions(traceOptions, traceOptionsSignature);
+        if (xTraceOptions != null) {
+            context = context.with(TriggerTraceContextKey.KEY, xTraceOptions);
+            context = context.with(TriggerTraceContextKey.XTRACE_OPTIONS, traceOptions);
+            if (traceOptionsSignature != null) {
+                context = context.with(TriggerTraceContextKey.XTRACE_OPTIONS_SIGNATURE, traceOptionsSignature);
+            }
+        }
         return context;
     }
 }
