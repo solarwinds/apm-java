@@ -37,17 +37,17 @@ public class AppOpticsSpanExporter implements SpanExporter {
                         parentMetadata = Util.buildMetadata(spanData.getParentSpanContext());
                     }
 
-                    String entryXTraceId = Util.buildXTraceId(spanData.getSpanContext());
+                    String w3cContext = Util.W3CContextToHexString(spanData.getSpanContext());
 
                     String spanName = spanData.getKind().toString() + "." + spanData.getName();
 
-                    Metadata spanMetadata = new Metadata(entryXTraceId);
+                    Metadata spanMetadata = new Metadata(w3cContext);
                     spanMetadata.randomizeOpID(); //get around the metadata logic, this op id is not used
                     Event entryEvent;
                     if (parentMetadata != null) {
-                        entryEvent = new EventImpl(parentMetadata, entryXTraceId, true);
+                        entryEvent = new EventImpl(parentMetadata, w3cContext, true);
                     } else {
-                        entryEvent = new EventImpl(null, entryXTraceId, false);
+                        entryEvent = new EventImpl(null, w3cContext, false);
                     }
 
                     if (!spanData.getParentSpanContext().isValid() || spanData.getParentSpanContext().isRemote()) { //then a root span of this service

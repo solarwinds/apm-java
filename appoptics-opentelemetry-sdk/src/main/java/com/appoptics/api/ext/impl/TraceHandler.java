@@ -184,7 +184,7 @@ public class TraceHandler implements ITraceHandler {
      * {@inheritDoc}
      */
     public String getCurrentXTraceID() {
-        return Util.buildXTraceId(Span.current().getSpanContext());
+        return Util.W3CContextToHexString(Span.current().getSpanContext());
     }
     
     @Override

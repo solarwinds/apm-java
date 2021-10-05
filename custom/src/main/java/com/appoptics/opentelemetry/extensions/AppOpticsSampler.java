@@ -74,7 +74,7 @@ public class AppOpticsSampler implements Sampler {
             } else { // follow the upstream sw trace decision
                 TraceFlags traceFlags = TraceFlags.fromByte(swVal.split("-")[1].getBytes()[1]);
                 if (parentSpanContext.isRemote()) { // root span needs to roll the dice
-                    String xTraceId = Util.buildXTraceId(parentSpanContext);
+                    String xTraceId = Util.W3CContextToHexString(parentSpanContext);
                     TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, xTraceId, xTraceOptions, resource);
                     samplingResult = toOtSamplingResult(aoTraceDecision);
                 } else { // non-root span just follows the parent span's decision

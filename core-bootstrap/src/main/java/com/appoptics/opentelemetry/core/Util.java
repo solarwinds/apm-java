@@ -1,9 +1,7 @@
 package com.appoptics.opentelemetry.core;
 
-import com.tracelytics.ext.google.common.base.Strings;
 import com.tracelytics.joboe.Metadata;
 import com.tracelytics.joboe.OboeException;
-import com.tracelytics.joboe.Constants;
 import io.opentelemetry.api.trace.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,19 +15,22 @@ import java.util.Map;
 import static com.appoptics.opentelemetry.core.Constants.*;
 
 public class Util {
-    private static Logger logger = LoggerFactory.getLogger(Util.class.getName());
-    private static String APPOPTICS_TRACE_STATE_KEY = "appoptics";
-    private static byte EXIT_OP_ID_MASK = 0xf;
+    private static final Logger logger = LoggerFactory.getLogger(Util.class.getName());
+    private static final byte EXIT_OP_ID_MASK = 0xf;
 
-    /**
-     * Build an AO x-trace ID from OT span context. Take note that we will have to check the value of `appoptics` in
-     * `tracestate` first as AO x-trace ID has longer task ID than its OT counterpart traceid. More details in
-     * https://github.com/librato/joboe/issues/1079
+    /** Converts an OpenTelemetry span context to a hex string.
+     *
      * @param context
      * @return
      */
-    public static String buildXTraceId(SpanContext context) {
-        return buildXTraceId(context.getTraceId(), context.getSpanId(), context.isSampled());
+    public static String W3CContextToHexString(SpanContext context) {
+        return Metadata.CURRENT_VERSION_HEXSTRING
+                + Metadata.HEXSTRING_DELIMETER
+                + context.getTraceId()
+                + Metadata.HEXSTRING_DELIMETER
+                + context.getSpanId()
+                + Metadata.HEXSTRING_DELIMETER
+                + context.getTraceFlags().asHex();
     }
 
     /**
@@ -50,25 +51,6 @@ public class Util {
     }
 
     /**
-     * Builds an AO x-trace ID with OT trace id and span id
-     *
-     * @param traceId
-     * @param spanId
-     * @param isSampled
-     * @return
-     */
-    private static String buildXTraceId(String traceId, String spanId, boolean isSampled) {
-        final String HEADER = "2B";
-        String hexString = HEADER +
-                Strings.padEnd(traceId, Constants.MAX_TASK_ID_LEN * 2, '0') +
-                Strings.padEnd(spanId, Constants.MAX_OP_ID_LEN * 2, '0');
-        hexString += isSampled ? "01" : "00";
-
-
-        return hexString.toUpperCase();
-    }
-
-    /**
      * Builds an AO metadata with OT span context
      *
      * @param context
@@ -76,14 +58,11 @@ public class Util {
      */
     public static Metadata buildMetadata(SpanContext context) {
         try {
-            Metadata metadata = new Metadata(buildXTraceId(context));
-            metadata.setTraceId(toTraceId(context.getTraceIdBytes()));
-            return metadata;
+            return new Metadata(W3CContextToHexString(context));
         } catch (OboeException e) {
             return null;
         }
     }
-
 
     /**
      * Generate a deterministic AO trace id from the OT trace id bytes
@@ -106,33 +85,17 @@ public class Util {
      * @return
      */
     public static SpanContext toSpanContext(String xTrace, boolean isRemote) {
-        W3TraceContextHolder w3TraceContext = toW3TraceContext(xTrace);
-        return isRemote
-                ? SpanContext.createFromRemoteParent(w3TraceContext.traceId, w3TraceContext.spanId, w3TraceContext.traceFlags, TraceState.getDefault())
-                : SpanContext.create(w3TraceContext.traceId, w3TraceContext.spanId, w3TraceContext.traceFlags, TraceState.getDefault());
-    }
-
-    /**
-     * Builds a w3c formatted trace context with AO x-trace ID
-     * @param xTrace
-     * @return
-     */
-    public static W3TraceContextHolder toW3TraceContext(String xTrace) {
-        Metadata metadata;
+        Metadata metadata = null;
         try {
             metadata = new Metadata(xTrace);
         } catch (OboeException e) {
-            e.printStackTrace();
-            return null;
+            return SpanContext.getInvalid();
         }
 
-        String w3TraceId = TraceId.fromBytes(metadata.getTaskID());
-        String w3SpanId = SpanId.fromBytes(metadata.getOpID());
-        TraceFlags w3TraceFlags = metadata.isSampled() ? TraceFlags.getSampled() : TraceFlags.getDefault();
-
-        return new W3TraceContextHolder(w3TraceId, w3SpanId, w3TraceFlags);
+        return isRemote
+                ? SpanContext.createFromRemoteParent(metadata.taskHexString(), metadata.opHexString(), TraceFlags.fromByte(metadata.getFlags()), TraceState.getDefault())
+                : SpanContext.create(metadata.taskHexString(), metadata.opHexString(), TraceFlags.fromByte(metadata.getFlags()), TraceState.getDefault());
     }
-
 
     public static String parsePath(String url) {
         if (url != null) {
@@ -143,19 +106,6 @@ public class Util {
             }
         }
         return null;
-    }
-
-
-    public static class W3TraceContextHolder {
-        public final String traceId;
-        public final String spanId;
-        public final TraceFlags traceFlags;
-
-        W3TraceContextHolder(String traceId, String spanId, TraceFlags traceFlags) {
-            this.traceId = traceId;
-            this.spanId = spanId;
-            this.traceFlags = traceFlags;
-        }
     }
 
     public static Map<String, Object> keyValuePairsToMap(Object... keyValuePairs) {
