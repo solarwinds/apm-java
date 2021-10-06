@@ -18,7 +18,6 @@ import io.opentelemetry.sdk.trace.samplers.SamplingResult;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.*;
 
@@ -29,7 +28,7 @@ import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.*;
  */
 @AutoService(Sampler.class)
 public class AppOpticsSampler implements Sampler {
-    private static final String SW_UPSTREAM_VENDORS = "ao.UpstreamTraceVendors";
+    private static final String SW_UPSTREAM_TRACESTATE = "ao.tracestate";
     private static final String SW_PARENT_ID = "ao.SWParentID";
     private final SamplingResult PARENT_SAMPLED = SamplingResult.create(SamplingDecision.RECORD_AND_SAMPLE,
             Attributes.of(
@@ -89,14 +88,7 @@ public class AppOpticsSampler implements Sampler {
         }
 
         if (parentSpanContext.isRemote() && !traceState.isEmpty()) {
-            String upstreamVendors = traceState.asMap()
-                    .keySet()
-                    .stream()
-                    .filter(key->!key.equals(SW_TRACESTATE_KEY))
-                    .collect(Collectors.joining(","));
-            if (!upstreamVendors.isEmpty()) {
-                additionalAttributesBuilder.put(SW_UPSTREAM_VENDORS, upstreamVendors);
-            }
+            additionalAttributesBuilder.put(SW_UPSTREAM_TRACESTATE, parentContext.get(TraceStateKey.KEY));
         }
         return TraceStateSamplingResult.wrap(samplingResult, additionalAttributesBuilder.build());
     }

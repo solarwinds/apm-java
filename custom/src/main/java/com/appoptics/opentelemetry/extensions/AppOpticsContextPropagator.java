@@ -96,6 +96,11 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
                 context = context.with(TriggerTraceContextKey.XTRACE_OPTIONS_SIGNATURE, traceOptionsSignature);
             }
         }
+
+        String traceState = getter.get(carrier, TRACE_STATE);
+        if (traceState != null) {
+            context = context.with(TraceStateKey.KEY, traceState);
+        }
         return context;
     }
 }
