@@ -28,31 +28,29 @@ import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.*;
  */
 @AutoService(Sampler.class)
 public class AppOpticsSampler implements Sampler {
-    private static final String SW_UPSTREAM_TRACESTATE = "ao.tracestate";
-    private static final String SW_PARENT_ID = "ao.SWParentID";
     private final SamplingResult PARENT_SAMPLED = SamplingResult.create(SamplingDecision.RECORD_AND_SAMPLE,
             Attributes.of(
-                    AttributeKey.booleanKey(Constants.AO_DETAILED_TRACING), true,
-                    AttributeKey.booleanKey(Constants.AO_METRICS), true,
-                    AttributeKey.booleanKey(Constants.AO_SAMPLER), true));
+                    AttributeKey.booleanKey(Constants.SW_DETAILED_TRACING), true,
+                    AttributeKey.booleanKey(Constants.SW_METRICS), true,
+                    AttributeKey.booleanKey(Constants.SW_SAMPLER), true));
     private final SamplingResult PARENT_NOT_SAMPLED = SamplingResult.create(SamplingDecision.DROP,
             Attributes.of(
-                    AttributeKey.booleanKey(Constants.AO_DETAILED_TRACING), false,
-                    AttributeKey.booleanKey(Constants.AO_METRICS), false,
-                    AttributeKey.booleanKey(Constants.AO_SAMPLER), true));
+                    AttributeKey.booleanKey(Constants.SW_DETAILED_TRACING), false,
+                    AttributeKey.booleanKey(Constants.SW_METRICS), false,
+                    AttributeKey.booleanKey(Constants.SW_SAMPLER), true));
 
     private final SamplingResult METRICS_ONLY = SamplingResult.create(SamplingDecision.RECORD_ONLY,
             Attributes.of(
-                    AttributeKey.booleanKey(Constants.AO_DETAILED_TRACING), false,
-                    AttributeKey.booleanKey(Constants.AO_METRICS), true,
-                    AttributeKey.booleanKey(Constants.AO_SAMPLER), true
+                    AttributeKey.booleanKey(Constants.SW_DETAILED_TRACING), false,
+                    AttributeKey.booleanKey(Constants.SW_METRICS), true,
+                    AttributeKey.booleanKey(Constants.SW_SAMPLER), true
             ));
 
     private final SamplingResult NOT_TRACED = SamplingResult.create(SamplingDecision.DROP,
             Attributes.of(
-                    AttributeKey.booleanKey(Constants.AO_DETAILED_TRACING), false,
-                    AttributeKey.booleanKey(Constants.AO_METRICS), false,
-                    AttributeKey.booleanKey(Constants.AO_SAMPLER), true));
+                    AttributeKey.booleanKey(Constants.SW_DETAILED_TRACING), false,
+                    AttributeKey.booleanKey(Constants.SW_METRICS), false,
+                    AttributeKey.booleanKey(Constants.SW_SAMPLER), true));
 
     @Override
     public SamplingResult shouldSample(Context parentContext, String traceId, String name, SpanKind spanKind, Attributes attributes, List<LinkData> parentLinks) {
@@ -83,12 +81,15 @@ public class AppOpticsSampler implements Sampler {
                 parentId = swVal.split("-")[0];
             }
             if (parentSpanContext.isRemote() && parentId != null) {
-                additionalAttributesBuilder.put(SW_PARENT_ID, parentId);
+                additionalAttributesBuilder.put(Constants.SW_PARENT_ID, parentId);
             }
         }
 
         if (parentSpanContext.isRemote() && !traceState.isEmpty()) {
-            additionalAttributesBuilder.put(SW_UPSTREAM_TRACESTATE, parentContext.get(TraceStateKey.KEY));
+            String traceStateValue = parentContext.get(TraceStateKey.KEY);
+            if (traceStateValue != null) {
+                additionalAttributesBuilder.put(Constants.SW_UPSTREAM_TRACESTATE, traceStateValue);
+            }
         }
         return TraceStateSamplingResult.wrap(samplingResult, additionalAttributesBuilder.build());
     }
@@ -112,7 +113,7 @@ public class AppOpticsSampler implements Sampler {
 
     @Override
     public String getDescription() {
-        return "AppOptics Sampler";
+        return "Solarwinds NH Sampler";
     }
 
     private SamplingResult toOtSamplingResult(TraceDecision aoTraceDecision) {
@@ -121,14 +122,14 @@ public class AppOpticsSampler implements Sampler {
         if (aoTraceDecision.isSampled()) {
             SamplingDecision samplingDecision = SamplingDecision.RECORD_AND_SAMPLE;
             AttributesBuilder aoAttributesBuilder = Attributes.builder();
-            aoAttributesBuilder.put(Constants.AO_KEY_PREFIX + "SampleRate", aoTraceDecision.getTraceConfig().getSampleRate());
-            aoAttributesBuilder.put(Constants.AO_KEY_PREFIX + "SampleSource", aoTraceDecision.getTraceConfig().getSampleRateSourceValue());
-            aoAttributesBuilder.put(Constants.AO_KEY_PREFIX + "BucketRate", aoTraceDecision.getTraceConfig().getBucketRate(aoTraceDecision.getRequestType().getBucketType()));
-            aoAttributesBuilder.put(Constants.AO_KEY_PREFIX + "BucketCapacity", aoTraceDecision.getTraceConfig().getBucketCapacity(aoTraceDecision.getRequestType().getBucketType()));
-            aoAttributesBuilder.put(Constants.AO_KEY_PREFIX + "RequestType", aoTraceDecision.getRequestType().name());
-            aoAttributesBuilder.put(Constants.AO_DETAILED_TRACING, aoTraceDecision.isSampled());
-            aoAttributesBuilder.put(Constants.AO_METRICS, aoTraceDecision.isReportMetrics());
-            aoAttributesBuilder.put(Constants.AO_SAMPLER, true); //mark that it has been sampled by us
+            aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "SampleRate", aoTraceDecision.getTraceConfig().getSampleRate());
+            aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "SampleSource", aoTraceDecision.getTraceConfig().getSampleRateSourceValue());
+            aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "BucketRate", aoTraceDecision.getTraceConfig().getBucketRate(aoTraceDecision.getRequestType().getBucketType()));
+            aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "BucketCapacity", aoTraceDecision.getTraceConfig().getBucketCapacity(aoTraceDecision.getRequestType().getBucketType()));
+            aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "RequestType", aoTraceDecision.getRequestType().name());
+            aoAttributesBuilder.put(Constants.SW_DETAILED_TRACING, aoTraceDecision.isSampled());
+            aoAttributesBuilder.put(Constants.SW_METRICS, aoTraceDecision.isReportMetrics());
+            aoAttributesBuilder.put(Constants.SW_SAMPLER, true); //mark that it has been sampled by us
 
             result = SamplingResult.create(samplingDecision, aoAttributesBuilder.build());
         } else {

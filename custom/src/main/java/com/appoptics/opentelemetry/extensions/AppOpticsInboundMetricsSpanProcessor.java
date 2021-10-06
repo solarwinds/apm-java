@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Span processor to record inbound metrics
  */
 public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
-    private static final AttributeKey<Boolean> AO_METRICS_KEY = AttributeKey.booleanKey(Constants.AO_METRICS);
+    private static final AttributeKey<Boolean> AO_METRICS_KEY = AttributeKey.booleanKey(Constants.SW_METRICS);
     public static final OpenTelemetryInboundMeasurementReporter measurementReporter = new OpenTelemetryInboundMeasurementReporter();
     public static final OpenTelemetryInboundHistogramReporter histogramReporter = new OpenTelemetryInboundHistogramReporter();
 

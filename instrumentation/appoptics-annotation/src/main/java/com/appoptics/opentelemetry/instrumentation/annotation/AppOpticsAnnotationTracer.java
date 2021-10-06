@@ -7,7 +7,6 @@ package com.appoptics.opentelemetry.instrumentation.annotation;
 
 import com.appoptics.api.ext.LogMethod;
 import com.appoptics.api.ext.ProfileMethod;
-import com.appoptics.api.ext.impl.SdkUtil;
 import com.appoptics.opentelemetry.core.Constants;
 import com.appoptics.opentelemetry.core.Util;
 import com.tracelytics.joboe.EventValueConverter;
@@ -47,12 +46,12 @@ public class AppOpticsAnnotationTracer extends BaseTracer {
 
     Span span = spanBuilder(parentContext, operationName, kind).startSpan();
 
-    span.setAttribute(Constants.AO_KEY_PREFIX + "Class", method.getDeclaringClass().getName());
-    span.setAttribute(Constants.AO_KEY_PREFIX + "Method", method.getName());
+    span.setAttribute(Constants.SW_KEY_PREFIX + "Class", method.getDeclaringClass().getName());
+    span.setAttribute(Constants.SW_KEY_PREFIX + "Method", method.getName());
 
 
     if (annotation.backTrace()) {
-      span.setAttribute(Constants.AO_KEY_PREFIX + "Backtrace", BackTraceUtil.backTraceToString(BackTraceUtil.getBackTrace(1)));
+      span.setAttribute(Constants.SW_KEY_PREFIX + "Backtrace", BackTraceUtil.backTraceToString(BackTraceUtil.getBackTrace(1)));
     }
     return parentContext.with(span);
   }
@@ -64,9 +63,9 @@ public class AppOpticsAnnotationTracer extends BaseTracer {
 
     Span span = spanBuilder(parentContext, operationName, kind).startSpan();
 
-    span.setAttribute(Constants.AO_KEY_PREFIX + "Class", method.getDeclaringClass().getName());
-    span.setAttribute(Constants.AO_KEY_PREFIX + "FunctionName", method.getName());
-    span.setAttribute(Constants.AO_KEY_PREFIX + "Signature", method.toGenericString()); //slightly different from the method signature before, but this is more readable
+    span.setAttribute(Constants.SW_KEY_PREFIX + "Class", method.getDeclaringClass().getName());
+    span.setAttribute(Constants.SW_KEY_PREFIX + "FunctionName", method.getName());
+    span.setAttribute(Constants.SW_KEY_PREFIX + "Signature", method.toGenericString()); //slightly different from the method signature before, but this is more readable
 
     if (method.getDeclaringClass().getProtectionDomain() != null) {
       CodeSource codeSource = method.getDeclaringClass().getProtectionDomain().getCodeSource();
@@ -75,14 +74,14 @@ public class AppOpticsAnnotationTracer extends BaseTracer {
         if (location != null) {
           String file = location.getFile();
           if (file != null && !"".equals(file)) {
-            span.setAttribute(Constants.AO_KEY_PREFIX + "File", file);
+            span.setAttribute(Constants.SW_KEY_PREFIX + "File", file);
           }
         }
       }
     }
 
     if (annotation.backTrace()) {
-      span.setAttribute(Constants.AO_KEY_PREFIX + "Backtrace", BackTraceUtil.backTraceToString(BackTraceUtil.getBackTrace(1)));
+      span.setAttribute(Constants.SW_KEY_PREFIX + "Backtrace", BackTraceUtil.backTraceToString(BackTraceUtil.getBackTrace(1)));
     }
     return parentContext.with(span);
   }

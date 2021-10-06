@@ -138,8 +138,8 @@ public class Util {
         for (Map.Entry<String, ?> entry : attributes.entrySet()) {
             Object value = entry.getValue();
             String key = entry.getKey();
-            if (!key.startsWith(AO_KEY_PREFIX)) {
-                key = AO_KEY_PREFIX + key;
+            if (!key.startsWith(SW_KEY_PREFIX)) {
+                key = SW_KEY_PREFIX + key;
             }
             if (value instanceof String) {
                 span.setAttribute(key, (String) value);
@@ -169,8 +169,8 @@ public class Util {
         for (Map.Entry<String, ?> entry : attributes.entrySet()) {
             Object value = entry.getValue();
             String key = entry.getKey();
-            if (!key.startsWith(AO_KEY_PREFIX)) {
-                key = AO_KEY_PREFIX + key;
+            if (!key.startsWith(SW_KEY_PREFIX)) {
+                key = SW_KEY_PREFIX + key;
             }
 
             if (value instanceof String) {

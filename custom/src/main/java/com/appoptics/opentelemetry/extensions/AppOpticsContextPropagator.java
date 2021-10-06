@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class AppOpticsContextPropagator implements TextMapPropagator {
@@ -27,8 +28,9 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
             Collections.unmodifiableList(Arrays.asList(TRACE_PARENT, TRACE_STATE, HeaderConstants.XTRACE_HEADER));
     private static final int TRACESTATE_MAX_SIZE = 512;
     private static final int TRACESTATE_MAX_MEMBERS = 32;
-    private static final char TRACESTATE_KEY_VALUE_DELIMITER = '=';
-    private static final char TRACESTATE_ENTRY_DELIMITER = ',';
+    private static final int OVERSIZE_ENTRY_LENGTH = 129;
+    private static final String TRACESTATE_KEY_VALUE_DELIMITER = "=";
+    private static final String TRACESTATE_ENTRY_DELIMITER = ",";
 
     @Override
     public Collection<String> fields() {
@@ -52,18 +54,8 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
         //update trace state too: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/api.md#tracestate
         //https://www.w3.org/TR/trace-context/#mutating-the-tracestate-field
         TraceState traceState = spanContext.getTraceState();
-        StringBuilder traceStateBuilder = new StringBuilder(TRACESTATE_MAX_SIZE);
         String swTraceStateValue = spanContext.getSpanId() + "-" + (spanContext.isSampled() ? "01" : "00");
-        traceStateBuilder.append(TRACE_STATE_APPOPTICS_KEY).append(TRACESTATE_KEY_VALUE_DELIMITER).append(swTraceStateValue);
-        AtomicInteger count = new AtomicInteger(1);
-        traceState.forEach(
-                (key, value) -> {
-                    if (!TRACE_STATE_APPOPTICS_KEY.equals(key) && count.getAndIncrement() <= TRACESTATE_MAX_MEMBERS) {
-                        traceStateBuilder.append(TRACESTATE_ENTRY_DELIMITER);
-                        traceStateBuilder.append(key).append(TRACESTATE_KEY_VALUE_DELIMITER).append(value);
-                    }
-                });
-        setter.set(carrier, TRACE_STATE, traceStateBuilder.toString());
+        setter.set(carrier, TRACE_STATE, updateTraceState(traceState, swTraceStateValue));
 
         String traceOptions = context.get(TriggerTraceContextKey.XTRACE_OPTIONS);
         String traceOptionsSignature = context.get(TriggerTraceContextKey.XTRACE_OPTIONS_SIGNATURE);
@@ -75,6 +67,50 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
         }
     }
 
+    /**
+     * Update tracestate with the new SW tracestate value and do some truncation if needed.
+     * @param traceState
+     * @param swTraceStateValue
+     * @return
+     */
+    private String updateTraceState(TraceState traceState, String swTraceStateValue) {
+        StringBuilder traceStateBuilder = new StringBuilder(TRACESTATE_MAX_SIZE);
+        traceStateBuilder.append(TRACE_STATE_APPOPTICS_KEY).append(TRACESTATE_KEY_VALUE_DELIMITER).append(swTraceStateValue);
+        AtomicInteger count = new AtomicInteger(1);
+
+        // calculate current length of the tracestate
+        AtomicInteger traceStateLength = new AtomicInteger(0);
+        traceState.forEach(
+                (key, value) -> {
+                    if (!TRACE_STATE_APPOPTICS_KEY.equals(key)) {
+                        traceStateLength.addAndGet(key.length());
+                        traceStateLength.addAndGet(TRACESTATE_KEY_VALUE_DELIMITER.length());
+                        traceStateLength.addAndGet(value.length());
+                        traceStateLength.addAndGet(TRACESTATE_ENTRY_DELIMITER.length());
+                    }
+                }
+        );
+
+        AtomicBoolean truncateLargeEntry = new AtomicBoolean(traceStateLength.get() + traceStateBuilder.length() > TRACESTATE_MAX_SIZE);
+        traceState.forEach(
+                (key, value) -> {
+                    if (!TRACE_STATE_APPOPTICS_KEY.equals(key)
+                            && count.get() < TRACESTATE_MAX_MEMBERS
+                            && traceStateBuilder.length() + TRACESTATE_ENTRY_DELIMITER.length() + key.length() + TRACESTATE_KEY_VALUE_DELIMITER.length() + value.length() <= TRACESTATE_MAX_SIZE) {
+                        if (key.length() + TRACESTATE_KEY_VALUE_DELIMITER.length() + value.length() >= OVERSIZE_ENTRY_LENGTH
+                        && truncateLargeEntry.get()) {
+                            truncateLargeEntry.set(false); // only truncate one oversize entry as SW tracestate entry is smaller than OVERSIZE_ENTRY_LENGTH
+                        } else {
+                            traceStateBuilder.append(TRACESTATE_ENTRY_DELIMITER)
+                                    .append(key)
+                                    .append(TRACESTATE_KEY_VALUE_DELIMITER)
+                                    .append(value);
+                            count.incrementAndGet();
+                        }
+                    }
+                });
+        return traceStateBuilder.toString();
+    }
     /**
      * Extract context from the carrier, first scanning for appoptics x-trace header.
      * If not found, try the w3c `tracestate`

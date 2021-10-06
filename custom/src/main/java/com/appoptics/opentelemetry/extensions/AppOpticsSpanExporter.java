@@ -17,7 +17,7 @@ import java.util.*;
  * Span exporter to be used with the OpenTelemetry auto agent
  */
 public class AppOpticsSpanExporter implements SpanExporter {
-    private static final AttributeKey<Boolean> AO_SAMPLER_KEY = AttributeKey.booleanKey(com.appoptics.opentelemetry.core.Constants.AO_SAMPLER);
+    private static final AttributeKey<Boolean> AO_SAMPLER_KEY = AttributeKey.booleanKey(com.appoptics.opentelemetry.core.Constants.SW_SAMPLER);
 
     private AppOpticsSpanExporter(String serviceKey) {
 
@@ -144,7 +144,7 @@ public class AppOpticsSpanExporter implements SpanExporter {
         Map<AttributeKey<?>, Object> result = new HashMap<>();
         for (Map.Entry<AttributeKey<?>, Object> keyValue : inputAttributes.asMap().entrySet()) {
             AttributeKey<?> key = keyValue.getKey();
-            if (!key.getKey().startsWith(com.appoptics.opentelemetry.core.Constants.AO_INTERNAL_ATTRIBUTE_PREFIX)) {
+            if (!key.getKey().startsWith(com.appoptics.opentelemetry.core.Constants.SW_INTERNAL_ATTRIBUTE_PREFIX)) {
                 result.put(key, keyValue.getValue());
             }
         }
@@ -193,8 +193,8 @@ public class AppOpticsSpanExporter implements SpanExporter {
             }
 
             //Add all attributes as KVs, but add/remove prefix based on type
-            if (attributeKey.startsWith(com.appoptics.opentelemetry.core.Constants.AO_KEY_PREFIX)) {
-                attributeKey = attributeKey.substring(com.appoptics.opentelemetry.core.Constants.AO_KEY_PREFIX.length());
+            if (attributeKey.startsWith(com.appoptics.opentelemetry.core.Constants.SW_KEY_PREFIX)) {
+                attributeKey = attributeKey.substring(com.appoptics.opentelemetry.core.Constants.SW_KEY_PREFIX.length());
             } else {
                 attributeKey = Constants.OT_KEY_PREFIX + attributeKey;
             }

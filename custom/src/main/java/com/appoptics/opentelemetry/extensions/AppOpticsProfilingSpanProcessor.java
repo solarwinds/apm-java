@@ -36,9 +36,9 @@ public class AppOpticsProfilingSpanProcessor implements SpanProcessor {
                 if (PROFILER_ENABLED) {
                     Metadata metadata = Util.buildMetadata(span.getSpanContext());
                     Profiler.addProfiledThread(Thread.currentThread(), metadata, metadata.getTraceId());
-                    span.setAttribute(AO_KEY_PREFIX + "ProfileSpans", 1);
+                    span.setAttribute(SW_KEY_PREFIX + "ProfileSpans", 1);
                 } else {
-                    span.setAttribute(AO_KEY_PREFIX + "ProfileSpans", -1); //profiler disabled
+                    span.setAttribute(SW_KEY_PREFIX + "ProfileSpans", -1); //profiler disabled
                 }
             }
         }
