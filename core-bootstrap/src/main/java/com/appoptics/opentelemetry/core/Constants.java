@@ -9,5 +9,5 @@ public interface Constants {
     String SW_SAMPLER = SW_INTERNAL_ATTRIBUTE_PREFIX + "sampler";
     String W3C_KEY_PREFIX = "w3c.";
     String SW_UPSTREAM_TRACESTATE = SW_KEY_PREFIX + W3C_KEY_PREFIX + "tracestate";
-    String SW_PARENT_ID = SW_KEY_PREFIX + "parentid";
+    String SW_PARENT_ID = SW_KEY_PREFIX + "parent_id";
 }
