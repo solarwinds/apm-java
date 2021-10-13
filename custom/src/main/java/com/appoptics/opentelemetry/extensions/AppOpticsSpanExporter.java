@@ -30,7 +30,7 @@ public class AppOpticsSpanExporter implements SpanExporter {
     @Override
     public CompletableResultCode export(Collection<SpanData> collection) {
         for (SpanData spanData : collection) {
-            if (spanData.hasEnded() && Boolean.TRUE == spanData.getAttributes().get(AO_SAMPLER_KEY)) {
+            if (spanData.hasEnded()) {
                 try {
                     Metadata parentMetadata = null;
                     if (spanData.getParentSpanContext().isValid()) {
@@ -193,11 +193,12 @@ public class AppOpticsSpanExporter implements SpanExporter {
             }
 
             //Add all attributes as KVs, but add/remove prefix based on type
-            if (attributeKey.startsWith(com.appoptics.opentelemetry.core.Constants.SW_KEY_PREFIX)) {
-                attributeKey = attributeKey.substring(com.appoptics.opentelemetry.core.Constants.SW_KEY_PREFIX.length());
-            } else {
-                attributeKey = Constants.OT_KEY_PREFIX + attributeKey;
-            }
+            // TODO: remove it
+//            if (attributeKey.startsWith(com.appoptics.opentelemetry.core.Constants.SW_KEY_PREFIX)) {
+//                attributeKey = attributeKey.substring(com.appoptics.opentelemetry.core.Constants.SW_KEY_PREFIX.length());
+//            } else {
+//                attributeKey = Constants.OT_KEY_PREFIX + attributeKey;
+//            }
             tags.put(attributeKey, attributeValue);
         }
         return tags;
