@@ -16,8 +16,8 @@ dependencies {
   implementation project(":custom")
 
   //core and metrics will be made available in jar from sdk-extensions-bootstrap, appended to bootstrap via `-Xbootclasspath/a:`
-  compileOnly "com.appoptics.agent.java:core:${versions.appoptics}"
-  compileOnly "com.appoptics.agent.java:metrics:${versions.appoptics}"
+  compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
+  compileOnly "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
 }
 
 tasks {

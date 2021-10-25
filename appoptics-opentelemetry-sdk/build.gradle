@@ -6,23 +6,13 @@ group = "com.appoptics.agent.java"
 dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:${versions.opentelemetryJavaagentAlpha}")
-  compileOnly "com.appoptics.agent.java:core:${versions.appoptics}"
-  compileOnly "com.appoptics.agent.java:metrics:${versions.appoptics}"
+  compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
+  compileOnly "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
   compileOnly project(":custom")
   compileOnly project(":core-bootstrap")
   testImplementation "junit:junit:4.10"
-  testImplementation "com.appoptics.agent.java:core:${versions.appoptics}"
-  testImplementation "com.appoptics.agent.java:metrics:${versions.appoptics}"
-
-
-
-//  implementation "io.opentelemetry.javaagent:opentelemetry-javaagent-api:1.1.0-alpha"
-//  implementation "io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:1.1.0-alpha"
-//  implementation "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:1.1.0-alpha"
-//  implementation "com.google.guava:guava:30.1-jre" //why
-
-//  compileOnly "com.appoptics.agent.java:appoptics-opentelemetry-sdk:6.23.0"
-//  implementation "com.appoptics.agent.java:appoptics-opentelemetry-java-extensions:6.23.0"
+  testImplementation "com.appoptics.agent.java:core:${versions.appopticsCore}"
+  testImplementation "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
 }
 
 
