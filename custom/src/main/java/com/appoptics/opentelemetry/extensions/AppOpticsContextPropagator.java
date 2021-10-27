@@ -25,7 +25,7 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
     static final String X_TRACE_OPTIONS = "X-Trace-Options";
     static final String X_TRACE_OPTIONS_SIGNATURE = "X-Trace-Options-Signature";
     private static final List<String> FIELDS =
-            Collections.unmodifiableList(Arrays.asList(TRACE_PARENT, TRACE_STATE, HeaderConstants.XTRACE_HEADER));
+            Collections.unmodifiableList(Arrays.asList(TRACE_PARENT, TRACE_STATE, HeaderConstants.W3C_TRACE_CONTEXT_HEADER));
     private static final int TRACESTATE_MAX_SIZE = 512;
     private static final int TRACESTATE_MAX_MEMBERS = 32;
     private static final int OVERSIZE_ENTRY_LENGTH = 129;
