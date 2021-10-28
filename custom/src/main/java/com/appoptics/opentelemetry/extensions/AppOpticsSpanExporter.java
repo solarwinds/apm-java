@@ -17,8 +17,6 @@ import java.util.*;
  * Span exporter to be used with the OpenTelemetry auto agent
  */
 public class AppOpticsSpanExporter implements SpanExporter {
-    private static final AttributeKey<Boolean> AO_SAMPLER_KEY = AttributeKey.booleanKey(com.appoptics.opentelemetry.core.Constants.SW_SAMPLER);
-
     private AppOpticsSpanExporter(String serviceKey) {
 
     }
@@ -192,13 +190,6 @@ public class AppOpticsSpanExporter implements SpanExporter {
                 tags.put(tagKey, attributeValue);
             }
 
-            //Add all attributes as KVs, but add/remove prefix based on type
-            // TODO: remove it
-//            if (attributeKey.startsWith(com.appoptics.opentelemetry.core.Constants.SW_KEY_PREFIX)) {
-//                attributeKey = attributeKey.substring(com.appoptics.opentelemetry.core.Constants.SW_KEY_PREFIX.length());
-//            } else {
-//                attributeKey = Constants.OT_KEY_PREFIX + attributeKey;
-//            }
             tags.put(attributeKey, attributeValue);
         }
         return tags;

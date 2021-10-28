@@ -134,7 +134,7 @@ public class AppOpticsSampler implements Sampler {
             result = SamplingResult.create(samplingDecision, aoAttributesBuilder.build());
         } else {
             if (aoTraceDecision.isReportMetrics()) {
-                result = METRICS_ONLY; // is this correct? probably not...
+                result = METRICS_ONLY;
             }
         }
         return result;
