@@ -65,6 +65,7 @@ public class Initializer {
             throw e;
         } finally {
             reportInit(exception);
+            serviceKey = (String)ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
             logger.info("Successfully initialized AppOptics OpenTelemetry extensions with service key " + ServiceKeyUtils.maskServiceKey(serviceKey));
             return future;
         }

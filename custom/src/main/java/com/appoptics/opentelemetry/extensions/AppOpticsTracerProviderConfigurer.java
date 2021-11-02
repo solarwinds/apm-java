@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 @AutoService(SdkTracerProviderConfigurer.class)
 public class AppOpticsTracerProviderConfigurer implements SdkTracerProviderConfigurer {
-    //private Logger log = LoggerFactory.getLogger(AgentInstaller.class);
     private Logger logger = LoggerFactory.getLogger(getClass());
     public AppOpticsTracerProviderConfigurer() {
         try {
