@@ -6,8 +6,8 @@ plugins {
 apply from: "$rootDir/gradle/shadow.gradle"
 
 dependencies {
-  runtimeOnly "com.appoptics.agent.java:core:${versions.appoptics}"
-  runtimeOnly "com.appoptics.agent.java:metrics:${versions.appoptics}"
+  runtimeOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
+  runtimeOnly "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
 }
 
 
