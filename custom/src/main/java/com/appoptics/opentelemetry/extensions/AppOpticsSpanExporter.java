@@ -17,8 +17,6 @@ import java.util.*;
  * Span exporter to be used with the OpenTelemetry auto agent
  */
 public class AppOpticsSpanExporter implements SpanExporter {
-    private static final AttributeKey<Boolean> AO_SAMPLER_KEY = AttributeKey.booleanKey(com.appoptics.opentelemetry.core.Constants.AO_SAMPLER);
-
     private AppOpticsSpanExporter(String serviceKey) {
 
     }
@@ -30,24 +28,24 @@ public class AppOpticsSpanExporter implements SpanExporter {
     @Override
     public CompletableResultCode export(Collection<SpanData> collection) {
         for (SpanData spanData : collection) {
-            if (spanData.hasEnded() && Boolean.TRUE == spanData.getAttributes().get(AO_SAMPLER_KEY)) {
+            if (spanData.hasEnded()) {
                 try {
                     Metadata parentMetadata = null;
                     if (spanData.getParentSpanContext().isValid()) {
                         parentMetadata = Util.buildMetadata(spanData.getParentSpanContext());
                     }
 
-                    String entryXTraceId = Util.buildXTraceId(spanData.getSpanContext());
+                    String w3cContext = Util.W3CContextToHexString(spanData.getSpanContext());
 
                     String spanName = spanData.getKind().toString() + "." + spanData.getName();
 
-                    Metadata spanMetadata = new Metadata(entryXTraceId);
+                    Metadata spanMetadata = new Metadata(w3cContext);
                     spanMetadata.randomizeOpID(); //get around the metadata logic, this op id is not used
                     Event entryEvent;
                     if (parentMetadata != null) {
-                        entryEvent = new EventImpl(parentMetadata, entryXTraceId, true);
+                        entryEvent = new EventImpl(parentMetadata, w3cContext, true);
                     } else {
-                        entryEvent = new EventImpl(null, entryXTraceId, false);
+                        entryEvent = new EventImpl(null, w3cContext, false);
                     }
 
                     if (!spanData.getParentSpanContext().isValid() || spanData.getParentSpanContext().isRemote()) { //then a root span of this service
@@ -144,7 +142,7 @@ public class AppOpticsSpanExporter implements SpanExporter {
         Map<AttributeKey<?>, Object> result = new HashMap<>();
         for (Map.Entry<AttributeKey<?>, Object> keyValue : inputAttributes.asMap().entrySet()) {
             AttributeKey<?> key = keyValue.getKey();
-            if (!key.getKey().startsWith(com.appoptics.opentelemetry.core.Constants.AO_INTERNAL_ATTRIBUTE_PREFIX)) {
+            if (!key.getKey().startsWith(com.appoptics.opentelemetry.core.Constants.SW_INTERNAL_ATTRIBUTE_PREFIX)) {
                 result.put(key, keyValue.getValue());
             }
         }
@@ -192,12 +190,6 @@ public class AppOpticsSpanExporter implements SpanExporter {
                 tags.put(tagKey, attributeValue);
             }
 
-            //Add all attributes as KVs, but add/remove prefix based on type
-            if (attributeKey.startsWith(com.appoptics.opentelemetry.core.Constants.AO_KEY_PREFIX)) {
-                attributeKey = attributeKey.substring(com.appoptics.opentelemetry.core.Constants.AO_KEY_PREFIX.length());
-            } else {
-                attributeKey = Constants.OT_KEY_PREFIX + attributeKey;
-            }
             tags.put(attributeKey, attributeValue);
         }
         return tags;

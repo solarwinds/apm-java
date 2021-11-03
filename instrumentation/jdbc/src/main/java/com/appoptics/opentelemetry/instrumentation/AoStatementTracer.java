@@ -21,7 +21,7 @@ public class AoStatementTracer extends BaseTracer {
 
     if (span.getSpanContext().isSampled()) {
       String backTraceString = BackTraceUtil.backTraceToString(BackTraceUtil.getBackTrace(1));
-      span.setAttribute(Constants.AO_KEY_PREFIX + "Backtrace", backTraceString);
+      span.setAttribute(Constants.SW_KEY_PREFIX + "Backtrace", backTraceString);
     }
   }
 

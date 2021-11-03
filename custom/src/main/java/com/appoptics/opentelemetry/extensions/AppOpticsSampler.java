@@ -5,12 +5,11 @@ import com.appoptics.opentelemetry.core.Util;
 import com.google.auto.service.AutoService;
 import com.tracelytics.joboe.TraceDecision;
 import com.tracelytics.joboe.TraceDecisionUtil;
+import com.tracelytics.joboe.XTraceOptions;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.*;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
@@ -20,6 +19,8 @@ import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
 import java.util.List;
 
+import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.*;
+
 /**
  * Sampler that uses trace decision logic from our joboe core (consult local and remote settings)
  *
@@ -27,78 +28,115 @@ import java.util.List;
  */
 @AutoService(Sampler.class)
 public class AppOpticsSampler implements Sampler {
-    private SamplingResult PARENT_SAMPLED = SamplingResult.create(SamplingDecision.RECORD_AND_SAMPLE,
+    private final SamplingResult PARENT_SAMPLED = SamplingResult.create(SamplingDecision.RECORD_AND_SAMPLE,
             Attributes.of(
-                    AttributeKey.booleanKey(Constants.AO_DETAILED_TRACING), true,
-                    AttributeKey.booleanKey(Constants.AO_METRICS), true,
-                    AttributeKey.booleanKey(Constants.AO_SAMPLER), true));
-    private SamplingResult PARENT_NOT_SAMPLED = SamplingResult.create(SamplingDecision.DROP,
+                    AttributeKey.booleanKey(Constants.SW_DETAILED_TRACING), true,
+                    AttributeKey.booleanKey(Constants.SW_METRICS), true,
+                    AttributeKey.booleanKey(Constants.SW_SAMPLER), true));
+    private final SamplingResult PARENT_NOT_SAMPLED = SamplingResult.create(SamplingDecision.DROP,
             Attributes.of(
-                    AttributeKey.booleanKey(Constants.AO_DETAILED_TRACING), false,
-                    AttributeKey.booleanKey(Constants.AO_METRICS), false,
-                    AttributeKey.booleanKey(Constants.AO_SAMPLER), true));
+                    AttributeKey.booleanKey(Constants.SW_DETAILED_TRACING), false,
+                    AttributeKey.booleanKey(Constants.SW_METRICS), false,
+                    AttributeKey.booleanKey(Constants.SW_SAMPLER), true));
 
-    private SamplingResult METRICS_ONLY = SamplingResult.create(SamplingDecision.RECORD_ONLY,
+    private final SamplingResult METRICS_ONLY = SamplingResult.create(SamplingDecision.RECORD_ONLY,
             Attributes.of(
-                    AttributeKey.booleanKey(Constants.AO_DETAILED_TRACING), false,
-                    AttributeKey.booleanKey(Constants.AO_METRICS), true,
-                    AttributeKey.booleanKey(Constants.AO_SAMPLER), true
+                    AttributeKey.booleanKey(Constants.SW_DETAILED_TRACING), false,
+                    AttributeKey.booleanKey(Constants.SW_METRICS), true,
+                    AttributeKey.booleanKey(Constants.SW_SAMPLER), true
             ));
 
-    private SamplingResult NOT_TRACED = SamplingResult.create(SamplingDecision.DROP,
+    private final SamplingResult NOT_TRACED = SamplingResult.create(SamplingDecision.DROP,
             Attributes.of(
-                    AttributeKey.booleanKey(Constants.AO_DETAILED_TRACING), false,
-                    AttributeKey.booleanKey(Constants.AO_METRICS), false,
-                    AttributeKey.booleanKey(Constants.AO_SAMPLER), true));
+                    AttributeKey.booleanKey(Constants.SW_DETAILED_TRACING), false,
+                    AttributeKey.booleanKey(Constants.SW_METRICS), false,
+                    AttributeKey.booleanKey(Constants.SW_SAMPLER), true));
 
     @Override
     public SamplingResult shouldSample(Context parentContext, String traceId, String name, SpanKind spanKind, Attributes attributes, List<LinkData> parentLinks) {
         SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
+        TraceState traceState = parentSpanContext.getTraceState() != null ? parentSpanContext.getTraceState() : TraceState.getDefault();
+        String resource = getResource(attributes);
+        SamplingResult samplingResult;
+        AttributesBuilder additionalAttributesBuilder = Attributes.builder();
+        XTraceOptions xTraceOptions = parentContext.get(TriggerTraceContextKey.KEY);
 
-        if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) { //then a root span of this service
-            String xTraceId = null;
-            if (parentSpanContext.isRemote()) {
-                xTraceId = Util.buildXTraceId(parentSpanContext);
+        if (!parentSpanContext.isValid()) { // no valid traceparent, it is a new trace
+            samplingResult = toOtSamplingResult(TraceDecisionUtil.shouldTraceRequest(name, null, xTraceOptions, resource));
+        } else {
+            String swVal = traceState.get(SW_TRACESTATE_KEY);
+            String parentId = null;
+            if (!isValidSWTraceStateKey(swVal)) { // broken or non-exist sw tracestate, treat it as a new trace
+                samplingResult = toOtSamplingResult(TraceDecisionUtil.shouldTraceRequest(name, null, xTraceOptions, resource));
+            } else { // follow the upstream sw trace decision
+                TraceFlags traceFlags = TraceFlags.fromByte(swVal.split("-")[1].getBytes()[1]);
+                if (parentSpanContext.isRemote()) { // root span needs to roll the dice
+                    String xTraceId = Util.W3CContextToHexString(parentSpanContext);
+                    TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, xTraceId, xTraceOptions, resource);
+                    samplingResult = toOtSamplingResult(aoTraceDecision);
+                } else { // non-root span just follows the parent span's decision
+                    samplingResult = (traceFlags.isSampled() ? Sampler.alwaysOn() : Sampler.alwaysOff())
+                            .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks);
+                }
+                parentId = swVal.split("-")[0];
             }
-            String resource = getResource(attributes);
-            TraceDecision aoTraceDecision = TraceDecisionUtil.shouldTraceRequest(name, xTraceId, null, resource);
-            return toOtSamplingResult(aoTraceDecision);
-        } else { //follow parent's decision
-            return parentSpanContext.isSampled() ? PARENT_SAMPLED : PARENT_NOT_SAMPLED;
+            if (parentSpanContext.isRemote() && parentId != null) {
+                additionalAttributesBuilder.put(Constants.SW_PARENT_ID, parentId);
+            }
         }
+
+        if (parentSpanContext.isRemote() && !traceState.isEmpty()) {
+            String traceStateValue = parentContext.get(TraceStateKey.KEY);
+            if (traceStateValue != null) {
+                additionalAttributesBuilder.put(Constants.SW_UPSTREAM_TRACESTATE, traceStateValue);
+            }
+        }
+        return TraceStateSamplingResult.wrap(samplingResult, additionalAttributesBuilder.build());
+    }
+
+    private boolean isValidSWTraceStateKey(String swVal) {
+        if (swVal == null || !swVal.contains("-")) {
+            return false;
+        }
+        String[] swTraceState = swVal.split("-");
+        if (swTraceState.length != 2) {
+            return false;
+        }
+
+        return (swTraceState[0].equals(SW_SPAN_PLACEHOLDER) || swTraceState[0].length() == 16) // 16 is the HEXLENGTH of the Otel trace id
+                && (swTraceState[1].equals("00") || swTraceState[1].equals("01"));
     }
 
     private String getResource(Attributes attributes) {
-        String resource = Util.parsePath(attributes.get(SemanticAttributes.HTTP_URL));
-        //TODO consider other resource too like MQ
-        return resource;
+        return Util.parsePath(attributes.get(SemanticAttributes.HTTP_URL));
     }
 
     @Override
     public String getDescription() {
-        return "AppOptics Sampler";
+        return "Solarwinds NH Sampler";
     }
 
     private SamplingResult toOtSamplingResult(TraceDecision aoTraceDecision) {
+        SamplingResult result = NOT_TRACED;
+
         if (aoTraceDecision.isSampled()) {
             SamplingDecision samplingDecision = SamplingDecision.RECORD_AND_SAMPLE;
-            AttributesBuilder builder = Attributes.builder();
-            builder.put(Constants.AO_KEY_PREFIX + "SampleRate", aoTraceDecision.getTraceConfig().getSampleRate());
-            builder.put(Constants.AO_KEY_PREFIX + "SampleSource", aoTraceDecision.getTraceConfig().getSampleRateSourceValue());
-            builder.put(Constants.AO_KEY_PREFIX + "BucketRate",aoTraceDecision.getTraceConfig().getBucketRate(aoTraceDecision.getRequestType().getBucketType()));
-            builder.put(Constants.AO_KEY_PREFIX + "BucketCapacity",aoTraceDecision.getTraceConfig().getBucketCapacity(aoTraceDecision.getRequestType().getBucketType()));
-            builder.put(Constants.AO_KEY_PREFIX + "RequestType", aoTraceDecision.getRequestType().name());
-            builder.put(Constants.AO_DETAILED_TRACING, aoTraceDecision.isSampled());
-            builder.put(Constants.AO_METRICS, aoTraceDecision.isReportMetrics());
-            builder.put(Constants.AO_SAMPLER, true); //mark that it has been sampled by us
-            Attributes attributes = builder.build();
-            return SamplingResult.create(samplingDecision, attributes);
+            AttributesBuilder aoAttributesBuilder = Attributes.builder();
+            aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "SampleRate", aoTraceDecision.getTraceConfig().getSampleRate());
+            aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "SampleSource", aoTraceDecision.getTraceConfig().getSampleRateSourceValue());
+            aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "BucketRate", aoTraceDecision.getTraceConfig().getBucketRate(aoTraceDecision.getRequestType().getBucketType()));
+            aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "BucketCapacity", aoTraceDecision.getTraceConfig().getBucketCapacity(aoTraceDecision.getRequestType().getBucketType()));
+            aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "RequestType", aoTraceDecision.getRequestType().name());
+            aoAttributesBuilder.put(Constants.SW_DETAILED_TRACING, aoTraceDecision.isSampled());
+            aoAttributesBuilder.put(Constants.SW_METRICS, aoTraceDecision.isReportMetrics());
+            aoAttributesBuilder.put(Constants.SW_SAMPLER, true); //mark that it has been sampled by us
+
+            result = SamplingResult.create(samplingDecision, aoAttributesBuilder.build());
         } else {
             if (aoTraceDecision.isReportMetrics()) {
-                return METRICS_ONLY; // is this correct? probably not...
-            } else {
-                return NOT_TRACED;
+                result = METRICS_ONLY;
             }
         }
+        return result;
     }
 }
