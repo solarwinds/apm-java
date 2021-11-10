@@ -6,7 +6,7 @@ apply from: "$rootDir/gradle/instrumentation.gradle"
 //}
 
 dependencies {
-  compileOnly "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}"
+  compileOnly "io.opentelemetry.javaagent:opentelemetry-javaagent-instrumentation-api:${versions.opentelemetryJavaagentAlpha}"
   compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
   compileOnly project(":appoptics-opentelemetry-sdk")
   compileOnly project(":custom")
