@@ -8,7 +8,7 @@ package com.appoptics.opentelemetry.instrumentation;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
-//import io.opentelemetry.javaagent.instrumentation.api.CallDepthThreadLocalMap;
+import io.opentelemetry.javaagent.instrumentation.api.CallDepth;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -47,10 +47,9 @@ public class AoStatementInstrumentation implements TypeInstrumentation {
         //@Advice.OnMethodEnter(suppress = Throwable.class)
         @Advice.OnMethodEnter
         public static void onEnter() {
-            // TODO: CallDepthThreadLocalMap is no longer public. See what we can do
-//            if (CallDepthThreadLocalMap.getCallDepth(Statement.class).get() != 1) { //only report back when depth is one to avoid duplications
-//                return;
-//            }
+            if (CallDepth.forClass(Statement.class).get() != 1) { //only report back when depth is one to avoid duplications
+                return;
+            }
             AoStatementTracer.writeStackTrace(Context.current());
         }
     }
