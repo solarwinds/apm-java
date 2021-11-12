@@ -55,7 +55,7 @@ afterEvaluate {
 
 
   }
-  def pluginName = 'io.opentelemetry.javaagent.tooling.muzzle.collector.MuzzleCodeGenerationPlugin'
+  def pluginName = 'io.opentelemetry.javaagent.tooling.muzzle.generation.MuzzleCodeGenerationPlugin'
   new ByteBuddyPluginConfigurator(project, sourceSets.main, pluginName,
           configurations.toolingRuntime + configurations.runtimeClasspath
   ).configure()
