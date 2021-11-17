@@ -25,7 +25,7 @@ configurations {
 
 dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
-  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-api:${versions.opentelemetryJavaagentAlpha}")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
   //compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions.opentelemetryJavaagentAlpha}")
   implementation "org.slf4j:slf4j-api:1.6.2"
@@ -45,7 +45,7 @@ dependencies {
 
 afterEvaluate {
   dependencies {
-    compileOnly "io.opentelemetry.javaagent:opentelemetry-javaagent-api:${versions.opentelemetryJavaagentAlpha}"
+    compileOnly "io.opentelemetry.javaagent:opentelemetry-javaagent-instrumentation-api:${versions.opentelemetryJavaagentAlpha}"
     compileOnly "io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}"
     compileOnly "net.bytebuddy:byte-buddy:${versions.bytebuddy}"
     compileOnly "io.opentelemetry:opentelemetry-api:${versions.opentelemetry}"
@@ -55,7 +55,7 @@ afterEvaluate {
 
 
   }
-  def pluginName = 'io.opentelemetry.javaagent.tooling.muzzle.collector.MuzzleCodeGenerationPlugin'
+  def pluginName = 'io.opentelemetry.javaagent.tooling.muzzle.generation.MuzzleCodeGenerationPlugin'
   new ByteBuddyPluginConfigurator(project, sourceSets.main, pluginName,
           configurations.toolingRuntime + configurations.runtimeClasspath
   ).configure()
