@@ -3,32 +3,38 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.appoptics.opentelemetry.instrumentation.servlet.v5_0;
+package com.appoptics.opentelemetry.instrumentation.servlet.v3_0;
 
+import static java.util.Arrays.asList;
 import com.google.auto.service.AutoService;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import com.appoptics.opentelemetry.instrumentation.servlet.common.service.ServletAndFilterInstrumentation;
-import java.util.Arrays;
+
 import java.util.List;
 
 @AutoService(InstrumentationModule.class)
-public class JakartaServletInstrumentationModule extends InstrumentationModule {
-    private static final String BASE_PACKAGE = "jakarta.servlet";
+public class Servlet3AddonInstrumentationModule extends InstrumentationModule {
+    private static final String BASE_PACKAGE = "javax.servlet";
 
-    public JakartaServletInstrumentationModule() {
-        super("servlet", "servlet-5.0");
+    public Servlet3AddonInstrumentationModule() {
+        super("servletAddon", "servlet-3.0-Addon");
     }
 
     @Override
     public List<TypeInstrumentation> typeInstrumentations() {
-        return Arrays.asList(
+        return asList(
                 new ServletAndFilterInstrumentation(
                         BASE_PACKAGE,
-                        adviceClassName(".service.JakartaServletServiceAdvice")));
+                        adviceClassName(".Servlet3Advice")));
     }
 
     private static String adviceClassName(String suffix) {
-        return JakartaServletInstrumentationModule.class.getPackage().getName() + suffix;
+        return Servlet3AddonInstrumentationModule.class.getPackage().getName() + suffix;
+    }
+
+    @Override
+    public boolean isHelperClass(String className) {
+        return className.startsWith("com.appoptics.opentelemetry.instrumentation.servlet.v3_0");
     }
 }

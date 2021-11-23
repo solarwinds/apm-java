@@ -26,38 +26,21 @@ public class JakartaServletServiceAdvice {
     public static void onEnter(
             @Advice.This(typing = Assigner.Typing.DYNAMIC) Object servletOrFilter,
             @Advice.Argument(value = 0, readOnly = false) ServletRequest request,
-            @Advice.Argument(value = 1, readOnly = false) ServletResponse response,
-            @Advice.Local("otelCallDepth") CallDepth callDepth) {
-
+            @Advice.Argument(value = 1, readOnly = false) ServletResponse response) {
         if (!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse)) {
             return;
         }
-
-        callDepth = CallDepth.forClass(AppServerBridge.getCallDepthKey());
-        callDepth.getAndIncrement();
+        CallDepth callDepth = CallDepth.forClass(AppServerBridge.getCallDepthKey());
+        if (callDepth.get() > 1) {
+            return;
+        }
+        injectXTraceHeader(response);
     }
 
-    @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
-    public static void stopSpan(
-            @Advice.Argument(0) ServletRequest request,
-            @Advice.Argument(1) ServletResponse response,
-            @Advice.Thrown Throwable throwable,
-            @Advice.Local("otelCallDepth") CallDepth callDepth) {
-
-        if (!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse)) {
-            return;
-        }
-
-        if (callDepth.decrementAndGet() != 0) {
-            return;
-        }
-        HttpServletResponse httpServletResponse = (HttpServletResponse) response;
-        Context context = Context.current();
-        Span span = Span.fromContext(context);
-        SpanContext spanContext = span.getSpanContext();
-        String traceId = spanContext.getTraceId();
-        String spanId = spanContext.getSpanId();
+    public static void injectXTraceHeader(ServletResponse response) {
+        SpanContext spanContext = Span.fromContext(Context.current()).getSpanContext();
         String flags = spanContext.isSampled() ? "01" : "00";
-        httpServletResponse.addHeader(XTRACE_HEADER, "00-" + traceId + "-" + spanId + "-" + flags);
+        String traceContext = "00-" + spanContext.getTraceId() + "-" + spanContext.getSpanId() + "-" + flags;
+        ((HttpServletResponse) response).addHeader(XTRACE_HEADER, traceContext);
     }
 }
