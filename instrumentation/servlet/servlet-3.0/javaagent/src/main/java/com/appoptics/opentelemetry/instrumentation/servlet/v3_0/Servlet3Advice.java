@@ -22,6 +22,9 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("unused")
 public class Servlet3Advice {
   private static final String XTRACE_HEADER = "X-Trace"; // used for trigger trace response header only
+  private static final String SW_XTRACE_OPTIONS_RESP_KEY = "xtrace_options_response";
+  private static final String XTRACE_OPTIONS_RESP_HEADER = "X-Trace-Options-Response";
+
   private static final Logger logger = LoggerFactory.getLogger(Servlet3Advice.class);
 
   @Advice.OnMethodEnter(suppress = Throwable.class)
@@ -44,5 +47,15 @@ public class Servlet3Advice {
     String flags = spanContext.isSampled() ? "01" : "00";
     String traceContext = "00-" + spanContext.getTraceId() + "-" + spanContext.getSpanId() + "-" + flags;
     ((HttpServletResponse) response).addHeader(XTRACE_HEADER, traceContext);
+
+    String xTraceOptionsResp = spanContext.getTraceState().get(SW_XTRACE_OPTIONS_RESP_KEY);
+    if (xTraceOptionsResp != null) {
+      ((HttpServletResponse) response).addHeader(XTRACE_OPTIONS_RESP_HEADER, recover(xTraceOptionsResp));
+    }
+  }
+
+  public static String recover(String in) {
+    if (in == null) return in;
+    return in.replace("####", "=").replace("....", ",");
   }
 }

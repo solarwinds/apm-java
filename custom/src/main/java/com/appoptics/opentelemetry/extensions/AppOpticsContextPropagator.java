@@ -82,7 +82,8 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
         AtomicInteger traceStateLength = new AtomicInteger(0);
         traceState.forEach(
                 (key, value) -> {
-                    if (!TRACE_STATE_APPOPTICS_KEY.equals(key)) {
+                    if (!TRACE_STATE_APPOPTICS_KEY.equals(key)
+                    && ! TraceStateSamplingResult.SW_XTRACE_OPTIONS_RESP_KEY.equals(key)) {
                         traceStateLength.addAndGet(key.length());
                         traceStateLength.addAndGet(TRACESTATE_KEY_VALUE_DELIMITER.length());
                         traceStateLength.addAndGet(value.length());
@@ -95,6 +96,7 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
         traceState.forEach(
                 (key, value) -> {
                     if (!TRACE_STATE_APPOPTICS_KEY.equals(key)
+                            && !TraceStateSamplingResult.SW_XTRACE_OPTIONS_RESP_KEY.equals(key)
                             && count.get() < TRACESTATE_MAX_MEMBERS
                             && traceStateBuilder.length() + TRACESTATE_ENTRY_DELIMITER.length() + key.length() + TRACESTATE_KEY_VALUE_DELIMITER.length() + value.length() <= TRACESTATE_MAX_SIZE) {
                         if (key.length() + TRACESTATE_KEY_VALUE_DELIMITER.length() + value.length() >= OVERSIZE_ENTRY_LENGTH
