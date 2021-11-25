@@ -1,6 +1,5 @@
 package com.appoptics.opentelemetry.extensions;
 
-import com.tracelytics.instrumentation.HeaderConstants;
 import com.tracelytics.joboe.XTraceOptions;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
@@ -22,10 +21,11 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
     private static final String TRACE_STATE_APPOPTICS_KEY = "sw";
     static final String TRACE_PARENT = "traceparent";
     static final String TRACE_STATE = "tracestate";
+    static final String W3C_TRACE_CONTEXT_HEADER = "sw.trace_context";
     static final String X_TRACE_OPTIONS = "X-Trace-Options";
     static final String X_TRACE_OPTIONS_SIGNATURE = "X-Trace-Options-Signature";
     private static final List<String> FIELDS =
-            Collections.unmodifiableList(Arrays.asList(TRACE_PARENT, TRACE_STATE, HeaderConstants.W3C_TRACE_CONTEXT_HEADER));
+            Collections.unmodifiableList(Arrays.asList(TRACE_PARENT, TRACE_STATE, W3C_TRACE_CONTEXT_HEADER));
     private static final int TRACESTATE_MAX_SIZE = 512;
     private static final int TRACESTATE_MAX_MEMBERS = 32;
     private static final int OVERSIZE_ENTRY_LENGTH = 129;
