@@ -12,7 +12,6 @@ configurations {
 
 dependencies {
   customShadow project(path: ":custom", configuration: "shadow")
-  //implementation project(path: ":custom", configuration: "shadow")
   customShadow project(path: ":instrumentation", configuration: "shadow")
   implementation project(path: ":core-bootstrap")
   implementation "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}"
