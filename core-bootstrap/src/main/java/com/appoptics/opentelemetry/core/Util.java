@@ -60,7 +60,8 @@ public class Util {
         try {
             return new Metadata(W3CContextToHexString(context));
         } catch (OboeException e) {
-            return null;
+            logger.warn("Failed to get AO metadata from span context: " + W3CContextToHexString(context), e);
+            return new Metadata();
         }
     }
 
