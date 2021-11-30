@@ -1,6 +1,5 @@
 package com.appoptics.opentelemetry.extensions;
 
-import com.tracelytics.instrumentation.HeaderConstants;
 import com.tracelytics.joboe.XTraceOptions;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
@@ -22,10 +21,11 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
     private static final String TRACE_STATE_APPOPTICS_KEY = "sw";
     static final String TRACE_PARENT = "traceparent";
     static final String TRACE_STATE = "tracestate";
+    static final String W3C_TRACE_CONTEXT_HEADER = "sw.trace_context";
     static final String X_TRACE_OPTIONS = "X-Trace-Options";
     static final String X_TRACE_OPTIONS_SIGNATURE = "X-Trace-Options-Signature";
     private static final List<String> FIELDS =
-            Collections.unmodifiableList(Arrays.asList(TRACE_PARENT, TRACE_STATE, HeaderConstants.W3C_TRACE_CONTEXT_HEADER));
+            Collections.unmodifiableList(Arrays.asList(TRACE_PARENT, TRACE_STATE, W3C_TRACE_CONTEXT_HEADER));
     private static final int TRACESTATE_MAX_SIZE = 512;
     private static final int TRACESTATE_MAX_MEMBERS = 32;
     private static final int OVERSIZE_ENTRY_LENGTH = 129;
@@ -82,7 +82,8 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
         AtomicInteger traceStateLength = new AtomicInteger(0);
         traceState.forEach(
                 (key, value) -> {
-                    if (!TRACE_STATE_APPOPTICS_KEY.equals(key)) {
+                    if (!TRACE_STATE_APPOPTICS_KEY.equals(key)
+                    && ! TraceStateSamplingResult.SW_XTRACE_OPTIONS_RESP_KEY.equals(key)) {
                         traceStateLength.addAndGet(key.length());
                         traceStateLength.addAndGet(TRACESTATE_KEY_VALUE_DELIMITER.length());
                         traceStateLength.addAndGet(value.length());
@@ -95,6 +96,7 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
         traceState.forEach(
                 (key, value) -> {
                     if (!TRACE_STATE_APPOPTICS_KEY.equals(key)
+                            && !TraceStateSamplingResult.SW_XTRACE_OPTIONS_RESP_KEY.equals(key)
                             && count.get() < TRACESTATE_MAX_MEMBERS
                             && traceStateBuilder.length() + TRACESTATE_ENTRY_DELIMITER.length() + key.length() + TRACESTATE_KEY_VALUE_DELIMITER.length() + value.length() <= TRACESTATE_MAX_SIZE) {
                         if (key.length() + TRACESTATE_KEY_VALUE_DELIMITER.length() + value.length() >= OVERSIZE_ENTRY_LENGTH

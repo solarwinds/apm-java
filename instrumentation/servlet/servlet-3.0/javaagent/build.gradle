@@ -1,0 +1,18 @@
+apply from: "$rootDir/gradle/instrumentation.gradle"
+
+archivesBaseName = "servlet3"
+
+dependencies {
+    compileOnly "io.opentelemetry.javaagent:opentelemetry-javaagent-instrumentation-api:${versions.opentelemetryJavaagentAlpha}"
+    implementation project(":instrumentation:servlet:servlet-common:javaagent")
+
+    compileOnly("javax.servlet:javax.servlet-api:3.0.1")
+    compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
+    compileOnly project(":appoptics-opentelemetry-sdk")
+    compileOnly project(":custom")
+    compileOnly project(":core-bootstrap")
+    toolingRuntime project(":custom")
+}
+
+
+
