@@ -35,8 +35,10 @@ public class AppOpticsProfilingSpanProcessor implements SpanProcessor {
             if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) { //then a root span of this service
                 if (PROFILER_ENABLED) {
                     Metadata metadata = Util.buildMetadata(span.getSpanContext());
-                    Profiler.addProfiledThread(Thread.currentThread(), metadata, metadata.getTraceId());
-                    span.setAttribute(SW_KEY_PREFIX + "ProfileSpans", 1);
+                    if (metadata.isValid()) {
+                        Profiler.addProfiledThread(Thread.currentThread(), metadata, metadata.getTraceId());
+                        span.setAttribute(SW_KEY_PREFIX + "ProfileSpans", 1);
+                    }
                 } else {
                     span.setAttribute(SW_KEY_PREFIX + "ProfileSpans", -1); //profiler disabled
                 }
