@@ -57,7 +57,7 @@ public class AppOpticsProfilingSpanProcessor implements SpanProcessor {
         if (span.getSpanContext().isSampled()) { //only profile on sampled spans
             SpanContext parentSpanContext = span.toSpanData().getParentSpanContext();
             if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) { //then a root span of this service
-                Profiler.stopProfile(Util.toTraceId(span.getSpanContext().getTraceIdBytes()));
+                Profiler.stopProfile(span.getSpanContext().getTraceId());
             }
         }
     }
