@@ -34,9 +34,10 @@ public class AppOpticsProfilingSpanProcessor implements SpanProcessor {
             SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
             if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) { //then a root span of this service
                 if (PROFILER_ENABLED) {
-                    Metadata metadata = Util.buildMetadata(span.getSpanContext());
+                    SpanContext spanContext = span.getSpanContext();
+                    Metadata metadata = Util.buildMetadata(spanContext);
                     if (metadata.isValid()) {
-                        Profiler.addProfiledThread(Thread.currentThread(), metadata, metadata.getTraceId());
+                        Profiler.addProfiledThread(Thread.currentThread(), metadata, Metadata.bytesToHex(metadata.getTaskID()));
                         span.setAttribute(SW_KEY_PREFIX + "ProfileSpans", 1);
                     }
                 } else {
@@ -56,7 +57,7 @@ public class AppOpticsProfilingSpanProcessor implements SpanProcessor {
         if (span.getSpanContext().isSampled()) { //only profile on sampled spans
             SpanContext parentSpanContext = span.toSpanData().getParentSpanContext();
             if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) { //then a root span of this service
-                Profiler.stopProfile(Util.toTraceId(span.getSpanContext().getTraceIdBytes()));
+                Profiler.stopProfile(span.getSpanContext().getTraceId());
             }
         }
     }

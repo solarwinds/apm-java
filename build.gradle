@@ -13,7 +13,7 @@ subprojects {
       opentelemetryJavaagent: "1.7.2",
       bytebuddy             : "1.10.18",
       guava                 : "30.1-jre",
-      appopticsCore         : "7.0.1",
+      appopticsCore         : "7.0.2",
       appopticsMetrics      : "7.0.0"
     ]
     versions.opentelemetryAlpha = "${versions.opentelemetry}-alpha"
