@@ -4,6 +4,8 @@ plugins {
 
 apply from: "$rootDir/gradle/shadow.gradle"
 
+project.archivesBaseName = 'solarwinds-apm-agent'
+
 def relocatePackages = ext.relocatePackages
 
 configurations {
