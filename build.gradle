@@ -6,6 +6,7 @@ subprojects {
 
   apply plugin: "java"
   apply plugin: "muzzle"
+  apply plugin: "checkstyle"
 
   ext {
     versions = [
@@ -43,6 +44,14 @@ subprojects {
     testImplementation("org.mockito:mockito-core:3.3.3")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.2")
+  }
+
+  checkstyleMain {
+    configFile = file("$rootDir/checkstyle.xml")
+  }
+
+  checkstyleTest {
+    configFile = file("$rootDir/checkstyle.xml")
   }
 
   tasks {
