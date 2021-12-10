@@ -51,7 +51,9 @@ public class JakartaServletServiceAdvice {
     }
 
     public static String recover(String in) {
-        if (in == null) return in;
+        if (in == null) {
+            return in;
+        }
         return in.replace("####", "=").replace("....", ",");
     }
 }

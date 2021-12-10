@@ -10,23 +10,23 @@ import com.appoptics.api.ext.impl.TraceHandler;
 import com.appoptics.api.ext.impl.TraceHandlerNoOp;
 
 /**
- * Creates handler for various existing sdk classes that provide static methods. Depending on whether the java agent is available and up-to-date, no ops handlers
- * or normal handler would be returned.
- * 
- *  
+ * Creates handler for various existing sdk classes that provide static methods. Depending on whether the java
+ * agent is available and up-to-date, no ops handlers or normal handler would be returned.
+ *
+ *
  * @author Patson Luk
  *
  */
 class HandlerFactory {
     private HandlerFactory() {
     }
-    
+
     static ITraceHandler getTraceHandler() {
-        return AgentChecker.isExtensionAvailable ? new TraceHandler() : new TraceHandlerNoOp();
+        return AgentChecker.isExtensionAvailable() ? new TraceHandler() : new TraceHandlerNoOp();
     }
 
     public static ITraceContextHandler getTraceContextHandler() {
-        return AgentChecker.isExtensionAvailable ? new TraceContextHandler() : new TraceContextHandlerNoOp();
+        return AgentChecker.isExtensionAvailable() ? new TraceContextHandler() : new TraceContextHandlerNoOp();
     }
 
     public static IRumHandler getRumHandler() {

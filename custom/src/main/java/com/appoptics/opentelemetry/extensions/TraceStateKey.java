@@ -1,6 +1,5 @@
 package com.appoptics.opentelemetry.extensions;
 
-import com.tracelytics.joboe.XTraceOptions;
 import io.opentelemetry.context.ContextKey;
 
 import javax.annotation.concurrent.Immutable;

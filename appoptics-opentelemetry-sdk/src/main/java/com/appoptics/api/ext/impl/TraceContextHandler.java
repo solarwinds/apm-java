@@ -32,18 +32,19 @@ public class TraceContextHandler implements ITraceContextHandler {
             currentScope = null;
         }
     }
-    
+
     @Override
     public boolean isSampled(String xTraceID) {
         try {
             return new Metadata(xTraceID).isSampled();
-        } catch (OboeException e) {
+        }
+        catch (OboeException e) {
             logger.warn("X-Trace ID [" + xTraceID + "] is not valid");
             return false;
         }
     }
-    
-    
+
+
     class TraceContextConcrete extends TraceContext {
         private final Span span;
 
@@ -53,11 +54,11 @@ public class TraceContextHandler implements ITraceContextHandler {
         protected TraceContextConcrete(Span span) {
             this.span = span;
         }
-        
+
         @Override
         /**
          * Sets the current thread's context to this context (updates TLS)
-         * 
+         *
          * Take note that if current thread does not invoke {@link com.appoptics.api.ext.Trace#endTrace} to end the trace,
          * then it is encouraged to invoke {@link TraceContext#clearDefault()} to clear up the context after the processing is done on current thread.
          */

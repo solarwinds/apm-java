@@ -6,7 +6,6 @@
 package com.appoptics.opentelemetry.instrumentation;
 
 import com.google.auto.service.AutoService;
-import com.tracelytics.util.BackTraceUtil;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 

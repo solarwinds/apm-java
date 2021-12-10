@@ -23,7 +23,7 @@ public class TransactionSettingsConfigParser implements ConfigParser<String, Tra
     private static final String EXTENSIONS_KEY = "com/appoptics/opentelemetry/extensions";
     @Deprecated
     private static final String TYPE_KEY = "type";
-    private static final List<String> validTypes = Arrays.asList("url");
+    private static final List<String> VALID_TYPES = Arrays.asList("url");
 
     private static final List<String> KEYS = Arrays.asList(TRACING_KEY, EXTENSIONS_KEY, REGEX_KEY, TYPE_KEY);
 
@@ -38,7 +38,7 @@ public class TransactionSettingsConfigParser implements ConfigParser<String, Tra
         try {
             JSONArray array = new JSONArray(transactionSettingValue);
             Map<ResourceMatcher, TraceConfig> result = new LinkedHashMap<ResourceMatcher, TraceConfig>();
-            for (int i = 0 ; i < array.length(); i++) {
+            for (int i = 0; i < array.length(); i++) {
                 JSONObject entry = array.getJSONObject(i);
 
                 ResourceMatcher matcher = parseMatcher(entry);
@@ -79,7 +79,7 @@ public class TransactionSettingsConfigParser implements ConfigParser<String, Tra
         } else if (transactionSettingEntry.has(EXTENSIONS_KEY)) {
             JSONArray resourceExtensionsJson = transactionSettingEntry.getJSONArray(EXTENSIONS_KEY);
             Set<String> resourceExtensions = new HashSet<String>();
-            for (int j = 0 ; j < resourceExtensionsJson.length(); j ++) {
+            for (int j = 0; j < resourceExtensionsJson.length(); j++) {
                 resourceExtensions.add(resourceExtensionsJson.getString(j));
             }
             return new ResourceExtensionsMatcher(resourceExtensions);
@@ -118,5 +118,4 @@ public class TransactionSettingsConfigParser implements ConfigParser<String, Tra
             throw new InvalidConfigException("Need to define \"" + TRACING_KEY + "\" for each entry in \"" + ConfigProperty.AGENT_TRANSACTION_SETTINGS.getConfigFileKey() + "\"");
         }
     }
-
 }

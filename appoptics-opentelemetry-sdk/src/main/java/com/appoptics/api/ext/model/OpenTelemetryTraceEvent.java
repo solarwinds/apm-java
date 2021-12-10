@@ -42,11 +42,13 @@ public class OpenTelemetryTraceEvent implements TraceEvent {
         if (info.length % 2 != 0) {
             logger.warning("Expect even number of arguments for addInfo(Object...) call but found " + info.length);
         }
-        for (int i = 0 ; i < info.length / 2; i ++) {
-            int keyIndex = i * 2;
-            int valueIndex = keyIndex + 1;
+        for (int i = 0; i < info.length / 2; i++) {
+            final int keyIndex = i * 2;
+            final int valueIndex = keyIndex + 1;
             if (!(info[keyIndex] instanceof String)) {
-                logger.warning("Expect String argument for odd n-th argument for addInfo(Object...) call but found " + (info[keyIndex] != null ? info[keyIndex].getClass().getName() : "null"));
+                logger.warning(
+                        "Expect String argument for odd n-th argument for addInfo(Object...) call but found " +
+                                (info[keyIndex] != null ? info[keyIndex].getClass().getName() : "null"));
                 addInfo((String) info[keyIndex], info[valueIndex]);
             }
         }

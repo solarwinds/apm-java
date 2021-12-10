@@ -1,11 +1,8 @@
 package com.appoptics.api.ext;
 
-import java.util.concurrent.TimeUnit;
-
 import com.tracelytics.joboe.Context;
 //import com.tracelytics.joboe.StartupManager;
 import com.tracelytics.joboe.TestReporter;
-import com.tracelytics.joboe.TestingEnv;
 import com.tracelytics.joboe.settings.TestSettingsReader;
 import com.tracelytics.joboe.span.impl.ScopeManager;
 
@@ -18,7 +15,7 @@ public abstract class BaseTest extends TestCase {
     protected BaseTest() throws Exception {
   //      StartupManager.flagTestingMode();
         
-        AgentChecker.isExtensionAvailable = true; //set to true for testing
+        AgentChecker.setIsExtensionAvailable(true); //set to true for testing
         //TestingEnv testingEnv = (TestingEnv) StartupManager.isAgentReady().get(10, TimeUnit.SECONDS);
 //        reporter = testingEnv.getTracingReporter();
 //        reader = testingEnv.getSettingsReader();

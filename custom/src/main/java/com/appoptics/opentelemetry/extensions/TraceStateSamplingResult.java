@@ -22,8 +22,8 @@ public class TraceStateSamplingResult implements SamplingResult {
 
     private TraceStateSamplingResult(SamplingResult delegated, Attributes additionalAttributes, String xTraceOptionsResponse) {
         this.delegated = delegated;
-        this.swTraceState = (delegated.getDecision() == SamplingDecision.RECORD_AND_SAMPLE
-                ? SW_SPAN_PLACEHOLDER_SAMPLED : SW_SPAN_PLACEHOLDER_NOT_SAMPLED);
+        this.swTraceState = (delegated.getDecision() == SamplingDecision.RECORD_AND_SAMPLE ?
+                SW_SPAN_PLACEHOLDER_SAMPLED : SW_SPAN_PLACEHOLDER_NOT_SAMPLED);
         this.additionalAttributes = additionalAttributes;
         this.sanitizedXTraceOptionsResponse = sanitize(xTraceOptionsResponse);
     }
@@ -57,7 +57,9 @@ public class TraceStateSamplingResult implements SamplingResult {
      * However, we think it's very rare, and we could ignore the case.
      */
     private static String sanitize(String in) {
-        if (in == null) return in;
+        if (in == null) {
+            return in;
+        }
         return in.replace("=", "####").replace(",", "....");
     }
 }

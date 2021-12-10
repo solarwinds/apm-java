@@ -11,17 +11,17 @@ public interface ITraceContextHandler {
      *
      * @return ITraceContextHandler
      */
-    public TraceContext getDefault();
-    
+    TraceContext getDefault();
+
     /**
      * Resets the current thread's context (updates TLS)
      */
-    public void clearDefault();
-    
+    void clearDefault();
+
     /**
      * Returns whether the xTraceID is from a sampled request
      * @param xTraceID
      * @return
      */
-    public boolean isSampled(String xTraceID);
+    boolean isSampled(String xTraceID);
 }

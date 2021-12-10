@@ -10,16 +10,15 @@ public interface ITraceHandler {
      *
      * @return TraceEvent: an entry event that can be populated with name/value pairs and reported
      */
-    public TraceEvent startTrace(String layer); 
-    
-    
+    TraceEvent startTrace(String layer);
+
     /**
      * Continues a trace from external span, respecting the sampling rate and trace mode settings.
      *
      * @param  inXTraceID XTrace ID from incoming/previous span
      * @return TraceEvent: an entry event that can be populated with name/value pairs and reported
      */
-    public TraceEvent continueTrace(String layer, String inXTraceID);
+    TraceEvent continueTrace(String layer, String inXTraceID);
 
 
     /**
@@ -30,7 +29,7 @@ public interface ITraceHandler {
      * @param layer
      * @return  XTrace ID that can be returned to calling span
      */
-    public String endTrace(String layer);
+    String endTrace(String layer);
 
 
      /**
@@ -42,7 +41,7 @@ public interface ITraceHandler {
      * @param info name/value pairs reported with exit event
      * @return  XTrace ID that can be returned to calling span
      */
-    public String endTrace(String layer, Map<String, Object> info);
+     String endTrace(String layer, Map<String, Object> info);
 
     /**
      * End trace: Creates an exit event and reports it for the named span. Metadata is then cleared and the
@@ -53,47 +52,47 @@ public interface ITraceHandler {
      * @param info name/value pairs reported with exit event
      * @return  XTrace ID that can be returned to calling span
      */
-    public String endTrace(String layer, Object... info);
+    String endTrace(String layer, Object... info);
 
     /**
      * Creates an entry event for the named span
      * @param layer
      * @return  TraceEvent: an entry event that can be populated with name/value pairs and reported
      */
-    public TraceEvent createEntryEvent(String layer);
+    TraceEvent createEntryEvent(String layer);
 
     /**
      * Creates an exit event for the named span
      * @param layer
      * @return  TraceEvent: an exit event that can be populated with name/value pairs and reported
      */
-    public TraceEvent createExitEvent(String layer);
+    TraceEvent createExitEvent(String layer);
 
     /**
      * Creates an info event for the named span
      * @param layer
      * @return TraceEvent: an info event that can be populated with name/value pairs and reported
      */
-    public TraceEvent createInfoEvent(String layer);
+    TraceEvent createInfoEvent(String layer);
 
     /**
      * Reports an error: creates and sends an error event for an exception (throwable), including a back trace.
      *
      * @param error  throwable to be logged
      */
-    public void logException(Throwable error);
+    void logException(Throwable error);
 
-    public boolean setTransactionName(String transactionName);
-    
+    boolean setTransactionName(String transactionName);
+
     /**
      * Returns XTraceID associated with current context's Metadata as a hex string
      * This is suitable for propagating to other spans (HTTP -&gt; App servers, etc.)
      */
-    public String getCurrentXTraceID();
+    String getCurrentXTraceID();
 
     /**
      * Returns a compact form of current context's Metadata suitable for logging purpose
-     * @return  
+     * @return
      */
-    public String getCurrentLogTraceId();
+    String getCurrentLogTraceId();
 }

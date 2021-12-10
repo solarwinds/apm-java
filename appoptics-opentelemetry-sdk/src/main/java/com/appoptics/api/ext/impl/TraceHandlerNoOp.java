@@ -12,7 +12,7 @@ public class TraceHandlerNoOp implements ITraceHandler {
     public TraceEvent startTrace(String layer) {
         return NO_OP;
     }
-    
+
     public TraceEvent continueTrace(String layer, String inXTraceID) {
         return NO_OP;
     }
@@ -47,7 +47,7 @@ public class TraceHandlerNoOp implements ITraceHandler {
     public String getCurrentXTraceID() {
         return "";
     }
-    
+
     @Override
     public String getCurrentLogTraceId() {
         return "";
@@ -57,9 +57,9 @@ public class TraceHandlerNoOp implements ITraceHandler {
 
     public boolean setTransactionName(String transactionName) {
         if (transactionName == null || "".equals(transactionName)) {
-            return false;   
+            return false;
         }
-        
+
         return true;
     }
 }

@@ -6,8 +6,6 @@
 package com.appoptics.opentelemetry.instrumentation.annotation;
 
 import com.appoptics.api.ext.LogMethod;
-import com.appoptics.api.ext.ProfileMethod;
-import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
