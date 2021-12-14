@@ -55,12 +55,12 @@ public class AppOpticsSampler implements Sampler {
 
     @Override
     public SamplingResult shouldSample(Context parentContext, String traceId, String name, SpanKind spanKind, Attributes attributes, List<LinkData> parentLinks) {
-        SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
-        TraceState traceState = parentSpanContext.getTraceState() != null ? parentSpanContext.getTraceState() : TraceState.getDefault();
-        String resource = getResource(attributes);
-        SamplingResult samplingResult;
-        AttributesBuilder additionalAttributesBuilder = Attributes.builder();
-        XTraceOptions xTraceOptions = parentContext.get(TriggerTraceContextKey.KEY);
+        final SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
+        final TraceState traceState = parentSpanContext.getTraceState() != null ? parentSpanContext.getTraceState() : TraceState.getDefault();
+        final String resource = getResource(attributes);
+        final SamplingResult samplingResult;
+        final AttributesBuilder additionalAttributesBuilder = Attributes.builder();
+        final XTraceOptions xTraceOptions = parentContext.get(TriggerTraceContextKey.KEY);
 
         String xTraceOptionsResponseStr = null;
         if (!parentSpanContext.isValid()) { // no valid traceparent, it is a new trace
@@ -72,23 +72,23 @@ public class AppOpticsSampler implements Sampler {
             }
 
         } else {
-            String swVal = traceState.get(SW_TRACESTATE_KEY);
+            final String swVal = traceState.get(SW_TRACESTATE_KEY);
             String parentId = null;
             if (!isValidSWTraceStateKey(swVal)) { // broken or non-exist sw tracestate, treat it as a new trace
-                TraceDecision traceDecision = TraceDecisionUtil.shouldTraceRequest(name, null, xTraceOptions, resource);
+                final TraceDecision traceDecision = TraceDecisionUtil.shouldTraceRequest(name, null, xTraceOptions, resource);
                 samplingResult = toOtSamplingResult(traceDecision);
 
-                XTraceOptionsResponse xTraceOptionsResponse = XTraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, true);
+                final XTraceOptionsResponse xTraceOptionsResponse = XTraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, true);
                 if (xTraceOptionsResponse != null) {
                     xTraceOptionsResponseStr = xTraceOptionsResponse.toString();
                 }
             } else { // follow the upstream sw trace decision
-                TraceFlags traceFlags = TraceFlags.fromByte(swVal.split("-")[1].getBytes()[1]);
+                final TraceFlags traceFlags = TraceFlags.fromByte(swVal.split("-")[1].getBytes()[1]);
                 if (parentSpanContext.isRemote()) { // root span needs to roll the dice
-                    String xTraceId = Util.W3CContextToHexString(parentSpanContext);
-                    TraceDecision traceDecision = TraceDecisionUtil.shouldTraceRequest(name, xTraceId, xTraceOptions, resource);
+                    final String xTraceId = Util.w3CContextToHexString(parentSpanContext);
+                    final TraceDecision traceDecision = TraceDecisionUtil.shouldTraceRequest(name, xTraceId, xTraceOptions, resource);
                     samplingResult = toOtSamplingResult(traceDecision);
-                    XTraceOptionsResponse xTraceOptionsResponse = XTraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, true);
+                    final XTraceOptionsResponse xTraceOptionsResponse = XTraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, true);
                     if (xTraceOptionsResponse != null) {
                         xTraceOptionsResponseStr = xTraceOptionsResponse.toString();
                     }
@@ -104,7 +104,7 @@ public class AppOpticsSampler implements Sampler {
         }
 
         if (parentSpanContext.isRemote() && !traceState.isEmpty()) {
-            String traceStateValue = parentContext.get(TraceStateKey.KEY);
+            final String traceStateValue = parentContext.get(TraceStateKey.KEY);
             if (traceStateValue != null) {
                 additionalAttributesBuilder.put(Constants.SW_UPSTREAM_TRACESTATE, traceStateValue);
             }
@@ -116,7 +116,7 @@ public class AppOpticsSampler implements Sampler {
         if (swVal == null || !swVal.contains("-")) {
             return false;
         }
-        String[] swTraceState = swVal.split("-");
+        final String[] swTraceState = swVal.split("-");
         if (swTraceState.length != 2) {
             return false;
         }
@@ -138,8 +138,8 @@ public class AppOpticsSampler implements Sampler {
         SamplingResult result = NOT_TRACED;
 
         if (aoTraceDecision.isSampled()) {
-            SamplingDecision samplingDecision = SamplingDecision.RECORD_AND_SAMPLE;
-            AttributesBuilder aoAttributesBuilder = Attributes.builder();
+            final SamplingDecision samplingDecision = SamplingDecision.RECORD_AND_SAMPLE;
+            final AttributesBuilder aoAttributesBuilder = Attributes.builder();
             aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "SampleRate", aoTraceDecision.getTraceConfig().getSampleRate());
             aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "SampleSource", aoTraceDecision.getTraceConfig().getSampleRateSourceValue());
             aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "BucketRate", aoTraceDecision.getTraceConfig().getBucketRate(aoTraceDecision.getRequestType().getBucketType()));

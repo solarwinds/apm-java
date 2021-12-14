@@ -10,13 +10,13 @@ public class TraceContextHandlerNoOp implements ITraceContextHandler {
 
     public void clearDefault() {
     }
-    
+
     @Override
     public boolean isSampled(String xTraceID) {
         return false;
     }
 
-    class TraceContextNoOp extends TraceContext {
+    static class TraceContextNoOp extends TraceContext {
         /**
          * Sets the current thread's context to this context (updates TLS)
          */

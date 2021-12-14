@@ -28,7 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class Initializer {
-    private static final Logger logger = org.slf4j.LoggerFactory.getLogger(Initializer.class.getName());
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Initializer.class.getName());
     private static final String VERSION_PROPERTIES_FILE = "/version.properties";
     private static final String APPOPTICS_SERVICE_KEY = "otel.appoptics.service.key";
     private static final String APPOPTICS_CONFIG_FILE = "otel.appoptics.configfile";
@@ -59,14 +59,16 @@ public class Initializer {
             initializeConfig(serviceKey);
             //future = executeStartupTasks(); //Cannot call this here, see https://github.com/appoptics/opentelemetry-custom-distro/issues/7
             registerShutdownTasks();
-        } catch (InvalidConfigException e) {
+        }
+        catch (InvalidConfigException e) {
             exception = e;
-            logger.warn("Failed to initialize AppOptics OpenTelemetry extensions due to config error: " + e.getMessage(), e);
+            LOGGER.warn("Failed to initialize AppOptics OpenTelemetry extensions due to config error: " + e.getMessage(), e);
             throw e;
-        } finally {
+        }
+        finally {
             reportInit(exception);
-            serviceKey = (String)ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
-            logger.info("Successfully initialized AppOptics OpenTelemetry extensions with service key " + ServiceKeyUtils.maskServiceKey(serviceKey));
+            serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
+            LOGGER.info("Successfully initialized AppOptics OpenTelemetry extensions with service key " + ServiceKeyUtils.maskServiceKey(serviceKey));
             return future;
         }
     }
@@ -94,29 +96,30 @@ public class Initializer {
         startupTasksFuture = service.submit(new Runnable() {
             public void run() {
                 try {
-                    logger.info("Starting startup task");
+                    LOGGER.info("Starting startup task");
                     // trigger init on the Settings reader
                     CountDownLatch settingsLatch = null;
 
-                    logger.info("Initializing HostUtils");
+                    LOGGER.info("Initializing HostUtils");
                     HostInfoUtils.init(ServerHostInfoReader.INSTANCE);
                     try {
                         HostInfoUtils.NetworkAddressInfo networkAddressInfo = HostInfoUtils.getNetworkAddressInfo();
                         List<String> ipAddresses = networkAddressInfo != null ? networkAddressInfo.getIpAddresses() : Collections.<String>emptyList();
 
-                        logger.debug("Detected host id: " + HostInfoUtils.getHostId() + " ip addresses: " + ipAddresses);
+                        LOGGER.debug("Detected host id: " + HostInfoUtils.getHostId() + " ip addresses: " + ipAddresses);
 
                         settingsLatch = SettingsManager.initialize();
-                    } catch (ClientException e) {
-                        logger.debug("Failed to initialize RpcSettingsReader : " + e.getMessage());
                     }
-                    logger.info("Initialized HostUtils");
+                    catch (ClientException e) {
+                        LOGGER.debug("Failed to initialize RpcSettingsReader : " + e.getMessage());
+                    }
+                    LOGGER.info("Initialized HostUtils");
 
-                    logger.info("Building reporter");
+                    LOGGER.info("Building reporter");
                     EventImpl.setDefaultReporter(RpcEventReporter.buildReporter(RpcClientManager.OperationType.TRACING));
-                    logger.info("Built reporter");
+                    LOGGER.info("Built reporter");
 
-                    logger.info("Starting System monitor");
+                    LOGGER.info("Starting System monitor");
                     SystemMonitorController.startWithBuilder(new SystemMonitorBuilder() {
                         @Override
                         public List<SystemMonitor<?, ?>> build() {
@@ -126,9 +129,11 @@ public class Initializer {
                                     try {
                                         MetricsCollector metricsCollector = new MetricsCollector(configs, AppOpticsInboundMetricsSpanProcessor.buildSpanMetricsCollector());
                                         return MetricsMonitor.buildInstance(configs, metricsCollector);
-                                    } catch (InvalidConfigException e) {
+                                    }
+                                    catch (InvalidConfigException e) {
                                         e.printStackTrace();
-                                    } catch (ClientException e) {
+                                    }
+                                    catch (ClientException e) {
                                         e.printStackTrace();
                                     }
                                     return null;
@@ -136,15 +141,15 @@ public class Initializer {
                             }.buildMonitors();
                         }
                     });
-                    logger.info("Started System monitor");
+                    LOGGER.info("Started System monitor");
                     //SystemMonitorController.start();
 
                     ProfilerSetting profilerSetting = (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);
                     if (profilerSetting != null && profilerSetting.isEnabled()) {
-                        logger.debug("Profiler is enabled, local settings : " + profilerSetting);
+                        LOGGER.debug("Profiler is enabled, local settings : " + profilerSetting);
                         Profiler.initialize(profilerSetting, RpcEventReporter.buildReporter(RpcClientManager.OperationType.PROFILING));
                     } else {
-                        logger.debug("Profiler is disabled, local settings : " + profilerSetting);
+                        LOGGER.debug("Profiler is disabled, local settings : " + profilerSetting);
                     }
 
                     //now wait for all the latches (for now there's only one for settings)
@@ -153,14 +158,14 @@ public class Initializer {
                             settingsLatch.await();
                         }
                     } catch (InterruptedException e) {
-                        logger.debug("Failed to wait for settings from RpcSettingsReader : " + e.getMessage());
+                        LOGGER.debug("Failed to wait for settings from RpcSettingsReader : " + e.getMessage());
                     }
                 } catch (Throwable e) {
-                    logger.warn("Failed post system startup operations due to : " + e.getMessage(), e);
+                    LOGGER.warn("Failed post system startup operations due to : " + e.getMessage(), e);
                 }
             }
         });
-        logger.info("Submitted startup task");
+        LOGGER.info("Submitted startup task");
 
         service.shutdown();
     }
@@ -174,7 +179,8 @@ public class Initializer {
         boolean hasReadConfigException = false;
         try {
             configs = readConfigs(System.getenv(), serviceKey);
-        } catch (InvalidConfigException e) {
+        }
+        catch (InvalidConfigException e) {
             hasReadConfigException = true;
             //attempt to initialize the logger factory, as it could contain valid logging config and it's valuable to log message to it if possible
             if (e instanceof InvalidConfigReadSourceException) {
@@ -186,7 +192,8 @@ public class Initializer {
                 LoggerFactory.init(configs.subset(ConfigGroup.AGENT)); //initialize the logger factory as soon as the config is available
                 try {
                     processConfigs(configs);
-                } catch (InvalidConfigException e) {
+                }
+                catch (InvalidConfigException e) {
                     //if there was a config read exception then processConfigs might throw exception due to incomplete config container.
                     //Do NOT override the original exception by not rethrowing the exception
                     if (!hasReadConfigException) {
@@ -223,10 +230,11 @@ public class Initializer {
 
         try {
             //Firstly, read from ENV
-            logger.debug("Start reading configs from ENV");
+            LOGGER.debug("Start reading configs from ENV");
             new EnvConfigReader(env).read(container);
-            logger.debug("Finished reading configs from ENV");
-        } catch (InvalidConfigException e) {
+            LOGGER.debug("Finished reading configs from ENV");
+        }
+        catch (InvalidConfigException e) {
             exceptions.add(new InvalidConfigReadSourceException(e.getConfigProperty(), ConfigSourceType.ENV_VAR, null, container, e));
         }
 
@@ -249,17 +257,20 @@ public class Initializer {
                 location = (String) container.get(ConfigProperty.AGENT_CONFIG);
                 try {
                     config = new FileInputStream(location);
-                } catch (FileNotFoundException e) {
+                }
+                catch (FileNotFoundException e) {
                     throw new InvalidConfigException(e);
                 }
-            } else {
+            }
+            else {
                 config = Initializer.class.getResourceAsStream("/javaagent.json"); //the file included within the jar
                 location = "default";
 
             }
             new JsonConfigReader(config).read(container);
-            logger.info("Finished reading configs from config file: " + location);
-        } catch (InvalidConfigException e) {
+            LOGGER.info("Finished reading configs from config file: " + location);
+        }
+        catch (InvalidConfigException e) {
             exceptions.add(new InvalidConfigReadSourceException(e.getConfigProperty(), ConfigSourceType.JSON_FILE, location, container, e));
         }
 
@@ -321,7 +332,7 @@ public class Initializer {
         if (configs.containsProperty(ConfigProperty.AGENT_SAMPLE_RATE)) {
             Integer sampleRateFromConfig = (Integer) configs.get(ConfigProperty.AGENT_SAMPLE_RATE);
             if (sampleRateFromConfig < 0 ||  sampleRateFromConfig > ConfigConstants.SAMPLE_RESOLUTION) {
-                logger.warn(ConfigProperty.AGENT_SAMPLE_RATE + ": Invalid argument value: " + sampleRateFromConfig + ": must be between 0 and " + ConfigConstants.SAMPLE_RESOLUTION);
+                LOGGER.warn(ConfigProperty.AGENT_SAMPLE_RATE + ": Invalid argument value: " + sampleRateFromConfig + ": must be between 0 and " + ConfigConstants.SAMPLE_RESOLUTION);
                 throw new InvalidConfigException("Invalid " + ConfigProperty.AGENT_SAMPLE_RATE.getConfigFileKey() + " : " + sampleRateFromConfig);
             }
         }
@@ -332,17 +343,19 @@ public class Initializer {
             String serviceKey = ServiceKeyUtils.transformServiceKey(rawServiceKey);
 
             if (!serviceKey.equalsIgnoreCase(rawServiceKey)) {
-                logger.warn("Invalid service name detected in service key, the service key is transformed to " + ServiceKeyUtils.maskServiceKey(serviceKey));
+                LOGGER.warn("Invalid service name detected in service key, the service key is transformed to " + ServiceKeyUtils.maskServiceKey(serviceKey));
                 configs.put(ConfigProperty.AGENT_SERVICE_KEY, serviceKey, true);
             }
-            logger.debug("Service key (masked) is [" + ServiceKeyUtils.maskServiceKey(serviceKey) + "]");
+            LOGGER.debug("Service key (masked) is [" + ServiceKeyUtils.maskServiceKey(serviceKey) + "]");
 
-        } else {
+        }
+        else {
             if (!configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)) {
-                logger.warn("Could not find the service key! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in javaagent.json");
+                LOGGER.warn("Could not find the service key! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in javaagent.json");
                 throw new InvalidConfigServiceKeyException("Service key not found");
-            } else {
-                logger.warn("Service key is empty! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in javaagent.json");
+            }
+            else {
+                LOGGER.warn("Service key is empty! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in javaagent.json");
                 throw new InvalidConfigServiceKeyException("Service key is empty");
             }
         }
@@ -355,10 +368,11 @@ public class Initializer {
         TraceConfigs traceConfigs = null;
         if (configs.containsProperty(ConfigProperty.AGENT_TRANSACTION_SETTINGS)) {
             if (configs.containsProperty(ConfigProperty.AGENT_URL_SAMPLE_RATE)) {
-                logger.warn(ConfigProperty.AGENT_URL_SAMPLE_RATE.getConfigFileKey() + " is ignored as " + ConfigProperty.AGENT_TRANSACTION_SETTINGS.getConfigFileKey() + " is also defined");
+                LOGGER.warn(ConfigProperty.AGENT_URL_SAMPLE_RATE.getConfigFileKey() + " is ignored as " + ConfigProperty.AGENT_TRANSACTION_SETTINGS.getConfigFileKey() + " is also defined");
             }
             traceConfigs = (TraceConfigs) configs.get(ConfigProperty.AGENT_TRANSACTION_SETTINGS);
-        } else if (configs.containsProperty(ConfigProperty.AGENT_URL_SAMPLE_RATE)) {
+        }
+        else if (configs.containsProperty(ConfigProperty.AGENT_URL_SAMPLE_RATE)) {
             traceConfigs = (TraceConfigs) configs.get(ConfigProperty.AGENT_URL_SAMPLE_RATE);
         }
 
@@ -383,9 +397,11 @@ public class Initializer {
             boolean finalEnabled = profilerEnabledFromEnvVar != null ? profilerEnabledFromEnvVar : profilerSettingsFromConfigFile.isEnabled();
             int finalInterval = profilerIntervalFromEnvVar != null ? profilerIntervalFromEnvVar : profilerSettingsFromConfigFile.getInterval();
             finalProfilerSetting = new ProfilerSetting(finalEnabled, profilerSettingsFromConfigFile.getExcludePackages(), finalInterval, profilerSettingsFromConfigFile.getCircuitBreakerDurationThreshold(), profilerSettingsFromConfigFile.getCircuitBreakerCountThreshold());
-        } else if (profilerEnabledFromEnvVar != null || profilerIntervalFromEnvVar != null) {
+        }
+        else if (profilerEnabledFromEnvVar != null || profilerIntervalFromEnvVar != null) {
             finalProfilerSetting = new ProfilerSetting(profilerEnabledFromEnvVar != null ? profilerEnabledFromEnvVar : false, profilerIntervalFromEnvVar != null ? profilerIntervalFromEnvVar : ProfilerSetting.DEFAULT_INTERVAL);
-        } else {
+        }
+        else {
             finalProfilerSetting = new ProfilerSetting(false, ProfilerSetting.DEFAULT_INTERVAL);
         }
 
@@ -411,14 +427,15 @@ public class Initializer {
             versionsProperties.load(Initializer.class.getResourceAsStream(VERSION_PROPERTIES_FILE));
             String version = versionsProperties.getProperty("agent.version");
             if (version == null) {
-                logger.warn("Could not locate agent.version in " + VERSION_PROPERTIES_FILE + " for version...");
+                LOGGER.warn("Could not locate agent.version in " + VERSION_PROPERTIES_FILE + " for version...");
             }
 
             future = reportLayerInit(layerName, version, configException);
-        } catch (Exception e) {
-            logger.warn("Failed to post init message: " + (e.getMessage() != null ? e.getMessage() : e.toString()));
+        }
+        catch (Exception e) {
+            LOGGER.warn("Failed to post init message: " + (e.getMessage() != null ? e.getMessage() : e.toString()));
             if (configException != null) {
-                logger.warn("Failed to report init error [" + configException.getMessage() + "]");
+                LOGGER.warn("Failed to report init error [" + configException.getMessage() + "]");
             }
         }
         return future;

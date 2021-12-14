@@ -15,7 +15,7 @@ import java.util.Map;
 import static com.appoptics.opentelemetry.core.Constants.*;
 
 public class Util {
-    private static final Logger logger = LoggerFactory.getLogger(Util.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(Util.class.getName());
     private static final byte EXIT_OP_ID_MASK = 0xf;
 
     /** Converts an OpenTelemetry span context to a hex string.
@@ -23,14 +23,14 @@ public class Util {
      * @param context
      * @return
      */
-    public static String W3CContextToHexString(SpanContext context) {
-        return Metadata.CURRENT_VERSION_HEXSTRING
-                + Metadata.HEXSTRING_DELIMETER
-                + context.getTraceId()
-                + Metadata.HEXSTRING_DELIMETER
-                + context.getSpanId()
-                + Metadata.HEXSTRING_DELIMETER
-                + context.getTraceFlags().asHex();
+    public static String w3CContextToHexString(SpanContext context) {
+        return Metadata.CURRENT_VERSION_HEXSTRING +
+                Metadata.HEXSTRING_DELIMETER +
+                context.getTraceId() +
+                Metadata.HEXSTRING_DELIMETER +
+                context.getSpanId() +
+                Metadata.HEXSTRING_DELIMETER +
+                context.getTraceFlags().asHex();
     }
 
     /**
@@ -42,10 +42,10 @@ public class Util {
      * @return
      */
     public static Metadata buildSpanExitMetadata(SpanContext context) {
-        Metadata entryContext = buildMetadata(context);
-        byte[] exitOpID = Arrays.copyOf(entryContext.getOpID(), entryContext.getOpID().length);
-        exitOpID[exitOpID.length - 1] = (byte)(exitOpID[exitOpID.length - 1] ^ EXIT_OP_ID_MASK); //flip the last byte
-        Metadata exitContext = new Metadata(entryContext);
+        final Metadata entryContext = buildMetadata(context);
+        final byte[] exitOpID = Arrays.copyOf(entryContext.getOpID(), entryContext.getOpID().length);
+        exitOpID[exitOpID.length - 1] = (byte) (exitOpID[exitOpID.length - 1] ^ EXIT_OP_ID_MASK); // flip the last byte
+        final Metadata exitContext = new Metadata(entryContext);
         exitContext.setOpID(exitOpID);
         return exitContext;
     }
@@ -58,9 +58,10 @@ public class Util {
      */
     public static Metadata buildMetadata(SpanContext context) {
         try {
-            return new Metadata(W3CContextToHexString(context));
-        } catch (OboeException e) {
-            logger.info("Failed to get AO metadata from span context: " + W3CContextToHexString(context), e);
+            return new Metadata(w3CContextToHexString(context));
+        }
+        catch (OboeException e) {
+            LOGGER.info("Failed to get AO metadata from span context: " + w3CContextToHexString(context), e);
             return new Metadata();
         }
     }
@@ -72,9 +73,12 @@ public class Util {
      */
     public static Long toTraceId(byte[] traceIdBytes) {
         long value = 0;
-        int length = Math.min(8, traceIdBytes.length);
+        final int maxTraceIdBytes = 8;
+        final long mask = 0xffL;
+        final int bitsInByte = 8;
+        final int length = Math.min(maxTraceIdBytes, traceIdBytes.length);
         for (int i = 0; i < length; i++) {
-            value += ((long) traceIdBytes[i] & 0xffL) << (8 * i);
+            value += ((long) traceIdBytes[i] & mask) << (bitsInByte * i);
         }
         return value;
     }
@@ -89,12 +93,14 @@ public class Util {
         Metadata metadata = null;
         try {
             metadata = new Metadata(xTrace);
-        } catch (OboeException e) {
+        }
+        catch (OboeException e) {
             return SpanContext.getInvalid();
         }
 
-        return isRemote
-                ? SpanContext.createFromRemoteParent(metadata.taskHexString(), metadata.opHexString(), TraceFlags.fromByte(metadata.getFlags()), TraceState.getDefault())
+        return isRemote ?
+                SpanContext.createFromRemoteParent(metadata.taskHexString(), metadata.opHexString(),
+                        TraceFlags.fromByte(metadata.getFlags()), TraceState.getDefault())
                 : SpanContext.create(metadata.taskHexString(), metadata.opHexString(), TraceFlags.fromByte(metadata.getFlags()), TraceState.getDefault());
     }
 
@@ -102,23 +108,24 @@ public class Util {
         if (url != null) {
             try {
                 return new URL(url).getPath();
-            } catch (MalformedURLException e) {
-                logger.debug("Cannot parse URL " + url);
+            }
+            catch (MalformedURLException e) {
+                LOGGER.debug("Cannot parse URL " + url);
             }
         }
         return null;
     }
 
     public static Map<String, Object> keyValuePairsToMap(Object... keyValuePairs) {
-        Map<String, Object> map = new HashMap<String, Object>();
+        final Map<String, Object> map = new HashMap<String, Object>();
         if (keyValuePairs.length % 2 == 1) {
-            logger.warn("Expect even number of arugments but found " + keyValuePairs.length + " arguments");
+            LOGGER.warn("Expect even number of arugments but found " + keyValuePairs.length + " arguments");
             return map;
         }
 
-        for(int i = 0; i < keyValuePairs.length / 2; i++) {
+        for (int i = 0; i < keyValuePairs.length / 2; i++) {
             if (!(keyValuePairs[i * 2] instanceof String)) {
-                logger.warn("Expect String argument at position " + (i * 2 + 1) + " but found " + keyValuePairs[i * 2]);
+                LOGGER.warn("Expect String argument at position " + (i * 2 + 1) + " but found " + keyValuePairs[i * 2]);
                 continue;
             }
             map.put((String) keyValuePairs[i * 2], keyValuePairs[i * 2 + 1]);
@@ -137,20 +144,24 @@ public class Util {
      */
     public static void setSpanAttributes(Span span, Map<String, ?> attributes) {
         for (Map.Entry<String, ?> entry : attributes.entrySet()) {
-            Object value = entry.getValue();
+            final Object value = entry.getValue();
             String key = entry.getKey();
             if (!key.startsWith(SW_KEY_PREFIX)) {
                 key = SW_KEY_PREFIX + key;
             }
             if (value instanceof String) {
                 span.setAttribute(key, (String) value);
-            } else if (value instanceof Double) {
+            }
+            else if (value instanceof Double) {
                 span.setAttribute(key, (Double) value);
-            } else if (value instanceof Boolean) {
+            }
+            else if (value instanceof Boolean) {
                 span.setAttribute(key, (Boolean) value);
-            } else if (value instanceof Long) {
+            }
+            else if (value instanceof Long) {
                 span.setAttribute(key, (Long) value);
-            } else {
+            }
+            else {
                 if (value != null) {
                     span.setAttribute(key, value.toString());
                 }
@@ -168,7 +179,7 @@ public class Util {
      */
     public static void setSpanAttributes(SpanBuilder spanBuilder, Map<String, ?> attributes) {
         for (Map.Entry<String, ?> entry : attributes.entrySet()) {
-            Object value = entry.getValue();
+            final Object value = entry.getValue();
             String key = entry.getKey();
             if (!key.startsWith(SW_KEY_PREFIX)) {
                 key = SW_KEY_PREFIX + key;
@@ -176,13 +187,17 @@ public class Util {
 
             if (value instanceof String) {
                 spanBuilder.setAttribute(key, (String) value);
-            } else if (value instanceof Double) {
+            }
+            else if (value instanceof Double) {
                 spanBuilder.setAttribute(key, (Double) value);
-            } else if (value instanceof Boolean) {
+            }
+            else if (value instanceof Boolean) {
                 spanBuilder.setAttribute(key, (Boolean) value);
-            } else if (value instanceof Long) {
+            }
+            else if (value instanceof Long) {
                 spanBuilder.setAttribute(key, (Long) value);
-            } else {
+            }
+            else {
                 if (value != null) {
                     spanBuilder.setAttribute(key, value.toString());
                 }

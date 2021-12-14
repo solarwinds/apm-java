@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 public class TransactionNameManager {
-    private static final Logger logger = LoggerFactory.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger();
     private static final String[] DEFAULT_TRANSACTION_NAME_PATTERN = {"p1", "p2"};
     private static final String CUSTOM_TRANSACTION_NAME_PATTERN_SEPARATOR = ".";
     private static final String DEFAULT_TRANSACTION_NAME_PATTERN_SEPARATOR = "/";
@@ -34,14 +34,14 @@ public class TransactionNameManager {
     public static final Pattern REPLACE_PATTERN = Pattern.compile("[^-.:_\\\\\\/\\w\\? ]");
     public static final String DEFAULT_SDK_TRANSACTION_NAME_PREFIX = "custom-";
 
-    static String[] customTransactionNamePattern;
-    static final Cache<String, String> urlTransactionNameCache = CacheBuilder.newBuilder().maximumSize(1000).expireAfterAccess(1200, TimeUnit.SECONDS).<String, String>build(); //20 mins cache
+    private static final String[] customTransactionNamePattern;
+    static final Cache<String, String> URL_TRANSACTION_NAME_CACHE = CacheBuilder.newBuilder().maximumSize(1000).expireAfterAccess(1200, TimeUnit.SECONDS).<String, String>build(); //20 mins cache
 
-    private static final Set<String> existingTransactionNames = new HashSet<String>();
+    private static final Set<String> EXISTING_TRANSACTION_NAMES = new HashSet<String>();
     private static boolean limitExceeded;
     private static int maxNameCount = DEFAULT_MAX_NAME_COUNT;
 
-    static boolean domainPrefixedTransactionName;
+    private static final boolean domainPrefixedTransactionName;
 
     static {
         customTransactionNamePattern = getTransactionNamePattern();
@@ -147,7 +147,7 @@ public class TransactionNameManager {
         transactionName = transactionName.toLowerCase();
 
         if (!transactionName.equalsIgnoreCase(inputTransactionName)) {
-            logger.debug("Transaction name [" + inputTransactionName + "] has been transformed to [" + transactionName + "]");
+            LOGGER.debug("Transaction name [" + inputTransactionName + "] has been transformed to [" + transactionName + "]");
         }
 
         return transactionName;
@@ -206,11 +206,11 @@ public class TransactionNameManager {
             return null;
         }
 
-        String transactionName = urlTransactionNameCache.getIfPresent(url);
+        String transactionName = URL_TRANSACTION_NAME_CACHE.getIfPresent(url);
         if (transactionName == null) {
             transactionName = buildTransactionNameByUrlAndPattern(url, transactionNamePattern, separatorAsPrefix, separator);
             if (transactionName != null) {
-                urlTransactionNameCache.put(url, transactionName);
+                URL_TRANSACTION_NAME_CACHE.put(url, transactionName);
             }
         }
 
@@ -259,10 +259,10 @@ public class TransactionNameManager {
      * @return  true if transactionName is already existed or added successfully; false otherwise (limit exceeded)
      */
     public static boolean addTransactionName(String transactionName) {
-        synchronized(existingTransactionNames) {
-            if (!existingTransactionNames.contains(transactionName)) {
-                if (existingTransactionNames.size() < maxNameCount ) {
-                    existingTransactionNames.add(transactionName);
+        synchronized(EXISTING_TRANSACTION_NAMES) {
+            if (!EXISTING_TRANSACTION_NAMES.contains(transactionName)) {
+                if (EXISTING_TRANSACTION_NAMES.size() < maxNameCount) {
+                    EXISTING_TRANSACTION_NAMES.add(transactionName);
                     return true;
                 }
             } else { //the name already exists, so it's not over the limit
@@ -278,8 +278,8 @@ public class TransactionNameManager {
     }
 
     public static void clearTransactionNames() {
-        synchronized(existingTransactionNames) {
-            existingTransactionNames.clear();
+        synchronized(EXISTING_TRANSACTION_NAMES) {
+            EXISTING_TRANSACTION_NAMES.clear();
 
             limitExceeded = false;
         }
@@ -290,7 +290,7 @@ public class TransactionNameManager {
      */
     static void reset() {
         clearTransactionNames();
-        urlTransactionNameCache.invalidateAll();
+        URL_TRANSACTION_NAME_CACHE.invalidateAll();
         maxNameCount = DEFAULT_MAX_NAME_COUNT;
     }
 }

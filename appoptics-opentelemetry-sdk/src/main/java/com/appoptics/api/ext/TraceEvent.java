@@ -3,8 +3,9 @@ package com.appoptics.api.ext;
 import java.util.Map;
 
 /**
- * Interface for trace event which is the building block of traces. Each {@link TraceEvent} has its own type such as "entry", "exit", "info" and "error", which is determined when
- * the event was created by methods in {@link Trace}. To add additional information key/value
+ * Interface for trace event which is the building block of traces. Each {@link TraceEvent} has its own type such as "entry",
+ * "exit", "info" and "error", which is determined when the event was created by methods in {@link Trace}. To add additional
+ * information key/value
  *
  * @see <a href="http://docs.appoptics.com/kb/apm_tracing/java/sdk/"> Java Agent - Instrumentation SDK </a>
  */
@@ -15,19 +16,19 @@ public interface TraceEvent {
      * @param key   key
      * @param value value
      */
-    public void addInfo(String key, Object value);
+    void addInfo(String key, Object value);
 
     /**
      * Adds key/value pairs to the event
      * @param infoMap  map of key/value pairs
      */
-    public void addInfo(Map<String, Object> infoMap);
+    void addInfo(Map<String, Object> infoMap);
 
     /**
      * Add all key/value pairs to event. This assumes that info contains alternating key/value pairs (String, Object).
      * @param info
      */
-    public void addInfo(Object... info);
+    void addInfo(Object... info);
 
 
     /**
@@ -47,17 +48,17 @@ public interface TraceEvent {
      * }
      * </pre>
      */
-    public void setAsync();
+    void setAsync();
 
     /**
      * Adds an additional edge to this event
      */
-    public void addEdge(String xTraceID);
+    void addEdge(String xTraceID);
 
     /**
      * Reports the event to the collector.
      */
-    public void report();
+    void report();
 
     /**
      * To report the back traces of the certain time frame of the application. This adds the back trace of the current thread to the event.
@@ -69,7 +70,6 @@ public interface TraceEvent {
      * }
      * </pre>
      */
-    public void addBackTrace();
-
+    void addBackTrace();
 }
 

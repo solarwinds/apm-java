@@ -1,4 +1,4 @@
-rootProject.name = 'opentelemetry-java-instrumentation-custom-distro'
+rootProject.name = 'otel-custom-distro'
 
 include "agent"
 include "appoptics-opentelemetry-sdk"

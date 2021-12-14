@@ -19,19 +19,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * by OT Tracer's instrumentation
  */
 public final class RootSpan {
-  private static final ConcurrentHashMap<String, Span> rootSpanLookup = new ConcurrentHashMap<>();
+  private static final ConcurrentHashMap<String, Span> ROOT_SPAN_LOOKUP = new ConcurrentHashMap<>();
 
   public static Span fromTraceId(String traceId) {
-    return rootSpanLookup.get(traceId);
+    return ROOT_SPAN_LOOKUP.get(traceId);
   }
 
   public static void setRootSpan(Span rootSpan) {
-    rootSpanLookup.put(rootSpan.getSpanContext().getTraceId(), rootSpan);
+    ROOT_SPAN_LOOKUP.put(rootSpan.getSpanContext().getTraceId(), rootSpan);
   }
 
   public static Span clearRootSpan(String traceId) {
-    return rootSpanLookup.remove(traceId);
+    return ROOT_SPAN_LOOKUP.remove(traceId);
   }
 
-  private RootSpan() {}
+  private RootSpan() { }
 }

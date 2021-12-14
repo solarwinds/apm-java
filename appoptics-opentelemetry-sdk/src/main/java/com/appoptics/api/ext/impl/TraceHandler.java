@@ -24,13 +24,13 @@ import java.util.logging.Logger;
 public class TraceHandler implements ITraceHandler {
     private final Logger logger = Logger.getLogger(TraceHandler.class.getName());
     private static final ContextKey<String> AO_SDK_SPAN_ID_CONTEXT_KEY = ContextKey.named("ao.sdk.spanId");
-    private static WeakHashMap<Span, Scope> scopeLookup = new WeakHashMap<Span, Scope>();
-    private static WeakHashMap<Span, Scope> remoteScopeLookup = new WeakHashMap<Span, Scope>();
+    private static final WeakHashMap<Span, Scope> SCOPE_LOOKUP = new WeakHashMap<Span, Scope>();
+    private static final WeakHashMap<Span, Scope> REMOTE_SCOPE_LOOKUP = new WeakHashMap<Span, Scope>();
 
-    private static final Tracer tracer;
+    private static final Tracer TRACER;
 
     static {
-        tracer = GlobalOpenTelemetry.getTracer("appoptics-sdk");
+        TRACER = GlobalOpenTelemetry.getTracer("appoptics-sdk");
     }
 
     /**
@@ -39,7 +39,7 @@ public class TraceHandler implements ITraceHandler {
     public TraceEvent startTrace(String layer) {
         return startOrContinueTrace(layer, null);
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -59,7 +59,7 @@ public class TraceHandler implements ITraceHandler {
      * {@inheritDoc}
      */
     public String endTrace(String layer, Map<String, Object> info) {
-        Span currentSpan = Span.current();
+        final Span currentSpan = Span.current();
         if (currentSpan == null) {
             logger.warning("Attempt to end a Trace but there's no active span. Ignoring the operation");
             return "";
@@ -74,12 +74,12 @@ public class TraceHandler implements ITraceHandler {
         }
         currentSpan.end();
 
-        Scope scope = scopeLookup.remove(currentSpan);
+        final Scope scope = SCOPE_LOOKUP.remove(currentSpan);
         if (scope != null) {
             scope.close();
         }
 
-        Scope remoteScope = remoteScopeLookup.remove(Span.current());
+        final Scope remoteScope = REMOTE_SCOPE_LOOKUP.remove(Span.current());
         if (remoteScope != null) {
             remoteScope.close();
         }
@@ -89,14 +89,19 @@ public class TraceHandler implements ITraceHandler {
 
     private boolean validateSpanExit(Span currentSpan) {
         // check if span is the expected SDK span
-        String expectedSpanId = Context.current().get(AO_SDK_SPAN_ID_CONTEXT_KEY);
+        final String expectedSpanId = Context.current().get(AO_SDK_SPAN_ID_CONTEXT_KEY);
         if (expectedSpanId == null) {
-            logger.warning("Attempt to end a SDK span but the active span was not created by SDK : " + currentSpan.getSpanContext());
+            logger.warning("Attempt to end a SDK span but the active span was not created by SDK : " +
+                    currentSpan.getSpanContext());
             return false;
-        } else if (!expectedSpanId.equals(currentSpan.getSpanContext().getSpanId())) {
-            logger.warning("Attempt to end a SDK span but the active span has span ID " + currentSpan.getSpanContext().getSpanId() + " which is not the same as the expected span ID " + expectedSpanId);
+        }
+        else if (!expectedSpanId.equals(currentSpan.getSpanContext().getSpanId())) {
+            logger.warning("Attempt to end a SDK span but the active span has span ID " +
+                    currentSpan.getSpanContext().getSpanId() + " which is not the same as the expected span ID " +
+                    expectedSpanId);
             return false;
-        } else {
+        }
+        else {
             return true;
         }
     }
@@ -108,27 +113,27 @@ public class TraceHandler implements ITraceHandler {
         return endTrace(layer, Util.keyValuePairsToMap(info));
     }
 
-   
     /**
      * {@inheritDoc}
      */
     public TraceEvent createEntryEvent(String layer) {
         //to adhere to the original behavior, which metadata is captured when event is created
-        Span currentSpan = Span.current();
+        final Span currentSpan = Span.current();
         return new OpenTelemetryTraceEvent(
                 event -> {
-                    try (Scope parentScope = currentSpan.makeCurrent()){
-                        SpanBuilder spanBuilder = tracer.spanBuilder(event.getOperationName());
+                    try (Scope parentScope = currentSpan.makeCurrent()) {
+                        final SpanBuilder spanBuilder = TRACER.spanBuilder(event.getOperationName());
                         Util.setSpanAttributes(spanBuilder, event.getKeyValues());
-                        //TODO https://github.com/open-telemetry/opentelemetry-java/blob/main/QUICKSTART.md#create-spans-with-links, link is not exactly the same as edge. Might need to change this
+                        //TODO https://github.com/open-telemetry/opentelemetry-java/blob/main/QUICKSTART.md#create-spans-with-links,
+                        // link is not exactly the same as edge. Might need to change this
                         for (String edge : event.getEdges()) {
                             spanBuilder.addLink(Util.toSpanContext(edge, false));
                         }
-                        Span span = spanBuilder.startSpan();
+                        final Span span = spanBuilder.startSpan();
                         Context context = span.storeInContext(Context.current());
                         context = context.with(AO_SDK_SPAN_ID_CONTEXT_KEY, span.getSpanContext().getSpanId());
-                        Scope scope = context.makeCurrent();
-                        scopeLookup.put(span, scope);
+                        final Scope scope = context.makeCurrent();
+                        SCOPE_LOOKUP.put(span, scope);
                     }
                 },
                 layer);
@@ -139,15 +144,16 @@ public class TraceHandler implements ITraceHandler {
      */
     public TraceEvent createExitEvent(String layer) {
         //to adhere to the original behavior, which metadata is captured when event is created
-        Span span = Span.current();
+        final Span span = Span.current();
         if (!validateSpanExit(span)) {
             return new NoOpEvent();
-        } else {
+        }
+        else {
             return new OpenTelemetryTraceEvent(
                     event -> {
                         Util.setSpanAttributes(span, event.getKeyValues());
                         span.end();
-                        Scope scope = scopeLookup.remove(span);
+                        final Scope scope = SCOPE_LOOKUP.remove(span);
                         if (scope != null) {
                             scope.close();
                         }
@@ -161,7 +167,7 @@ public class TraceHandler implements ITraceHandler {
      */
     public TraceEvent createInfoEvent(String layer) {
         //to adhere to the original behavior, which metadata is captured when event is created
-        Span span = Span.current();
+        final Span span = Span.current();
         return new OpenTelemetryTraceEvent(
                 event -> {
                     Util.setSpanAttributes(span, event.getKeyValues());
@@ -174,7 +180,7 @@ public class TraceHandler implements ITraceHandler {
      * {@inheritDoc}
      */
     public void logException(Throwable error) {
-        Span span = Span.current();
+        final Span span = Span.current();
         if (span.getSpanContext().isValid()) {
             span.recordException(error);
         }
@@ -184,9 +190,9 @@ public class TraceHandler implements ITraceHandler {
      * {@inheritDoc}
      */
     public String getCurrentXTraceID() {
-        return Util.W3CContextToHexString(Span.current().getSpanContext());
+        return Util.w3CContextToHexString(Span.current().getSpanContext());
     }
-    
+
     @Override
     public String getCurrentLogTraceId() {
         return Util.buildMetadata(Span.current().getSpanContext()).getCompactTraceId();
@@ -199,8 +205,9 @@ public class TraceHandler implements ITraceHandler {
                 event -> {
                     Scope remoteScope = null;
                     if (inXTraceID != null) {
-                        Context extractedContext = GlobalOpenTelemetry.getPropagators().getTextMapPropagator()
-                                .extract(Context.current(), Collections.singletonMap(TRACE_STATE_APPOPTICS_KEY, inXTraceID), new TextMapGetter<Map<String, String>>() {
+                        final Context extractedContext = GlobalOpenTelemetry.getPropagators().getTextMapPropagator()
+                                .extract(Context.current(), Collections.singletonMap(TRACE_STATE_APPOPTICS_KEY, inXTraceID),
+                                        new TextMapGetter<Map<String, String>>() {
                                     @Override
                                     public Iterable<String> keys(Map<String, String> carrier) {
                                         return new ArrayList<String>(carrier.keySet());
@@ -215,24 +222,26 @@ public class TraceHandler implements ITraceHandler {
                         remoteScope = extractedContext.makeCurrent();
                     }
 
-                    SpanBuilder spanBuilder = tracer.spanBuilder(event.getOperationName());
+                    final SpanBuilder spanBuilder = TRACER.spanBuilder(event.getOperationName());
                     Util.setSpanAttributes(spanBuilder, event.getKeyValues());
-                    //TODO https://github.com/open-telemetry/opentelemetry-java/blob/main/QUICKSTART.md#create-spans-with-links, link is not exactly the same as edge. Might need to change this
+                    //TODO https://github.com/open-telemetry/opentelemetry-java/blob/main/QUICKSTART.md#create-spans-with-links,
+                    // link is not exactly the same as edge. Might need to change this
                     for (String edge : event.getEdges()) {
                         spanBuilder.addLink(Util.toSpanContext(edge, false));
                     }
-                    Span span = spanBuilder.startSpan();
+                    final Span span = spanBuilder.startSpan();
 
                     Context context = span.storeInContext(Context.current());
                     context = context.with(AO_SDK_SPAN_ID_CONTEXT_KEY, span.getSpanContext().getSpanId());
-                    //context = Baggage.current().toBuilder().put(AO_SDK_KEY, Boolean.toString(true)).build().storeInContext(context); //this does not work as all child span (even made by non sdk call, will have this key
-                    scopeLookup.put(span, context.makeCurrent());
+                    // this does not work as all child span (even made by non sdk call, will have this key
+                    //context = Baggage.current().toBuilder().put(AO_SDK_KEY, Boolean.toString(true)).build().storeInContext(context);
+                    SCOPE_LOOKUP.put(span, context.makeCurrent());
                     if (remoteScope != null) {
-                        remoteScopeLookup.put(span, remoteScope);
+                        REMOTE_SCOPE_LOOKUP.put(span, remoteScope);
                     }
                 }, layer);
     }
-    
+
     public boolean setTransactionName(String transactionName) {
         if (transactionName == null || "".equals(transactionName)) {
             return false;
@@ -241,7 +250,7 @@ public class TraceHandler implements ITraceHandler {
             return false;
         }
 
-        Span rootSpan = RootSpan.fromTraceId(Span.current().getSpanContext().getTraceId());
+        final Span rootSpan = RootSpan.fromTraceId(Span.current().getSpanContext().getTraceId());
         if (rootSpan == null) {
             return false;
         }

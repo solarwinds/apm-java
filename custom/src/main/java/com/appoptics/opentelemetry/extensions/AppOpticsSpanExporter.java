@@ -1,7 +1,6 @@
 package com.appoptics.opentelemetry.extensions;
 
 import com.appoptics.opentelemetry.core.Util;
-import com.appoptics.opentelemetry.core.Constants;
 import com.tracelytics.joboe.*;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -35,11 +34,11 @@ public class AppOpticsSpanExporter implements SpanExporter {
                         parentMetadata = Util.buildMetadata(spanData.getParentSpanContext());
                     }
 
-                    String w3cContext = Util.W3CContextToHexString(spanData.getSpanContext());
+                    final String w3cContext = Util.w3CContextToHexString(spanData.getSpanContext());
 
-                    String spanName = spanData.getKind().toString() + "." + spanData.getName();
+                    final String spanName = spanData.getKind().toString() + "." + spanData.getName();
 
-                    Metadata spanMetadata = new Metadata(w3cContext);
+                    final Metadata spanMetadata = new Metadata(w3cContext);
                     spanMetadata.randomizeOpID(); //get around the metadata logic, this op id is not used
                     Event entryEvent;
                     if (parentMetadata != null) {
@@ -73,10 +72,9 @@ public class AppOpticsSpanExporter implements SpanExporter {
                             reportInfoEvent(event);
                         }
                     }
-                    ;
 
-                    Metadata exitMetadata = Util.buildSpanExitMetadata(spanData.getSpanContext()); //exit ID has to be generated
-                    Event exitEvent = new EventImpl(spanMetadata, exitMetadata.toHexString(),true);
+                    final Metadata exitMetadata = Util.buildSpanExitMetadata(spanData.getSpanContext()); //exit ID has to be generated
+                    final Event exitEvent = new EventImpl(spanMetadata, exitMetadata.toHexString(),true);
                     exitEvent.addInfo(
                             "Label", "exit",
                             "Layer", spanName);
@@ -99,8 +97,8 @@ public class AppOpticsSpanExporter implements SpanExporter {
     );
 
     private void reportErrorEvent(EventData eventData) {
-        Event event = Context.createEvent();
-        Attributes attributes = eventData.getAttributes();
+        final Event event = Context.createEvent();
+        final Attributes attributes = eventData.getAttributes();
         String message = attributes.get(SemanticAttributes.EXCEPTION_MESSAGE);
         if (message == null) {
             message = "";
@@ -113,7 +111,7 @@ public class AppOpticsSpanExporter implements SpanExporter {
                     "Backtrace", attributes.get(SemanticAttributes.EXCEPTION_STACKTRACE)
             );
 
-        Map<AttributeKey<?>, Object> otherKvs = filterAttributes(attributes);
+        final Map<AttributeKey<?>, Object> otherKvs = filterAttributes(attributes);
         otherKvs.keySet().removeAll(OPEN_TELEMETRY_ERROR_ATTRIBUTE_KEYS);
         for (Map.Entry<AttributeKey<?>, Object> keyValue : otherKvs.entrySet()) {
             event.addInfo(keyValue.getKey().getKey(), keyValue.getValue());
@@ -124,12 +122,12 @@ public class AppOpticsSpanExporter implements SpanExporter {
     }
 
     private void reportInfoEvent(EventData eventData) {
-        Event event = Context.createEvent();
-        Attributes attributes = eventData.getAttributes();
+        final Event event = Context.createEvent();
+        final Attributes attributes = eventData.getAttributes();
 
         event.addInfo("Label", "info");
 
-        Map<AttributeKey<?>, Object> otherKvs = filterAttributes(attributes);
+        final Map<AttributeKey<?>, Object> otherKvs = filterAttributes(attributes);
         for (Map.Entry<AttributeKey<?>, Object> keyValue : otherKvs.entrySet()) {
             event.addInfo(keyValue.getKey().getKey(), keyValue.getValue());
         }
@@ -139,7 +137,7 @@ public class AppOpticsSpanExporter implements SpanExporter {
     }
 
     private static Map<AttributeKey<?>, Object> filterAttributes(Attributes inputAttributes) {
-        Map<AttributeKey<?>, Object> result = new HashMap<>();
+        final Map<AttributeKey<?>, Object> result = new HashMap<>();
         for (Map.Entry<AttributeKey<?>, Object> keyValue : inputAttributes.asMap().entrySet()) {
             AttributeKey<?> key = keyValue.getKey();
             if (!key.getKey().startsWith(com.appoptics.opentelemetry.core.Constants.SW_INTERNAL_ATTRIBUTE_PREFIX)) {
@@ -177,13 +175,13 @@ public class AppOpticsSpanExporter implements SpanExporter {
     }
 
     private Map<String,?> getEventKvs(Attributes inputAttributes) {
-        Map<AttributeKey<?>, Object> attributes = filterAttributes(inputAttributes);
-        Map<String, Object> tags = new HashMap<String, Object>();
+        final Map<AttributeKey<?>, Object> attributes = filterAttributes(inputAttributes);
+        final Map<String, Object> tags = new HashMap<String, Object>();
         for (Map.Entry<AttributeKey<?>, Object> entry : attributes.entrySet()) {
             Object attributeValue = entry.getValue();
-            String attributeKey = entry.getKey().getKey();
+            final String attributeKey = entry.getKey().getKey();
             if (ATTRIBUTE_TO_TAG.containsKey(attributeKey)) {
-                String tagKey = ATTRIBUTE_TO_TAG.get(attributeKey);
+                final String tagKey = ATTRIBUTE_TO_TAG.get(attributeKey);
                 if (TAG_VALUE_TYPE.containsKey(tagKey)) {
                     attributeValue = TAG_VALUE_TYPE.get(tagKey).convert(attributeValue);
                 }
@@ -213,28 +211,8 @@ public class AppOpticsSpanExporter implements SpanExporter {
         }
     }
 
-//    private static Object getAttributeValue(AttributeValue attributeValue)   {
-//        switch (attributeValue.getType()) {
-//            case BOOLEAN:
-//                return attributeValue.getBooleanValue();
-//            case LONG:
-//                return attributeValue.getLongValue();
-//            case DOUBLE:
-//                return attributeValue.getDoubleValue();
-//            case STRING:
-//                return attributeValue.getStringValue();
-//            default:
-//                System.err.println("Unknown type " + attributeValue.getType());
-//        }
-//        return null;
-//    }
-
-
-
     @Override
-    public void close() {
-
-    }
+    public void close() { }
 
     public static class Builder {
 

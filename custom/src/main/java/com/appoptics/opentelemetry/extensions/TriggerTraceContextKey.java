@@ -11,6 +11,6 @@ final class TriggerTraceContextKey {
     static final ContextKey<String> XTRACE_OPTIONS = ContextKey.named("xtrace-options");
     static final ContextKey<String> XTRACE_OPTIONS_SIGNATURE = ContextKey.named("xtrace-options-signature");
 
-    private TriggerTraceContextKey() {}
+    private TriggerTraceContextKey() { }
 }
 

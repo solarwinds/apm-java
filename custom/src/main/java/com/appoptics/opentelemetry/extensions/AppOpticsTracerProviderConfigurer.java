@@ -3,7 +3,6 @@ package com.appoptics.opentelemetry.extensions;
 import com.appoptics.opentelemetry.extensions.initialize.Initializer;
 import com.google.auto.service.AutoService;
 import com.tracelytics.joboe.config.InvalidConfigException;
-import com.tracelytics.util.ServiceKeyUtils;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.traces.SdkTracerProviderConfigurer;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;

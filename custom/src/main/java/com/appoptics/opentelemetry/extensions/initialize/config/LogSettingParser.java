@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class LogSettingParser implements ConfigParser<String, LogSetting> {
-    private static final Logger logger = LoggerFactory.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger();
     public static final String LEVEL_KEY = "level";
     public static final String STDOUT_KEY = "stdout";
     public static final String STDERR_KEY = "stderr";
@@ -41,7 +41,7 @@ public class LogSettingParser implements ConfigParser<String, LogSetting> {
 
     private LogSettingParser() {
     }
-    
+
 
     public LogSetting convert(String javaValue) throws InvalidConfigException {
         String stringValue = javaValue.trim();
@@ -56,7 +56,7 @@ public class LogSettingParser implements ConfigParser<String, LogSetting> {
         Logger.Level level = Logger.Level.fromLabel(stringValue);
         //keep the existing behavior, not throwing exceptions on null level (invalid string)
         if (level == null) { //but do warn about it
-            logger.warn("Agent logging level value [" + stringValue + "] is invalid. Using default logging level instead...");
+            LOGGER.warn("Agent logging level value [" + stringValue + "] is invalid. Using default logging level instead...");
         }
 
         return new LogSetting(level, true, true, null, null, null);
@@ -144,7 +144,7 @@ public class LogSettingParser implements ConfigParser<String, LogSetting> {
         unknownKeys.removeAll(validKeys);
 
         if (!unknownKeys.isEmpty()) {
-            throw new InvalidConfigException("Found unknown key(s) [" + String.join(", ", unknownKeys) + "], valid keys are [" + String.join(", ", validKeys)+ "]");
+            throw new InvalidConfigException("Found unknown key(s) [" + String.join(", ", unknownKeys) + "], valid keys are [" + String.join(", ", validKeys) + "]");
         }
     }
 
