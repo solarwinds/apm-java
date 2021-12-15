@@ -30,8 +30,6 @@ import java.util.concurrent.Future;
 public class Initializer {
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Initializer.class.getName());
     private static final String VERSION_PROPERTIES_FILE = "/version.properties";
-    private static final String APPOPTICS_SERVICE_KEY = "otel.appoptics.service.key";
-    private static final String APPOPTICS_CONFIG_FILE = "otel.appoptics.configfile";
     private static Future<?> startupTasksFuture;
 
     static {
@@ -51,7 +49,7 @@ public class Initializer {
     }
 
     public static Future<?> initialize() throws InvalidConfigException {
-        String serviceKey = System.getProperty(APPOPTICS_SERVICE_KEY);
+        String serviceKey = System.getProperty(ConfigConstants.APPOPTICS_SERVICE_KEY);
 
         InvalidConfigException exception = null;
         Future<?> future = null;
@@ -221,7 +219,7 @@ public class Initializer {
             container.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, explicitServiceKey);
         }
 
-        String configFile = System.getProperty(APPOPTICS_CONFIG_FILE);
+        String configFile = System.getProperty(ConfigConstants.APPOPTICS_CONFIG_FILE);
         if (configFile != null) {
             container.putByStringValue(ConfigProperty.AGENT_CONFIG, configFile);
         }
