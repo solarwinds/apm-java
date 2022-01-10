@@ -1,5 +1,4 @@
 group = "com.solarwinds"
-version = "0.3.2"
 
 subprojects {
   version = rootProject.version
