@@ -2,6 +2,8 @@ package com.appoptics.opentelemetry.extensions;
 
 import com.appoptics.opentelemetry.core.Util;
 import com.tracelytics.joboe.*;
+import com.tracelytics.logging.Logger;
+import com.tracelytics.logging.LoggerFactory;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.common.CompletableResultCode;
@@ -16,8 +18,9 @@ import java.util.*;
  * Span exporter to be used with the OpenTelemetry auto agent
  */
 public class AppOpticsSpanExporter implements SpanExporter {
-    private AppOpticsSpanExporter(String serviceKey) {
+    private final Logger logger = LoggerFactory.getLogger();
 
+    private AppOpticsSpanExporter(String serviceKey) {
     }
 
     static Builder newBuilder(String serviceKey) {
@@ -26,6 +29,7 @@ public class AppOpticsSpanExporter implements SpanExporter {
 
     @Override
     public CompletableResultCode export(Collection<SpanData> collection) {
+        logger.debug("Started to export span data to the collector.");
         for (SpanData spanData : collection) {
             if (spanData.hasEnded()) {
                 try {
@@ -87,6 +91,7 @@ public class AppOpticsSpanExporter implements SpanExporter {
             }
         }
 
+        logger.debug("Finished sending " + collection.size() + " spans to the collector.");
         return CompletableResultCode.ofSuccess();
     }
 
