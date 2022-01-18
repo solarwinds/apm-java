@@ -17,7 +17,9 @@ import java.sql.Statement;
 
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
+import static io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge.currentContext;
 import static net.bytebuddy.matcher.ElementMatchers.*;
+import static com.appoptics.opentelemetry.instrumentation.AoConnectionInstrumentation.PrepareAdvice.injectTraceContext;
 
 /**
  * Experimental instrumentation to add back traces to existing OT spans.
@@ -46,10 +48,11 @@ public class AoStatementInstrumentation implements TypeInstrumentation {
     public static class StatementAdvice {
         //@Advice.OnMethodEnter(suppress = Throwable.class)
         @Advice.OnMethodEnter
-        public static void onEnter() {
+        public static void onEnter(@Advice.Argument(value = 0, readOnly = false) String sql) {
             if (CallDepth.forClass(Statement.class).get() != 1) { //only report back when depth is one to avoid duplications
                 return;
             }
+            sql = injectTraceContext(currentContext(), sql);
             AoStatementTracer.writeStackTrace(Context.current());
         }
     }
