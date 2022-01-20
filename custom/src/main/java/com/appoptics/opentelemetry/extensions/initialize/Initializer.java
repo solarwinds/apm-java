@@ -18,9 +18,11 @@ import com.tracelytics.profiler.Profiler;
 import com.tracelytics.util.*;
 import org.slf4j.Logger;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -261,8 +263,17 @@ public class Initializer {
                 }
             }
             else {
-                config = Initializer.class.getResourceAsStream("/javaagent.json"); //the file included within the jar
-                location = "default";
+                try { // read from the same directory as the agent jar file
+                    File jarDirectory = new File(Initializer.class.getProtectionDomain().getCodeSource().getLocation()
+                            .toURI()).getParentFile();
+                    File confFromJarDir = new File(jarDirectory, "javaagent.json");
+                    config = new FileInputStream(confFromJarDir);
+                    location = confFromJarDir.getPath();
+                } catch (URISyntaxException | FileNotFoundException e) {
+                    config = Initializer.class.getResourceAsStream("/javaagent.json"); //the file included within the jar
+                    location = "default";
+                }
+
 
             }
             new JsonConfigReader(config).read(container);
