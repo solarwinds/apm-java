@@ -37,7 +37,7 @@ subprojects {
       url = uri("https://oss.sonatype.org/content/repositories/snapshots")
     }
     maven {
-      url = uri("https://maven.pkg.github.com/OWNER/REPOSITORY")
+      url = uri("https://maven.pkg.github.com/librato/joboe")
       credentials {
         username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
         password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
