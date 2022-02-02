@@ -1,5 +1,6 @@
 plugins {
   id("com.github.johnrengelman.shadow") version "6.0.0"
+  id 'maven-publish'
 }
 
 apply from: "$rootDir/gradle/shadow.gradle"
@@ -60,5 +61,26 @@ tasks {
 
   assemble {
     dependsOn(shadowJar)
+  }
+}
+
+publishing {
+  publications {
+    maven(MavenPublication) {
+      groupId = 'com.solarwinds.agent'
+      artifactId = "${archivesBaseName}"
+      version = "${versions.agent}"
+      from components.java
+    }
+  }
+  repositories {
+    maven {
+      name = "GitHubPackages"
+      url = "https://maven.pkg.github.com/appoptics/opentelemetry-java-instrumentation-custom-distro"
+      credentials {
+        username = System.getenv("GITHUB_ACTOR")
+        password = System.getenv("GITHUB_TOKEN")
+      }
+    }
   }
 }

@@ -1,7 +1,7 @@
-group = "com.solarwinds"
+group = "com.solarwinds.agent"
 
 subprojects {
-  version = rootProject.version
+//  version = rootProject.version
 
   apply plugin: "java"
   apply plugin: "muzzle"

@@ -27,10 +27,11 @@ jobs:
       with:
         java-version: '11'
         distribution: 'temurin'
-    - name: Build with Gradle
+    - name: Build with Gradle and Publish
       uses: gradle/gradle-build-action@bc3340afc5e3cc44f2321809ac090d731c13c514
       with:
-        arguments: build
+        arguments: publish
       env:
         GP_USERNAME: ${{ secrets.GP_USERNAME }}
         GP_TOKEN: ${{ secrets.GP_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
