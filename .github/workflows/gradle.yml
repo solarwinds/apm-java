@@ -9,9 +9,8 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    tags:
+      - "v*.*.*"
   workflow_dispatch:
     inputs:
       checkout-ref:
@@ -35,3 +34,8 @@ jobs:
         GP_USERNAME: ${{ secrets.GP_USERNAME }}
         GP_TOKEN: ${{ secrets.GP_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Release and upload artifacts
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: "agent/build/libs/*.jar"
