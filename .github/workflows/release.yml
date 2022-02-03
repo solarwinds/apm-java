@@ -5,7 +5,7 @@
 # This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
 
-name: Java CI with Gradle
+name: Release
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Build with Gradle and Publish
-      uses: gradle/gradle-build-action@bc3340afc5e3cc44f2321809ac090d731c13c514
+      uses: gradle/gradle-build-action@v2
       with:
         arguments: publish
       env:
