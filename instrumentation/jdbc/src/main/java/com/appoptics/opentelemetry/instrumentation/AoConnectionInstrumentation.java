@@ -26,7 +26,8 @@ public class AoConnectionInstrumentation implements TypeInstrumentation {
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        return implementsInterface(named("java.sql.Connection"));
+        return named("com.mysql.cj.jdbc.ConnectionImpl") // only inject MySQL JDBC driver
+                .and(implementsInterface(named("java.sql.Connection")));
     }
 
     @Override
