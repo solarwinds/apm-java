@@ -2,12 +2,11 @@ package com.appoptics.opentelemetry.instrumentation;
 
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
-import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
-import static net.bytebuddy.matcher.ElementMatchers.named;
-import static net.bytebuddy.matcher.ElementMatchers.returns;
-import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 import static io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge.currentContext;
+import static net.bytebuddy.matcher.ElementMatchers.*;
 
+import com.tracelytics.joboe.config.ConfigManager;
+import com.tracelytics.joboe.config.ConfigProperty;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
@@ -26,6 +25,10 @@ public class AoConnectionInstrumentation implements TypeInstrumentation {
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
+        Boolean sqlTag = (Boolean) ConfigManager.getConfig(ConfigProperty.AGENT_SQL_TAG);
+        if (!sqlTag) {
+            return none();
+        }
         return named("com.mysql.cj.jdbc.ConnectionImpl") // only inject MySQL JDBC driver
                 .and(implementsInterface(named("java.sql.Connection")));
     }
@@ -54,14 +57,16 @@ public class AoConnectionInstrumentation implements TypeInstrumentation {
                 return sql;
             }
 
-            SpanContext spanContext = Span.fromContext(context).getSpanContext();
+            Span span = Span.fromContext(context);
+            SpanContext spanContext = span.getSpanContext();
             if (!spanContext.isValid()) {
                 return sql;
             }
             String flags = spanContext.isSampled() ? "01" : "00";
             String traceContext = "00-" + spanContext.getTraceId() + "-" + spanContext.getSpanId() + "-" + flags;
-
-            return String.format("/*traceparent:'%s'*/ %s", traceContext, sql);
+            String tag = String.format("/*traceparent:'%s'*/ ", traceContext);
+            span.setAttribute("QueryTag", tag);
+            return String.format("%s%s", tag, sql);
         }
     }
 }
