@@ -59,10 +59,10 @@ public class AoConnectionInstrumentation implements TypeInstrumentation {
 
             Span span = Span.fromContext(context);
             SpanContext spanContext = span.getSpanContext();
-            if (!spanContext.isValid()) {
+            if (!(spanContext.isValid() && spanContext.isSampled())) {
                 return sql;
             }
-            String flags = spanContext.isSampled() ? "01" : "00";
+            String flags = "01"; // only inject into sampled requests
             String traceContext = "00-" + spanContext.getTraceId() + "-" + spanContext.getSpanId() + "-" + flags;
             String tag = String.format("/*traceparent:'%s'*/", traceContext);
             span.setAttribute("QueryTag", tag);
