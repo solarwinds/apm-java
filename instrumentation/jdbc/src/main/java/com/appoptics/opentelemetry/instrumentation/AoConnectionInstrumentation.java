@@ -25,7 +25,7 @@ public class AoConnectionInstrumentation implements TypeInstrumentation {
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        Boolean sqlTag = (Boolean) ConfigManager.getConfig(ConfigProperty.AGENT_SQL_TAG);
+        Boolean sqlTag = ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_TAG, false);
         if (!sqlTag) {
             return none();
         }
@@ -64,9 +64,9 @@ public class AoConnectionInstrumentation implements TypeInstrumentation {
             }
             String flags = spanContext.isSampled() ? "01" : "00";
             String traceContext = "00-" + spanContext.getTraceId() + "-" + spanContext.getSpanId() + "-" + flags;
-            String tag = String.format("/*traceparent:'%s'*/ ", traceContext);
+            String tag = String.format("/*traceparent:'%s'*/", traceContext);
             span.setAttribute("QueryTag", tag);
-            return String.format("%s%s", tag, sql);
+            return String.format("%s %s", tag, sql);
         }
     }
 }
