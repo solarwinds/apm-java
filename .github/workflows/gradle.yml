@@ -12,6 +12,8 @@ on:
     inputs:
       checkout-ref:
         description: branch, tag or SHA to checkout. defaults to ref or SHA of triggering event.
+      release-name:
+        description: the release name
 
 jobs:
   build:
@@ -34,7 +36,7 @@ jobs:
         GP_TOKEN: ${{ secrets.GP_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Release and upload artifacts
-      run: gh release create v${{ env.RELEASE_NAME }} --title "v${{ env.RELEASE_NAME }}" --target ${{ github.event.inputs.checkout-ref }} --draft core/target/core-*.jar agent/build/libs/*.jar
+      run: gh release create v${{ env.RELEASE_NAME }} --title "v${{ env.RELEASE_NAME }}" --target ${{ github.event.inputs.checkout-ref }} --draft agent/build/libs/*.jar
       env:
         RELEASE_NAME: ${{ github.event.inputs.release-name }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
