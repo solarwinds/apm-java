@@ -30,3 +30,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: test
+        env:
+          GP_USERNAME: ${{ secrets.GP_USERNAME }}
+          GP_TOKEN: ${{ secrets.GP_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
