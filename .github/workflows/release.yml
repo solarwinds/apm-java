@@ -8,9 +8,6 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
   workflow_dispatch:
     inputs:
       checkout-ref:
@@ -28,11 +25,6 @@ jobs:
       with:
         java-version: '11'
         distribution: 'temurin'
-    - name: "Build Changelog"
-      id: github_release
-      uses: mikepenz/release-changelog-builder-action@v2.8.2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Build with Gradle and Publish
       uses: gradle/gradle-build-action@v2
       with:
@@ -42,8 +34,7 @@ jobs:
         GP_TOKEN: ${{ secrets.GP_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Release and upload artifacts
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        body: "${{steps.github_release.outputs.changelog}}"
-        files: "agent/build/libs/*.jar"
+      run: gh release create v${{ env.RELEASE_NAME }} --title "v${{ env.RELEASE_NAME }}" --target ${{ github.event.inputs.checkout-ref }} --draft core/target/core-*.jar agent/build/libs/*.jar
+      env:
+        RELEASE_NAME: ${{ github.event.inputs.release-name }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
