@@ -36,7 +36,7 @@ jobs:
         GP_TOKEN: ${{ secrets.GP_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Release and upload artifacts
-      run: gh release create v${{ env.RELEASE_NAME }} --title "v${{ env.RELEASE_NAME }}" --target ${{ github.event.inputs.checkout-ref }} --draft agent/build/libs/*.jar
+      run: gh release create ${{ env.RELEASE_NAME }} --title "${{ env.RELEASE_NAME }}" --target ${{ github.event.inputs.checkout-ref }} --draft agent/build/libs/*.jar
       env:
         RELEASE_NAME: ${{ github.event.inputs.release-name }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
