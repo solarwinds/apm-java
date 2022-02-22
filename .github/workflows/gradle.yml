@@ -1,19 +1,11 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
-
+# This workflow builds the NightHawk agent, run the tests, then publish a new release.
+# You'll need to bump the version by modifying `ext.versions.agent` property in the build.gradle file
+# then manually run this workflow to cut off a new release. The release name will be in the form of \
+# "v+versionNumber". For example, if `ext.versions.agent` = 0.5.1, the release name will be "v0.5.1".
 name: Java CI with Gradle
 
 on:
   workflow_dispatch:
-    inputs:
-      checkout-ref:
-        description: branch, tag or SHA to checkout. defaults to ref or SHA of triggering event.
-      release-name:
-        description: the release name
 
 jobs:
   build:
@@ -21,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: ${{ github.event.inputs.checkout-ref }}
+        ref: ${{ github.ref_name }}
     - name: Set up JDK 11
       uses: actions/setup-java@v2
       with:
@@ -35,8 +27,10 @@ jobs:
         GP_USERNAME: ${{ secrets.GP_USERNAME }}
         GP_TOKEN: ${{ secrets.GP_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Set agent version env
+      run: |
+        echo "AGENT_VERSION=v$(cd agent/build/libs && unzip -p solarwinds-apm-agent-all.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }')" >> $GITHUB_ENV
     - name: Release and upload artifacts
-      run: gh release create ${{ env.RELEASE_NAME }} --title "${{ env.RELEASE_NAME }}" --target ${{ github.event.inputs.checkout-ref }} --draft agent/build/libs/*.jar
+      run: gh release create ${{ env.AGENT_VERSION }} --title "${{ env.AGENT_VERSION }}" --target ${{ github.ref_name }} --draft agent/build/libs/*.jar
       env:
-        RELEASE_NAME: ${{ github.event.inputs.release-name }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
