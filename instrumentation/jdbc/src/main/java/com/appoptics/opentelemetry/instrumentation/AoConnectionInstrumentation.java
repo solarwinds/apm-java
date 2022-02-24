@@ -7,9 +7,6 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
 
 import com.tracelytics.joboe.config.ConfigManager;
 import com.tracelytics.joboe.config.ConfigProperty;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.context.Context;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import net.bytebuddy.asm.Advice;
@@ -49,24 +46,7 @@ public class AoConnectionInstrumentation implements TypeInstrumentation {
         @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void injectComment(
                 @Advice.Argument(value = 0, readOnly = false) String sql) {
-            sql = injectTraceContext(currentContext(), sql);
-        }
-
-        public static String injectTraceContext(Context context, String sql) {
-            if (sql.contains("traceparent")) {
-                return sql;
-            }
-
-            Span span = Span.fromContext(context);
-            SpanContext spanContext = span.getSpanContext();
-            if (!(spanContext.isValid() && spanContext.isSampled())) {
-                return sql;
-            }
-            String flags = "01"; // only inject into sampled requests
-            String traceContext = "00-" + spanContext.getTraceId() + "-" + spanContext.getSpanId() + "-" + flags;
-            String tag = String.format("/*traceparent:'%s'*/", traceContext);
-            span.setAttribute("QueryTag", tag);
-            return String.format("%s %s", tag, sql);
+            sql = TraceContextInjector.inject(currentContext(), sql);
         }
     }
 }
