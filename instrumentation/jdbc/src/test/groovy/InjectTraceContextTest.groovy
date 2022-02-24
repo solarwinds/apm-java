@@ -6,19 +6,21 @@ import spock.lang.Unroll
 
 @Unroll
 class InjectTraceContextTest extends Specification {
-    def "inject trace context from span to sql"() {
+    def "inject trace context from span to sql"(String sql) {
         setup:
         def tracer = GlobalOpenTelemetry.getTracer("test")
-
-        when:
         def testScope = tracer.spanBuilder("test").startSpan().makeCurrent()
-        String sql = "select name from students";
-        String injectedSql = TraceContextInjector.inject(Context.current(), sql)
 
-        then:
-        injectedSql.startsWith("/*traceparent:")
+        expect:
+        TraceContextInjector.inject(Context.current(), sql).startsWith("/*traceparent:")
 
         cleanup:
         testScope.close()
+
+        where:
+        sql                                       |_
+        "select name from students"               |_
+        "insert into students values('tom', 1)"   |_
+        "/* comment */ select name from students" |_
     }
 }
