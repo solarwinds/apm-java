@@ -1,5 +1,6 @@
 plugins {
   id("com.github.johnrengelman.shadow") version "6.0.0"
+  id 'maven-publish'
 }
 
 apply from: "$rootDir/gradle/shadow.gradle"
@@ -32,7 +33,6 @@ CopySpec isolateSpec() {
   }
 }
 
-
 tasks {
   shadowJar {
     dependsOn ':custom:shadowJar'
@@ -54,12 +54,33 @@ tasks {
       attributes.put("Premain-Class", "io.opentelemetry.javaagent.OpenTelemetryAgent")
       attributes.put("Can-Redefine-Classes", "true")
       attributes.put("Can-Retransform-Classes", "true")
-      attributes.put("Implementation-Vendor", "Demo")
-      attributes.put("Implementation-Version", "demo-${project.version}-otel-${versions.opentelemetryJavaagent}")
+      attributes.put("Implementation-Vendor", "SolarWinds Inc.")
+      attributes.put("Implementation-Version", "${versions.agent}")
     }
   }
 
   assemble {
     dependsOn(shadowJar)
+  }
+}
+
+publishing {
+  publications {
+    maven(MavenPublication) {
+      groupId = 'com.solarwinds.agent'
+      artifactId = "${archivesBaseName}"
+      version = "${versions.agent}"
+      from components.java
+    }
+  }
+  repositories {
+    maven {
+      name = "GitHubPackages"
+      url = "https://maven.pkg.github.com/appoptics/opentelemetry-java-instrumentation-custom-distro"
+      credentials {
+        username = System.getenv("GITHUB_ACTOR")
+        password = System.getenv("GITHUB_TOKEN")
+      }
+    }
   }
 }

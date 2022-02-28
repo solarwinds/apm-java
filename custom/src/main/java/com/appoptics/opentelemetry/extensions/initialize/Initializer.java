@@ -18,9 +18,11 @@ import com.tracelytics.profiler.Profiler;
 import com.tracelytics.util.*;
 import org.slf4j.Logger;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -29,7 +31,6 @@ import java.util.concurrent.Future;
 
 public class Initializer {
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Initializer.class.getName());
-    private static final String VERSION_PROPERTIES_FILE = "/version.properties";
     private static Future<?> startupTasksFuture;
 
     static {
@@ -261,8 +262,17 @@ public class Initializer {
                 }
             }
             else {
-                config = Initializer.class.getResourceAsStream("/javaagent.json"); //the file included within the jar
-                location = "default";
+                try { // read from the same directory as the agent jar file
+                    File jarDirectory = new File(Initializer.class.getProtectionDomain().getCodeSource().getLocation()
+                            .toURI()).getParentFile();
+                    File confFromJarDir = new File(jarDirectory, "javaagent.json");
+                    config = new FileInputStream(confFromJarDir);
+                    location = confFromJarDir.getPath();
+                } catch (URISyntaxException | FileNotFoundException e) {
+                    config = Initializer.class.getResourceAsStream("/javaagent.json"); //the file included within the jar
+                    location = "default";
+                }
+
 
             }
             new JsonConfigReader(config).read(container);
@@ -421,14 +431,7 @@ public class Initializer {
         Future<Result> future = null;
         try {
             String layerName = (String) ConfigManager.getConfig(ConfigProperty.AGENT_LAYER);
-            Properties versionsProperties = new Properties();
-            versionsProperties.load(Initializer.class.getResourceAsStream(VERSION_PROPERTIES_FILE));
-            String version = versionsProperties.getProperty("agent.version");
-            if (version == null) {
-                LOGGER.warn("Could not locate agent.version in " + VERSION_PROPERTIES_FILE + " for version...");
-            }
-
-            future = reportLayerInit(layerName, version, configException);
+            future = reportLayerInit(layerName, getVersion(), configException);
         }
         catch (Exception e) {
             LOGGER.warn("Failed to post init message: " + (e.getMessage() != null ? e.getMessage() : e.toString()));
@@ -437,6 +440,10 @@ public class Initializer {
             }
         }
         return future;
+    }
+
+    private static String getVersion() {
+        return Initializer.class.getPackage().getImplementationVersion();
     }
 
     private static Future<Result> reportLayerInit(final String layer, final String version, final Throwable configException) throws ClientException {

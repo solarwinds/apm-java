@@ -1,0 +1,43 @@
+# This workflow builds the NightHawk agent, run the tests, then publish a new release.
+# You'll need to bump the version by modifying `ext.versions.agent` property in the build.gradle file
+# then manually run this workflow to cut off a new release. The release name will be in the form of
+# "v+versionNumber". For example, if `ext.versions.agent` = 0.5.1, the release name will be "v0.5.1".
+name: Java CI with Gradle
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: ${{ github.ref_name }}
+    - name: Set up JDK 11
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+    - name: Build with Gradle and Publish
+      uses: gradle/gradle-build-action@v2
+      with:
+        arguments: publish
+      env:
+        # These two secrets `secrets.GP_USERNAME` and `secrets.GP_TOKEN` are Github's PAT (Personal Access Token),
+        # which are used to download private packages from Github Packages (in our case, the Joboe core libs from https://github.com/librato/joboe)
+        # Gradle fetches the dependencies from Github Packages with this user/token pair, see build.gradle for the repositories config.
+        #
+        # Currently the PAT is set up under the trace-build service account and just requires read:packages access to the Librato org.
+        # (Check out this document about how to create a PAT: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+        GP_USERNAME: ${{ secrets.GP_USERNAME }}
+        GP_TOKEN: ${{ secrets.GP_TOKEN }}
+        # GITHUB_TOKEN is used to publish the build artifacts (the NightHawk agent) to Github Packages.
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Set agent version env
+      run: |
+        echo "AGENT_VERSION=v$(cd agent/build/libs && unzip -p solarwinds-apm-agent-all.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }')" >> $GITHUB_ENV
+    - name: Release and upload artifacts
+      run: gh release create ${{ env.AGENT_VERSION }} --title "${{ env.AGENT_VERSION }}" --target ${{ github.ref_name }} --draft agent/build/libs/*.jar
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

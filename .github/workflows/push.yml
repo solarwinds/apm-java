@@ -1,0 +1,28 @@
+# This workflow is triggered either by a push or by manually clicking `Run Workflow` in the Actions page.
+# The purpose of the workflow is to build the agent and run the tests.
+
+name: Push
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+      - name: Build with Gradle and Test
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: test
+        env:
+          GP_USERNAME: ${{ secrets.GP_USERNAME }}
+          GP_TOKEN: ${{ secrets.GP_TOKEN }}
