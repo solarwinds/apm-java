@@ -29,6 +29,7 @@ public class AoJdbcInstrumentationModule extends InstrumentationModule {
   @Override
   public List<TypeInstrumentation> typeInstrumentations() {
     return asList(
+            new AoConnectionInstrumentation(),
             new AoStatementInstrumentation()
     );
   }
