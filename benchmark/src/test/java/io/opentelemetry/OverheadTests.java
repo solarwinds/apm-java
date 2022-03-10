@@ -11,10 +11,7 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import io.opentelemetry.agents.Agent;
 import io.opentelemetry.config.Configs;
 import io.opentelemetry.config.TestConfig;
-import io.opentelemetry.containers.CollectorContainer;
-import io.opentelemetry.containers.K6Container;
-import io.opentelemetry.containers.PetClinicRestContainer;
-import io.opentelemetry.containers.PostgresContainer;
+import io.opentelemetry.containers.*;
 import io.opentelemetry.results.AppPerfResults;
 import io.opentelemetry.results.MainResultsPersister;
 import io.opentelemetry.results.ResultsCollector;
@@ -41,6 +38,7 @@ public class OverheadTests {
 
   private static final Network NETWORK = Network.newNetwork();
   private static GenericContainer<?> collector;
+  private static GenericContainer<?> aoCollector;
   private final NamingConventions namingConventions = new NamingConventions();
   private final Map<String, Long> runDurations = new HashMap<>();
 
@@ -48,6 +46,8 @@ public class OverheadTests {
   static void setUp() {
     collector = CollectorContainer.build(NETWORK);
     collector.start();
+    aoCollector = AOTestCollectorContainer.build(NETWORK);
+    aoCollector.start();
   }
 
   @AfterAll

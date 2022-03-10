@@ -19,6 +19,7 @@ import okhttp3.Response;
 public class AgentResolver {
 
   private final LatestAgentSnapshotResolver snapshotResolver = new LatestAgentSnapshotResolver();
+  private final LatestNighthawkAgentResolver nighthawkAgentResolver = new LatestNighthawkAgentResolver();
 
   public Optional<Path> resolve(Agent agent) throws Exception {
     if (Agent.NONE.equals(agent)) {
@@ -26,6 +27,8 @@ public class AgentResolver {
     }
     if (Agent.LATEST_SNAPSHOT.equals(agent)) {
       return snapshotResolver.resolve();
+    } else if (Agent.NH_LATEST_RELEASE.equals(agent)) {
+      return nighthawkAgentResolver.resolve(agent.getUrl());
     }
     if (agent.hasUrl()) {
       return Optional.of(downloadAgent(agent.getUrl()));

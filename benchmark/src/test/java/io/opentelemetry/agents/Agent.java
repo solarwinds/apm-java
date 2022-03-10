@@ -22,6 +22,7 @@ public class Agent {
       new Agent("latest", "latest mainstream release", OTEL_LATEST);
   public static final Agent LATEST_SNAPSHOT =
       new Agent("snapshot", "latest available snapshot version from main");
+  public static final Agent NH_LATEST_RELEASE = new Agent("nh", "latest NightHawk agent", "-Dotel.appoptics.service.key="); // TODO add service key
 
   private final String name;
   private final String description;
