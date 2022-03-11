@@ -78,15 +78,17 @@ public class PetClinicRestContainer {
 
   @NotNull
   private String[] buildCommandline(Optional<Path> agentJar) {
-    List<String> result =
-        new ArrayList<>(
-            Arrays.asList(
-                "java",
-                "-Dotel.traces.exporter=otlp",
-                "-Dotel.imr.export.interval=5000",
-                "-Dotel.exporter.otlp.insecure=true",
-                "-Dotel.exporter.otlp.endpoint=http://collector:4317",
-                "-Dotel.resource.attributes=service.name=petclinic-otel-overhead"));
+    List<String> result = new ArrayList<>();
+    if (!agent.equals(Agent.NH_LATEST_RELEASE)) {
+      result.addAll(
+              Arrays.asList(
+                      "java",
+                      "-Dotel.traces.exporter=otlp",
+                      "-Dotel.imr.export.interval=5000",
+                      "-Dotel.exporter.otlp.insecure=true",
+                      "-Dotel.exporter.otlp.endpoint=http://collector:4317",
+                      "-Dotel.resource.attributes=service.name=petclinic-otel-overhead"));
+    }
     result.addAll(this.agent.getAdditionalJvmArgs());
     agentJar.ifPresent(path -> result.add("-javaagent:/app/" + path.getFileName()));
 

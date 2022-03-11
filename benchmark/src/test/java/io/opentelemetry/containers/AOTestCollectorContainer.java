@@ -10,22 +10,22 @@ import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
 public class AOTestCollectorContainer {
-    static final int COLLECTOR_PORT = 4317;
-    static final int COLLECTOR_HEALTH_CHECK_PORT = 13133;
+    static final int COLLECTOR_PORT = 12222;
+    static final int COLLECTOR_HEALTH_CHECK_PORT = 8181;
 
     private static final Logger logger = LoggerFactory.getLogger(CollectorContainer.class);
 
     public static GenericContainer<?> build(Network network) {
 
         return new GenericContainer<>(
-                DockerImageName.parse("solarwinds/apm-test-collector:latest"))
+                DockerImageName.parse("ghcr.io/librato/apm-agent-test-collector:latest"))
                 .withNetwork(network)
                 .withNetworkAliases("collector")
                 .withLogConsumer(new Slf4jLogConsumer(logger))
                 .withExposedPorts(COLLECTOR_PORT, COLLECTOR_HEALTH_CHECK_PORT)
-                .waitingFor(Wait.forHttp("/health").forPort(COLLECTOR_HEALTH_CHECK_PORT))
-                .withCopyFileToContainer(
-                        MountableFile.forClasspathResource("collector.yaml"), "/etc/otel.yaml")
-                .withCommand("--config /etc/otel.yaml");
+                .waitingFor(Wait.forHttp("/collectors").forPort(COLLECTOR_HEALTH_CHECK_PORT));
+//                .withCopyFileToContainer(
+//                        MountableFile.forClasspathResource("collector.yaml"), "/etc/otel.yaml")
+//                .withCommand("--config /etc/otel.yaml");
     }
 }
