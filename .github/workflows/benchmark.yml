@@ -36,8 +36,8 @@ jobs:
       run: ls -lR results
     - name: copy results back to gh-pages branch
       run: |
-      rsync -avv benchmark/results/ benchmark-results/benchmark/results/ && rm -rf benchmark/results
-      rsync -avv benchmark/build/reports/tests/test/index.html benchmark-results/benchmark/results/  && rm -rf benchmark/build/reports/tests/test/index.html
+        rsync -avv benchmark/results/ benchmark-results/benchmark/results/ && rm -rf benchmark/results
+        rsync -avv benchmark/build/reports/tests/test/index.html benchmark-results/benchmark/results/  && rm -rf benchmark/build/reports/tests/test/index.html
     - name: commit updated results
       uses: EndBug/add-and-commit@v9
       with:
@@ -45,6 +45,6 @@ jobs:
         cwd: './benchmark-results'
         branch: 'benchmark-results'
         message: 'update test result data'
-        author_name: nh-agent-benchmark-bot
-        committer_name: nh-agent-benchmark-bot
+        author_name: trace-build
+        committer_name: trace-build
 
