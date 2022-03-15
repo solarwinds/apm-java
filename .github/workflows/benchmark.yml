@@ -40,14 +40,14 @@ jobs:
       run: |
         rsync -avv benchmark/results/ benchmark-results/benchmark/results/ && rm -rf benchmark/results
         rsync -avv benchmark/build benchmark-results/benchmark/build && rm -rf benchmark/build
-        rsync -avv benchmark/build/reports/tests/test/index.html benchmark-results/benchmark/results/  && rm -rf benchmark/build/reports/tests/test/index.html
+#        rsync -avv benchmark/build/reports/tests/test/index.html benchmark-results/benchmark/results/  && rm -rf benchmark/build/reports/tests/test/index.html
     - name: commit updated results
       if: always()
       uses: EndBug/add-and-commit@v9
       with:
         add: 'benchmark/results'
         cwd: './benchmark-results'
-        branch: 'benchmark-results'
+#        branch: 'benchmark-results'
         message: 'update test result data'
         author_name: trace-build
         committer_name: trace-build
