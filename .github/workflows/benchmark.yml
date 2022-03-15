@@ -39,7 +39,7 @@ jobs:
       if: always()
       run: |
         rsync -avv benchmark/results/ benchmark-results/benchmark/results/ && rm -rf benchmark/results
-        rsync -avv benchmark/build benchmark-results/benchmark/build && rm -rf benchmark/build
+        rsync -avv benchmark/build benchmark-results/benchmark/ && rm -rf benchmark/build
 #        rsync -avv benchmark/build/reports/tests/test/index.html benchmark-results/benchmark/results/  && rm -rf benchmark/build/reports/tests/test/index.html
     - name: commit updated results
       if: always()
