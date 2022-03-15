@@ -45,7 +45,7 @@ jobs:
       if: always()
       uses: EndBug/add-and-commit@v9
       with:
-        add: 'benchmark/results'
+        add: 'benchmark/'
         cwd: './benchmark-results'
 #        branch: 'benchmark-results'
         message: 'update test result data'
