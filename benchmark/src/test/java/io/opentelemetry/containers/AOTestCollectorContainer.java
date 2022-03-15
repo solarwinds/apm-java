@@ -17,8 +17,8 @@ public class AOTestCollectorContainer {
 
     static {
         // needs to be executed, before Docker images are resolved
-        System.setProperty("registry.username", "jiwen624");
-        System.setProperty("registry.password", "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");
+        System.setProperty("registry.username", System.getenv("GP_USERNAME"));
+        System.setProperty("registry.password", System.getenv("GP_TOKEN"));
     }
 
     public static GenericContainer<?> build(Network network) {
