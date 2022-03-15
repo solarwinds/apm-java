@@ -101,9 +101,9 @@ public class OverheadTests {
     runDurations.put(agent.getName(), runDuration);
 
     // uncomment to collect petclinic container logs
-//    String logs = petclinic.getLogs();
-//    System.err.println(String.format("\n\n===============%s====================\n\n%s\n\n==============================="
-//            , agent.getName(), logs));
+    String logs = petclinic.getLogs();
+    System.err.println(String.format("\n\n===============%s====================\n\n%s\n\n==============================="
+            , agent.getName(), logs));
 
     String aoCollectorLogs = aoCollector.getLogs();
     System.err.println(String.format("\n\n===============%s====================\n\n%s\n\n==============================="

@@ -24,6 +24,7 @@ public class LatestNighthawkAgentResolver {
         Response response = client.newCall(request).execute();
         byte[] raw = response.body().bytes();
 
+        System.err.println("==========================agent-meta==================\n\n" + new String(raw));
         ObjectMapper mapper = new ObjectMapper();
         GithubRelease release = mapper.readValue(raw, GithubRelease.class);
         String assetURL = null;
