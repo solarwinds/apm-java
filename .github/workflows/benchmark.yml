@@ -32,9 +32,11 @@ jobs:
         GP_TOKEN: ${{ secrets.GP_TOKEN }}
         SOLARWINDS_SERVICE_KEY: ${{ secrets.SOLARWINDS_SERVICE_KEY }}
     - name: inspect the results dir
+      if: always()
       working-directory: benchmark
       run: ls -lR results
     - name: copy results back to gh-pages branch
+      if: always()
       run: |
         rsync -avv benchmark/results/ benchmark-results/benchmark/results/ && rm -rf benchmark/results
         rsync -avv benchmark/build/reports/tests/test/index.html benchmark-results/benchmark/results/  && rm -rf benchmark/build/reports/tests/test/index.html
