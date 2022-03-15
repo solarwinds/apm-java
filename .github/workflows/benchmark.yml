@@ -8,18 +8,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  run-overhead-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
-          ref: ${{ github.ref_name }}
-      - name: Set up JDK 11
-        uses: actions/setup-java@v2
-        with:
-          java-version: '11'
-          distribution: 'temurin'
-      - name: Run benchmark
+          ref: benchmark-results
+          path: benchmark-results
+      - name: copy results from benchmark-results branch
+        run: |
+          rsync -avv benchmark-results/benchmark/results/ benchmark/results/
+      - name: run tests
         uses: gradle/gradle-build-action@v2
         with:
           arguments: test
@@ -34,3 +34,20 @@ jobs:
           GP_USERNAME: ${{ secrets.GP_USERNAME }}
           GP_TOKEN: ${{ secrets.GP_TOKEN }}
           SOLARWINDS_SERVICE_KEY: ${{ secrets.SOLARWINDS_SERVICE_KEY }}
+      - name: inspect the results dir
+        working-directory: benchmark
+        run: ls -lR results
+      - name: copy results back to gh-pages branch
+        run: |
+        rsync -avv benchmark/results/ benchmark-results/benchmark/results/ && rm -rf benchmark/results
+        rsync -avv benchmark/build/reports/tests/test/index.html benchmark-results/benchmark/results/  && rm -rf benchmark/build/reports/tests/test/index.html
+      - name: commit updated results
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'benchmark/results'
+          cwd: './benchmark-results'
+          branch: 'benchmark-results'
+          message: 'update test result data'
+          author_name: nh-agent-benchmark-bot
+          committer_name: nh-agent-benchmark-bot
+
