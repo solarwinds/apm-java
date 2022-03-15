@@ -8,6 +8,9 @@ package io.opentelemetry.containers;
 import io.opentelemetry.agents.Agent;
 import io.opentelemetry.agents.AgentResolver;
 import io.opentelemetry.util.NamingConventions;
+
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,9 +68,13 @@ public class PetClinicRestContainer {
             .withEnv("spring_datasource_username", PostgresContainer.USERNAME)
             .withEnv("spring_datasource_password", PostgresContainer.PASSWORD)
             .withEnv("spring_jpa_hibernate_ddl-auto", "none")
+            .withEnv("SOLARWINDS_DEBUG_LEVEL", "info")
+            .withEnv("SOLARWINDS_COLLECTOR", "AOCollector:12223")
+            .withEnv("SOLARWINDS_TRUSTEDPATH", "/test-server-grpc.crt")
+            .withCopyFileToContainer(
+                        MountableFile.forClasspathResource("test-server-grpc.crt"), "/test-server-grpc.crt")
             .dependsOn(collector)
             .withCommand(buildCommandline(agentJar));
-
     agentJar.ifPresent(
         agentPath ->
             container.withCopyFileToContainer(
@@ -88,10 +95,12 @@ public class PetClinicRestContainer {
                       "-Dotel.exporter.otlp.insecure=true",
                       "-Dotel.exporter.otlp.endpoint=http://collector:4317",
                       "-Dotel.resource.attributes=service.name=petclinic-otel-overhead"));
+    } else {
+      result.addAll(Arrays.asList("java",
+              "-Dotel.solarwinds.service.key=" + System.getenv("SOLARWINDS_SERVICE_KEY") + ":nh-benchmark")); // TODO
     }
     result.addAll(this.agent.getAdditionalJvmArgs());
     agentJar.ifPresent(path -> result.add("-javaagent:/app/" + path.getFileName()));
-
     result.add("-jar");
     result.add("/app/spring-petclinic-rest.jar");
     return result.toArray(new String[] {});

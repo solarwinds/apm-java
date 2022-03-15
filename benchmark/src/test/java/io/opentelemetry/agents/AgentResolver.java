@@ -28,7 +28,7 @@ public class AgentResolver {
     if (Agent.LATEST_SNAPSHOT.equals(agent)) {
       return snapshotResolver.resolve();
     } else if (Agent.NH_LATEST_RELEASE.equals(agent)) {
-      return nighthawkAgentResolver.resolve(agent.getUrl());
+      return nighthawkAgentResolver.resolve();
     }
     if (agent.hasUrl()) {
       return Optional.of(downloadAgent(agent.getUrl()));

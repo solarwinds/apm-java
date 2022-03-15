@@ -23,6 +23,7 @@ dependencies {
   testImplementation("com.squareup.okhttp3:okhttp:4.9.1")
   testImplementation("org.jooq:joox:1.6.2")
   testImplementation("com.jayway.jsonpath:json-path:2.6.0")
+  testImplementation("com.fasterxml.jackson.core:jackson-databind:2.0.1")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
 }
 

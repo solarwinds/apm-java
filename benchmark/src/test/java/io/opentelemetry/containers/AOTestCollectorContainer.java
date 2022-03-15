@@ -10,22 +10,30 @@ import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
 public class AOTestCollectorContainer {
-    static final int COLLECTOR_PORT = 12222;
+    static final int COLLECTOR_PORT = 12223;
     static final int COLLECTOR_HEALTH_CHECK_PORT = 8181;
 
     private static final Logger logger = LoggerFactory.getLogger(CollectorContainer.class);
 
+    static {
+        // needs to be executed, before Docker images are resolved
+        System.setProperty("registry.username", "jiwen624");
+        System.setProperty("registry.password", "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");
+    }
+
     public static GenericContainer<?> build(Network network) {
 
         return new GenericContainer<>(
-                DockerImageName.parse("ghcr.io/librato/apm-agent-test-collector:latest"))
+                DockerImageName.parse("ghcr.io/librato/apm-agent-test-collector:v1.1.0"))
                 .withNetwork(network)
-                .withNetworkAliases("collector")
+                .withNetworkAliases("AOCollector")
                 .withLogConsumer(new Slf4jLogConsumer(logger))
                 .withExposedPorts(COLLECTOR_PORT, COLLECTOR_HEALTH_CHECK_PORT)
-                .waitingFor(Wait.forHttp("/collectors").forPort(COLLECTOR_HEALTH_CHECK_PORT));
-//                .withCopyFileToContainer(
-//                        MountableFile.forClasspathResource("collector.yaml"), "/etc/otel.yaml")
+                .waitingFor(Wait.forHttp("/collectors").forPort(COLLECTOR_HEALTH_CHECK_PORT))
+                .withCopyFileToContainer(
+                        MountableFile.forClasspathResource("test-server-grpc.crt"), "/server-grpc.crt")
+                .withCopyFileToContainer(
+                        MountableFile.forClasspathResource("test-server-grpc.pem"), "/server-grpc.pem");
 //                .withCommand("--config /etc/otel.yaml");
     }
 }

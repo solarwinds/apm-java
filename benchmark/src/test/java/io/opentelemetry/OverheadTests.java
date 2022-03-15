@@ -100,6 +100,14 @@ public class OverheadTests {
     long runDuration = System.currentTimeMillis() - testStart;
     runDurations.put(agent.getName(), runDuration);
 
+    // uncomment to collect petclinic container logs
+//    String logs = petclinic.getLogs();
+//    System.err.println(String.format("\n\n===============%s====================\n\n%s\n\n==============================="
+//            , agent.getName(), logs));
+
+    String aoCollectorLogs = aoCollector.getLogs();
+    System.err.println(String.format("\n\n===============%s====================\n\n%s\n\n==============================="
+            , aoCollector.getDockerImageName(), aoCollectorLogs));
     // This is required to get a graceful exit of the VM before testcontainers kills it forcibly.
     // Without it, our jfr file will be empty.
     petclinic.execInContainer("kill", "1");
@@ -133,7 +141,7 @@ public class OverheadTests {
           new GenericContainer<>(DockerImageName.parse("loadimpact/k6"))
               .withNetwork(NETWORK)
               .withCopyFileToContainer(MountableFile.forHostPath("./k6"), "/app")
-              .withCommand("run", "-u", "5", "-i", "25", "/app/basic.js")
+              .withCommand("run", "-u", "1", "-i", "5", "-v", "/app/basic.js") // TODO change interactions back to 25
               .withStartupCheckStrategy(new OneShotStartupCheckStrategy());
       k6.start();
     }
