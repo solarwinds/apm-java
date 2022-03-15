@@ -41,6 +41,7 @@ jobs:
         rsync -avv benchmark/results/ benchmark-results/benchmark/results/ && rm -rf benchmark/results
         rsync -avv benchmark/build/reports/tests/test/index.html benchmark-results/benchmark/results/  && rm -rf benchmark/build/reports/tests/test/index.html
     - name: commit updated results
+      if: always()
       uses: EndBug/add-and-commit@v9
       with:
         add: 'benchmark/results'
