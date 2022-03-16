@@ -49,6 +49,3 @@ jobs:
         git add benchmark/build
         git commit -m "update test result data"
         git push origin
-      env:
-        GP_USERNAME: ${{ secrets.GP_USERNAME }}
-
