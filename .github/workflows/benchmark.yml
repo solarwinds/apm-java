@@ -49,12 +49,6 @@ jobs:
         git add benchmark/build
         git commit -m "update test result data"
         git push origin
-
-#      uses: EndBug/add-and-commit@v9
-#      with:
-#        add: 'benchmark/build'
-#        cwd: './benchmark-results'
-#        message: 'update test result data'
-#        author_name: trace-build
-#        committer_name: trace-build
+      env:
+        GP_USERNAME: ${{ secrets.GP_USERNAME }}
 
