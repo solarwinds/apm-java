@@ -22,10 +22,6 @@ public class AOTestCollectorContainer {
     }
 
     public static GenericContainer<?> build(Network network) {
-          // TODO remove it
-//        if (1 == 1) {
-//            throw new RuntimeException("user="+System.getProperty("registry.username") + ", tk="+System.getProperty("registry.password"));
-//        }
         return new GenericContainer<>(
                 DockerImageName.parse("ghcr.io/librato/apm-agent-test-collector:v1.1.0"))
                 .withNetwork(network)
@@ -37,6 +33,5 @@ public class AOTestCollectorContainer {
                         MountableFile.forClasspathResource("test-server-grpc.crt"), "/server-grpc.crt")
                 .withCopyFileToContainer(
                         MountableFile.forClasspathResource("test-server-grpc.pem"), "/server-grpc.pem");
-//                .withCommand("--config /etc/otel.yaml");
     }
 }

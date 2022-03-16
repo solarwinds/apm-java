@@ -11,25 +11,25 @@ import java.util.List;
 import java.util.Optional;
 
 public class LatestNighthawkAgentResolver {
-    private static String NH_URL = "https://api.github.com/repos/appoptics/opentelemetry-java-instrumentation-custom-distro/releases/latest";
+    private static final String NH_URL = "https://api.github.com/repos/appoptics/opentelemetry-java-instrumentation-custom-distro/releases/latest";
+    private static final String NH_AGENT_JAR_NAME = "solarwinds-apm-agent-all.jar";
     Optional<Path> resolve() throws Exception {
         return Optional.of(downloadAgent());
     }
 
     private Path downloadAgent() throws Exception {
         Request request = new Request.Builder().url(NH_URL)
-                .header("Authorization", "token " + System.getenv("GP_TOKEN")) // TODO
+                .header("Authorization", "token " + System.getenv("GP_TOKEN"))
                 .header("Accept", "application/vnd.github.v3+json").build();
         OkHttpClient client = new OkHttpClient();
         Response response = client.newCall(request).execute();
         byte[] raw = response.body().bytes();
 
-        System.err.println("==========================agent-meta==================\n\n" + new String(raw));
         ObjectMapper mapper = new ObjectMapper();
         GithubRelease release = mapper.readValue(raw, GithubRelease.class);
         String assetURL = null;
         for (Asset asset : release.assets) {
-            if (asset.name.equals("solarwinds-apm-agent-all.jar")) {
+            if (asset.name.equals(NH_AGENT_JAR_NAME)) {
                 assetURL = asset.url;
                 break;
             }
@@ -39,12 +39,12 @@ public class LatestNighthawkAgentResolver {
         }
 
         request = new Request.Builder().url(assetURL)
-                .header("Authorization", "token " + System.getenv("GP_TOKEN")) // TODO
+                .header("Authorization", "token " + System.getenv("GP_TOKEN"))
                 .header("Accept", "application/octet-stream").build();
 
         response = client.newCall(request).execute();
         byte[] fileRaw = response.body().bytes();
-        Path path = Paths.get(".", "solarwinds-apm-agent-all.jar");
+        Path path = Paths.get(".", NH_AGENT_JAR_NAME);
         Files.write(
                 path,
                 fileRaw,
