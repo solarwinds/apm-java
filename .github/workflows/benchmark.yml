@@ -45,8 +45,7 @@ jobs:
       if: always()
       run: |
         cd benchmark-results
-#        git config --global user.email "you@example.com"
-        git config --global user.name ${{ secrets.GP_USERNAME }}
+        git config --global user.name "${{ secrets.GP_USERNAME }}"
         git add benchmark/build
         git commit -m "update test result data"
         git push origin
