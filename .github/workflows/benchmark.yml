@@ -1,7 +1,7 @@
-# This workflow runs the NH agent benchmarks.
+# This workflow runs the NH agent benchmarks (and benchmarks with the standard OpenTelemetry agent and without an agent as the baselines).
 name: Benchmark
 
-on:
+on: # add cron schedule if you plan to run it periodically.
   workflow_dispatch:
 
 jobs:
@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    # check out the branch `benchmark-results` for staging the benchmark data and summary.
     - uses: actions/checkout@v3
       with:
         ref: benchmark-results
@@ -17,7 +18,6 @@ jobs:
       run: |
         rsync -avv benchmark-results/benchmark/results/ benchmark/results/
     - name: Log in to registry
-      # This is where you will update the PAT to GITHUB_TOKEN
       run: echo "${{ secrets.GP_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GP_USERNAME }} --password-stdin
     - name: run tests
       uses: gradle/gradle-build-action@v2
@@ -26,9 +26,7 @@ jobs:
         build-root-directory: benchmark
       env:
         # These two secrets `secrets.GP_USERNAME` and `secrets.GP_TOKEN` are Github's PAT (Personal Access Token),
-        # which are used to download private packages from Github Packages (in our case, the Joboe core libs from https://github.com/librato/joboe)
-        # Gradle fetches the dependencies from Github Packages with this user/token pair, see build.gradle for the repositories config.
-        #
+        # which are used to download private packages from Github Packages (in our case, the test collector docker image).
         # Currently the PAT is set up under the trace-build service account and just requires read:packages access to the Librato org.
         # (Check out this document about how to create a PAT: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
         GP_USERNAME: ${{ secrets.GP_USERNAME }}
@@ -43,14 +41,12 @@ jobs:
       run: |
         rsync -avv benchmark/results/ benchmark-results/benchmark/results/ && rm -rf benchmark/results
         rsync -avv benchmark/build benchmark-results/benchmark/ && rm -rf benchmark/build
-#        rsync -avv benchmark/build/reports/tests/test/index.html benchmark-results/benchmark/results/  && rm -rf benchmark/build/reports/tests/test/index.html
     - name: commit updated results
       if: always()
       uses: EndBug/add-and-commit@v9
       with:
         add: 'benchmark/build'
         cwd: './benchmark-results'
-#        branch: 'benchmark-results'
         message: 'update test result data'
         author_name: trace-build
         committer_name: trace-build
