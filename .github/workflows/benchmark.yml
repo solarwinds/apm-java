@@ -16,6 +16,9 @@ jobs:
     - name: copy results from benchmark-results branch
       run: |
         rsync -avv benchmark-results/benchmark/results/ benchmark/results/
+    - name: Log in to registry
+      # This is where you will update the PAT to GITHUB_TOKEN
+      run: echo "${{ secrets.GP_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GP_USERNAME }} --password-stdin
     - name: run tests
       uses: gradle/gradle-build-action@v2
       with:
