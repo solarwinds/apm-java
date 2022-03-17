@@ -71,6 +71,7 @@ public class PetClinicRestContainer {
             .withEnv("SOLARWINDS_DEBUG_LEVEL", "info")
             .withEnv("SOLARWINDS_COLLECTOR", "AOCollector:12223")
             .withEnv("SOLARWINDS_TRUSTEDPATH", "/test-server-grpc.crt")
+            .withEnv("APPOPTICS_SERVICE_KEY", System.getenv("APPOPTICS_SERVICE_KEY"))
             .withCopyFileToContainer(
                         MountableFile.forClasspathResource("test-server-grpc.crt"), "/test-server-grpc.crt")
             .dependsOn(collector)
