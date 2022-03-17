@@ -17,11 +17,11 @@ public class Agent {
   static final String OTEL_LATEST =
       "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar";
 
-  public static final Agent NONE = new Agent("No Agent", "no agent at all");
+  public static final Agent NONE = new Agent("none", "no agent at all");
   public static final Agent LATEST_RELEASE =
-      new Agent("Otel latest", "latest mainstream release", OTEL_LATEST);
+      new Agent("latest", "latest mainstream release", OTEL_LATEST);
   public static final Agent LATEST_SNAPSHOT =
-      new Agent("Otel snapshot", "latest available snapshot version from main");
+      new Agent("snapshot", "latest available snapshot version from main");
   public static final Agent NH_LATEST_RELEASE = new Agent(LatestSolarwindsAgentResolver.useAOAgent ? "AO" : "NH", "latest Solarwinds agent");
 
   private final String name;
