@@ -19,9 +19,7 @@ import io.opentelemetry.util.NamingConventions;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
@@ -31,6 +29,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.startupcheck.OneShotStartupCheckStrategy;
+import org.testcontainers.shaded.org.bouncycastle.util.Strings;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
@@ -41,6 +40,7 @@ public class OverheadTests {
   private static GenericContainer<?> aoCollector;
   private final NamingConventions namingConventions = new NamingConventions();
   private final Map<String, Long> runDurations = new HashMap<>();
+  private static Set<String> verboseConfig = new HashSet<>(Arrays.asList(Strings.split(System.getenv("VERBOSE"), '|')));
 
   @BeforeAll
   static void setUp() {
@@ -100,14 +100,17 @@ public class OverheadTests {
     long runDuration = System.currentTimeMillis() - testStart;
     runDurations.put(agent.getName(), runDuration);
 
-    // uncomment to collect petclinic container logs
-    String logs = petclinic.getLogs();
-    System.err.println(String.format("\n\n===============%s====================\n\n%s\n\n==============================="
-            , agent.getName(), logs));
+    if (verboseConfig.contains("all") || verboseConfig.contains("app")) {
+      String logs = petclinic.getLogs();
+      System.err.println(String.format("\n\n===============%s====================\n\n%s\n\n==============================="
+              , agent.getName(), logs));
+    }
 
-    String aoCollectorLogs = aoCollector.getLogs();
-    System.err.println(String.format("\n\n===============%s====================\n\n%s\n\n==============================="
-            , aoCollector.getDockerImageName(), aoCollectorLogs));
+    if (verboseConfig.contains("all") || verboseConfig.contains("collector")) {
+      String aoCollectorLogs = aoCollector.getLogs();
+      System.err.println(String.format("\n\n===============%s====================\n\n%s\n\n==============================="
+              , aoCollector.getDockerImageName(), aoCollectorLogs));
+    }
     // This is required to get a graceful exit of the VM before testcontainers kills it forcibly.
     // Without it, our jfr file will be empty.
     petclinic.execInContainer("kill", "1");
