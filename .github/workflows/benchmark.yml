@@ -4,8 +4,14 @@ name: Benchmark
 on: # add cron schedule if you plan to run it periodically.
   workflow_dispatch:
     inputs:
+      container-logs:
+        description: Type 'app|collector|all' if verbose logging is needed.
+        required: false
+        default: 'none'
       agent-type:
         description: The benchmark will run with the NH agent by default, type AO to run with the AO agent.
+        required: false
+        default: 'NH'
 
 jobs:
   run-overhead-tests:
@@ -37,6 +43,7 @@ jobs:
         SOLARWINDS_SERVICE_KEY: ${{ secrets.SOLARWINDS_SERVICE_KEY }}
         APPOPTICS_SERVICE_KEY: ${{ secrets.SOLARWINDS_SERVICE_KEY }}
         AGENT_TYPE: ${{ github.event.inputs.agent-type }}
+        CONTAINER_LOGS: ${{ github.event.inputs.container-logs }}
     - name: inspect the results dir
       if: always()
       working-directory: benchmark
