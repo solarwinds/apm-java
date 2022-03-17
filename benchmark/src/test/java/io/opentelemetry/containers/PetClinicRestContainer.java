@@ -101,7 +101,7 @@ public class PetClinicRestContainer {
               "-Dotel.solarwinds.service.key=" + System.getenv("SOLARWINDS_SERVICE_KEY") + ":sw-java-benchmark"));
     }
     result.addAll(this.agent.getAdditionalJvmArgs());
-    agentJar.ifPresent(path -> result.add("-javaagent:/app/" + path.getFileName() + (LatestSolarwindsAgentResolver.useAOAgent ? "=service_key="+System.getenv("SOLARWINDS_SERVICE_KEY"):"")));
+    agentJar.ifPresent(path -> result.add("-javaagent:/app/" + path.getFileName() + (LatestSolarwindsAgentResolver.useAOAgent ? "=service_key="+System.getenv("SOLARWINDS_SERVICE_KEY")+":sw-java-benchmark":"")));
     result.add("-jar");
     result.add("/app/spring-petclinic-rest.jar");
     System.err.println("Running app with command:\n" + String.join(" ", result));
