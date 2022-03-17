@@ -19,7 +19,7 @@ import okhttp3.Response;
 public class AgentResolver {
 
   private final LatestAgentSnapshotResolver snapshotResolver = new LatestAgentSnapshotResolver();
-  private final LatestNighthawkAgentResolver nighthawkAgentResolver = new LatestNighthawkAgentResolver();
+  private final LatestSolarwindsAgentResolver nighthawkAgentResolver = new LatestSolarwindsAgentResolver();
 
   public Optional<Path> resolve(Agent agent) throws Exception {
     if (Agent.NONE.equals(agent)) {

@@ -97,7 +97,7 @@ public class PetClinicRestContainer {
                       "-Dotel.resource.attributes=service.name=petclinic-otel-overhead"));
     } else {
       result.addAll(Arrays.asList("java",
-              "-Dotel.solarwinds.service.key=" + System.getenv("SOLARWINDS_SERVICE_KEY") + ":nh-benchmark")); // TODO
+              "-Dotel.solarwinds.service.key=" + System.getenv("SOLARWINDS_SERVICE_KEY") + ":sw-java-benchmark"));
     }
     result.addAll(this.agent.getAdditionalJvmArgs());
     agentJar.ifPresent(path -> result.add("-javaagent:/app/" + path.getFileName()));
