@@ -103,6 +103,7 @@ public class PetClinicRestContainer {
     agentJar.ifPresent(path -> result.add("-javaagent:/app/" + path.getFileName()));
     result.add("-jar");
     result.add("/app/spring-petclinic-rest.jar");
+    System.err.println("Running app with command:\n" + String.join(" ", result));
     return result.toArray(new String[] {});
   }
 }
