@@ -7,6 +7,7 @@ package io.opentelemetry.containers;
 
 import io.opentelemetry.agents.Agent;
 import io.opentelemetry.agents.AgentResolver;
+import io.opentelemetry.agents.LatestSolarwindsAgentResolver;
 import io.opentelemetry.util.NamingConventions;
 
 import java.io.IOException;
@@ -71,7 +72,6 @@ public class PetClinicRestContainer {
             .withEnv("SOLARWINDS_DEBUG_LEVEL", "info")
             .withEnv("SOLARWINDS_COLLECTOR", "AOCollector:12223")
             .withEnv("SOLARWINDS_TRUSTEDPATH", "/test-server-grpc.crt")
-            .withEnv("APPOPTICS_SERVICE_KEY", System.getenv("APPOPTICS_SERVICE_KEY"))
             .withCopyFileToContainer(
                         MountableFile.forClasspathResource("test-server-grpc.crt"), "/test-server-grpc.crt")
             .dependsOn(collector)
@@ -103,7 +103,7 @@ public class PetClinicRestContainer {
     result.addAll(this.agent.getAdditionalJvmArgs());
     agentJar.ifPresent(path -> result.add("-javaagent:/app/" + path.getFileName()));
     result.add("-jar");
-    result.add("/app/spring-petclinic-rest.jar");
+    result.add("/app/spring-petclinic-rest.jar" + (LatestSolarwindsAgentResolver.useAOAgent ? "=service_key="+System.getenv("SOLARWINDS_SERVICE_KEY"):""));
     System.err.println("Running app with command:\n" + String.join(" ", result));
     return result.toArray(new String[] {});
   }
