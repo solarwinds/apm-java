@@ -62,19 +62,19 @@ public class Initializer {
         }
         catch (InvalidConfigException e) {
             exception = e;
-            LOGGER.warn("Failed to initialize AppOptics OpenTelemetry extensions due to config error: " + e.getMessage(), e);
+            LOGGER.warn("Failed to initialize SolarwindsAPM OpenTelemetry extensions due to config error: " + e.getMessage(), e);
             throw e;
         }
         finally {
             reportInit(exception);
             serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
-            LOGGER.info("Successfully initialized AppOptics OpenTelemetry extensions with service key " + ServiceKeyUtils.maskServiceKey(serviceKey));
+            LOGGER.info("Successfully initialized SolarwindsAPM OpenTelemetry extensions with service key " + ServiceKeyUtils.maskServiceKey(serviceKey));
             return future;
         }
     }
 
     private static void registerShutdownTasks() {
-        Thread shutdownThread = new Thread("AppOptics-shutdown-hook") {
+        Thread shutdownThread = new Thread("SolarwindsAPM-shutdown-hook") {
             @Override
             public void run() {
                 SystemMonitorController.stop(); //stop system monitors, this might flush extra messages to reporters
