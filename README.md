@@ -1,12 +1,12 @@
 ## Introduction
-This repository contains AppOptics implementation that works with OpenTelemetry SDK and Auto agent. This is built on demo repo https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/examples/distro and added sub-projects by merging changes from https://github.com/appoptics/appoptics-opentelemetry-java (now archived)
+This repository contains Solarwinds APM implementation that works with OpenTelemetry SDK and Auto agent. This is built on demo repo https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/examples/distro and added sub-projects by merging changes from https://github.com/appoptics/appoptics-opentelemetry-java (now archived)
 
 Here is the summary of the sub-projects:
-- agent : Builds the full OT auto agent with extra AppOptics components. This is simply a repackaging build script that pull OT agent and our sub-projects to construct a new auto agent
-- appoptics-opentelemetry-sdk : Builds the SDK artifact which has exactly the same interface as our existing AppOptics java agent SDK https://github.com/librato/joboe/tree/master/api . This is to be used as a base for `appoptics-opentelemetry-sdk-shaded`
-- appoptics-opentelemetry-sdk-shaded : Same as appoptics-opentelemetry-sdk but can be used with the OT agent with shaded class names
-- custom : Extra AppOptics components, contains all custom functionality, SPI and other extensions (for example Sampler, Tracer Provider etc) to be loaded by OT's agent classloader
-- core-bootstrap : Core AppOptics components that need to be made available to bootstrap classloader. This is important for `appoptics-opentelemetry-sdk` as the classes from `appoptics-opentelemetry-sdk` are loaded by app loader, which has no access to OT's agent classloader which loads `custom` 
+- agent : Builds the full OT auto agent with extra Solarwinds APM components. This is simply a repackaging build script that pull OT agent and our sub-projects to construct a new auto agent
+- appoptics-opentelemetry-sdk : (Archived as we have decided not to maintain backward-compatibility with AppOptics) Builds the SDK artifact which has exactly the same interface as our existing AppOptics java agent SDK https://github.com/librato/joboe/tree/master/api . This is to be used as a base for `appoptics-opentelemetry-sdk-shaded`
+- appoptics-opentelemetry-sdk-shaded : (Archived as we have decided not to maintain backward-compatibility with AppOptics) Same as appoptics-opentelemetry-sdk but can be used with the OT agent with shaded class names
+- custom : Extra Solarwinds APM components, contains all custom functionality, SPI and other extensions (for example Sampler, Tracer Provider etc) to be loaded by OT's agent classloader
+- core-bootstrap : Core Solarwinds APM components that need to be made available to bootstrap classloader. This is important for `appoptics-opentelemetry-sdk` as the classes from `appoptics-opentelemetry-sdk` are loaded by app loader, which has no access to OT's agent classloader which loads `custom` 
 - instrumentation : Additional instrumentation provided by us using the OT instrumentation framework (ByteBuddy)
 - sdk-extensions : Builds the AO extension jar which runs with the original OT agent (vs the agent built from `agent` sub-project)
 - sdk-extensions-bootstrap : Builds the AO extension jar dependencies that should be made available to bootstrap loader. It basically package the `core` and `metrics` from joboe
@@ -16,15 +16,12 @@ More details for each of the sub-projects are listed in [Sub-Projects](#sub-proj
 
 ## Build
 #### Preparations
-Since this project has dependencies on various internal artifacts from [joboe](https://github.com/librato/joboe), the build machine would need access to those artifacts. We currently do NOT have any internal maven server to host those artifacts. Hence the easiest way is to build and install those artifacts from joboe on the build machine:
-1. Check out the dependency project (joboe) git clone https://github.com/librato/joboe.git
-2. Navigate to the cloned joboe, check out the relevant branch `git checkout AO-16083-ot-v1` (this will change in the future if we merge this branch back to `develop`/`main`, in such case we will check out the joboe version referenced by this distro instead)
-3. Build the joboe and install all the artifacts by executing `mvn clean install` at the project root (add -DskipTests flag to skip tests, possible to only build dependencies, core and metrics, as they are the only ones required by our OT implementation, though it might be easier to just build all)
+Since this project has dependencies on various internal artifacts from [joboe](https://github.com/librato/joboe), the build machine would need access to those artifacts. Currently the Joboe core libraries for the OpenTelemetry custom distro are in the `otel` branch of the `Joboe` repo and are published to the Github Packages. 
 
 #### Agent/Extensions Jars
 Simply run `gradle build` at the root folder.
 
-The agent should be built at `agent\build\libs\agent-1.0-SNAPSHOT-all.jar`.
+The agent should be built at `agent\build\libs\solarwinds-apm-agent-all.jar`.
 The sdk-extensions jar should be built at `sdk-extensions\build\libs\sdk-extensions-1.0-SNAPSHOT-all.jar`.
 
 #### SDK artifacts
@@ -32,16 +29,16 @@ To build the `appoptics-opentelemetry-sdk` and `appoptics-opentelemetry-sdk-shad
 `gradle :appoptics-opentelemetry-sdk:publishToMavenLocal` and
 `gradle :appoptics-opentelemetry-sdk-shaded:publishToMavenLocal`
 
-The artifacts will be published to local maven repo.
+The artifacts will be published to local maven repo. (Use the Github Actions workflow `Release` to build and publish the custom distro to Github Packages.)
 
 ## Usage
 #### Agent Jar
 Attach the agent to jvm process arg such as:
-`-javaagent:"C:\Users\patson.luk\git\opentelemetry-custom-distro\agent\build\libs\agent-1.0-SNAPSHOT-all.jar" -Dotel.appoptics.service.key=<service key here>`
+`-javaagent:"_the_path_to_the_jar_file" -Dotel.solarwinds.service.key=<service key here>`
 
 Upon successful initialization, the log should print such as:
 ```
-[otel.javaagent 2021-06-30 13:04:07:759 -0700] [main] INFO com.appoptics.opentelemetry.extensions.AppOpticsTracerProviderConfigurer - Successfully initialized AppOptics OpenTelemetry extensions with service key ec3d********************************************************5468:ot
+[otel.javaagent 2021-06-30 13:04:07:759 -0700] [main] INFO com.appoptics.opentelemetry.extensions.AppOpticsTracerProviderConfigurer - Successfully initialized Solarwinds APM OpenTelemetry extensions with service key ec3d********************************************************5468:ot
 ```
 #### Extension Jar
 1. Either download the auto agent directly from https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent-all.jar or build from source. To build from source:
@@ -81,7 +78,7 @@ After the artifact `appoptics-opentelemetry-sdk-shaded` is built and published t
 ## Debug
 Various flags can be enabled to enable debugging
 
-#### AppOptics core logs
+#### Solarwinds APM core logs
 (WIP)
 
 #### Muzzling
@@ -129,7 +126,7 @@ Our main implementation for OT SPI - which scans implementation using Java servi
 This is used by both the sub-projects `agent` and `sdk-extensions`
 
 #### core-bootstrap 
-Similar to `custom`, but this contains core AppOptics components that need to be made available to bootstrap classloader. This is important for `appoptics-opentelemetry-sdk` as classes from `appoptics-opentelemetry-sdk` are loaded by app loader, which has no access to OT's agent classloader which loads `custom` 
+Similar to `custom`, but this contains core Solarwinds APM components that need to be made available to bootstrap classloader. This is important for `appoptics-opentelemetry-sdk` as classes from `appoptics-opentelemetry-sdk` are loaded by app loader, which has no access to OT's agent classloader which loads `custom` 
 
 #### instrumentation
 Our custom instrumentation added on top of the existing OT auto agent instrumentation. 
