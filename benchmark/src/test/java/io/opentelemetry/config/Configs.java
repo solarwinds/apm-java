@@ -14,7 +14,7 @@ public enum Configs {
   RELEASE(
       TestConfig.builder()
           .name("release")
-          .description("compares no agent, latest stable, and latest snapshot agents")
+          .description("compares no agent, latest Otel standard, and latest NH/AO agents")
           .withAgents(Agent.NONE, Agent.LATEST_RELEASE, Agent.NH_LATEST_RELEASE)
           .warmupSeconds(60)
           .build());
