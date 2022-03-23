@@ -144,7 +144,7 @@ public class OverheadTests {
           new GenericContainer<>(DockerImageName.parse("loadimpact/k6"))
               .withNetwork(NETWORK)
               .withCopyFileToContainer(MountableFile.forHostPath("./k6"), "/app")
-              .withCommand("run", "-u", "5", "-i", "25", "-v", "/app/basic.js")
+              .withCommand("run", "-u", "5", "-i", "50", "/app/basic.js")
               .withStartupCheckStrategy(new OneShotStartupCheckStrategy());
       k6.start();
     }
