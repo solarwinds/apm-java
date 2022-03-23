@@ -32,6 +32,7 @@ import java.util.concurrent.Future;
 public class Initializer {
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Initializer.class.getName());
     private static Future<?> startupTasksFuture;
+    private static final String CONFIG_FILE = "solarwinds-apm-config.json";
 
     static {
         ConfigProperty.AGENT_LOGGING.setParser(LogSettingParser.INSTANCE);
@@ -61,19 +62,19 @@ public class Initializer {
         }
         catch (InvalidConfigException e) {
             exception = e;
-            LOGGER.warn("Failed to initialize AppOptics OpenTelemetry extensions due to config error: " + e.getMessage(), e);
+            LOGGER.warn("Failed to initialize SolarwindsAPM OpenTelemetry extensions due to config error: " + e.getMessage(), e);
             throw e;
         }
         finally {
             reportInit(exception);
             serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
-            LOGGER.info("Successfully initialized AppOptics OpenTelemetry extensions with service key " + ServiceKeyUtils.maskServiceKey(serviceKey));
+            LOGGER.info("Successfully initialized SolarwindsAPM OpenTelemetry extensions with service key " + ServiceKeyUtils.maskServiceKey(serviceKey));
             return future;
         }
     }
 
     private static void registerShutdownTasks() {
-        Thread shutdownThread = new Thread("AppOptics-shutdown-hook") {
+        Thread shutdownThread = new Thread("SolarwindsAPM-shutdown-hook") {
             @Override
             public void run() {
                 SystemMonitorController.stop(); //stop system monitors, this might flush extra messages to reporters
@@ -265,11 +266,11 @@ public class Initializer {
                 try { // read from the same directory as the agent jar file
                     File jarDirectory = new File(Initializer.class.getProtectionDomain().getCodeSource().getLocation()
                             .toURI()).getParentFile();
-                    File confFromJarDir = new File(jarDirectory, "javaagent.json");
+                    File confFromJarDir = new File(jarDirectory, CONFIG_FILE);
                     config = new FileInputStream(confFromJarDir);
                     location = confFromJarDir.getPath();
                 } catch (URISyntaxException | FileNotFoundException e) {
-                    config = Initializer.class.getResourceAsStream("/javaagent.json"); //the file included within the jar
+                    config = Initializer.class.getResourceAsStream("/" + CONFIG_FILE); //the file included within the jar
                     location = "default";
                 }
 
@@ -359,11 +360,11 @@ public class Initializer {
         }
         else {
             if (!configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)) {
-                LOGGER.warn("Could not find the service key! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in javaagent.json");
+                LOGGER.warn("Could not find the service key! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in " + CONFIG_FILE);
                 throw new InvalidConfigServiceKeyException("Service key not found");
             }
             else {
-                LOGGER.warn("Service key is empty! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in javaagent.json");
+                LOGGER.warn("Service key is empty! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in " + CONFIG_FILE);
                 throw new InvalidConfigServiceKeyException("Service key is empty");
             }
         }
