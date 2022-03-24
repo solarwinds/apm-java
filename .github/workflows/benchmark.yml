@@ -23,9 +23,9 @@ jobs:
       with:
         ref: benchmark-results
         path: benchmark-results
-#    - name: copy results from benchmark-results branch
-#      run: |
-#        rsync -avv benchmark-results/benchmark/results/ benchmark/results/
+    - name: copy results from benchmark-results branch
+      run: |
+        cp -r benchmark-results/benchmark/results/ benchmark/
     - name: Log in to registry
       run: echo "${{ secrets.GP_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GP_USERNAME }} --password-stdin
     - name: run tests
