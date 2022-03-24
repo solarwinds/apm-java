@@ -23,9 +23,9 @@ jobs:
       with:
         ref: benchmark-results
         path: benchmark-results
-    - name: copy results from benchmark-results branch
-      run: |
-        rsync -avv benchmark-results/benchmark/results/ benchmark/results/
+#    - name: copy results from benchmark-results branch
+#      run: |
+#        rsync -avv benchmark-results/benchmark/results/ benchmark/results/
     - name: Log in to registry
       run: echo "${{ secrets.GP_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GP_USERNAME }} --password-stdin
     - name: run tests
@@ -51,8 +51,7 @@ jobs:
     - name: copy results back to gh-pages branch
       if: always()
       run: |
-        rsync -avv benchmark/results/ benchmark-results/benchmark/results/ && rm -rf benchmark/results
-        rsync -avv benchmark/build benchmark-results/benchmark/ && rm -rf benchmark/build
+        cp -r benchmark/results/ benchmark-results/benchmark/ && rm -rf benchmark/results
     - name: commit updated results
       if: always()
       run: |
