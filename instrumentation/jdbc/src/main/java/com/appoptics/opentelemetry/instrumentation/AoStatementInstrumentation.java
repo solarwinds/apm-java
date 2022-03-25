@@ -52,7 +52,7 @@ public class AoStatementInstrumentation implements TypeInstrumentation {
                 return;
             }
             sql = TraceContextInjector.inject(currentContext(), sql);
-            AoStatementTracer.writeStackTrace(Context.current());
+            AoStatementTracer.writeStackTraceSpec(Context.current());
         }
     }
 
