@@ -5,6 +5,7 @@
 
 package com.appoptics.opentelemetry.instrumentation;
 
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
@@ -53,6 +54,10 @@ public class AoStatementInstrumentation implements TypeInstrumentation {
             }
             sql = TraceContextInjector.inject(currentContext(), sql);
             AoStatementTracer.writeStackTraceSpec(Context.current());
+
+            Context context = currentContext();
+            Span span = Span.fromContext(context);
+            StatementTruncator.maybeTruncateStatement(span);
         }
     }
 

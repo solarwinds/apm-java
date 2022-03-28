@@ -6,7 +6,6 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;
-import io.opentelemetry.context.Scope;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import io.opentelemetry.javaagent.instrumentation.api.CallDepth;
@@ -116,6 +115,8 @@ public class PreparedStatementInstrumentation implements TypeInstrumentation {
                     span.setAttribute(QueryArgsAttributeKey.KEY, queryArgs);
                 }
             }
+
+            StatementTruncator.maybeTruncateStatement(span);
         }
     }
 }
