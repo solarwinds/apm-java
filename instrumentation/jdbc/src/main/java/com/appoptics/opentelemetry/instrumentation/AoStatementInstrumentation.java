@@ -53,7 +53,7 @@ public class AoStatementInstrumentation implements TypeInstrumentation {
                 return;
             }
             sql = TraceContextInjector.inject(currentContext(), sql);
-            AoStatementTracer.writeStackTraceSpec(Context.current());
+            AoStatementTracer.writeStackTraceSpec(currentContext());
 
             Context context = currentContext();
             Span span = Span.fromContext(context);

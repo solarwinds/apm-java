@@ -1,6 +1,5 @@
 package com.appoptics.opentelemetry.instrumentation;
 
-import com.tracelytics.joboe.XTraceOptions;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
@@ -75,27 +74,20 @@ public class PreparedStatementInstrumentation implements TypeInstrumentation {
                 queryArgs = new TreeMap<>();
                 context.with(QueryArgsContextKey.KEY, queryArgs).makeCurrent();
             }
-            queryArgs.put(String.valueOf(index), JdbcEventValueConverter.convert(value).toString()); // TODO
-        }
-
-        @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
-        public static void stopSpan(
-                @Advice.Thrown Throwable throwable,
-                @Advice.Local("otelCallDepth") CallDepth callDepth) {
-            if (callDepth.decrementAndGet() > 0) {
-                return;
-            }
-
+            queryArgs.put(String.valueOf(index), JdbcEventValueConverter.convert(value).toString());
         }
     }
+
     public static class QueryArgsContextKey {
-        public static final ContextKey<SortedMap<String, String>> KEY = ContextKey.named("query-args-key");
+        public static final ContextKey<SortedMap<String, String>> KEY = ContextKey.named("query-args-context-key");
         private QueryArgsContextKey() {}
     }
 
     public static class QueryArgsAttributeKey {
         public static final AttributeKey<List<String>> KEY = AttributeKey.stringArrayKey("QueryArgs");
     }
+
+    @SuppressWarnings("unused")
     public static class PreparedStatementExecuteAdvice {
         @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
         public static void stopSpan(

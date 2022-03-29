@@ -5,11 +5,8 @@ import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.
 import static io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge.currentContext;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
-import com.appoptics.opentelemetry.core.Constants;
 import com.tracelytics.joboe.config.ConfigManager;
 import com.tracelytics.joboe.config.ConfigProperty;
-import com.tracelytics.util.BackTraceUtil;
-import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import net.bytebuddy.asm.Advice;
@@ -50,13 +47,7 @@ public class AoConnectionInstrumentation implements TypeInstrumentation {
         public static void injectComment(
                 @Advice.Argument(value = 0, readOnly = false) String sql) {
             sql = TraceContextInjector.inject(currentContext(), sql);
-
-            Span span = Span.fromContext(currentContext());
-            if (span.getSpanContext().isSampled()) {
-                String backTraceString = BackTraceUtil.backTraceToString(BackTraceUtil.getBackTrace(1));
-                span.setAttribute(Constants.SW_KEY_PREFIX + "Backtrace", backTraceString);
-                span.setAttribute(Constants.SW_KEY_PREFIX + "Spec", "query");
-            }
+            AoStatementTracer.writeStackTraceSpec(currentContext());
         }
     }
 }
