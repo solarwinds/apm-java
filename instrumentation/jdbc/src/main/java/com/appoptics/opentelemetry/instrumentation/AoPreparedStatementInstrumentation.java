@@ -1,9 +1,6 @@
 package com.appoptics.opentelemetry.instrumentation;
 
 import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
@@ -14,10 +11,8 @@ import net.bytebuddy.matcher.ElementMatcher;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
@@ -25,7 +20,7 @@ import static io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge
 import static net.bytebuddy.matcher.ElementMatchers.*;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 
-public class PreparedStatementInstrumentation implements TypeInstrumentation {
+public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
 
     @Override
     public ElementMatcher<ClassLoader> classLoaderOptimization() {
@@ -41,22 +36,20 @@ public class PreparedStatementInstrumentation implements TypeInstrumentation {
     public void transform(TypeTransformer transformer) {
         transformer.applyAdviceToMethod(
                 nameStartsWith("set").and(takesArguments(2)).and(isPublic()),
-                PreparedStatementInstrumentation.class.getName() + "$PreparedStatementSetAdvice");
+                AoPreparedStatementInstrumentation.class.getName() + "$PreparedStatementSetAdvice");
 
         transformer.applyAdviceToMethod(
                 nameStartsWith("execute").and(takesArguments(0)).and(isPublic()),
-                PreparedStatementInstrumentation.class.getName() + "$PreparedStatementExecuteAdvice");
+                AoPreparedStatementInstrumentation.class.getName() + "$PreparedStatementExecuteAdvice");
     }
 
     @SuppressWarnings("unused")
     public static class PreparedStatementSetAdvice {
-
         @Advice.OnMethodEnter(suppress = Throwable.class)
         public static void onEnter(
                 @Advice.This PreparedStatement statement,
-                @Advice.Argument(value = 0, readOnly = false) int index,
-                @Advice.Argument(value = 1, readOnly = false) Object value,
-                @Advice.Local("otelCallDepth") CallDepth callDepth) {
+                @Advice.Argument(value = 0, readOnly = true) int index,
+                @Advice.Argument(value = 1, readOnly = true) Object value) {
             // Connection#getMetaData() may execute a Statement or PreparedStatement to retrieve DB info
             // this happens before the DB CLIENT span is started (and put in the current context), so this
             // instrumentation runs again and the shouldStartSpan() check always returns true - and so on
@@ -64,17 +57,16 @@ public class PreparedStatementInstrumentation implements TypeInstrumentation {
             // using CallDepth prevents this, because this check happens before Connection#getMetadata()
             // is called - the first recursive Statement call is just skipped and we do not create a span
             // for it
-            callDepth = CallDepth.forClass(Statement.class);
-            if (callDepth.getAndIncrement() > 0) {
+            if (CallDepth.forClass(Statement.class).get() != 0) { //only report back when depth is one to avoid duplications
                 return;
             }
-            Context context = currentContext();
-            SortedMap<String, String> queryArgs = context.get(QueryArgsContextKey.KEY);
-            if (queryArgs == null) {
-                queryArgs = new TreeMap<>();
-                context.with(QueryArgsContextKey.KEY, queryArgs).makeCurrent();
-            }
-            queryArgs.put(String.valueOf(index), JdbcEventValueConverter.convert(value).toString());
+            QueryArgsCollector.collect(currentContext(), index, value);
+        }
+
+        @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
+        public static void onExit(
+                @Advice.Thrown Throwable throwable) {
+            // we have to have this empty exit advice as otherwise local parameters in the enter method are not supported.
         }
     }
 
@@ -89,26 +81,20 @@ public class PreparedStatementInstrumentation implements TypeInstrumentation {
 
     @SuppressWarnings("unused")
     public static class PreparedStatementExecuteAdvice {
+        @Advice.OnMethodEnter(suppress = Throwable.class)
+        public static void onEnter(
+                @Advice.This PreparedStatement statement) {
+
+        }
+
         @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
-        public static void stopSpan(
-                @Advice.Thrown Throwable throwable,
-                @Advice.Local("otelCallDepth") CallDepth callDepth) {
-            if (callDepth.decrementAndGet() > 0) {
+        public static void onExit(
+                @Advice.Thrown Throwable throwable) {
+            if (CallDepth.forClass(Statement.class).get() != 1) { //only report back when depth is one to avoid duplications
                 return;
             }
-            Context context = currentContext();
-            Span span = Span.fromContext(context);
-            SpanContext spanContext = span.getSpanContext();
-            if (!(spanContext.isValid() && spanContext.isSampled())) {
-                SortedMap<String, String> argsMap = context.get(QueryArgsContextKey.KEY);
-
-                if (argsMap != null) {
-                    List<String> queryArgs = new ArrayList<>(argsMap.values());
-                    span.setAttribute(QueryArgsAttributeKey.KEY, queryArgs);
-                }
-            }
-
-            StatementTruncator.maybeTruncateStatement(span);
+            QueryArgsCollector.maybeAttach(currentContext());
+            StatementTruncator.maybeTruncateStatement(currentContext());
         }
     }
 }

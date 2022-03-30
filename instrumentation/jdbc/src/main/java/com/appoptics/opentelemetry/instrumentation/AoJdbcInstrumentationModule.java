@@ -31,7 +31,7 @@ public class AoJdbcInstrumentationModule extends InstrumentationModule {
     return asList(
             new AoConnectionInstrumentation(),
             new AoStatementInstrumentation(),
-            new PreparedStatementInstrumentation()
+            new AoPreparedStatementInstrumentation()
     );
   }
 

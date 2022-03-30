@@ -5,9 +5,10 @@ import com.tracelytics.joboe.config.ConfigProperty;
 import com.tracelytics.logging.Logger;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.sdk.trace.ReadableSpan;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+//import io.opentelemetry.sdk.trace.ReadableSpan;
+//import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 import com.tracelytics.logging.LoggerFactory;
+import io.opentelemetry.context.Context;
 
 
 public class StatementTruncator {
@@ -15,19 +16,24 @@ public class StatementTruncator {
     public static final int DEFAULT_SQL_MAX_LENGTH = 128 * 1024; //control the max length of the SQL string to avoid BufferOverFlowException
     private static final int sqlMaxLength = ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_QUERY_MAX_LENGTH, DEFAULT_SQL_MAX_LENGTH);
 
-    public static void maybeTruncateStatement(Span span) {
-        if (span instanceof ReadableSpan) {
-            ReadableSpan readableSpan = (ReadableSpan) span;
-            String sql = readableSpan.getAttribute(SemanticAttributes.DB_STATEMENT);
-            if (sql == null) return;
-
-            if (sql.length() > sqlMaxLength) {
-                sql = sql.substring(0, sqlMaxLength);
-                span.setAttribute(QueryTruncatedAttributeKey.KEY, true);
-                span.setAttribute(SemanticAttributes.DB_STATEMENT, sql);
-                logger.debug("SQL Query trimmed as its length [" + sql.length() + "] exceeds max [" + sqlMaxLength + "]");
-            }
-        }
+    public static void maybeTruncateStatement(Context context) {
+        Span span = Span.fromContext(context);
+//        if (span instanceof ReadableSpan) {
+//
+//            ReadableSpan readableSpan = (ReadableSpan) span;
+//            String sql = readableSpan.getAttribute(SemanticAttributes.DB_STATEMENT);
+//            if (sql == null) {
+//                return;
+//            }
+//            System.out.println("========================================================== in the maybeTruncateStatement");
+//
+//            if (sql.length() > sqlMaxLength) {
+//                sql = sql.substring(0, sqlMaxLength);
+//                span.setAttribute(QueryTruncatedAttributeKey.KEY, true);
+//                span.setAttribute(SemanticAttributes.DB_STATEMENT, sql);
+//                logger.debug("SQL Query trimmed as its length [" + sql.length() + "] exceeds max [" + sqlMaxLength + "]");
+//            }
+//        }
     }
 
 
