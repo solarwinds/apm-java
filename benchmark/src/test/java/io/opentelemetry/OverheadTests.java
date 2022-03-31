@@ -40,7 +40,7 @@ public class OverheadTests {
   private static GenericContainer<?> aoCollector;
   private final NamingConventions namingConventions = new NamingConventions();
   private final Map<String, Long> runDurations = new HashMap<>();
-  private static Set<String> verboseConfig = new HashSet<>(Arrays.asList(Strings.split(System.getenv("CONTAINER_LOGS"), '|')));
+  private static Set<String> verboseConfig = new HashSet<>(Arrays.asList(Strings.split(System.getenv("CONTAINER_LOGS") != null ? System.getenv("CONTAINER_LOGS") : "", '|')));
 
   @BeforeAll
   static void setUp() {
