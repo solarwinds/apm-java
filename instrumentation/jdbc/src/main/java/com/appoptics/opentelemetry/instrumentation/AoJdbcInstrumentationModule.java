@@ -16,7 +16,7 @@ import static java.util.Arrays.asList;
 @AutoService(InstrumentationModule.class)
 public class AoJdbcInstrumentationModule extends InstrumentationModule {
   public AoJdbcInstrumentationModule() {
-    super("ao-jdbc", "ao-spring-webmvc-3.1");
+    super("sw-jdbc", "solarwinds-jdbc");
   }
 
 
