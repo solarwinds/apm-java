@@ -5,10 +5,13 @@ import com.tracelytics.joboe.config.ConfigProperty;
 import com.tracelytics.logging.Logger;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.Span;
-//import io.opentelemetry.sdk.trace.ReadableSpan;
-//import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 import com.tracelytics.logging.LoggerFactory;
 import io.opentelemetry.context.Context;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 
 public class StatementTruncator {
@@ -18,22 +21,31 @@ public class StatementTruncator {
 
     public static void maybeTruncateStatement(Context context) {
         Span span = Span.fromContext(context);
-//        if (span instanceof ReadableSpan) {
-//
-//            ReadableSpan readableSpan = (ReadableSpan) span;
-//            String sql = readableSpan.getAttribute(SemanticAttributes.DB_STATEMENT);
-//            if (sql == null) {
-//                return;
-//            }
-//            System.out.println("========================================================== in the maybeTruncateStatement");
-//
-//            if (sql.length() > sqlMaxLength) {
-//                sql = sql.substring(0, sqlMaxLength);
-//                span.setAttribute(QueryTruncatedAttributeKey.KEY, true);
-//                span.setAttribute(SemanticAttributes.DB_STATEMENT, sql);
-//                logger.debug("SQL Query trimmed as its length [" + sql.length() + "] exceeds max [" + sqlMaxLength + "]");
-//            }
-//        }
+        SpanContext spanContext = span.getSpanContext();
+
+        if (spanContext.isValid() && spanContext.isSampled()) {
+            String sql = null;
+            try {
+                /* Note that we cannot cast the object of class `io.opentelemetry.sdk.trace.RecordEventsReadableSpan` to interface
+                 * `io.opentelemetry.sdk.trace.ReadableSpan` as they are loaded by different classloaders.
+                 * */
+                Method getAttribute = span.getClass().getDeclaredMethod("getAttribute", AttributeKey.class);
+                getAttribute.setAccessible(true);
+                sql = (String) getAttribute.invoke(span, SemanticAttributes.DB_STATEMENT);
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                logger.debug("Cannot execute method getAttribute: " + e);
+            }
+            if (sql == null) {
+                return;
+            }
+
+            if (sql.length() > sqlMaxLength) {
+                sql = sql.substring(0, sqlMaxLength);
+                span.setAttribute(QueryTruncatedAttributeKey.KEY, true);
+                span.setAttribute(SemanticAttributes.DB_STATEMENT, sql);
+                logger.debug("SQL Query trimmed as its length [" + sql.length() + "] exceeds max [" + sqlMaxLength + "]");
+            }
+        }
     }
 
 
