@@ -102,7 +102,7 @@ public class MuzzlePlugin implements Plugin<Project> {
                       Method assertionMethod =
                           instrumentationCL
                               .loadClass(
-                                  "io.opentelemetry.javaagent.tooling.muzzle.matcher.MuzzleGradlePluginUtil")
+                                  "io.opentelemetry.javaagent.muzzle.matcher.MuzzleGradlePluginUtil")
                               .getMethod("printMuzzleReferences", ClassLoader.class);
                       assertionMethod.invoke(null, instrumentationCL);
                     } catch (Exception e) {
@@ -298,7 +298,7 @@ public class MuzzlePlugin implements Plugin<Project> {
                           Method assertionMethod =
                               instrumentationCL
                                   .loadClass(
-                                      "io.opentelemetry.javaagent.tooling.muzzle.matcher.MuzzleGradlePluginUtil")
+                                      "io.opentelemetry.javaagent.muzzle.matcher.MuzzleGradlePluginUtil")
                                   .getMethod(
                                       "assertInstrumentationMuzzled",
                                       ClassLoader.class,
