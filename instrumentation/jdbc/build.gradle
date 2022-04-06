@@ -11,7 +11,7 @@ apply from: "$rootDir/gradle/instrumentation.gradle"
 
 dependencies {
   compileOnly project(":core-bootstrap")
-  implementation "com.appoptics.agent.java:core:${versions.appopticsCore}"
+  compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
 
   compileOnly "javax.servlet:javax.servlet-api:3.0.1"
 
