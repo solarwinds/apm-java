@@ -5,10 +5,10 @@
 
 package com.appoptics.opentelemetry.instrumentation.servlet.v3_0;
 
+import com.appoptics.opentelemetry.instrumentation.servlet.common.service.CallDepthKeyHolder;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.instrumentation.api.servlet.AppServerBridge;
 import io.opentelemetry.javaagent.instrumentation.api.CallDepth;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -35,8 +35,8 @@ public class Servlet3Advice {
     if (!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse)) {
       return;
     }
-    CallDepth callDepth = CallDepth.forClass(AppServerBridge.getCallDepthKey());
-    if (callDepth.get() > 1) {
+    CallDepth callDepth = CallDepth.forClass(CallDepthKeyHolder.getCallDepthKey());
+    if (callDepth.getAndIncrement() > 0) {
       return;
     }
     injectXTraceHeader(response);
