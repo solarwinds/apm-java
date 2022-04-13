@@ -5,7 +5,6 @@
 
 package com.appoptics.opentelemetry.instrumentation;
 
-import io.opentelemetry.context.Context;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import io.opentelemetry.javaagent.instrumentation.api.CallDepth;
@@ -44,15 +43,16 @@ public class AoStatementInstrumentation implements TypeInstrumentation {
                 AoStatementInstrumentation.class.getName() + "$StatementAdvice");
     }
 
+    @SuppressWarnings("unused")
     public static class StatementAdvice {
-        //@Advice.OnMethodEnter(suppress = Throwable.class)
         @Advice.OnMethodEnter
         public static void onEnter(@Advice.Argument(value = 0, readOnly = false) String sql) {
             if (CallDepth.forClass(Statement.class).get() != 1) { //only report back when depth is one to avoid duplications
                 return;
             }
             sql = TraceContextInjector.inject(currentContext(), sql);
-            AoStatementTracer.writeStackTrace(Context.current());
+            AoStatementTracer.writeStackTraceSpec(currentContext());
+            StatementTruncator.maybeTruncateStatement(currentContext());
         }
     }
 

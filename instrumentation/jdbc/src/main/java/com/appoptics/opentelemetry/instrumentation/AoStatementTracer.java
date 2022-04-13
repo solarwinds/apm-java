@@ -16,12 +16,13 @@ import org.slf4j.LoggerFactory;
 public class AoStatementTracer extends BaseTracer {
   private static final Logger log = LoggerFactory.getLogger(AoStatementTracer.class);
 
-  public static void writeStackTrace(Context context) {
+  public static void writeStackTraceSpec(Context context) {
     Span span = Span.fromContext(context);
 
     if (span.getSpanContext().isSampled()) {
       String backTraceString = BackTraceUtil.backTraceToString(BackTraceUtil.getBackTrace(1));
       span.setAttribute(Constants.SW_KEY_PREFIX + "Backtrace", backTraceString);
+      span.setAttribute(Constants.SW_KEY_PREFIX + "Spec", "query");
     }
   }
 
