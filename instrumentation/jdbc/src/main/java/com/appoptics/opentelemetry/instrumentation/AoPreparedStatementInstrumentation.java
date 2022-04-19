@@ -57,10 +57,11 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
             // using CallDepth prevents this, because this check happens before Connection#getMetadata()
             // is called - the first recursive Statement call is just skipped and we do not create a span
             // for it
-            if (CallDepth.forClass(Statement.class).get() != 0) { //only report back when depth is one to avoid duplications
+            if (CallDepth.forClass(Statement.class).getAndIncrement() != 0) { //only report back when depth is one to avoid duplications
                 return;
             }
             QueryArgsCollector.collect(currentContext(), index, value);
+            CallDepth.forClass(Statement.class).decrementAndGet(); // do not want to interfere with the Otel's instrumentation
         }
 
         @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
@@ -90,11 +91,12 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
         @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
         public static void onExit(
                 @Advice.Thrown Throwable throwable) {
-            if (CallDepth.forClass(Statement.class).get() != 1) { //only report back when depth is one to avoid duplications
+            if (CallDepth.forClass(Statement.class).getAndIncrement() != 1) { //only report back when depth is one to avoid duplications
                 return;
             }
             QueryArgsCollector.maybeAttach(currentContext());
             StatementTruncator.maybeTruncateStatement(currentContext());
+            CallDepth.forClass(Statement.class).decrementAndGet(); // do not want to interfere with the Otel's instrumentation
         }
     }
 }
