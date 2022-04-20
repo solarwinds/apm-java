@@ -8,7 +8,6 @@ dependencies {
 
     compileOnly("javax.servlet:javax.servlet-api:3.0.1")
     compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
-    compileOnly project(":appoptics-opentelemetry-sdk")
     compileOnly project(":custom")
     compileOnly project(":core-bootstrap")
     toolingRuntime project(":custom")

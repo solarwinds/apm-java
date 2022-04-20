@@ -47,12 +47,13 @@ public class AoStatementInstrumentation implements TypeInstrumentation {
     public static class StatementAdvice {
         @Advice.OnMethodEnter
         public static void onEnter(@Advice.Argument(value = 0, readOnly = false) String sql) {
-            if (CallDepth.forClass(Statement.class).get() != 1) { //only report back when depth is one to avoid duplications
+            if (CallDepth.forClass(Statement.class).getAndIncrement() != 1) { //only report back when depth is one to avoid duplications
                 return;
             }
             sql = TraceContextInjector.inject(currentContext(), sql);
             AoStatementTracer.writeStackTraceSpec(currentContext());
             StatementTruncator.maybeTruncateStatement(currentContext());
+            CallDepth.forClass(Statement.class).decrementAndGet(); // do not want to interfere with the Otel's instrumentation
         }
     }
 
