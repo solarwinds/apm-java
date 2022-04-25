@@ -47,6 +47,7 @@ public class AoConnectionInstrumentation implements TypeInstrumentation {
         public static void injectComment(
                 @Advice.Argument(value = 0, readOnly = false) String sql) {
             sql = TraceContextInjector.inject(currentContext(), sql);
+            AoStatementTracer.writeStackTraceSpec(currentContext());
         }
     }
 }

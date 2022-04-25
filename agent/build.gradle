@@ -33,6 +33,10 @@ CopySpec isolateSpec() {
   }
 }
 
+shadowJar {
+  classifier = null
+}
+
 tasks {
   shadowJar {
     dependsOn ':custom:shadowJar'
