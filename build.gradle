@@ -11,7 +11,7 @@ subprojects {
       opentelemetryJavaagent: "1.12.1",
       bytebuddy             : "1.12.6",
       guava                 : "30.1-jre",
-      appopticsCore         : "7.5.0",
+      appopticsCore         : "7.3.0",
       agent                 : "0.8.0" // the custom distro agent version
     ]
     versions.appopticsMetrics = "${versions.appopticsCore}" // they share the same version now
