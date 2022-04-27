@@ -5,7 +5,6 @@
 
 package com.appoptics.opentelemetry.instrumentation.servlet.v3_0;
 
-import com.appoptics.opentelemetry.instrumentation.servlet.common.service.CallDepthKeyHolder;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
@@ -35,7 +34,7 @@ public class Servlet3Advice {
     if (!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse)) {
       return;
     }
-    CallDepth callDepth = CallDepth.forClass(CallDepthKeyHolder.getCallDepthKey());
+    CallDepth callDepth = CallDepth.forClass(getCallDepthKey());
     if (callDepth.getAndIncrement() > 0) {
       return;
     }
@@ -59,5 +58,10 @@ public class Servlet3Advice {
       return in;
     }
     return in.replace("####", "=").replace("....", ",");
+  }
+
+  public static Class<?> getCallDepthKey() {
+    class Key {}
+    return Key.class;
   }
 }
