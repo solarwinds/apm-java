@@ -21,7 +21,7 @@ public class AOTestCollectorContainer {
             System.setProperty("registry.username", System.getenv("GP_USERNAME"));
             System.setProperty("registry.password", System.getenv("GP_TOKEN"));
         } else {
-            throw new RuntimeException("GP_USERNAME and GP_TOKEN are needed.")
+            throw new RuntimeException("GP_USERNAME and GP_TOKEN are needed.");
         }
     }
 
