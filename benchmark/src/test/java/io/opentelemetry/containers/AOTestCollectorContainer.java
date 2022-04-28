@@ -15,11 +15,13 @@ public class AOTestCollectorContainer {
 
     private static final Logger logger = LoggerFactory.getLogger(CollectorContainer.class);
 
-    static {
-        // needs to be executed, before Docker images are resolved
-        System.setProperty("registry.username", System.getenv("GP_USERNAME"));
-        System.setProperty("registry.password", System.getenv("GP_TOKEN"));
-    }
+//    static {
+//        // needs to be executed, before Docker images are resolved
+//        if (System.getenv("GP_USERNAME") != null && System.getenv("GP_TOKEN") != null) {
+//            System.setProperty("registry.username", System.getenv("GP_USERNAME"));
+//            System.setProperty("registry.password", System.getenv("GP_TOKEN"));
+//        }
+//    }
 
     public static GenericContainer<?> build(Network network) {
         return new GenericContainer<>(
