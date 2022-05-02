@@ -1,13 +1,11 @@
 rootProject.name = 'otel-custom-distro'
 
 include "agent"
-//include "appoptics-opentelemetry-sdk"
-//include "appoptics-opentelemetry-sdk-shaded"
+include "appoptics-opentelemetry-sdk"
 include "core-bootstrap"
 include "custom"
 include "instrumentation"
 include "instrumentation:jdbc"
-//include "instrumentation:appoptics-annotation"
 include "instrumentation:spring:spring-webmvc-3.1"
 include "instrumentation:servlet:servlet-5.0:javaagent"
 include "instrumentation:servlet:servlet-3.0:javaagent"

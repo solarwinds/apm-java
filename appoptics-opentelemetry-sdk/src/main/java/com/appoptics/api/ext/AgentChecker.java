@@ -29,7 +29,7 @@ public class AgentChecker {
         catch (ClassNotFoundException e) {
             //perhaps running in OT agent environment, try agent classloader instead
             try {
-                AgentInitializer.getAgentClassLoader().loadClass("com.appoptics.opentelemetry.extensions.initialize.Initializer");
+                AgentInitializer.getExtensionsClassLoader().loadClass("com.appoptics.opentelemetry.extensions.initialize.Initializer");
                 setIsExtensionAvailable(true); //TODO version check?
                 readServiceKey = System.getProperty(APPOPTICS_SERVICE_KEY);
             }
