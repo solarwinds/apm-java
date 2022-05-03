@@ -1,9 +1,8 @@
 package com.appoptics.api.ext;
 
-import com.appoptics.opentelemetry.extensions.initialize.Initializer;
+import com.appoptics.opentelemetry.core.AgentState;
 import io.opentelemetry.javaagent.bootstrap.AgentInitializer;
 
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -14,37 +13,29 @@ import java.util.logging.Logger;
  * @author pluk
  */
 public class AgentChecker {
-    private static final Logger LOGGER = Logger.getLogger("appoptics-sdk");
-    private static final String APPOPTICS_SERVICE_KEY = "otel.appoptics.service.key";
+    private static final Logger LOGGER = Logger.getLogger("solarwinds-sdk");
     private static boolean IS_EXTENSION_AVAILABLE = false;
-    private static final String SERVICE_KEY;
 
     static {
         String readServiceKey = null;
         try {
-            Class.forName("com.appoptics.opentelemetry.extensions.initialize.Initializer");
+            Class.forName("com.appoptics.opentelemetry.core.AgentState");
             setIsExtensionAvailable(true); //TODO version check?
-            readServiceKey = System.getProperty(APPOPTICS_SERVICE_KEY);
         }
         catch (ClassNotFoundException e) {
             //perhaps running in OT agent environment, try agent classloader instead
             try {
-                AgentInitializer.getExtensionsClassLoader().loadClass("com.appoptics.opentelemetry.extensions.initialize.Initializer");
+                AgentInitializer.getExtensionsClassLoader().loadClass("com.appoptics.opentelemetry.core.AgentState");
                 setIsExtensionAvailable(true); //TODO version check?
-                readServiceKey = System.getProperty(APPOPTICS_SERVICE_KEY);
             }
             catch (Throwable e2) {
-                LOGGER.log(Level.INFO, "AppOptics extensions not available");
+                LOGGER.log(Level.INFO, "Solarwinds APM extensions not available");
             }
         }
         catch (NoClassDefFoundError e) {
             /* This is not so expected as ClassLoader is supposed to throw ClassNotFoundException, but some loaders might throw NoClassDefFoundError instead */
-            LOGGER.log(Level.INFO, "AppOptics extensions not available");
+            LOGGER.log(Level.INFO, "Solarwinds APM extensions not available");
         }
-        finally {
-            SERVICE_KEY = readServiceKey;
-        }
-
     }
 
 
@@ -60,24 +51,8 @@ public class AgentChecker {
      * @return whether the agent is ready
      */
     public static boolean waitUntilAgentReady(long timeout, TimeUnit unit) {
-        if (isExtensionAvailable() && SERVICE_KEY != null) {
-            try {
-                //Future<?> future = Initializer.initialize(serviceKey);
-                final Future<?> future = Initializer.getStartupTasksFuture();
-                if (future != null) {
-                    future.get(timeout, unit);
-                    return true;
-                }
-                else {
-                    LOGGER.warning("AppOptics can only be used with javaagent");
-                    return false;
-                }
-
-            }
-            catch (Exception e) {
-                LOGGER.warning("Agent is still not ready after waiting for " + timeout + " " + unit);
-                return false;
-            }
+        if (isExtensionAvailable()) {
+            return AgentState.waitForReady(timeout, unit);
         }
         return false;
     }

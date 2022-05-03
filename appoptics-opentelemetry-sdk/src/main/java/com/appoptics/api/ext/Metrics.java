@@ -9,7 +9,8 @@ import com.tracelytics.monitor.metrics.CustomMetricsCollector;
  * API for recording custom metrics. Recorded metrics will be aggregated and submitted periodically
  *
  */
-public class Metrics {
+// TODO remove the custom metrics API?
+class Metrics {
     public static final String HOST_TAG_KEY = "HostTag";
 
     /**

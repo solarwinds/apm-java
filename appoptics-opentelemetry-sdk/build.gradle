@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: "maven-publish"
 
-group = "com.appoptics.agent.java"
+group = "com.solarwinds.agent"
 
 dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
