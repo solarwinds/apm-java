@@ -2,7 +2,7 @@
 # You'll need to bump the version by modifying `ext.versions.agent` property in the build.gradle file
 # then manually run this workflow to cut off a new release. The release name will be in the form of
 # "v+versionNumber". For example, if `ext.versions.agent` = 0.5.1, the release name will be "v0.5.1".
-name: Java CI with Gradle
+name: Release
 
 on:
   workflow_dispatch:

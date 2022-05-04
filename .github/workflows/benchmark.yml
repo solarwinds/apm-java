@@ -1,0 +1,64 @@
+# This workflow runs the NH agent benchmarks (and benchmarks with the standard OpenTelemetry agent and without an agent as the baselines).
+name: Benchmark
+
+on: # add cron schedule if you plan to run it periodically.
+  workflow_dispatch:
+    inputs:
+      container-logs:
+        description: Type 'app|collector|all' if verbose logging is needed.
+        required: false
+        default: 'none'
+      agent-type:
+        description: The benchmark will run with the NH agent by default, type AO to run with the AO agent.
+        required: false
+        default: 'NH'
+
+jobs:
+  run-overhead-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    # check out the branch `benchmark-results` for staging the benchmark data and summary.
+    - uses: actions/checkout@v3
+      with:
+        ref: benchmark-results
+        path: benchmark-results
+    - name: copy results from benchmark-results branch
+      run: |
+        cp -r benchmark-results/benchmark/results/ benchmark/
+    - name: Log in to registry
+      # These two secrets `secrets.GP_USERNAME` and `secrets.GP_TOKEN` are Github's PAT (Personal Access Token),
+      # which are used to download private packages from Github Packages (in our case, the test collector docker image).
+      # Currently the PAT is set up under the trace-build service account and just requires read:packages access to the Librato org.
+      # (Check out this document about how to create a PAT: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+      run: echo "${{ secrets.GP_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GP_USERNAME }} --password-stdin
+    - name: run tests
+      uses: gradle/gradle-build-action@v2
+      with:
+        arguments: test
+        build-root-directory: benchmark
+      env:
+        GP_USERNAME: ${{ secrets.GP_USERNAME }}
+        GP_TOKEN: ${{ secrets.GP_TOKEN }}
+        SOLARWINDS_SERVICE_KEY: ${{ secrets.SW_APM_SERVICE_KEY }}
+        APPOPTICS_SERVICE_KEY: ${{ secrets.SW_APM_SERVICE_KEY }}
+        AGENT_TYPE: ${{ github.event.inputs.agent-type }}
+        CONTAINER_LOGS: ${{ github.event.inputs.container-logs }}
+    - name: inspect the results dir
+      if: always()
+      working-directory: benchmark
+      run: ls -lR results
+    - name: copy results back to benchmark-results branch
+      if: always()
+      run: |
+        rsync -aR benchmark/./results/ benchmark-results/benchmark/
+        rsync -aR benchmark/./build/reports benchmark-results/benchmark/
+        rsync -aR benchmark/build/test-results benchmark-results/benchmark/
+    - name: commit updated results
+      if: always()
+      run: |
+        cd benchmark-results
+        git config --global user.name "${{ secrets.GP_USERNAME }}"
+        git add benchmark/
+        git commit -m "update test result data"
+        git push origin
