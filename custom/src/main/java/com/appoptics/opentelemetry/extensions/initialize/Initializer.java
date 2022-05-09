@@ -1,5 +1,6 @@
 package com.appoptics.opentelemetry.extensions.initialize;
 
+import com.appoptics.opentelemetry.core.AgentState;
 import com.appoptics.opentelemetry.extensions.AppOpticsInboundMetricsSpanProcessor;
 import com.appoptics.opentelemetry.extensions.initialize.config.*;
 import com.tracelytics.joboe.EventImpl;
@@ -31,7 +32,6 @@ import java.util.concurrent.Future;
 
 public class Initializer {
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Initializer.class.getName());
-    private static Future<?> startupTasksFuture;
     private static final String CONFIG_FILE = "solarwinds-apm-config.json";
 
     static {
@@ -93,7 +93,7 @@ public class Initializer {
     public static void executeStartupTasks() {
         ExecutorService service = Executors.newSingleThreadExecutor(DaemonThreadFactory.newInstance("post-startup-tasks"));
 
-        startupTasksFuture = service.submit(new Runnable() {
+        AgentState.setStartupTasksFuture(service.submit(new Runnable() {
             public void run() {
                 try {
                     LOGGER.info("Starting startup task");
@@ -164,14 +164,10 @@ public class Initializer {
                     LOGGER.warn("Failed post system startup operations due to : " + e.getMessage(), e);
                 }
             }
-        });
+        }));
         LOGGER.info("Submitted startup task");
 
         service.shutdown();
-    }
-
-    public static Future<?> getStartupTasksFuture() {
-        return startupTasksFuture;
     }
 
     private static void initializeConfig(String serviceKey) throws InvalidConfigException {

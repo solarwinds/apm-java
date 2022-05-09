@@ -17,6 +17,7 @@ dependencies {
   customShadow project(path: ":custom", configuration: "shadow")
   customShadow project(path: ":instrumentation", configuration: "shadow")
   implementation project(path: ":core-bootstrap")
+  implementation project(path: ":appoptics-opentelemetry-sdk")
   implementation "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}"
   implementation "com.appoptics.agent.java:core:${versions.appopticsCore}"
   implementation "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
@@ -34,7 +35,7 @@ CopySpec isolateSpec() {
 }
 
 shadowJar {
-  classifier = null
+  archiveClassifier.set(null)
 }
 
 tasks {
