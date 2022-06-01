@@ -12,17 +12,30 @@ import org.slf4j.LoggerFactory;
 
 @AutoService(SdkTracerProviderConfigurer.class)
 public class AppOpticsTracerProviderConfigurer implements SdkTracerProviderConfigurer {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-    public AppOpticsTracerProviderConfigurer() {
+    private static final Logger logger = LoggerFactory.getLogger(AppOpticsTracerProviderConfigurer.class);
+    private static boolean agentEnabled = true;
+
+    static {
         try {
             Initializer.initialize();
         } catch (InvalidConfigException e) {
-            logger.warn(e.getMessage());
+            logger.warn("Agent is disabled.");
+            agentEnabled = false;
         }
+    }
+    public AppOpticsTracerProviderConfigurer() {
+    }
+
+    public static boolean getAgentEnabled() {
+        return agentEnabled;
     }
 
     @Override
     public void configure(SdkTracerProviderBuilder tracerProvider, ConfigProperties config) {
+        if (!agentEnabled) {
+            return;
+        }
+
         tracerProvider.addSpanProcessor(new AppOpticsRootSpanProcessor());
         tracerProvider.addSpanProcessor(new AppOpticsProfilingSpanProcessor());
         tracerProvider.addSpanProcessor(new AppOpticsInboundMetricsSpanProcessor());
