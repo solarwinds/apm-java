@@ -50,27 +50,16 @@ public class Initializer {
         ConfigProperty.PROFILER.setParser(ProfilerSettingParser.INSTANCE);
     }
 
-    public static Future<?> initialize() throws InvalidConfigException {
+    public static void initialize() throws InvalidConfigException {
         String serviceKey = System.getProperty(ConfigConstants.APPOPTICS_SERVICE_KEY);
 
-        InvalidConfigException exception = null;
-        Future<?> future = null;
-        try {
-            initializeConfig(serviceKey);
-            //future = executeStartupTasks(); //Cannot call this here, see https://github.com/appoptics/opentelemetry-custom-distro/issues/7
-            registerShutdownTasks();
-        }
-        catch (InvalidConfigException e) {
-            exception = e;
-            LOGGER.warn("Failed to initialize SolarwindsAPM OpenTelemetry extensions due to config error: " + e.getMessage(), e);
-            throw e;
-        }
-        finally {
-            reportInit(exception);
-            serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
-            LOGGER.info("Successfully initialized SolarwindsAPM OpenTelemetry extensions with service key " + ServiceKeyUtils.maskServiceKey(serviceKey));
-            return future;
-        }
+        initializeConfig(serviceKey);
+        //future = executeStartupTasks(); //Cannot call this here, see https://github.com/appoptics/opentelemetry-custom-distro/issues/7
+        registerShutdownTasks();
+
+        reportInit(null);
+        serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
+        LOGGER.info("Successfully initialized SolarwindsAPM OpenTelemetry extensions with service key " + ServiceKeyUtils.maskServiceKey(serviceKey));
     }
 
     private static void registerShutdownTasks() {
