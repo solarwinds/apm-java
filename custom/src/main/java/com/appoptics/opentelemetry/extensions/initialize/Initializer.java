@@ -24,6 +24,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -170,6 +173,23 @@ public class Initializer {
         service.shutdown();
     }
 
+    /**
+     * Checks the OpenTelemetry Java agent's logger settings. If the NH custom distro doesn't set a log file
+     * but the Otel has this config option, we just follow the Otel's config.
+     * @param configs
+     */
+    private static void maybeFollowOtelConfigProperties(ConfigContainer configs) {
+        if (configs.get(ConfigProperty.AGENT_LOG_FILE) == null
+        && System.getProperty("io.opentelemetry.javaagent.slf4j.simpleLogger.logFile") != null) {
+            try {
+                Path path = Paths.get(System.getProperty("io.opentelemetry.javaagent.slf4j.simpleLogger.logFile"));
+                configs.put(ConfigProperty.AGENT_LOG_FILE, path);
+            } catch (InvalidConfigException | InvalidPathException e) {
+                LOGGER.info("failed to follow Otel's log file config." + e.getMessage());
+            }
+        }
+    }
+
     private static void initializeConfig(String serviceKey) throws InvalidConfigException {
         ConfigContainer configs = null;
         boolean hasReadConfigException = false;
@@ -185,6 +205,7 @@ public class Initializer {
             throw e; //rethrow the exception
         } finally {
             if (configs != null) {
+                maybeFollowOtelConfigProperties(configs);
                 LoggerFactory.init(configs.subset(ConfigGroup.AGENT)); //initialize the logger factory as soon as the config is available
                 try {
                     processConfigs(configs);
