@@ -366,11 +366,11 @@ public class Initializer {
         }
         else {
             if (!configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)) {
-                LOGGER.warn("Could not find the service key! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in " + CONFIG_FILE);
+                LOGGER.warn("Could not find the service key! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in " + CONFIG_FILE + " or via env variable.");
                 throw new InvalidConfigServiceKeyException("Service key not found");
             }
             else {
-                LOGGER.warn("Service key is empty! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in " + CONFIG_FILE);
+                LOGGER.warn("Service key is empty! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in " + CONFIG_FILE + " or via env variable.");
                 throw new InvalidConfigServiceKeyException("Service key is empty");
             }
         }
