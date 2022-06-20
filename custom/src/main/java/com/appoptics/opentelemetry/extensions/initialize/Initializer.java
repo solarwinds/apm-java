@@ -469,7 +469,7 @@ public class Initializer {
         initMessage.put("__Init", true);
 
         if (version != null) {
-            initMessage.put("Java.AppOptics.Opentelemetry.Version", version);
+            initMessage.put("Java.SolarWindsAPM.Version", version);
         }
 
         String javaVersion = System.getProperty("java.version");
