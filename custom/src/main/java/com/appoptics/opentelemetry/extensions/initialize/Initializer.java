@@ -121,10 +121,7 @@ public class Initializer {
                                         MetricsCollector metricsCollector = new MetricsCollector(configs, AppOpticsInboundMetricsSpanProcessor.buildSpanMetricsCollector());
                                         return MetricsMonitor.buildInstance(configs, metricsCollector);
                                     }
-                                    catch (InvalidConfigException e) {
-                                        e.printStackTrace();
-                                    }
-                                    catch (ClientException e) {
+                                    catch (InvalidConfigException | ClientException e) {
                                         e.printStackTrace();
                                     }
                                     return null;
