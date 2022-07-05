@@ -11,7 +11,7 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
 public class AppOpticsSpanExporterProvider implements ConfigurableSpanExporterProvider {
     @Override
     public SpanExporter createExporter(ConfigProperties config) {
-        final String serviceKey = config.getString(ConfigConstants.APPOPTICS_SERVICE_KEY);
+        final String serviceKey = config.getString(ConfigConstants.SYS_PROPERTY_SERVICE_KEY);
         return AppOpticsSpanExporter.newBuilder(serviceKey).build();
     }
 
