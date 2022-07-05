@@ -20,11 +20,11 @@ import java.util.*;
 public class AppOpticsSpanExporter implements SpanExporter {
     private final Logger logger = LoggerFactory.getLogger();
 
-    private AppOpticsSpanExporter(String serviceKey) {
+    private AppOpticsSpanExporter() {
     }
 
-    static Builder newBuilder(String serviceKey) {
-        return new Builder(serviceKey);
+    static Builder newBuilder() {
+        return new Builder();
     }
 
     @Override
@@ -221,14 +221,11 @@ public class AppOpticsSpanExporter implements SpanExporter {
 
     public static class Builder {
 
-        private final String serviceKey;
-
-        public Builder(String serviceKey) {
-            this.serviceKey = serviceKey;
+        public Builder() {
         }
 
         AppOpticsSpanExporter build() {
-            return new AppOpticsSpanExporter(serviceKey);
+            return new AppOpticsSpanExporter();
         }
     }
 }
