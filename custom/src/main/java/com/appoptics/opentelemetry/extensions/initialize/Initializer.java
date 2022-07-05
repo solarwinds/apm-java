@@ -36,6 +36,7 @@ import java.util.concurrent.Future;
 public class Initializer {
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Initializer.class.getName());
     private static final String CONFIG_FILE = "solarwinds-apm-config.json";
+    private static final String SYS_PROPERTIES_PREFIX = "sw.apm";
 
     static {
         ConfigProperty.AGENT_LOGGING.setParser(LogSettingParser.INSTANCE);
@@ -179,11 +180,31 @@ public class Initializer {
         }
     }
 
+    private static Map<String, String> mergeEnvWithSysProperties(Map<String, String> env, Properties props) {
+        Map<String, String> res = new HashMap<>(env);
+
+        final Set<String> keys = props.stringPropertyNames();
+
+        for (String key : keys) {
+            if (!key.startsWith(SYS_PROPERTIES_PREFIX)) {
+                continue;
+            }
+            String value = props.getProperty(key);
+            if (value == null) {
+                continue;
+            }
+            String envKey = key.toUpperCase().replace(".", "_");
+            res.put(envKey, value);
+            LOGGER.info("System property " + key + "=" + value + ", override " + envKey);
+        }
+        return res;
+    }
+
     private static void initializeConfig(String serviceKey) throws InvalidConfigException {
         ConfigContainer configs = null;
         boolean hasReadConfigException = false;
         try {
-            configs = readConfigs(System.getenv(), serviceKey);
+            configs = readConfigs(mergeEnvWithSysProperties(System.getenv(), System.getProperties()), serviceKey);
         }
         catch (InvalidConfigException e) {
             hasReadConfigException = true;
