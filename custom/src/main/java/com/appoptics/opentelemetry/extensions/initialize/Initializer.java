@@ -258,7 +258,7 @@ public class Initializer {
         String location = null;
         try {
             //Thirdly, read from Config Property File
-            InputStream config;
+            InputStream config = null;
             if (container.containsProperty(ConfigProperty.AGENT_CONFIG)) {
                 location = (String) container.get(ConfigProperty.AGENT_CONFIG);
                 try {
@@ -267,8 +267,7 @@ public class Initializer {
                 catch (FileNotFoundException e) {
                     throw new InvalidConfigException(e);
                 }
-            }
-            else {
+            } else {
                 try { // read from the same directory as the agent jar file
                     File jarDirectory = new File(Initializer.class.getProtectionDomain().getCodeSource().getLocation()
                             .toURI()).getParentFile();
@@ -276,14 +275,16 @@ public class Initializer {
                     config = new FileInputStream(confFromJarDir);
                     location = confFromJarDir.getPath();
                 } catch (URISyntaxException | FileNotFoundException e) {
-                    config = Initializer.class.getResourceAsStream("/" + CONFIG_FILE); //the file included within the jar
-                    location = "default";
+                    LOGGER.debug("Could not find config file in current directory.");
                 }
-
-
             }
-            new JsonConfigReader(config).read(container);
-            LOGGER.info("Finished reading configs from config file: " + location);
+            if (config != null) {
+                new JsonConfigReader(config).read(container);
+                LOGGER.info("Finished reading configs from config file: " + location);
+            }
+
+            new JsonConfigReader(Initializer.class.getResourceAsStream("/" + CONFIG_FILE)).read(container);
+            LOGGER.info("Finished reading built-in default settings.");
         }
         catch (InvalidConfigException e) {
             exceptions.add(new InvalidConfigReadSourceException(e.getConfigProperty(), ConfigSourceType.JSON_FILE, location, container, e));
