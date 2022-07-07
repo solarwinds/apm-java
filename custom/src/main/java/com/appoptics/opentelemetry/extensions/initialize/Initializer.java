@@ -284,7 +284,7 @@ public class Initializer {
             }
 
             new JsonConfigReader(Initializer.class.getResourceAsStream("/" + CONFIG_FILE)).read(container);
-            LOGGER.info("Finished reading built-in default settings.");
+            LOGGER.debug("Finished reading built-in default settings.");
         }
         catch (InvalidConfigException e) {
             exceptions.add(new InvalidConfigReadSourceException(e.getConfigProperty(), ConfigSourceType.JSON_FILE, location, container, e));
