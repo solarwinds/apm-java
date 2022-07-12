@@ -36,6 +36,7 @@ import java.util.concurrent.Future;
 public class Initializer {
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Initializer.class.getName());
     private static final String CONFIG_FILE = "solarwinds-apm-config.json";
+    private static final String SYS_PROPERTIES_PREFIX = "sw.apm";
 
     static {
         ConfigProperty.AGENT_LOGGING.setParser(LogSettingParser.INSTANCE);
@@ -54,14 +55,12 @@ public class Initializer {
     }
 
     public static void initialize() throws InvalidConfigException {
-        String serviceKey = System.getProperty(ConfigConstants.APPOPTICS_SERVICE_KEY);
-
-        initializeConfig(serviceKey);
+        initializeConfig();
         //future = executeStartupTasks(); //Cannot call this here, see https://github.com/appoptics/opentelemetry-custom-distro/issues/7
         registerShutdownTasks();
 
         reportInit(null);
-        serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
+        String serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
         LOGGER.info("Successfully initialized SolarwindsAPM OpenTelemetry extensions with service key " + ServiceKeyUtils.maskServiceKey(serviceKey));
     }
 
@@ -122,10 +121,7 @@ public class Initializer {
                                         MetricsCollector metricsCollector = new MetricsCollector(configs, AppOpticsInboundMetricsSpanProcessor.buildSpanMetricsCollector());
                                         return MetricsMonitor.buildInstance(configs, metricsCollector);
                                     }
-                                    catch (InvalidConfigException e) {
-                                        e.printStackTrace();
-                                    }
-                                    catch (ClientException e) {
+                                    catch (InvalidConfigException | ClientException e) {
                                         e.printStackTrace();
                                     }
                                     return null;
@@ -179,11 +175,31 @@ public class Initializer {
         }
     }
 
-    private static void initializeConfig(String serviceKey) throws InvalidConfigException {
+    private static Map<String, String> mergeEnvWithSysProperties(Map<String, String> env, Properties props) {
+        Map<String, String> res = new HashMap<>(env);
+
+        final Set<String> keys = props.stringPropertyNames();
+
+        for (String key : keys) {
+            if (!key.startsWith(SYS_PROPERTIES_PREFIX)) {
+                continue;
+            }
+            String value = props.getProperty(key);
+            if (value == null) {
+                continue;
+            }
+            String envKey = key.toUpperCase().replace(".", "_");
+            res.put(envKey, value);
+            LOGGER.info("System property " + key + "=" + value + ", override " + envKey);
+        }
+        return res;
+    }
+
+    private static void initializeConfig() throws InvalidConfigException {
         ConfigContainer configs = null;
         boolean hasReadConfigException = false;
         try {
-            configs = readConfigs(System.getenv(), serviceKey);
+            configs = readConfigs(mergeEnvWithSysProperties(System.getenv(), System.getProperties()));
         }
         catch (InvalidConfigException e) {
             hasReadConfigException = true;
@@ -216,21 +232,11 @@ public class Initializer {
      *
      *
      * @param env						the environment variables
-     * @param explicitServiceKey        an explicit service key provided by the caller, this will have higher precedence
      * @return                          ConfigContainer filled with the properties parsed from the -javaagent arguments and configuration property file
      * @throws InvalidConfigException   failed to read the configs
      */
-    static ConfigContainer readConfigs(Map<String, String> env, String explicitServiceKey) throws InvalidConfigException {
+    static ConfigContainer readConfigs(Map<String, String> env) throws InvalidConfigException {
         ConfigContainer container = new ConfigContainer();
-
-        if (explicitServiceKey != null) {
-            container.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, explicitServiceKey);
-        }
-
-        String configFile = System.getProperty(ConfigConstants.APPOPTICS_CONFIG_FILE);
-        if (configFile != null) {
-            container.putByStringValue(ConfigProperty.AGENT_CONFIG, configFile);
-        }
 
         List<InvalidConfigException> exceptions = new ArrayList<InvalidConfigException>();
 

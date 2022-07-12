@@ -19,7 +19,7 @@ public class AppOpticsTracerProviderConfigurer implements SdkTracerProviderConfi
         try {
             Initializer.initialize();
         } catch (InvalidConfigException e) {
-            logger.warn("Agent is disabled.");
+            logger.warn("Agent is disabled: ", e);
             agentEnabled = false;
         }
     }

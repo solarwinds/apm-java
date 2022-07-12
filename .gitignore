@@ -3,3 +3,4 @@
 **/*.log
 .gradle/
 .DS_Store
+.idea/
