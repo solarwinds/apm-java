@@ -7,10 +7,9 @@ package com.appoptics.opentelemetry.instrumentation;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.instrumentation.api.server.ServerSpan;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
-import io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge;
+import io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -55,7 +54,7 @@ public class AoHandlerAdapterInstrumentation implements TypeInstrumentation {
 //        @Advice.Local("otelContext") Context context, //with Local it seem to have issue when there's no same definition for OnMethodExit
 //        @Advice.Local("otelScope") Scope scope) {
       Context parentContext = Java8BytecodeBridge.currentContext();
-      Span serverSpan = ServerSpan.fromContextOrNull(parentContext);
+      Span serverSpan = Java8BytecodeBridge.spanFromContext(parentContext);
       if (serverSpan != null) {
         String transactionName = AoSpringWebMvcTracer.spanNameOnHandle(handler);
         serverSpan.setAttribute("TransactionName", transactionName);

@@ -8,7 +8,7 @@ package com.appoptics.opentelemetry.instrumentation.servlet.v5_0.service;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.javaagent.instrumentation.api.CallDepth;
+import io.opentelemetry.javaagent.bootstrap.CallDepth;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;

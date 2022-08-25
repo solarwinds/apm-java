@@ -3,7 +3,7 @@ apply from: "$rootDir/gradle/instrumentation.gradle"
 archivesBaseName = "servlet3"
 
 dependencies {
-    compileOnly "io.opentelemetry.javaagent:opentelemetry-javaagent-instrumentation-api:${versions.opentelemetryJavaagentAlpha}"
+//    compileOnly "io.opentelemetry.javaagent:opentelemetry-javaagent-instrumentation-api:${versions.opentelemetryJavaagentAlpha}"
     implementation project(":instrumentation:servlet:servlet-common:javaagent")
 
     compileOnly("javax.servlet:javax.servlet-api:3.0.1")
