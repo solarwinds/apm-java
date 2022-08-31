@@ -1,6 +1,8 @@
 package com.appoptics.opentelemetry.extensions;
 
 import com.appoptics.opentelemetry.core.Constants;
+import com.tracelytics.joboe.config.ConfigManager;
+import com.tracelytics.joboe.config.ConfigProperty;
 import com.tracelytics.joboe.span.impl.MetricSpanReporter;
 import com.tracelytics.joboe.span.impl.Span;
 import com.tracelytics.metrics.MetricKey;
@@ -13,6 +15,7 @@ import com.tracelytics.metrics.measurement.SummaryLongMeasurement;
 import com.tracelytics.metrics.measurement.SummaryMeasurementMetricsEntry;
 import com.tracelytics.monitor.metrics.SpanMetricsCollector;
 import com.tracelytics.util.HttpUtils;
+import com.tracelytics.util.ServiceKeyUtils;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
@@ -32,6 +35,12 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
     private static final AttributeKey<Boolean> AO_METRICS_KEY = AttributeKey.booleanKey(Constants.SW_METRICS);
     public static final OpenTelemetryInboundMeasurementReporter MEASUREMENT_REPORTER = new OpenTelemetryInboundMeasurementReporter();
     public static final OpenTelemetryInboundHistogramReporter HISTOGRAM_REPORTER = new OpenTelemetryInboundHistogramReporter();
+
+    public static final String serviceName;
+
+    static {
+        serviceName = ServiceKeyUtils.getServiceName((String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
+    }
 
     public static SpanMetricsCollector buildSpanMetricsCollector() {
         return new SpanMetricsCollector(MEASUREMENT_REPORTER, HISTOGRAM_REPORTER);
@@ -66,7 +75,9 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
     }
 
     private static class OpenTelemetryInboundMeasurementReporter extends MetricSpanReporter {
-        public static final String MEASUREMENT_NAME = "TransactionResponseTime";
+        public static final String MEASUREMENT_NAME_OLD = "TransactionResponseTime";
+        public static final String MEASUREMENT_NAME = "ResponseTime";
+
         //cannot use Guava cache here, jboss issue...
         private final Map<MetricKey, SummaryLongMeasurement> measurements = new ConcurrentHashMap<MetricKey, SummaryLongMeasurement>();
         //private final String measurementName;
@@ -104,11 +115,15 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
         private void reportMetrics(SpanData spanData) {
             final String transactionName = TransactionNameManager.getTransactionName(spanData);
 
-            final Map<String, String> primaryKeys = Collections.singletonMap("TransactionName", transactionName);
+            final Map<String, String> primaryKeysOld = Collections.singletonMap("TransactionName", transactionName);
+            final Map<String, String> primaryKeys = Collections.singletonMap("sw.transaction", transactionName);
+
             //boolean hasError = spanData.getAttributes() TODO
             boolean hasError = false;
 
+            final Map<String, String> optionalKeysOld = new HashMap<String, String>();
             final Map<String, String> optionalKeys = new HashMap<String, String>();
+
 
             final Long status = spanData.getAttributes().get(SemanticAttributes.HTTP_STATUS_CODE);
             //special handling for status code
@@ -117,27 +132,33 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
             }
 
             if (status != null) {
-                optionalKeys.put("HttpStatus", String.valueOf(status));
+                optionalKeysOld.put("HttpStatus", String.valueOf(status));
+                optionalKeys.put("http.status_code", String.valueOf(status));
             }
 
             final String method = spanData.getAttributes().get(SemanticAttributes.HTTP_METHOD);
             if (method != null) {
-                optionalKeys.put("HttpMethod", method);
+                optionalKeysOld.put("HttpMethod", method);
+                optionalKeys.put("http.method", method);
             }
 
 
             if (hasError) {
-                optionalKeys.put("Errors", "true");
+                optionalKeysOld.put("Errors", "true");
+                optionalKeys.put("sw.is_error", "true");
             }
 
-//        optionalKeys.putAll(span.getSpanPropertyValue(SpanProperty.METRIC_TAGS));
-
+            if (!serviceName.equals("")) {
+                optionalKeys.put("sw.service_name", serviceName);
+            }
+            
             final long duration = (spanData.getEndEpochNanos() - spanData.getStartEpochNanos()) / 1000;
-            recordMeasurementEntry(primaryKeys, optionalKeys, duration);
+            recordMeasurementEntry(MEASUREMENT_NAME_OLD, primaryKeysOld, optionalKeysOld, duration);
+            recordMeasurementEntry(MEASUREMENT_NAME, primaryKeys, optionalKeys, duration);
         }
 
-        protected void recordMeasurementEntry(Map<String, String> primaryKeys, Map<String, String> optionalKeys, long duration) {
-            MetricKey measurementKey = new MetricKey(this.MEASUREMENT_NAME, new HashMap(primaryKeys));
+        protected void recordMeasurementEntry(String measurementName, Map<String, String> primaryKeys, Map<String, String> optionalKeys, long duration) {
+            MetricKey measurementKey = new MetricKey(measurementName, new HashMap(primaryKeys));
             this.measurements.computeIfAbsent(measurementKey, k -> new SummaryLongMeasurement()).recordValue(duration);
             if (optionalKeys != null) {
                 final Iterator iterator = optionalKeys.entrySet().iterator();
@@ -146,7 +167,7 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
                     final Map.Entry<String, String> optionalKey = (Map.Entry) iterator.next();
                     final Map<String, String> tags = new HashMap(primaryKeys);
                     tags.put(optionalKey.getKey(), optionalKey.getValue());
-                    measurementKey = new MetricKey(MEASUREMENT_NAME, tags);
+                    measurementKey = new MetricKey(measurementName, tags);
                     this.measurements.computeIfAbsent(measurementKey, k -> new SummaryLongMeasurement()).recordValue(duration);
                 }
             }
