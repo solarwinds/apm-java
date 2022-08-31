@@ -17,7 +17,7 @@ import com.tracelytics.monitor.metrics.MetricsCollector;
 import com.tracelytics.monitor.metrics.MetricsMonitor;
 import com.tracelytics.profiler.Profiler;
 import com.tracelytics.util.*;
-import org.slf4j.Logger;
+import com.tracelytics.logging.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,7 +34,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class Initializer {
-    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Initializer.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger();
     private static final String CONFIG_FILE = "solarwinds-apm-config.json";
     private static final String SYS_PROPERTIES_PREFIX = "sw.apm";
 

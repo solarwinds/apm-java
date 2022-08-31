@@ -6,13 +6,13 @@ import com.tracelytics.joboe.config.InvalidConfigException;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.traces.SdkTracerProviderConfigurer;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.tracelytics.logging.Logger;
+import com.tracelytics.logging.LoggerFactory;
 
 
 @AutoService(SdkTracerProviderConfigurer.class)
 public class AppOpticsTracerProviderConfigurer implements SdkTracerProviderConfigurer {
-    private static final Logger logger = LoggerFactory.getLogger(AppOpticsTracerProviderConfigurer.class);
+    private static final Logger logger = LoggerFactory.getLogger();
     private static boolean agentEnabled = true;
 
     static {
