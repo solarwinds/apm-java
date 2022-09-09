@@ -12,18 +12,32 @@ import org.slf4j.LoggerFactory;
 
 @AutoService(SdkTracerProviderConfigurer.class)
 public class AppOpticsTracerProviderConfigurer implements SdkTracerProviderConfigurer {
+    public static class UnsupportedJdkVersion extends Exception {
+        UnsupportedJdkVersion(String version) {
+            super("Unsupported Java runtime version: " + version);
+        }
+    }
     private static final Logger logger = LoggerFactory.getLogger(AppOpticsTracerProviderConfigurer.class);
     private static boolean agentEnabled = true;
 
     static {
         try {
+            if (!isJDKSupported()) {
+                throw new UnsupportedJdkVersion(System.getProperty("java.version"));
+            }
             Initializer.initialize();
-        } catch (InvalidConfigException e) {
+        } catch (InvalidConfigException | UnsupportedJdkVersion e) {
             logger.warn("Agent is disabled: ", e);
             agentEnabled = false;
         }
     }
     public AppOpticsTracerProviderConfigurer() {
+    }
+
+    public static boolean isJDKSupported() {
+        String version = System.getProperty("java.version");
+        // TODO
+        return true;
     }
 
     public static boolean getAgentEnabled() {
