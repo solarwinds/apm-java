@@ -8,6 +8,7 @@ import io.opentelemetry.sdk.autoconfigure.spi.traces.SdkTracerProviderConfigurer
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.tracelytics.util.JavaRuntimeVersionChecker;
 
 
 @AutoService(SdkTracerProviderConfigurer.class)
@@ -22,7 +23,7 @@ public class AppOpticsTracerProviderConfigurer implements SdkTracerProviderConfi
 
     static {
         try {
-            if (!isJDKSupported()) {
+            if (!JavaRuntimeVersionChecker.isJdkVersionSupported()) {
                 throw new UnsupportedJdkVersion(System.getProperty("java.version"));
             }
             Initializer.initialize();
@@ -32,12 +33,6 @@ public class AppOpticsTracerProviderConfigurer implements SdkTracerProviderConfi
         }
     }
     public AppOpticsTracerProviderConfigurer() {
-    }
-
-    public static boolean isJDKSupported() {
-        String version = System.getProperty("java.version");
-        // TODO
-        return true;
     }
 
     public static boolean getAgentEnabled() {
