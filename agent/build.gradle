@@ -81,7 +81,7 @@ publishing {
   repositories {
     maven {
       name = "GitHubPackages"
-      url = "https://maven.pkg.github.com/appoptics/opentelemetry-java-instrumentation-custom-distro"
+      url = "https://maven.pkg.github.com/appoptics/solarwinds-apm-java"
       credentials {
         username = System.getenv("GITHUB_ACTOR")
         password = System.getenv("GITHUB_TOKEN")
