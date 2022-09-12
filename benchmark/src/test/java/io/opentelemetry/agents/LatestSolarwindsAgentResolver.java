@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class LatestSolarwindsAgentResolver {
-    private static final String NH_URL = "https://api.github.com/repos/appoptics/opentelemetry-java-instrumentation-custom-distro/releases/latest";
+    private static final String NH_URL = "https://api.github.com/repos/appoptics/solarwinds-apm-java/releases/latest";
     private static final String AO_URL = "https://files.appoptics.com/java/latest/appoptics-agent.jar";
     private static final String NH_AGENT_JAR_NAME = "solarwinds-apm-agent.jar";
     private static final String AO_AGENT_JAR_NAME = "appoptics-agent.jar";
