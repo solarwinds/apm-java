@@ -48,6 +48,7 @@ public class AoStatementInstrumentation implements TypeInstrumentation {
         @Advice.OnMethodEnter
         public static void onEnter(@Advice.Argument(value = 0, readOnly = false) String sql) {
             if (CallDepth.forClass(Statement.class).getAndIncrement() != 1) { //only report back when depth is one to avoid duplications
+                CallDepth.forClass(Statement.class).decrementAndGet();
                 return;
             }
             sql = TraceContextInjector.inject(currentContext(), sql);
