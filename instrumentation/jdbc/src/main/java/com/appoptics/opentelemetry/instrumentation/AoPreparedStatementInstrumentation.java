@@ -93,6 +93,8 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
         public static void onExit(
                 @Advice.Thrown Throwable throwable) {
             if (CallDepth.forClass(Statement.class).getAndIncrement() != 1) { //only report back when depth is one to avoid duplications
+                // Note that we need to decrement the call depth counter at every branch, otherwise the JDBC instrumentation of the
+                // Otel agent will break.
                 CallDepth.forClass(Statement.class).decrementAndGet();
                 return;
             }
