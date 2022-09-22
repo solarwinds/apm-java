@@ -58,6 +58,7 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
             // is called - the first recursive Statement call is just skipped and we do not create a span
             // for it
             if (CallDepth.forClass(Statement.class).getAndIncrement() != 0) { //only report back when depth is one to avoid duplications
+                CallDepth.forClass(Statement.class).decrementAndGet();
                 return;
             }
             QueryArgsCollector.collect(currentContext(), index, value);
@@ -92,6 +93,9 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
         public static void onExit(
                 @Advice.Thrown Throwable throwable) {
             if (CallDepth.forClass(Statement.class).getAndIncrement() != 1) { //only report back when depth is one to avoid duplications
+                // Note that we need to decrement the call depth counter at every branch, otherwise the JDBC instrumentation of the
+                // Otel agent will break.
+                CallDepth.forClass(Statement.class).decrementAndGet();
                 return;
             }
             QueryArgsCollector.maybeAttach(currentContext());
