@@ -161,9 +161,9 @@ public class TransactionNameManager {
      * @return  a transaction name built based on the span, null if no transaction name can be built
      */
     static String buildTransactionName(SpanData spanData) {
-        String transactionName = spanData.getAttributes().get(AttributeKey.stringKey("TransactionName")); //check if there's transaction name set as attribute
-        if (transactionName != null) {
-            return transactionName; // may be set by custom transaction name SDK
+        String customTransactionName = spanData.getAttributes().get(AttributeKey.stringKey("TransactionName")); //check if there's transaction name set as attribute
+        if (customTransactionName != null) {
+            return customTransactionName; // may be set by custom transaction name SDK
         }
 
         String url = (String) spanData.getAttributes().get(SemanticAttributes.HTTP_URL);
