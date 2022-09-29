@@ -30,6 +30,7 @@ public class AppOpticsSpanExporter implements SpanExporter {
     @Override
     public CompletableResultCode export(Collection<SpanData> collection) {
         logger.debug("Started to export span data to the collector.");
+        String customTransactionName = null;
         for (SpanData spanData : collection) {
             if (spanData.hasEnded()) {
                 try {
@@ -51,15 +52,12 @@ public class AppOpticsSpanExporter implements SpanExporter {
                         entryEvent = new EventImpl(null, w3cContext, false);
                     }
 
-                    if (!spanData.getParentSpanContext().isValid() || spanData.getParentSpanContext().isRemote()) { //then a root span of this service
+                    // We need to check all spans as the user may set the TransactionName from any of them
+                    if (customTransactionName == null) {
                         String transactionName = spanData.getAttributes().get(AttributeKey.stringKey("TransactionName")); //check if there's transaction name set as attribute
-                        if (transactionName == null) {
-                            transactionName = TransactionNameManager.getTransactionName(spanData);
-                            if (transactionName != null) {
-                                entryEvent.addInfo("TransactionName", transactionName); //only do this if we are generating a transaction name here. If it's already in attributes, it will be inserted by addInfo(getTags...)
-                            }
+                        if (transactionName != null) {
+                            customTransactionName = transactionName;
                         }
-
                     }
 
                     entryEvent.addInfo(
@@ -79,6 +77,19 @@ public class AppOpticsSpanExporter implements SpanExporter {
 
                     final Metadata exitMetadata = Util.buildSpanExitMetadata(spanData.getSpanContext()); //exit ID has to be generated
                     final Event exitEvent = new EventImpl(spanMetadata, exitMetadata.toHexString(),true);
+
+                    if (!spanData.getParentSpanContext().isValid() || spanData.getParentSpanContext().isRemote()) { //then a root span of this service
+                        String transactionName = null;
+                        if (customTransactionName != null) {
+                            transactionName = customTransactionName;
+                        } else {
+                            transactionName = TransactionNameManager.getTransactionName(spanData);
+                        }
+                        if (transactionName != null) {
+                            exitEvent.addInfo("TransactionName", transactionName); //only do this if we are generating a transaction name here. If it's already in attributes, it will be inserted by addInfo(getTags...)
+                        }
+                    }
+
                     exitEvent.addInfo(
                             "Label", "exit",
                             "Layer", spanName);
