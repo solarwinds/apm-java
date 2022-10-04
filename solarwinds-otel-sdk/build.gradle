@@ -1,0 +1,45 @@
+plugins {
+  id("java")
+  id("maven-publish")
+  id("com.github.johnrengelman.shadow") version "7.0.0"
+}
+
+apply from: "$rootDir/gradle/shadow.gradle"
+
+group = "com.solarwinds.agent"
+project.archivesBaseName = 'solarwinds-otel-sdk'
+
+
+dependencies {
+  compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:${versions.opentelemetryJavaagentAlpha}")
+  compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
+  compileOnly "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
+  compileOnly project(":custom")
+  compileOnly project(":core-bootstrap")
+  testImplementation "junit:junit:4.10"
+  testImplementation "com.appoptics.agent.java:core:${versions.appopticsCore}"
+  testImplementation "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
+}
+
+publishing {
+  publications {
+    maven(MavenPublication) {
+      groupId = 'com.solarwinds.agent'
+      artifactId = "${archivesBaseName}"
+      version = "${versions.agent}"
+      from components.java
+    }
+  }
+  repositories {
+    maven {
+      name = "GitHubPackages"
+      url = "https://maven.pkg.github.com/appoptics/solarwinds-apm-java"
+      credentials {
+        username = System.getenv("GITHUB_ACTOR")
+        password = System.getenv("GITHUB_TOKEN")
+      }
+    }
+  }
+}
+
