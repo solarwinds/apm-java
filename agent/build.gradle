@@ -72,7 +72,7 @@ tasks {
 publishing {
   publications {
     maven(MavenPublication) {
-      groupId = 'com.solarwinds.agent'
+      groupId = group
       artifactId = "${archivesBaseName}"
       version = "${versions.agent}"
       from components.java

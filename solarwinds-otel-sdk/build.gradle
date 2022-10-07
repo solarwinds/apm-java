@@ -6,7 +6,6 @@ plugins {
 
 apply from: "$rootDir/gradle/shadow.gradle"
 
-group = "com.solarwinds.agent"
 project.archivesBaseName = 'solarwinds-otel-sdk'
 
 
@@ -25,13 +24,21 @@ dependencies {
 publishing {
   publications {
     maven(MavenPublication) {
-      groupId = 'com.solarwinds.agent'
+      groupId = group
       artifactId = "${archivesBaseName}"
       version = "${versions.agent}"
       from components.java
     }
   }
   repositories {
+    maven {
+      name = "OSSRH"
+      url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+      credentials {
+        username = System.getenv("MAVEN_USERNAME")
+        password = System.getenv("MAVEN_PASSWORD")
+      }
+    }
     maven {
       name = "GitHubPackages"
       url = "https://maven.pkg.github.com/appoptics/solarwinds-apm-java"
