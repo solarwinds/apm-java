@@ -24,7 +24,7 @@ dependencies {
 publishing {
   publications {
     maven(MavenPublication) {
-      groupId = project.group
+      groupId = 'io.github.appoptics'
       artifactId = "${archivesBaseName}"
       version = "${versions.agent}"
       from components.java
