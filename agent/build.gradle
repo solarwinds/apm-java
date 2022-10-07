@@ -72,7 +72,7 @@ tasks {
 publishing {
   publications {
     maven(MavenPublication) {
-      groupId = group
+      groupId = project.group
       artifactId = "${archivesBaseName}"
       version = "${versions.agent}"
       from components.java
