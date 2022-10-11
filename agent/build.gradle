@@ -69,6 +69,20 @@ tasks {
   }
 }
 
+task sourcesJar(type: Jar) {
+  from('.') {
+    include 'SOURCES_DOC_README'
+  }
+  archiveClassifier.set("sources")
+}
+
+task javadocJar(type: Jar) {
+  from('.') {
+    include 'SOURCES_DOC_README'
+  }
+  archiveClassifier.set("javadoc")
+}
+
 publishing {
   publications {
     mavenJava(MavenPublication) {
@@ -80,6 +94,10 @@ publishing {
           url = 'http://www.solarwinds.com'
         }
         developers {
+          developer {
+            id = 'APM'
+            name = 'The APM Agent team'
+          }
         }
         licenses {
           license {
@@ -90,6 +108,8 @@ publishing {
         artifactId = "${archivesBaseName}"
         version = "${versions.agent}"
         from components.java
+        artifact sourcesJar
+        artifact javadocJar
       }
     }
   }
