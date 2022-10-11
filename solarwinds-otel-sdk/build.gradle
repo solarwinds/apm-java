@@ -24,6 +24,19 @@ dependencies {
 publishing {
   publications {
     maven(MavenPublication) {
+      name = "${archivesBaseName}"
+      description = "${archivesBaseName}"
+      url = "www.solarwinds.com"
+      scm {
+        url = 'http://www.solarwinds.com'
+      }
+      developers {
+      }
+      licenses {
+        license {
+          name = 'License Placeholder'
+        }
+      }
       groupId = 'io.github.appoptics'
       artifactId = "${archivesBaseName}"
       version = "${versions.agent}"
