@@ -92,7 +92,7 @@ publishing {
         description = "${archivesBaseName}"
         url = "www.solarwinds.com"
         scm {
-          url = 'http://www.solarwinds.com'
+          url = 'https://www.solarwinds.com'
         }
         developers {
           developer {
@@ -102,7 +102,7 @@ publishing {
         }
         licenses {
           license {
-            name = 'License Placeholder'
+            name = 'Librato Open License'
           }
         }
         groupId = 'io.github.appoptics'
