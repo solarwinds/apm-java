@@ -65,7 +65,7 @@ public class AppOpticsSpanExporter implements SpanExporter {
                     entryEvent.addInfo(
                             "Label", "entry",
                             "Layer", spanName,
-                            "sw.span_key", spanData.getKind().toString());
+                            "sw.span_kind", spanData.getKind().toString());
                     entryEvent.setTimestamp(spanData.getStartEpochNanos() / 1000);
                     entryEvent.addInfo(getEventKvs(spanData.getAttributes()));
                     entryEvent.report(spanMetadata);
