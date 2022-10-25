@@ -115,14 +115,15 @@ publishing {
     }
   }
   repositories {
-    maven {
-      name = "OSSRH"
-      url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-      credentials {
-        username = System.getenv("MAVEN_USERNAME")
-        password = System.getenv("MAVEN_PASSWORD")
-      }
-    }
+//    -- uncomment the lines below to publish the agent artifact to the Maven central --
+//    maven {
+//      name = "OSSRH"
+//      url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+//      credentials {
+//        username = System.getenv("MAVEN_USERNAME")
+//        password = System.getenv("MAVEN_PASSWORD")
+//      }
+//    }
     maven {
       name = "GitHubPackages"
       url = "https://maven.pkg.github.com/appoptics/solarwinds-apm-java"
