@@ -10,6 +10,11 @@ import io.opentelemetry.context.Context;
  * or not sampled.
  */
 public class CustomTransactionName {
+    /** Set the transaction name of the current trace.
+     *
+     * @param name  the custom transaction name to be set to the current trace
+     * @return  {@code true} if the transaction name is successfully set, or {@code false} if the transaction name is not set because the span is invalid or the not sampled.
+     */
     public static boolean set(String name) {
         Context context = Context.current();
         Span span = Span.fromContext(context);
