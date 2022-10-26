@@ -1,5 +1,6 @@
 package com.appoptics.opentelemetry.extensions;
 
+import com.appoptics.opentelemetry.core.CustomTransactionNameDict;
 import com.appoptics.opentelemetry.core.Util;
 import com.tracelytics.ext.google.common.cache.Cache;
 import com.tracelytics.ext.google.common.cache.CacheBuilder;
@@ -161,6 +162,12 @@ public class TransactionNameManager {
      * @return  a transaction name built based on the span, null if no transaction name can be built
      */
     static String buildTransactionName(SpanData spanData) {
+        String traceId = spanData.getTraceId();
+        String customName = CustomTransactionNameDict.get(traceId);
+        if (customName != null) {
+            return customName;
+        }
+
         String url = (String) spanData.getAttributes().get(SemanticAttributes.HTTP_URL);
         String path = Util.parsePath(url);
 

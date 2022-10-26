@@ -1,6 +1,7 @@
 plugins {
   id("com.github.johnrengelman.shadow") version "7.0.0"
   id 'maven-publish'
+  id 'signing'
 }
 
 apply from: "$rootDir/gradle/shadow.gradle"
@@ -17,7 +18,7 @@ dependencies {
   customShadow project(path: ":custom", configuration: "shadow")
   customShadow project(path: ":instrumentation", configuration: "shadow")
   implementation project(path: ":core-bootstrap")
-  implementation project(path: ":appoptics-opentelemetry-sdk")
+  implementation project(path: ":solarwinds-otel-sdk")
   implementation "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}"
   implementation "com.appoptics.agent.java:core:${versions.appopticsCore}"
   implementation "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
@@ -69,16 +70,60 @@ tasks {
   }
 }
 
+task sourcesJar(type: Jar) {
+  from('.') {
+    include 'SOURCES_DOC_README'
+  }
+  archiveClassifier.set("sources")
+}
+
+task javadocJar(type: Jar) {
+  from('.') {
+    include 'SOURCES_DOC_README'
+  }
+  archiveClassifier.set("javadoc")
+}
+
 publishing {
   publications {
-    maven(MavenPublication) {
-      groupId = 'com.solarwinds.agent'
-      artifactId = "${archivesBaseName}"
-      version = "${versions.agent}"
-      from components.java
+    mavenJava(MavenPublication) {
+      pom {
+        name = "${archivesBaseName}"
+        description = "${archivesBaseName}"
+        url = "www.solarwinds.com"
+        scm {
+          url = 'https://www.solarwinds.com'
+        }
+        developers {
+          developer {
+            id = 'APM'
+            name = 'The APM Agent team'
+          }
+        }
+        licenses {
+          license {
+            name = 'Librato Open License'
+          }
+        }
+        groupId = 'io.github.appoptics'
+        artifactId = "${archivesBaseName}"
+        version = "${versions.agent}"
+        from components.java
+        artifact sourcesJar
+        artifact javadocJar
+      }
     }
   }
   repositories {
+//    -- uncomment the lines below to publish the agent artifact to the Maven central --
+//    maven {
+//      name = "OSSRH"
+//      url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+//      credentials {
+//        username = System.getenv("MAVEN_USERNAME")
+//        password = System.getenv("MAVEN_PASSWORD")
+//      }
+//    }
     maven {
       name = "GitHubPackages"
       url = "https://maven.pkg.github.com/appoptics/solarwinds-apm-java"
@@ -88,4 +133,11 @@ publishing {
       }
     }
   }
+}
+
+signing {
+  def signingKey = System.getenv("SIGNING_KEY")
+  def signingPassword = System.getenv("SIGNING_PASSWORD")
+  useInMemoryPgpKeys(signingKey, signingPassword)
+  sign publishing.publications.mavenJava
 }
