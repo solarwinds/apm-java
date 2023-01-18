@@ -69,7 +69,6 @@ public class Initializer {
 
     public static void initialize() throws InvalidConfigException {
         initializeConfig();
-        //future = executeStartupTasks(); //Cannot call this here, see https://github.com/appoptics/opentelemetry-custom-distro/issues/7
         registerShutdownTasks();
 
         String serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
@@ -530,6 +529,7 @@ public class Initializer {
         }
         try {
             if (!initMessage.containsKey(PROCESS_RUNTIME_DESCRIPTION.getKey())) {
+                // these three java.vm properties are always available
                 initMessage.put(PROCESS_RUNTIME_DESCRIPTION.getKey(),
                     System.getProperty("java.vm.vendor") + " " +
                     System.getProperty("java.vm.name") + " " +
@@ -537,10 +537,10 @@ public class Initializer {
                 );
             }
             if (!initMessage.containsKey(PROCESS_RUNTIME_NAME.getKey())) {
-                initMessage.put(PROCESS_RUNTIME_NAME.getKey(), System.getProperty("java.runtime.name"));
+                initMessage.put(PROCESS_RUNTIME_NAME.getKey(), System.getProperty("java.runtime.name", "unavailable"));
             }
             if (!initMessage.containsKey(PROCESS_RUNTIME_VERSION.getKey())) {
-                initMessage.put(PROCESS_RUNTIME_VERSION.getKey(), System.getProperty("java.runtime.version"));
+                initMessage.put(PROCESS_RUNTIME_VERSION.getKey(), System.getProperty("java.runtime.version", "unavailable"));
             }
         } catch (SecurityException exp) {
             LOGGER.warn("Cannot get process runtime information.", exp);
