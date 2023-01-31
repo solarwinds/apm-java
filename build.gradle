@@ -56,10 +56,9 @@ subprojects {
 
   checkstyleTest.enabled = false
 
-// too many trailing spaces warnings
-//  checkstyleTest {
-//    configFile = file("$rootDir/checkstyle.xml")
-//  }
+  checkstyleTest {
+    configFile = file("$rootDir/checkstyle.xml")
+  }
 
   tasks {
     test {

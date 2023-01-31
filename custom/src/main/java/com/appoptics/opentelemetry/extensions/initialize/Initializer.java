@@ -499,8 +499,8 @@ public class Initializer {
         // Capture OTel Resource attributes
         if (autoConfiguredOpenTelemetrySdk != null) {
             Attributes attributes = autoConfiguredOpenTelemetrySdk.getResource().getAttributes();
-            LOGGER.debug("Resource attributes {}",
-                attributes.toString().replaceAll("(sw.apm.service.key=)\\S+","$1****"));
+            LOGGER.debug("Resource attributes " +
+                    attributes.toString().replaceAll("(sw.apm.service.key=)\\S+", "$1****"));
 
             for (Map.Entry<AttributeKey<?>, Object> keyValue : attributes.asMap().entrySet()) {
                 AttributeKey<?> attributeKey = keyValue.getKey();
