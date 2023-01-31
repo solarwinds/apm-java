@@ -6,19 +6,28 @@ import com.tracelytics.joboe.config.InvalidConfigException;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.traces.SdkTracerProviderConfigurer;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
-import com.tracelytics.logging.Logger;
-import com.tracelytics.logging.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.tracelytics.util.JavaRuntimeVersionChecker;
 
 
 @AutoService(SdkTracerProviderConfigurer.class)
 public class AppOpticsTracerProviderConfigurer implements SdkTracerProviderConfigurer {
-    private static final Logger logger = LoggerFactory.getLogger();
+    public static class UnsupportedJdkVersion extends Exception {
+        UnsupportedJdkVersion(String version) {
+            super("Unsupported Java runtime version: " + version);
+        }
+    }
+    private static final Logger logger = LoggerFactory.getLogger(AppOpticsTracerProviderConfigurer.class);
     private static boolean agentEnabled = true;
 
     static {
         try {
+            if (!JavaRuntimeVersionChecker.isJdkVersionSupported()) {
+                throw new UnsupportedJdkVersion(System.getProperty("java.version"));
+            }
             Initializer.initialize();
-        } catch (InvalidConfigException e) {
+        } catch (InvalidConfigException | UnsupportedJdkVersion e) {
             logger.warn("Agent is disabled: ", e);
             agentEnabled = false;
         }

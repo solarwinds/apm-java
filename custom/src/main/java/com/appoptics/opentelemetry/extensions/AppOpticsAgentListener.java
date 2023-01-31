@@ -13,7 +13,7 @@ public class AppOpticsAgentListener implements AgentListener {
     @Override
     public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
         if (AppOpticsTracerProviderConfigurer.getAgentEnabled()) {
-            Initializer.executeStartupTasks();
+            Initializer.executeStartupTasks(autoConfiguredOpenTelemetrySdk);
         }
     }
 }

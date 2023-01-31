@@ -1,5 +1,6 @@
 package com.appoptics.opentelemetry.extensions;
 
+import com.appoptics.opentelemetry.core.CustomTransactionNameDict;
 import com.appoptics.opentelemetry.core.Util;
 import com.tracelytics.ext.google.common.cache.Cache;
 import com.tracelytics.ext.google.common.cache.CacheBuilder;
@@ -10,6 +11,8 @@ import com.tracelytics.joboe.settings.SettingsArgChangeListener;
 import com.tracelytics.joboe.settings.SettingsManager;
 import com.tracelytics.logging.Logger;
 import com.tracelytics.logging.LoggerFactory;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
@@ -159,9 +162,30 @@ public class TransactionNameManager {
      * @return  a transaction name built based on the span, null if no transaction name can be built
      */
     static String buildTransactionName(SpanData spanData) {
+        String traceId = spanData.getTraceId();
+        String customName = CustomTransactionNameDict.get(traceId);
+        if (customName != null) {
+            return customName;
+        }
+
         String url = (String) spanData.getAttributes().get(SemanticAttributes.HTTP_URL);
         String path = Util.parsePath(url);
 
+        Attributes attributes = spanData.getAttributes();
+
+        // use HandlerName which may be injected by some MVC instrumentations (currently only Spring MVC)
+        String handlerName = attributes.get(AttributeKey.stringKey("HandlerName"));
+        if (handlerName != null) {
+            return handlerName;
+        }
+
+        // use "http.route"
+        String httpRoute = attributes.get(SemanticAttributes.HTTP_ROUTE);
+        if (httpRoute != null) {
+            return httpRoute;
+        }
+        
+        // get transaction name from url
         if (customTransactionNamePattern != null) { //try forming transaction name by the custom configured pattern
             String transactionName = getTransactionNameByUrlAndPattern(path, customTransactionNamePattern, false, CUSTOM_TRANSACTION_NAME_PATTERN_SEPARATOR);
 
@@ -170,27 +194,12 @@ public class TransactionNameManager {
             }
         }
 
-//        //try controller/action
-//        String controller = spanData.getTracePropertyValue(Span.TraceProperty.CONTROLLER);
-//        String action = spanData.getTracePropertyValue(Span.TraceProperty.ACTION);
-//        if (controller != null && !"".equals(controller) && action != null) { //controller should not be null nor empty
-//            //do NOT add to cache as this transaction name is not extracted from URL. ie same URL might map to multiple controller/action combinations
-//            if ("".equals(action)) { //if action is empty string, use the controller name only to avoid trailing dot
-//                return controller;
-//            } else {
-//                return controller + "." + action;
-//            }
-//        }
-
         //try the default token name pattern
         String transactionNameByUrl = getTransactionNameByUrlAndPattern(path, DEFAULT_TRANSACTION_NAME_PATTERN, true, DEFAULT_TRANSACTION_NAME_PATTERN_SEPARATOR);
         if (transactionNameByUrl != null) {
             return transactionNameByUrl;
         }
 
-//        if (spanData.getSpanPropertyValue(Span.SpanProperty.IS_SDK) && spanData.getOperationName() != null) {
-//            return DEFAULT_SDK_TRANSACTION_NAME_PREFIX + spanData.getOperationName();
-//        }
         return spanData.getName();
     }
 

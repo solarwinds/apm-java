@@ -1,0 +1,94 @@
+plugins {
+  id("java")
+  id("maven-publish")
+  id("com.github.johnrengelman.shadow") version "7.0.0"
+  id 'signing'
+}
+
+apply from: "$rootDir/gradle/shadow.gradle"
+
+project.archivesBaseName = 'solarwinds-otel-sdk'
+
+
+dependencies {
+  compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:${versions.opentelemetryJavaagentAlpha}")
+  compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
+  compileOnly "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
+  compileOnly project(":custom")
+  compileOnly project(":core-bootstrap")
+  testImplementation "junit:junit:4.10"
+  testImplementation "com.appoptics.agent.java:core:${versions.appopticsCore}"
+  testImplementation "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
+}
+
+task sourcesJar(type: Jar) {
+  from('.') {
+    include 'SOURCES_DOC_README'
+  }
+  archiveClassifier.set("sources")
+}
+
+task javadocJar(type: Jar) {
+  from('.') {
+    include 'SOURCES_DOC_README'
+  }
+  archiveClassifier.set("javadoc")
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      pom {
+        name = "${archivesBaseName}"
+        description = "${archivesBaseName}"
+        url = "www.solarwinds.com"
+        scm {
+          url = 'https://www.solarwinds.com'
+        }
+        developers {
+          developer {
+            id = 'APM'
+            name = 'The APM Agent team'
+          }
+        }
+        licenses {
+          license {
+            name = 'Librato Open License'
+          }
+        }
+        groupId = 'io.github.appoptics'
+        artifactId = "${archivesBaseName}"
+        version = "${versions.agent}"
+        from components.java
+        artifact sourcesJar
+        artifact javadocJar
+      }
+    }
+  }
+  repositories {
+    maven {
+      name = "OSSRH"
+      url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+      credentials {
+        username = System.getenv("MAVEN_USERNAME")
+        password = System.getenv("MAVEN_PASSWORD")
+      }
+    }
+    maven {
+      name = "GitHubPackages"
+      url = "https://maven.pkg.github.com/appoptics/solarwinds-apm-java"
+      credentials {
+        username = System.getenv("GITHUB_ACTOR")
+        password = System.getenv("GITHUB_TOKEN")
+      }
+    }
+  }
+}
+
+signing {
+  def signingKey = System.getenv("SIGNING_KEY")
+  def signingPassword = System.getenv("SIGNING_PASSWORD")
+  useInMemoryPgpKeys(signingKey, signingPassword)
+  sign publishing.publications.mavenJava
+}

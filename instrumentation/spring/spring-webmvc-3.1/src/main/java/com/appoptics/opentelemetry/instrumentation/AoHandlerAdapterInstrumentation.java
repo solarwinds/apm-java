@@ -57,7 +57,7 @@ public class AoHandlerAdapterInstrumentation implements TypeInstrumentation {
       Span serverSpan = Java8BytecodeBridge.spanFromContext(parentContext);
       if (serverSpan != null) {
         String transactionName = AoSpringWebMvcTracer.spanNameOnHandle(handler);
-        serverSpan.setAttribute("TransactionName", transactionName);
+        serverSpan.setAttribute("HandlerName", transactionName);
       }
     }
   }

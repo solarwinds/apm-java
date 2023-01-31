@@ -19,6 +19,18 @@ import com.tracelytics.profiler.Profiler;
 import com.tracelytics.util.*;
 import com.tracelytics.logging.Logger;
 
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_COMMAND_LINE;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_COMMAND_ARGS;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_DESCRIPTION;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_NAME;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_VERSION;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.SERVICE_NAME;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.TELEMETRY_SDK_LANGUAGE;
+
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -37,6 +49,7 @@ public class Initializer {
     private static final Logger LOGGER = LoggerFactory.getLogger();
     private static final String CONFIG_FILE = "solarwinds-apm-config.json";
     private static final String SYS_PROPERTIES_PREFIX = "sw.apm";
+    private static AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk;
 
     static {
         ConfigProperty.AGENT_LOGGING.setParser(LogSettingParser.INSTANCE);
@@ -56,10 +69,8 @@ public class Initializer {
 
     public static void initialize() throws InvalidConfigException {
         initializeConfig();
-        //future = executeStartupTasks(); //Cannot call this here, see https://github.com/appoptics/opentelemetry-custom-distro/issues/7
         registerShutdownTasks();
 
-        reportInit(null);
         String serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
         LOGGER.info("Successfully initialized SolarwindsAPM OpenTelemetry extensions with service key " + ServiceKeyUtils.maskServiceKey(serviceKey));
     }
@@ -81,8 +92,12 @@ public class Initializer {
         Runtime.getRuntime().addShutdownHook(shutdownThread);
     }
 
-    public static void executeStartupTasks() {
+    public static void executeStartupTasks(AutoConfiguredOpenTelemetrySdk otelSDK) {
         ExecutorService service = Executors.newSingleThreadExecutor(DaemonThreadFactory.newInstance("post-startup-tasks"));
+
+        // Make the auto-configured OTel SDK available later, for buildInitMessage to access
+        // its Resource attributes.
+        Initializer.autoConfiguredOpenTelemetrySdk = otelSDK;
 
         AgentState.setStartupTasksFuture(service.submit(new Runnable() {
             public void run() {
@@ -105,6 +120,9 @@ public class Initializer {
                         LOGGER.debug("Failed to initialize RpcSettingsReader : " + e.getMessage());
                     }
                     LOGGER.info("Initialized HostUtils");
+
+                    LOGGER.info("Sending init message");
+                    reportInit(null);
 
                     LOGGER.info("Building reporter");
                     EventImpl.setDefaultReporter(RpcEventReporter.buildReporter(RpcClientManager.OperationType.TRACING));
@@ -472,23 +490,66 @@ public class Initializer {
         Map<String, Object> initMessage = new HashMap<String, Object>();
 
         initMessage.put("Layer", layer);
-        initMessage.put("Label", "single");
         initMessage.put("__Init", true);
 
         if (version != null) {
-            initMessage.put("Java.SolarWindsAPM.Version", version);
+            initMessage.put("APM.Version", version);
         }
 
-        String javaVersion = System.getProperty("java.version");
-        if (javaVersion != null) {
-            initMessage.put("Java.Version", javaVersion);
+        // Capture OTel Resource attributes
+        if (autoConfiguredOpenTelemetrySdk != null) {
+            Attributes attributes = autoConfiguredOpenTelemetrySdk.getResource().getAttributes();
+            LOGGER.debug("Resource attributes {}",
+                attributes.toString().replaceAll("(sw.apm.service.key=)\\S+","$1****"));
+
+            for (Map.Entry<AttributeKey<?>, Object> keyValue : attributes.asMap().entrySet()) {
+                AttributeKey<?> attributeKey = keyValue.getKey();
+                String attrName = attributeKey.getKey();
+                Object attrValue = keyValue.getValue();
+
+                // Do not set service name in __Init message
+                if (attrName.equals(SERVICE_NAME.getKey())) {
+                    continue;
+                }
+                // Mask service key if captured in process command line or arg
+                if ((attrName.equals(PROCESS_COMMAND_LINE.getKey()) || attrName.equals(PROCESS_COMMAND_ARGS.getKey()))
+                    && attrValue.toString().contains("sw.apm.service.key=")) {
+                    String maskedStr = attrValue.toString().replaceAll("(sw.apm.service.key=)\\S+","$1****");
+                    attrValue = maskedStr;
+                }
+                initMessage.put(attrName, attrValue);
+            }
+        } else {
+            LOGGER.warn("autoConfiguredOpenTelemetrySdk is null, cannot get Resource attributes.");
         }
 
-        if (configException != null) {
-            initMessage.put("Error", configException.getClass().getName() + ":" + configException.getMessage());
+        // Ensure required keys are set
+        if (!initMessage.containsKey(TELEMETRY_SDK_LANGUAGE.getKey())) {
+            initMessage.put(TELEMETRY_SDK_LANGUAGE.getKey(), "java");
+        }
+        try {
+            if (!initMessage.containsKey(PROCESS_RUNTIME_DESCRIPTION.getKey())) {
+                // these three java.vm properties are always available
+                initMessage.put(PROCESS_RUNTIME_DESCRIPTION.getKey(),
+                    System.getProperty("java.vm.vendor") + " " +
+                    System.getProperty("java.vm.name") + " " +
+                    System.getProperty("java.vm.version")
+                );
+            }
+            if (!initMessage.containsKey(PROCESS_RUNTIME_NAME.getKey())) {
+                initMessage.put(PROCESS_RUNTIME_NAME.getKey(), System.getProperty("java.runtime.name", "unavailable"));
+            }
+            if (!initMessage.containsKey(PROCESS_RUNTIME_VERSION.getKey())) {
+                initMessage.put(PROCESS_RUNTIME_VERSION.getKey(), System.getProperty("java.runtime.version", "unavailable"));
+            }
+        } catch (SecurityException exp) {
+            LOGGER.warn("Cannot get process runtime information.", exp);
         }
 
-        initMessage.put("Java.LastRestart", TimeUtils.getTimestampMicroSeconds());
+        // No longer reporting startup error for SWO but consider bringing back
+        // if (configException != null) {
+        //     initMessage.put("Error", configException.getClass().getName() + ":" + configException.getMessage());
+        // }
 
         return initMessage;
     }

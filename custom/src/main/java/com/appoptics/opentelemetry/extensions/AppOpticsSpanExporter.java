@@ -44,6 +44,14 @@ public class AppOpticsSpanExporter implements SpanExporter {
 
                     final Metadata spanMetadata = new Metadata(w3cContext);
                     spanMetadata.randomizeOpID(); //get around the metadata logic, this op id is not used
+                    // set spanMetadata into the current Context so that after the initial event, the metadata
+                    // does not need to be manually managed for event creation / linkage.  Context is updated
+                    // with the metadata of the last reported event.
+                    Context.setMetadata(spanMetadata);
+
+                    // create new event with an override metadata from the OTel spanData (w3cContext)
+                    // and link to OTel parent (if present).
+                    // do this with EventImpl instead of Context because we need to use the addEdge param.
                     Event entryEvent;
                     if (parentMetadata != null) {
                         entryEvent = new EventImpl(parentMetadata, w3cContext, true);
@@ -64,10 +72,11 @@ public class AppOpticsSpanExporter implements SpanExporter {
 
                     entryEvent.addInfo(
                             "Label", "entry",
-                            "Layer", spanName);
+                            "Layer", spanName,
+                            "sw.span_kind", spanData.getKind().toString());
                     entryEvent.setTimestamp(spanData.getStartEpochNanos() / 1000);
                     entryEvent.addInfo(getEventKvs(spanData.getAttributes()));
-                    entryEvent.report(spanMetadata);
+                    entryEvent.report();
 
                     for (EventData event : spanData.getEvents()) {
                         if (SemanticAttributes.EXCEPTION_EVENT_NAME.equals(event.getName())) {
@@ -77,16 +86,19 @@ public class AppOpticsSpanExporter implements SpanExporter {
                         }
                     }
 
-                    final Metadata exitMetadata = Util.buildSpanExitMetadata(spanData.getSpanContext()); //exit ID has to be generated
-                    final Event exitEvent = new EventImpl(spanMetadata, exitMetadata.toHexString(),true);
+                    final Event exitEvent = Context.createEvent();
                     exitEvent.addInfo(
                             "Label", "exit",
-                            "Layer", spanName);
-
+                            "Layer", spanName,
+                            "sw.span_status_code", spanData.getStatus().getStatusCode().toString(),
+                            "sw.span_status_message", spanData.getStatus().getDescription());
                     exitEvent.setTimestamp(spanData.getEndEpochNanos() / 1000);
-                    exitEvent.report(spanMetadata);
+                    exitEvent.report();
                 } catch (OboeException e) {
                     e.printStackTrace();
+                } finally {
+                    // clear Context for the next OTel span, which will initialize it with w3cContext
+                    Context.clearMetadata();
                 }
             }
         }
@@ -108,7 +120,6 @@ public class AppOpticsSpanExporter implements SpanExporter {
         if (message == null) {
             message = "";
         }
-
         event.addInfo("Label", "error",
                     "Spec", "error",
                     "ErrorClass", attributes.get(SemanticAttributes.EXCEPTION_TYPE),
@@ -121,7 +132,6 @@ public class AppOpticsSpanExporter implements SpanExporter {
         for (Map.Entry<AttributeKey<?>, Object> keyValue : otherKvs.entrySet()) {
             event.addInfo(keyValue.getKey().getKey(), keyValue.getValue());
         }
-
         event.setTimestamp(eventData.getEpochNanos() / 1000); //convert to micro second
         event.report();
     }
@@ -129,9 +139,9 @@ public class AppOpticsSpanExporter implements SpanExporter {
     private void reportInfoEvent(EventData eventData) {
         final Event event = Context.createEvent();
         final Attributes attributes = eventData.getAttributes();
-
-        event.addInfo("Label", "info");
-
+        event.addInfo(
+            "Label", "info",
+            "sw.event_name", eventData.getName());
         final Map<AttributeKey<?>, Object> otherKvs = filterAttributes(attributes);
         for (Map.Entry<AttributeKey<?>, Object> keyValue : otherKvs.entrySet()) {
             event.addInfo(keyValue.getKey().getKey(), keyValue.getValue());
@@ -162,58 +172,16 @@ public class AppOpticsSpanExporter implements SpanExporter {
         return CompletableResultCode.ofSuccess();
     }
 
-
-
-
-    private static final Map<String, String> ATTRIBUTE_TO_TAG = new HashMap<String, String>();
-    private static final Map<String, TypeConverter<?>> TAG_VALUE_TYPE = new HashMap<String, TypeConverter<?>>();
-    static {
-        ATTRIBUTE_TO_TAG.put("http.status_code", "Status");
-        ATTRIBUTE_TO_TAG.put("net.peer.ip", "ClientIP");
-        ATTRIBUTE_TO_TAG.put("http.url", "URL");
-        ATTRIBUTE_TO_TAG.put("http.method", "HTTPMethod");
-        ATTRIBUTE_TO_TAG.put("db.connection_string", "RemoteHost");
-        ATTRIBUTE_TO_TAG.put("db.system", "Flavor");
-        ATTRIBUTE_TO_TAG.put("db.statement", "Query");
-        ATTRIBUTE_TO_TAG.put("db.url", "RemoteHost");
-        TAG_VALUE_TYPE.put("Status", IntConverter.INSTANCE);
-    }
-
     private Map<String,?> getEventKvs(Attributes inputAttributes) {
         final Map<AttributeKey<?>, Object> attributes = filterAttributes(inputAttributes);
         final Map<String, Object> tags = new HashMap<String, Object>();
         for (Map.Entry<AttributeKey<?>, Object> entry : attributes.entrySet()) {
             Object attributeValue = entry.getValue();
             final String attributeKey = entry.getKey().getKey();
-            if (ATTRIBUTE_TO_TAG.containsKey(attributeKey)) {
-                final String tagKey = ATTRIBUTE_TO_TAG.get(attributeKey);
-                if (TAG_VALUE_TYPE.containsKey(tagKey)) {
-                    attributeValue = TAG_VALUE_TYPE.get(tagKey).convert(attributeValue);
-                }
-                tags.put(tagKey, attributeValue);
-            }
 
             tags.put(attributeKey, attributeValue);
         }
         return tags;
-    }
-
-    interface TypeConverter<T> {
-        T convert(Object rawValue);
-    }
-
-    private static class IntConverter implements TypeConverter<Integer> {
-        static final IntConverter INSTANCE = new IntConverter();
-        @Override
-        public Integer convert(Object rawValue) {
-            if (rawValue instanceof Number) {
-                return ((Number) rawValue).intValue();
-            } else if (rawValue instanceof String) {
-                return Integer.valueOf((String) rawValue);
-            } else {
-                return null;
-            }
-        }
     }
 
     @Override

@@ -21,11 +21,11 @@ Go to `Actions` and run the `Benchmark` workflow.
 
 ### Where are the test results
 #### The summary of the latest run
-Go to https://github.com/appoptics/opentelemetry-java-instrumentation-custom-distro/blob/benchmark-results/benchmark/results/release/summary.txt
+Go to https://github.com/appoptics/solarwinds-apm-java/blob/benchmark-results/benchmark/results/release/summary.txt
 
 #### The metrics of all the recent runs
-Check out this file: https://github.com/appoptics/opentelemetry-java-instrumentation-custom-distro/blob/benchmark-results/benchmark/results/release/results.csv
+Check out this file: https://github.com/appoptics/solarwinds-apm-java/blob/benchmark-results/benchmark/results/release/results.csv
 
 #### The report of the latest run
-Under this directory: https://github.com/appoptics/opentelemetry-java-instrumentation-custom-distro/tree/benchmark-results/benchmark/build/reports/tests/test
+Under this directory: https://github.com/appoptics/solarwinds-apm-java/tree/benchmark-results/benchmark/build/reports/tests/test
 
