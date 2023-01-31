@@ -8,7 +8,6 @@ package com.appoptics.opentelemetry.instrumentation.servlet.v3_0;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.javaagent.bootstrap.CallDepth;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import org.slf4j.Logger;
@@ -32,14 +31,14 @@ public class Servlet3Advice {
       @Advice.This(typing = Assigner.Typing.DYNAMIC) Object servletOrFilter,
       @Advice.Argument(value = 0, readOnly = false) ServletRequest request,
       @Advice.Argument(value = 1, readOnly = false) ServletResponse response) {
-    if (!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse)) {
-      return;
+    if (request instanceof HttpServletRequest && response instanceof HttpServletResponse) {
+      HttpServletResponse httpServletResponse = (HttpServletResponse)response;
+      if (httpServletResponse.containsHeader(XTRACE_HEADER)) {
+        LoggerFactory.getLogger(servletOrFilter.getClass()).debug("{} header exists. Skipping injection.", XTRACE_HEADER);
+      } else {
+        injectXTraceHeader(response);
+      }
     }
-    CallDepth callDepth = CallDepth.forClass(getCallDepthKey());
-    if (callDepth.getAndIncrement() > 0) {
-      return;
-    }
-    injectXTraceHeader(response);
   }
 
   public static void injectXTraceHeader(ServletResponse response) {
@@ -61,8 +60,4 @@ public class Servlet3Advice {
     return in.replace("####", "=").replace("....", ",");
   }
 
-  public static Class<?> getCallDepthKey() {
-    class Key {}
-    return Key.class;
-  }
 }
