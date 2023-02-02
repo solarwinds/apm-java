@@ -1,20 +1,18 @@
 package com.appoptics.opentelemetry.extensions;
 
-import com.google.auto.service.AutoService;
-import io.opentelemetry.javaagent.extension.config.ConfigPropertySource;
-
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Provide various default properties when running OT agent with AO SPI implementations
  */
-@AutoService(ConfigPropertySource.class)
-public class AppOpticsPropertySource implements ConfigPropertySource {
+
+public class AppOpticsPropertiesSupplier implements Supplier<Map<String, String>> {
     private static final Map<String, String> PROPERTIES = new HashMap<>();
 
     static {
-        if (AppOpticsTracerProviderConfigurer.getAgentEnabled()) {
+        if (AppOpticsTracerProviderCustomizer.getAgentEnabled()) {
             PROPERTIES.put("otel.traces.exporter", "appoptics");
             PROPERTIES.put("otel.traces.sampler", "appoptics");
             PROPERTIES.put("otel.metrics.exporter", "none");
@@ -25,7 +23,7 @@ public class AppOpticsPropertySource implements ConfigPropertySource {
     }
 
     @Override
-    public Map<String, String> getProperties() {
+    public Map<String, String> get() {
         return PROPERTIES;
     }
 }

@@ -17,7 +17,7 @@ dependencies {
 
   compileOnly "javax.servlet:javax.servlet-api:3.0.1"
 
-  compileOnly "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}"
+  compileOnly "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetry}"
 
   testImplementation project(path: ":instrumentation:jdbc")
   testInstrumentation "io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-servlet-common:${versions.opentelemetryJavaagentAlpha}"

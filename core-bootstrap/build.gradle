@@ -8,7 +8,7 @@ apply from: "$rootDir/gradle/shadow.gradle"
 dependencies {
   compileOnly("io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}")
   compileOnly('org.checkerframework:checker-qual:3.21.2')
-  compileOnly 'org.slf4j:slf4j-api:1.7.36'
+  compileOnly 'org.slf4j:slf4j-api:2.0.6'
 
   compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
   compileOnly "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"

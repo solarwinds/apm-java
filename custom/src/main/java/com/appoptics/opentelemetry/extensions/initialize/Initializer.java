@@ -514,8 +514,7 @@ public class Initializer {
                 // Mask service key if captured in process command line or arg
                 if ((attrName.equals(PROCESS_COMMAND_LINE.getKey()) || attrName.equals(PROCESS_COMMAND_ARGS.getKey()))
                     && attrValue.toString().contains("sw.apm.service.key=")) {
-                    String maskedStr = attrValue.toString().replaceAll("(sw.apm.service.key=)\\S+","$1****");
-                    attrValue = maskedStr;
+                    attrValue = attrValue.toString().replaceAll("(sw.apm.service.key=)\\S+","$1****");
                 }
                 initMessage.put(attrName, attrValue);
             }
