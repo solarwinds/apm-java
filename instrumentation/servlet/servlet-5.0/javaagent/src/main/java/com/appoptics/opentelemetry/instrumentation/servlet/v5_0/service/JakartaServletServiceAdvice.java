@@ -14,7 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
-import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("unused")
 public class JakartaServletServiceAdvice {
@@ -29,23 +28,21 @@ public class JakartaServletServiceAdvice {
             @Advice.Argument(value = 1, readOnly = false) ServletResponse response) {
         if (request instanceof HttpServletRequest && response instanceof HttpServletResponse) {
             HttpServletResponse httpServletResponse = (HttpServletResponse)response;
-            if (httpServletResponse.containsHeader(XTRACE_HEADER)) {
-                LoggerFactory.getLogger(servletOrFilter.getClass()).debug("{} header exists. Skipping injection.", XTRACE_HEADER);
-            } else {
-                injectXTraceHeader(response);
+            if (!httpServletResponse.containsHeader(XTRACE_HEADER)) {
+                injectXTraceHeader(httpServletResponse);
             }
         }
     }
 
-    public static void injectXTraceHeader(ServletResponse response) {
+    public static void injectXTraceHeader(HttpServletResponse response) {
         SpanContext spanContext = Span.fromContext(Context.current()).getSpanContext();
         String flags = spanContext.isSampled() ? "01" : "00";
         String traceContext = "00-" + spanContext.getTraceId() + "-" + spanContext.getSpanId() + "-" + flags;
-        ((HttpServletResponse) response).addHeader(XTRACE_HEADER, traceContext);
+        response.addHeader(XTRACE_HEADER, traceContext);
 
         String xTraceOptionsResp = spanContext.getTraceState().get(SW_XTRACE_OPTIONS_RESP_KEY);
         if (xTraceOptionsResp != null) {
-            ((HttpServletResponse) response).addHeader(XTRACE_OPTIONS_RESP_HEADER, recover(xTraceOptionsResp));
+            response.addHeader(XTRACE_OPTIONS_RESP_HEADER, recover(xTraceOptionsResp));
         }
     }
 

@@ -29,6 +29,7 @@ CopySpec isolateSpec() {
     configurations.customShadow.files.each {
       from(zipTree(it)) {
         into("inst")
+        exclude("io/opentelemetry/javaagent/shaded/instrumentation/api/**")
         rename("(^.*)\\.class\$", "\$1.classdata")
       }
     }
