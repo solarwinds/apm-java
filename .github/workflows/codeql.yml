@@ -54,7 +54,6 @@ jobs:
         # Details on CodeQL's query packs refer to : https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
         # queries: security-extended,security-and-quality
 
-
     # Autobuild fails so use custom build steps
     - name: Set up JDK 11
       uses: actions/setup-java@v2
@@ -64,8 +63,6 @@ jobs:
         
     - name: Build with Gradle and Test
       uses: gradle/gradle-build-action@v2
-      with:
-        arguments: test
       env:
         GP_USERNAME: ${{ secrets.GP_USERNAME }}
         GP_TOKEN: ${{ secrets.GP_TOKEN }}
