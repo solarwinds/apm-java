@@ -61,8 +61,10 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
         
-    - name: Build with Gradle and Test
+    - name: Build with Gradle
       uses: gradle/gradle-build-action@v2
+      with:
+        arguments: build
       env:
         GP_USERNAME: ${{ secrets.GP_USERNAME }}
         GP_TOKEN: ${{ secrets.GP_TOKEN }}
