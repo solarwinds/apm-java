@@ -10,13 +10,13 @@ apply from: "$rootDir/gradle/instrumentation.gradle"
 //}
 
 dependencies {
-  compileOnly project(":core-bootstrap")
+  compileOnly project(":bootstrap")
   compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
-  implementation "io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}"
-  implementation "io.opentelemetry:opentelemetry-sdk-trace:${versions.opentelemetry}"
+  compileOnly "io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}"
+  compileOnly "io.opentelemetry:opentelemetry-sdk-trace:${versions.opentelemetry}"
 
   compileOnly "javax.servlet:javax.servlet-api:3.0.1"
-
+  implementation 'org.slf4j:slf4j-api:2.0.6'
   compileOnly "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetry}"
 
   testImplementation project(path: ":instrumentation:jdbc")
