@@ -1,6 +1,6 @@
 import com.appoptics.opentelemetry.instrumentation.TraceContextInjector
-import io.opentelemetry.api.GlobalOpenTelemetry
 import io.opentelemetry.context.Context
+import io.opentelemetry.sdk.OpenTelemetrySdk
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -10,7 +10,7 @@ import java.util.regex.Pattern
 class InjectTraceContextTest extends Specification {
     def "inject trace context from span to sql"(String sql) {
         setup:
-        def tracer = GlobalOpenTelemetry.getTracer("test")
+        def tracer = OpenTelemetrySdk.builder().build().getTracer("test")
         def testScope = tracer.spanBuilder("test").startSpan().makeCurrent()
         Pattern pattern = Pattern.compile("/\\*traceparent:'00-[a-f0-9]{32}-[a-f0-9]{16}-0[0|1]'\\*/ .+")
 
