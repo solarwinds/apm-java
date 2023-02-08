@@ -19,7 +19,7 @@ dependencies {
   compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
   compileOnly "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
 
-  testImplementation "junit:junit:4.10"
+  testImplementation 'junit:junit:4.13.1'
   testImplementation "com.appoptics.agent.java:core:${versions.appopticsCore}"
   testImplementation "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
 }
@@ -67,6 +67,34 @@ publishing {
         artifact javadocJar
       }
     }
+    localInstall(MavenPublication){
+      pom {
+        name = "${archivesBaseName}"
+        description = "${archivesBaseName}"
+        url = "www.solarwinds.com"
+        scm {
+          url = 'https://www.solarwinds.com'
+        }
+        developers {
+          developer {
+            id = 'APM'
+            name = 'The APM Agent team'
+          }
+        }
+        licenses {
+          license {
+            name = 'Librato Open License'
+          }
+        }
+        groupId = 'io.github.appoptics'
+        artifactId = "${archivesBaseName}"
+        version = "${versions.agent}"
+        from components.java
+        artifact sourcesJar
+        artifact javadocJar
+      }
+    }
+    publishLocalInstallPublicationToMavenLocal
   }
   repositories {
     maven {
