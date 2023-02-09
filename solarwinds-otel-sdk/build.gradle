@@ -6,14 +6,16 @@ plugins {
 }
 
 apply from: "$rootDir/gradle/shadow.gradle"
-
 project.archivesBaseName = 'solarwinds-otel-sdk'
-
+def relocatePackages = ext.relocatePackages
 
 dependencies {
   compileOnly project(":custom")
   compileOnly project(":bootstrap")
   compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
+
+  compileOnly("io.opentelemetry:opentelemetry-api:${versions.opentelemetry}")
+  compileOnly("io.opentelemetry:opentelemetry-context:${versions.opentelemetry}")
 
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:${versions.opentelemetryJavaagentAlpha}")
   compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
@@ -36,6 +38,11 @@ task javadocJar(type: Jar) {
     include 'SOURCES_DOC_README'
   }
   archiveClassifier.set("javadoc")
+}
+
+shadowJar{
+  archiveClassifier.set(null)
+  relocatePackages(it)
 }
 
 publishing {

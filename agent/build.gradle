@@ -33,7 +33,6 @@ configurations {
 dependencies {
   javaagentLibs project(path: ":custom")
   javaagentLibs project(path: ":instrumentation")
-  javaagentLibs project(path: ":solarwinds-otel-sdk")
 
   bootstrapLibs project(path: ":bootstrap")
   bootstrapLibs "com.appoptics.agent.java:core:${versions.appopticsCore}"
@@ -106,6 +105,7 @@ tasks {
       include("inst/META-INF/services/*")
     }
     exclude("**/module-info.class")
+    exclude("inst/com/appoptics/opentelemetry/core/**")
     relocatePackages(it)
 
     manifest {
