@@ -1,9 +1,9 @@
 package com.appoptics.opentelemetry.extensions;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.javaagent.extension.bootstrap.BootstrapPackagesBuilder;
-import io.opentelemetry.javaagent.extension.bootstrap.BootstrapPackagesConfigurer;
+import io.opentelemetry.javaagent.tooling.bootstrap.BootstrapPackagesBuilder;
+import io.opentelemetry.javaagent.tooling.bootstrap.BootstrapPackagesConfigurer;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 
 /**
  * This adds the Joboe core classes to the list which would always be loaded by the bootstrap classloader,
@@ -14,7 +14,7 @@ import io.opentelemetry.javaagent.extension.bootstrap.BootstrapPackagesConfigure
 @AutoService(BootstrapPackagesConfigurer.class)
 public class AppOpticsBootstrapPackagesProvider implements BootstrapPackagesConfigurer {
     @Override
-    public void configure(Config config, BootstrapPackagesBuilder builder) {
+    public void configure(BootstrapPackagesBuilder builder, ConfigProperties config) {
         builder.add("com.tracelytics");
     }
 }

@@ -1,73 +1,87 @@
 group = "io.github.appoptics"
 
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+        maven {
+            name = "sonatype"
+            url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+        }
+    }
+    dependencies {
+        classpath "com.diffplug.spotless:spotless-plugin-gradle:6.14.0"
+        classpath "gradle.plugin.com.github.johnrengelman:shadow:7.1.2"
+        classpath "io.opentelemetry.instrumentation:gradle-plugins:1.23.0-alpha-SNAPSHOT"
+    }
+}
+
 subprojects {
-  apply plugin: "java"
-  apply plugin: "muzzle"
-  apply plugin: "checkstyle"
+    apply plugin: "java"
+    apply plugin: "checkstyle"
 
-  ext {
-    versions = [
-      opentelemetry         : "1.12.0",
-      opentelemetryJavaagent: "1.12.1",
-      bytebuddy             : "1.12.6",
-      guava                 : "30.1-jre",
-      appopticsCore         : "7.8.1",
-      agent                 : "0.14.2" // the custom distro agent version
-    ]
-    versions.appopticsMetrics = "${versions.appopticsCore}" // they share the same version now
-    versions.opentelemetryAlpha = "${versions.opentelemetry}-alpha"
-    versions.opentelemetryJavaagentAlpha = "${versions.opentelemetryJavaagent}-alpha"
+    ext {
+        versions = [
+                opentelemetry         : "1.22.0",
+                opentelemetryJavaagent: "1.22.0",
+                bytebuddy             : "1.12.10",
+                guava                 : "30.1-jre",
+                appopticsCore         : "7.8.1",
+                agent                 : "0.14.2", // the custom distro agent version
+                autoservice           : "1.0.1",
+        ]
+        versions.appopticsMetrics = "${versions.appopticsCore}" // they share the same version now
+        versions.opentelemetryAlpha = "${versions.opentelemetry}-alpha"
+        versions.opentelemetryJavaagentAlpha = "${versions.opentelemetryJavaagent}-alpha"
 
-    deps = [
-      bytebuddy           : "net.bytebuddy:byte-buddy-dep:${versions.bytebuddy}",
-      autoservice         : [
-        "com.google.auto.service:auto-service:1.0-rc7",
-        "com.google.auto:auto-common:0.8",
-        "com.google.guava:guava:${versions.guava}",
-      ],
-      autoValueAnnotations: "com.google.auto.value:auto-value-annotations:${versions.autoValue}",
-    ]
-  }
-
-  repositories {
-    maven {
-      url = uri("https://oss.sonatype.org/content/repositories/snapshots")
-    }
-    maven {
-      url = uri("https://maven.pkg.github.com/librato/joboe")
-      credentials {
-        username = project.findProperty("gpr.user") ?: System.getenv("GP_USERNAME")
-        password = project.findProperty("gpr.key") ?: System.getenv("GP_TOKEN")
-      }
-    }
-    mavenLocal()
-    mavenCentral()
-  }
-
-  dependencies {
-    testImplementation("org.mockito:mockito-core:3.3.3")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.2")
-  }
-
-  checkstyleMain {
-    configFile = file("$rootDir/checkstyle.xml")
-  }
-
-  checkstyleTest.enabled = false
-
-// too many trailing spaces warnings
-//  checkstyleTest {
-//    configFile = file("$rootDir/checkstyle.xml")
-//  }
-
-  tasks {
-    test {
-      useJUnitPlatform()
+        deps = [
+                bytebuddy           : "net.bytebuddy:byte-buddy-dep:${versions.bytebuddy}",
+                autoservice         : [
+                        "com.google.auto.service:auto-service:${versions.autoservice}",
+                        "com.google.auto.service:auto-service-annotations:${versions.autoservice}",
+                ],
+        ]
     }
 
-    compileJava {
-      options.release.set(8)
+    repositories {
+        maven {
+            url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+        }
+        maven {
+            url = uri("https://maven.pkg.github.com/librato/joboe")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("GP_USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("GP_TOKEN")
+            }
+        }
+        mavenLocal()
+        mavenCentral()
     }
-  }
+
+    dependencies {
+        testImplementation("org.mockito:mockito-core:3.3.3")
+        testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.2")
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.2")
+    }
+
+    checkstyleMain {
+        configFile = file("$rootDir/checkstyle.xml")
+    }
+
+    checkstyleTest.enabled = false
+
+    checkstyleTest {
+        configFile = file("$rootDir/checkstyle.xml")
+    }
+
+    tasks {
+        test {
+            useJUnitPlatform()
+        }
+
+        compileJava {
+            options.release.set(8)
+        }
+    }
 }

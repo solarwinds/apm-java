@@ -8,12 +8,14 @@ import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 
+import javax.annotation.Nonnull;
+
 /**
  * Span processor to keep track of the root span of a trace
  */
 public class AppOpticsRootSpanProcessor implements SpanProcessor {
     @Override
-    public void onStart(Context parentContext, ReadWriteSpan span) {
+    public void onStart(@Nonnull Context parentContext, @Nonnull ReadWriteSpan span) {
         SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
         if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) { //then a root span of this service
             RootSpan.setRootSpan(span);

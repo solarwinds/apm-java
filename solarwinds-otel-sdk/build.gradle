@@ -1,23 +1,27 @@
 plugins {
   id("java")
   id("maven-publish")
-  id("com.github.johnrengelman.shadow") version "7.0.0"
+  id("com.github.johnrengelman.shadow")
   id 'signing'
 }
 
 apply from: "$rootDir/gradle/shadow.gradle"
-
 project.archivesBaseName = 'solarwinds-otel-sdk'
-
+def relocatePackages = ext.relocatePackages
 
 dependencies {
+  compileOnly project(":custom")
+  compileOnly project(":bootstrap")
   compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
+
+  compileOnly("io.opentelemetry:opentelemetry-api:${versions.opentelemetry}")
+  compileOnly("io.opentelemetry:opentelemetry-context:${versions.opentelemetry}")
+
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:${versions.opentelemetryJavaagentAlpha}")
   compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
   compileOnly "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
-  compileOnly project(":custom")
-  compileOnly project(":core-bootstrap")
-  testImplementation "junit:junit:4.10"
+
+  testImplementation 'junit:junit:4.13.1'
   testImplementation "com.appoptics.agent.java:core:${versions.appopticsCore}"
   testImplementation "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
 }
@@ -34,6 +38,11 @@ task javadocJar(type: Jar) {
     include 'SOURCES_DOC_README'
   }
   archiveClassifier.set("javadoc")
+}
+
+shadowJar{
+  archiveClassifier.set(null)
+  relocatePackages(it)
 }
 
 publishing {
@@ -65,6 +74,34 @@ publishing {
         artifact javadocJar
       }
     }
+    localInstall(MavenPublication){
+      pom {
+        name = "${archivesBaseName}"
+        description = "${archivesBaseName}"
+        url = "www.solarwinds.com"
+        scm {
+          url = 'https://www.solarwinds.com'
+        }
+        developers {
+          developer {
+            id = 'APM'
+            name = 'The APM Agent team'
+          }
+        }
+        licenses {
+          license {
+            name = 'Librato Open License'
+          }
+        }
+        groupId = 'io.github.appoptics'
+        artifactId = "${archivesBaseName}"
+        version = "${versions.agent}"
+        from components.java
+        artifact sourcesJar
+        artifact javadocJar
+      }
+    }
+    publishLocalInstallPublicationToMavenLocal
   }
   repositories {
     maven {

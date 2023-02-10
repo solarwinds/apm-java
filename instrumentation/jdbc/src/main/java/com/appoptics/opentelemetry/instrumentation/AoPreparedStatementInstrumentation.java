@@ -4,7 +4,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
-import io.opentelemetry.javaagent.instrumentation.api.CallDepth;
+import io.opentelemetry.javaagent.bootstrap.CallDepth;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -16,7 +16,7 @@ import java.util.SortedMap;
 
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
-import static io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge.currentContext;
+import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
 import static net.bytebuddy.matcher.ElementMatchers.*;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 

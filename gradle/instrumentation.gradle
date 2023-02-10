@@ -1,9 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
-
-import io.opentelemetry.instrumentation.gradle.bytebuddy.ByteBuddyPluginConfigurator
-
-apply plugin: 'net.bytebuddy.byte-buddy'
+apply plugin: 'io.opentelemetry.instrumentation.muzzle-generation'
+apply plugin: 'io.opentelemetry.instrumentation.muzzle-check'
 
 apply from: "$rootDir/gradle/shadow.gradle"
 
@@ -12,51 +10,28 @@ def relocatePackages = ext.relocatePackages
 configurations {
   testInstrumentation
   testAgent
-  toolingRuntime {
-    canBeConsumed = false
-    canBeResolved = true
-  }
-
-  bootstrapRuntime {
-    canBeConsumed = false
-    canBeResolved = true
-  }
 }
 
 dependencies {
-  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
+  compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
-  implementation "org.slf4j:slf4j-api:1.6.2"
 
   compileOnly deps.bytebuddy
-//  compileOnly deps.bytebuddyagent
   annotationProcessor deps.autoservice
   compileOnly deps.autoservice
 
   // the javaagent that is going to be used when running instrumentation unit tests
-  testAgent("io.opentelemetry.javaagent:opentelemetry-agent-for-testing:${versions.opentelemetryJavaagentAlpha}")
+//  testAgent(project(path: ":testing:agent-for-testing", configuration: "shadow"))
   // test dependencies
   testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagentAlpha}")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing:${versions.opentelemetry}")
   testImplementation("org.assertj:assertj-core:3.19.0")
-}
 
-afterEvaluate {
-  dependencies {
-    compileOnly "io.opentelemetry.javaagent:opentelemetry-javaagent-instrumentation-api:${versions.opentelemetryJavaagentAlpha}"
-    compileOnly "io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}"
-    compileOnly "net.bytebuddy:byte-buddy-dep:${versions.bytebuddy}"
-    compileOnly "io.opentelemetry:opentelemetry-api:${versions.opentelemetry}"
-//    toolingRuntime(project(path: ":javaagent-tooling", configuration: 'instrumentationMuzzle'))
-//    toolingRuntime(project(path: ":javaagent-extension-api", configuration: 'instrumentationMuzzle'))
-    toolingRuntime "io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}"
-
-
-  }
-  def pluginName = 'io.opentelemetry.javaagent.tooling.muzzle.generation.MuzzleCodeGenerationPlugin'
-  new ByteBuddyPluginConfigurator(project, sourceSets.main, pluginName,
-          configurations.toolingRuntime + configurations.runtimeClasspath
-  ).configure()
+  add("codegen", "io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}")
+  add("muzzleBootstrap", "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations-support:${versions.opentelemetryJavaagentAlpha}")
+  add("muzzleTooling", "io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
+  add("muzzleTooling", "io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}")
 }
 
 shadowJar {
@@ -72,7 +47,6 @@ tasks.withType(Test).configureEach {
   inputs.file(shadowJar.archiveFile)
 
   jvmArgs "-Dotel.javaagent.debug=true"
-  jvmArgs "-javaagent:${configurations.testAgent.files.first().absolutePath}"
   jvmArgs "-Dotel.javaagent.experimental.initializer.jar=${shadowJar.archiveFile.get().asFile.absolutePath}"
   jvmArgs "-Dotel.javaagent.testing.additional-library-ignores.enabled=false"
   jvmArgs "-Dotel.javaagent.testing.fail-on-context-leak=true"
@@ -80,6 +54,7 @@ tasks.withType(Test).configureEach {
   jvmArgs "-Dotel.javaagent.testing.transform-safe-logging.enabled=true"
 
   dependsOn shadowJar
+  dependsOn configurations.testAgent.buildDependencies
 
   // The sources are packaged into the testing jar so we need to make sure to exclude from the test
   // classpath, which automatically inherits them, to ensure our shaded versions are used.

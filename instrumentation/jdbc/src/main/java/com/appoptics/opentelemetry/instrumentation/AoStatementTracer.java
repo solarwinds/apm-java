@@ -9,7 +9,6 @@ import com.appoptics.opentelemetry.core.Constants;
 import com.tracelytics.util.BackTraceUtil;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
-//import io.opentelemetry.instrumentation.api.tracer.BaseTracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

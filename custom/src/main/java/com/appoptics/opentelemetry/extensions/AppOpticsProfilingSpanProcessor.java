@@ -17,6 +17,8 @@ import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 
+import javax.annotation.Nonnull;
+
 import static com.appoptics.opentelemetry.core.Constants.*;
 
 /**
@@ -24,7 +26,7 @@ import static com.appoptics.opentelemetry.core.Constants.*;
  */
 public class AppOpticsProfilingSpanProcessor implements SpanProcessor {
     private static final Logger logger = LoggerFactory.getLogger();
-    private static ProfilerSetting profilerSetting = (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);
+    private static final ProfilerSetting profilerSetting = (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);
     private static final boolean PROFILER_ENABLED = profilerSetting != null && profilerSetting.isEnabled();
     static {
         if (PROFILER_ENABLED) {
@@ -36,7 +38,7 @@ public class AppOpticsProfilingSpanProcessor implements SpanProcessor {
 
 
     @Override
-    public void onStart(Context parentContext, ReadWriteSpan span) {
+    public void onStart(@Nonnull Context parentContext, ReadWriteSpan span) {
         if (span.getSpanContext().isSampled()) { //only profile on sampled spans
             SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
             if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) { //then a root span of this service

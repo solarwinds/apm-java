@@ -17,7 +17,7 @@ import com.tracelytics.monitor.metrics.MetricsCollector;
 import com.tracelytics.monitor.metrics.MetricsMonitor;
 import com.tracelytics.profiler.Profiler;
 import com.tracelytics.util.*;
-import org.slf4j.Logger;
+import com.tracelytics.logging.Logger;
 
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributeKey;
@@ -46,7 +46,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class Initializer {
-    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Initializer.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger();
     private static final String CONFIG_FILE = "solarwinds-apm-config.json";
     private static final String SYS_PROPERTIES_PREFIX = "sw.apm";
     private static AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk;
@@ -499,8 +499,8 @@ public class Initializer {
         // Capture OTel Resource attributes
         if (autoConfiguredOpenTelemetrySdk != null) {
             Attributes attributes = autoConfiguredOpenTelemetrySdk.getResource().getAttributes();
-            LOGGER.debug("Resource attributes {}",
-                attributes.toString().replaceAll("(sw.apm.service.key=)\\S+","$1****"));
+            LOGGER.debug("Resource attributes " +
+                    attributes.toString().replaceAll("(sw.apm.service.key=)\\S+", "$1****"));
 
             for (Map.Entry<AttributeKey<?>, Object> keyValue : attributes.asMap().entrySet()) {
                 AttributeKey<?> attributeKey = keyValue.getKey();
@@ -514,8 +514,7 @@ public class Initializer {
                 // Mask service key if captured in process command line or arg
                 if ((attrName.equals(PROCESS_COMMAND_LINE.getKey()) || attrName.equals(PROCESS_COMMAND_ARGS.getKey()))
                     && attrValue.toString().contains("sw.apm.service.key=")) {
-                    String maskedStr = attrValue.toString().replaceAll("(sw.apm.service.key=)\\S+","$1****");
-                    attrValue = maskedStr;
+                    attrValue = attrValue.toString().replaceAll("(sw.apm.service.key=)\\S+","$1****");
                 }
                 initMessage.put(attrName, attrValue);
             }

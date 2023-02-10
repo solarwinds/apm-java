@@ -25,6 +25,7 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -47,7 +48,7 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
     }
 
     @Override
-    public void onStart(Context parentContext, ReadWriteSpan span) {
+    public void onStart(@Nonnull Context parentContext, @Nonnull ReadWriteSpan span) {
 
     }
 
@@ -62,7 +63,7 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
         if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) { //then a root span of this service
             final SpanData spanData = span.toSpanData();
             //this sometimes cause serious problem if NPE is throw. too expensive? We don't really have to check as we always do inbound right now
-            if (spanData.getAttributes().get(AO_METRICS_KEY)) {
+            if (Boolean.TRUE.equals(spanData.getAttributes().get(AO_METRICS_KEY))) {
                 MEASUREMENT_REPORTER.reportMetrics(spanData);
                 HISTOGRAM_REPORTER.reportMetrics(spanData);
             }

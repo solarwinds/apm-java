@@ -1,33 +1,20 @@
 plugins {
   id "java"
-  id("com.github.johnrengelman.shadow") version "7.0.0"
 }
-
-apply from: "$rootDir/gradle/shadow.gradle"
-
-def relocatePackages = ext.relocatePackages
 
 dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetryAlpha}")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
-  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}")
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
+  compileOnly("io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}")
   compileOnly('org.checkerframework:checker-qual:3.21.2')
-  implementation project(path: ":core-bootstrap")
+  compileOnly project(path: ":bootstrap")
 
-  implementation 'org.slf4j:slf4j-api:1.7.36'
+  compileOnly 'org.slf4j:slf4j-api:2.0.6'
   compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
   compileOnly "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
 
   compileOnly "com.google.auto.service:auto-service-annotations:1.0.1"
   annotationProcessor 'com.google.auto.service:auto-service:1.0.1'
-}
-
-tasks {
-  shadowJar {
-    mergeServiceFiles()
-
-    exclude("**/module-info.class")
-
-    relocatePackages(it)
-  }
 }
