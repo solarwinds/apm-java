@@ -106,6 +106,7 @@ tasks {
     }
     exclude("**/module-info.class")
     exclude("inst/com/appoptics/opentelemetry/core/**")
+    exclude("inst/io/opentelemetry/javaagent/slf4j/**")
     relocatePackages(it)
 
     manifest {
