@@ -17,7 +17,7 @@ public class TraceContextInjector {
         }
         String flags = "01"; // only inject into sampled requests
         String traceContext = "00-" + spanContext.getTraceId() + "-" + spanContext.getSpanId() + "-" + flags;
-        String tag = String.format("/*traceparent:'%s'*/", traceContext);
+        String tag = String.format("/*traceparent='%s'*/", traceContext);
         span.setAttribute("QueryTag", tag);
         return String.format("%s %s", tag, sql);
     }
