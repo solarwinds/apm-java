@@ -12,7 +12,7 @@ class InjectTraceContextTest extends Specification {
         setup:
         def tracer = OpenTelemetrySdk.builder().build().getTracer("test")
         def testScope = tracer.spanBuilder("test").startSpan().makeCurrent()
-        Pattern pattern = Pattern.compile("/\\*traceparent:'00-[a-f0-9]{32}-[a-f0-9]{16}-0[0|1]'\\*/ .+")
+        Pattern pattern = Pattern.compile("/\\*traceparent='00-[a-f0-9]{32}-[a-f0-9]{16}-0[0|1]'\\*/ .+")
 
         expect:
         pattern.matcher(TraceContextInjector.inject(Context.current(), sql)).matches()
