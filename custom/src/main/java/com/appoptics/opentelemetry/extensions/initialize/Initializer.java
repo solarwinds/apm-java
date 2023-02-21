@@ -2,12 +2,38 @@ package com.appoptics.opentelemetry.extensions.initialize;
 
 import com.appoptics.opentelemetry.core.AgentState;
 import com.appoptics.opentelemetry.extensions.AppOpticsInboundMetricsSpanProcessor;
-import com.appoptics.opentelemetry.extensions.initialize.config.*;
+import com.appoptics.opentelemetry.extensions.initialize.config.ConfigConstants;
+import com.appoptics.opentelemetry.extensions.initialize.config.LogFileStringParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.LogSettingParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.LogTraceIdSettingParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.ModeStringToBooleanParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.ProfilerSettingParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.ProxyConfigParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.RangeValidationParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.TracingModeParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.TransactionSettingsConfigParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.UrlSampleRateConfigParser;
 import com.tracelytics.joboe.EventImpl;
 import com.tracelytics.joboe.RpcEventReporter;
-import com.tracelytics.joboe.config.*;
-import com.tracelytics.joboe.rpc.*;
+import com.tracelytics.joboe.config.ConfigContainer;
+import com.tracelytics.joboe.config.ConfigGroup;
+import com.tracelytics.joboe.config.ConfigManager;
+import com.tracelytics.joboe.config.ConfigProperty;
+import com.tracelytics.joboe.config.ConfigSourceType;
+import com.tracelytics.joboe.config.EnvConfigReader;
+import com.tracelytics.joboe.config.InvalidConfigException;
+import com.tracelytics.joboe.config.InvalidConfigReadSourceException;
+import com.tracelytics.joboe.config.InvalidConfigServiceKeyException;
+import com.tracelytics.joboe.config.JsonConfigReader;
+import com.tracelytics.joboe.config.ProfilerSetting;
+import com.tracelytics.joboe.config.TraceConfigs;
+import com.tracelytics.joboe.rpc.Client;
+import com.tracelytics.joboe.rpc.ClientException;
+import com.tracelytics.joboe.rpc.ClientLoggingCallback;
+import com.tracelytics.joboe.rpc.Result;
+import com.tracelytics.joboe.rpc.RpcClientManager;
 import com.tracelytics.joboe.settings.SettingsManager;
+import com.tracelytics.logging.Logger;
 import com.tracelytics.logging.LoggerFactory;
 import com.tracelytics.monitor.SystemMonitor;
 import com.tracelytics.monitor.SystemMonitorBuilder;
@@ -16,34 +42,42 @@ import com.tracelytics.monitor.SystemMonitorFactoryImpl;
 import com.tracelytics.monitor.metrics.MetricsCollector;
 import com.tracelytics.monitor.metrics.MetricsMonitor;
 import com.tracelytics.profiler.Profiler;
-import com.tracelytics.util.*;
-import com.tracelytics.logging.Logger;
-
-import io.opentelemetry.api.common.Attributes;
+import com.tracelytics.util.DaemonThreadFactory;
+import com.tracelytics.util.HostInfoUtils;
+import com.tracelytics.util.ServerHostInfoReader;
+import com.tracelytics.util.ServiceKeyUtils;
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_COMMAND_LINE;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_COMMAND_ARGS;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_DESCRIPTION;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_NAME;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_VERSION;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.SERVICE_NAME;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.TELEMETRY_SDK_LANGUAGE;
-
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_COMMAND_ARGS;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_COMMAND_LINE;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_DESCRIPTION;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_NAME;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_VERSION;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.SERVICE_NAME;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.TELEMETRY_SDK_LANGUAGE;
 
 public class Initializer {
     private static final Logger LOGGER = LoggerFactory.getLogger();
@@ -99,76 +133,74 @@ public class Initializer {
         // its Resource attributes.
         Initializer.autoConfiguredOpenTelemetrySdk = otelSDK;
 
-        AgentState.setStartupTasksFuture(service.submit(new Runnable() {
-            public void run() {
+        AgentState.setStartupTasksFuture(service.submit(() -> {
+            try {
+                LOGGER.info("Starting startup task");
+                // trigger init on the Settings reader
+                CountDownLatch settingsLatch = null;
+
+                LOGGER.info("Initializing HostUtils");
+                HostInfoUtils.init(ServerHostInfoReader.INSTANCE);
                 try {
-                    LOGGER.info("Starting startup task");
-                    // trigger init on the Settings reader
-                    CountDownLatch settingsLatch = null;
+                    HostInfoUtils.NetworkAddressInfo networkAddressInfo = HostInfoUtils.getNetworkAddressInfo();
+                    List<String> ipAddresses = networkAddressInfo != null ? networkAddressInfo.getIpAddresses() : Collections.<String>emptyList();
 
-                    LOGGER.info("Initializing HostUtils");
-                    HostInfoUtils.init(ServerHostInfoReader.INSTANCE);
-                    try {
-                        HostInfoUtils.NetworkAddressInfo networkAddressInfo = HostInfoUtils.getNetworkAddressInfo();
-                        List<String> ipAddresses = networkAddressInfo != null ? networkAddressInfo.getIpAddresses() : Collections.<String>emptyList();
+                    LOGGER.debug("Detected host id: " + HostInfoUtils.getHostId() + " ip addresses: " + ipAddresses);
 
-                        LOGGER.debug("Detected host id: " + HostInfoUtils.getHostId() + " ip addresses: " + ipAddresses);
-
-                        settingsLatch = SettingsManager.initialize();
-                    }
-                    catch (ClientException e) {
-                        LOGGER.debug("Failed to initialize RpcSettingsReader : " + e.getMessage());
-                    }
-                    LOGGER.info("Initialized HostUtils");
-
-                    LOGGER.info("Sending init message");
-                    reportInit(null);
-
-                    LOGGER.info("Building reporter");
-                    EventImpl.setDefaultReporter(RpcEventReporter.buildReporter(RpcClientManager.OperationType.TRACING));
-                    LOGGER.info("Built reporter");
-
-                    LOGGER.info("Starting System monitor");
-                    SystemMonitorController.startWithBuilder(new SystemMonitorBuilder() {
-                        @Override
-                        public List<SystemMonitor<?, ?>> build() {
-                            return new SystemMonitorFactoryImpl(ConfigManager.getConfigs(ConfigGroup.MONITOR)) {
-                                @Override
-                                protected MetricsMonitor buildMetricsMonitor() {
-                                    try {
-                                        MetricsCollector metricsCollector = new MetricsCollector(configs, AppOpticsInboundMetricsSpanProcessor.buildSpanMetricsCollector());
-                                        return MetricsMonitor.buildInstance(configs, metricsCollector);
-                                    }
-                                    catch (InvalidConfigException | ClientException e) {
-                                        e.printStackTrace();
-                                    }
-                                    return null;
-                                }
-                            }.buildMonitors();
-                        }
-                    });
-                    LOGGER.info("Started System monitor");
-                    //SystemMonitorController.start();
-
-                    ProfilerSetting profilerSetting = (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);
-                    if (profilerSetting != null && profilerSetting.isEnabled()) {
-                        LOGGER.debug("Profiler is enabled, local settings : " + profilerSetting);
-                        Profiler.initialize(profilerSetting, RpcEventReporter.buildReporter(RpcClientManager.OperationType.PROFILING));
-                    } else {
-                        LOGGER.debug("Profiler is disabled, local settings : " + profilerSetting);
-                    }
-
-                    //now wait for all the latches (for now there's only one for settings)
-                    try {
-                        if (settingsLatch != null) {
-                            settingsLatch.await();
-                        }
-                    } catch (InterruptedException e) {
-                        LOGGER.debug("Failed to wait for settings from RpcSettingsReader : " + e.getMessage());
-                    }
-                } catch (Throwable e) {
-                    LOGGER.warn("Failed post system startup operations due to : " + e.getMessage(), e);
+                    settingsLatch = SettingsManager.initialize();
                 }
+                catch (ClientException e) {
+                    LOGGER.debug("Failed to initialize RpcSettingsReader : " + e.getMessage());
+                }
+                LOGGER.info("Initialized HostUtils");
+
+                LOGGER.info("Sending init message");
+                reportInit();
+
+                LOGGER.info("Building reporter");
+                EventImpl.setDefaultReporter(RpcEventReporter.buildReporter(RpcClientManager.OperationType.TRACING));
+                LOGGER.info("Built reporter");
+
+                LOGGER.info("Starting System monitor");
+                SystemMonitorController.startWithBuilder(new SystemMonitorBuilder() {
+                    @Override
+                    public List<SystemMonitor<?, ?>> build() {
+                        return new SystemMonitorFactoryImpl(ConfigManager.getConfigs(ConfigGroup.MONITOR)) {
+                            @Override
+                            protected MetricsMonitor buildMetricsMonitor() {
+                                try {
+                                    MetricsCollector metricsCollector = new MetricsCollector(configs, AppOpticsInboundMetricsSpanProcessor.buildSpanMetricsCollector());
+                                    return MetricsMonitor.buildInstance(configs, metricsCollector);
+                                }
+                                catch (InvalidConfigException | ClientException e) {
+                                    e.printStackTrace();
+                                }
+                                return null;
+                            }
+                        }.buildMonitors();
+                    }
+                });
+                LOGGER.info("Started System monitor");
+                //SystemMonitorController.start();
+
+                ProfilerSetting profilerSetting = (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);
+                if (profilerSetting != null && profilerSetting.isEnabled()) {
+                    LOGGER.debug("Profiler is enabled, local settings : " + profilerSetting);
+                    Profiler.initialize(profilerSetting, RpcEventReporter.buildReporter(RpcClientManager.OperationType.PROFILING));
+                } else {
+                    LOGGER.debug("Profiler is disabled, local settings : " + profilerSetting);
+                }
+
+                //now wait for all the latches (for now there's only one for settings)
+                try {
+                    if (settingsLatch != null) {
+                        settingsLatch.await();
+                    }
+                } catch (InterruptedException e) {
+                    LOGGER.debug("Failed to wait for settings from RpcSettingsReader : " + e.getMessage());
+                }
+            } catch (Throwable e) {
+                LOGGER.warn("Failed post system startup operations due to : " + e.getMessage(), e);
             }
         }));
         LOGGER.info("Submitted startup task");
@@ -280,9 +312,9 @@ public class Initializer {
 
 
         String location = null;
+        //Thirdly, read from Config Property File
+        InputStream config = null;
         try {
-            //Thirdly, read from Config Property File
-            InputStream config = null;
             if (container.containsProperty(ConfigProperty.AGENT_CONFIG)) {
                 location = (String) container.get(ConfigProperty.AGENT_CONFIG);
                 try {
@@ -312,6 +344,13 @@ public class Initializer {
         }
         catch (InvalidConfigException e) {
             exceptions.add(new InvalidConfigReadSourceException(e.getConfigProperty(), ConfigSourceType.JSON_FILE, location, container, e));
+        } finally {
+            if (config != null) {
+                try {
+                    config.close();
+                } catch (IOException ignored) {
+                }
+            }
         }
 
         if (!exceptions.isEmpty()) {
@@ -453,40 +492,34 @@ public class Initializer {
 
     /**
      * Reports the agent init message.
-     *
+     * <p>
      * Only the first call to this method will have effect, all other subsequent invocations will be ignored.
-     *
+     * <p>
      * If timeout (default as 10 seconds, configurable) is non-zero, block until either the init message is sent or timeout elapsed. Otherwise submit the message to the client and return without blocking.
-     *
      */
-    private static Future<Result> reportInit(Throwable configException) {
-        Future<Result> future = null;
+    private static void reportInit() {
         try {
             String layerName = (String) ConfigManager.getConfig(ConfigProperty.AGENT_LAYER);
-            future = reportLayerInit(layerName, getVersion(), configException);
+            reportLayerInit(layerName, getVersion());
         }
         catch (Exception e) {
             LOGGER.warn("Failed to post init message: " + (e.getMessage() != null ? e.getMessage() : e.toString()));
-            if (configException != null) {
-                LOGGER.warn("Failed to report init error [" + configException.getMessage() + "]");
-            }
         }
-        return future;
     }
 
     private static String getVersion() {
         return Initializer.class.getPackage().getImplementationVersion();
     }
 
-    private static Future<Result> reportLayerInit(final String layer, final String version, final Throwable configException) throws ClientException {
+    private static void reportLayerInit(final String layer, final String version) throws ClientException {
         //must call buildInitMessage before initializing RPC client, otherwise it might deadlock as discussed in https://github.com/librato/joboe/pull/767
-        Map<String, Object> initMessage = buildInitMessage(layer, version, configException);
+        Map<String, Object> initMessage = buildInitMessage(layer, version);
 
         Client rpcClient = RpcClientManager.getClient(RpcClientManager.OperationType.STATUS);
-        return rpcClient.postStatus(Collections.singletonList(initMessage), new ClientLoggingCallback<Result>("post init message"));
+        rpcClient.postStatus(Collections.singletonList(initMessage), new ClientLoggingCallback<Result>("post init message"));
     }
 
-    static Map<String, Object> buildInitMessage(String layer, String version, Throwable configException) {
+    static Map<String, Object> buildInitMessage(String layer, String version) {
         Map<String, Object> initMessage = new HashMap<String, Object>();
 
         initMessage.put("Layer", layer);
