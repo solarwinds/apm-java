@@ -74,34 +74,7 @@ publishing {
         artifact javadocJar
       }
     }
-    localInstall(MavenPublication){
-      pom {
-        name = "${archivesBaseName}"
-        description = "${archivesBaseName}"
-        url = "www.solarwinds.com"
-        scm {
-          url = 'https://www.solarwinds.com'
-        }
-        developers {
-          developer {
-            id = 'APM'
-            name = 'The APM Agent team'
-          }
-        }
-        licenses {
-          license {
-            name = 'Librato Open License'
-          }
-        }
-        groupId = 'io.github.appoptics'
-        artifactId = "${archivesBaseName}"
-        version = "${versions.agent}"
-        from components.java
-        artifact sourcesJar
-        artifact javadocJar
-      }
-    }
-    publishLocalInstallPublicationToMavenLocal
+    publishToMavenLocal
   }
   repositories {
     maven {
@@ -124,6 +97,9 @@ publishing {
 }
 
 signing {
+  setRequired {
+    gradle.taskGraph.allTasks.any { (it.getClass() == PublishToMavenRepository.class) }
+  }
   def signingKey = System.getenv("SIGNING_KEY")
   def signingPassword = System.getenv("SIGNING_PASSWORD")
   useInMemoryPgpKeys(signingKey, signingPassword)
