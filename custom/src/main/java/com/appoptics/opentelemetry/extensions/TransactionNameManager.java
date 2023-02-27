@@ -112,6 +112,10 @@ public class TransactionNameManager {
         }
     }
 
+    public static String getTransactionName(String traceId) {
+        return CustomTransactionNameDict.get(traceId);
+    }
+
     private static String prefixTransactionNameWithDomainName(String transactionName, SpanData spanData) {
         Object httpHostValue = spanData.getAttributes().get(SemanticAttributes.HTTP_HOST);
         if (httpHostValue instanceof String && !"".equals(httpHostValue)) {
@@ -162,34 +166,44 @@ public class TransactionNameManager {
      * @return  a transaction name built based on the span, null if no transaction name can be built
      */
     static String buildTransactionName(SpanData spanData) {
-        String traceId = spanData.getTraceId();
+        return buildTransactionName(spanData.getTraceId(), spanData.getName(), spanData.getAttributes());
+    }
+
+    static String buildTransactionName(String traceId, String spanName, Attributes spanAttributes) {
+        LOGGER.log(Logger.Level.INFO, String.format(
+                "Build transaction data:\nattributes: %s",
+                spanAttributes
+        ));
+
         String customName = CustomTransactionNameDict.get(traceId);
         if (customName != null) {
+            LOGGER.log(Logger.Level.DEBUG, String.format("Using custom transaction name(%s)",  customName));
             return customName;
         }
 
-        String url = (String) spanData.getAttributes().get(SemanticAttributes.HTTP_URL);
+        String url = spanAttributes.get(SemanticAttributes.HTTP_URL);
         String path = Util.parsePath(url);
 
-        Attributes attributes = spanData.getAttributes();
-
         // use HandlerName which may be injected by some MVC instrumentations (currently only Spring MVC)
-        String handlerName = attributes.get(AttributeKey.stringKey("HandlerName"));
+        String handlerName = spanAttributes.get(AttributeKey.stringKey("HandlerName"));
         if (handlerName != null) {
+            LOGGER.log(Logger.Level.DEBUG, String.format("Using HandlerName(%s) as the transaction name",  handlerName));
             return handlerName;
         }
 
         // use "http.route"
-        String httpRoute = attributes.get(SemanticAttributes.HTTP_ROUTE);
+        String httpRoute = spanAttributes.get(SemanticAttributes.HTTP_ROUTE);
         if (httpRoute != null) {
+            LOGGER.log(Logger.Level.DEBUG, String.format("Using http.route (%s) as the transaction name",  httpRoute));
             return httpRoute;
         }
-        
+
         // get transaction name from url
         if (customTransactionNamePattern != null) { //try forming transaction name by the custom configured pattern
             String transactionName = getTransactionNameByUrlAndPattern(path, customTransactionNamePattern, false, CUSTOM_TRANSACTION_NAME_PATTERN_SEPARATOR);
 
             if (transactionName != null) {
+                LOGGER.log(Logger.Level.DEBUG, String.format("Using custom configure pattern to extract transaction name: (%s)",  transactionName));
                 return transactionName;
             }
         }
@@ -197,12 +211,13 @@ public class TransactionNameManager {
         //try the default token name pattern
         String transactionNameByUrl = getTransactionNameByUrlAndPattern(path, DEFAULT_TRANSACTION_NAME_PATTERN, true, DEFAULT_TRANSACTION_NAME_PATTERN_SEPARATOR);
         if (transactionNameByUrl != null) {
+            LOGGER.log(Logger.Level.DEBUG, String.format("Using token name pattern to extract transaction name: (%s)",  transactionNameByUrl));
             return transactionNameByUrl;
         }
 
-        return spanData.getName();
+        LOGGER.log(Logger.Level.DEBUG, String.format("Using span name as the transaction name: (%s)",  spanName));
+        return spanName;
     }
-
     /**
      * Gets transaction name based on host, URL and provided name pattern. It might look up and update the urlTransactionNameCache
      *
