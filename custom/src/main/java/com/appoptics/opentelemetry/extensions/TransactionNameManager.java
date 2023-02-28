@@ -170,10 +170,6 @@ public class TransactionNameManager {
     }
 
     static String buildTransactionName(String traceId, String spanName, Attributes spanAttributes) {
-        LOGGER.log(Logger.Level.INFO, String.format(
-                "Build transaction data:\nattributes: %s",
-                spanAttributes
-        ));
 
         String customName = CustomTransactionNameDict.get(traceId);
         if (customName != null) {
