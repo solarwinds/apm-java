@@ -6,7 +6,7 @@ public class SolarWindsAgent {
     private SolarWindsAgent() {
     }
 
-    private static final Logger logger = Logger.getLogger(Transaction.class.getName());
+    private static final Logger logger = Logger.getLogger(SolarWindsAgent.class.getName());
 
     private static boolean isAgentReady = false;
 
