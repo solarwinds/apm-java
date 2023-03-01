@@ -80,7 +80,6 @@ public class AppOpticsSampler implements Sampler {
         String xTraceOptionsResponseStr = null;
         List<String> signals = Arrays.asList(
                 TransactionNameManager.buildTransactionName(traceId, name, attributes),
-                TransactionNameManager.getTransactionName(traceId),
                 spanKind.name(),
                 resource);
 

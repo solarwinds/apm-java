@@ -112,10 +112,6 @@ public class TransactionNameManager {
         }
     }
 
-    public static String getTransactionName(String traceId) {
-        return CustomTransactionNameDict.get(traceId);
-    }
-
     private static String prefixTransactionNameWithDomainName(String transactionName, SpanData spanData) {
         Object httpHostValue = spanData.getAttributes().get(SemanticAttributes.HTTP_HOST);
         if (httpHostValue instanceof String && !"".equals(httpHostValue)) {
