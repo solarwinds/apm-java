@@ -34,13 +34,13 @@ public class TransactionNameManager {
     public static final int DEFAULT_MAX_NAME_COUNT = 200;
     public static final int MAX_TRANSACTION_NAME_LENGTH = 255;
     public static final String TRANSACTION_NAME_ELLIPSIS = "...";
-    public static final Pattern REPLACE_PATTERN = Pattern.compile("[^-.:_\\\\\\/\\w\\? ]");
-    public static final String DEFAULT_SDK_TRANSACTION_NAME_PREFIX = "custom-";
+    public static final Pattern REPLACE_PATTERN = Pattern.compile("[^-.:_\\\\/\\w? ]");
 
     private static final String[] customTransactionNamePattern;
-    static final Cache<String, String> URL_TRANSACTION_NAME_CACHE = CacheBuilder.newBuilder().maximumSize(1000).expireAfterAccess(1200, TimeUnit.SECONDS).<String, String>build(); //20 mins cache
+    static final Cache<String, String> URL_TRANSACTION_NAME_CACHE = CacheBuilder.newBuilder().maximumSize(
+            1000).expireAfterAccess(1200, TimeUnit.SECONDS).build(); //20 minutes cache
 
-    private static final Set<String> EXISTING_TRANSACTION_NAMES = new HashSet<String>();
+    private static final Set<String> EXISTING_TRANSACTION_NAMES = new HashSet<>();
     private static boolean limitExceeded;
     private static int maxNameCount = DEFAULT_MAX_NAME_COUNT;
 
@@ -50,7 +50,8 @@ public class TransactionNameManager {
         customTransactionNamePattern = getTransactionNamePattern();
         addNameCountChangeListener();
 
-        Boolean domainPrefixedTransactionNameObject  = (Boolean) ConfigManager.getConfig(ConfigProperty.AGENT_DOMAIN_PREFIXED_TRANSACTION_NAME);
+        Boolean domainPrefixedTransactionNameObject = (Boolean) ConfigManager.getConfig(
+                ConfigProperty.AGENT_DOMAIN_PREFIXED_TRANSACTION_NAME);
         domainPrefixedTransactionName = domainPrefixedTransactionNameObject != null && domainPrefixedTransactionNameObject; //only set it to true if the flag present and is set to true
     }
 
@@ -81,7 +82,7 @@ public class TransactionNameManager {
 
     static String[] parseTransactionNamePattern(String pattern) {
         String[] tokens = pattern.split(",");
-        for (int i = 0 ; i < tokens.length; i ++) {
+        for (int i = 0; i < tokens.length; i++) {
             tokens[i] = tokens[i].trim();
         }
         return tokens;
@@ -90,37 +91,41 @@ public class TransactionNameManager {
     /**
      * Gets a transaction name based on information provided in a span and domainPrefixedTransactionName flag,
      * the result will be recorded if not null.
-     *
+     * <p>
      * If more than <code>MAX_NAME_COUNT</code> transaction name is recorded, "other" will be returned.
      * If the logic fails to extract a transaction from the given span, "unknown" will be returned.
-     * @param spanData
-     * @return
+     *
+     * @param spanData {@link SpanData}
+     * @return transaction name
      */
     public static String getTransactionName(SpanData spanData) {
         String transactionName = buildTransactionName(spanData);
-
-
         if (transactionName != null) {
             if (domainPrefixedTransactionName) {
                 transactionName = prefixTransactionNameWithDomainName(transactionName, spanData);
             }
 
             transactionName = transformTransactionName(transactionName);
-            return addTransactionName(transactionName) ? transactionName : OVER_LIMIT_TRANSACTION_NAME; //check the transaction name limit;
+            return addTransactionName(
+                    transactionName) ? transactionName : OVER_LIMIT_TRANSACTION_NAME; //check the transaction name limit;
         } else {
             return UNKNOWN_TRANSACTION_NAME; //unable to build the transaction name
         }
     }
 
+    @SuppressWarnings({"deprecation", "Suppressing this error because some of the intrumentation still use SemanticAttributes.HTTP_HOST"})
     private static String prefixTransactionNameWithDomainName(String transactionName, SpanData spanData) {
-        Object httpHostValue = spanData.getAttributes().get(SemanticAttributes.HTTP_HOST);
-        if (httpHostValue instanceof String && !"".equals(httpHostValue)) {
-            String domain = (String) httpHostValue;
+        String httpHostValue = spanData.getAttributes().get(SemanticAttributes.HTTP_HOST);
+        if (httpHostValue == null) {
+            httpHostValue = spanData.getAttributes().get(SemanticAttributes.NET_HOST_NAME);
+        }
+
+        if (httpHostValue != null && !"".equals(httpHostValue)) {
 
             if (transactionName.startsWith("/")) {
-                return domain + transactionName;
+                return httpHostValue + transactionName;
             } else {
-                return domain + DOMAIN_PREFIX_SEPARATOR + transactionName;
+                return httpHostValue + DOMAIN_PREFIX_SEPARATOR + transactionName;
             }
         }
 
@@ -128,21 +133,21 @@ public class TransactionNameManager {
     }
 
     /**
-     * Transform the transaction name according to https://github.com/librato/gotv/blob/376240c5fcce883f37a5358cb30ac39ab9283c7e/collector/agentmetrics/tags.go#L41-L52 and
-     * https://github.com/librato/jackdaw/blob/0930023a2d30dc42e58ed45cc05df9b46e2b7da1/src/main/java/com/librato/jackdaw/ingress/IngressMeasurement.java#L28
+     * Transform the transaction name according to <a href="https://github.com/librato/gotv/blob/376240c5fcce883f37a5358cb30ac39ab9283c7e/collector/agentmetrics/tags.go#L41-L52">...</a> and
+     * <a href="https://github.com/librato/jackdaw/blob/0930023a2d30dc42e58ed45cc05df9b46e2b7da1/src/main/java/com/librato/jackdaw/ingress/IngressMeasurement.java#L28">...</a>
      *
-     * @param inputTransactionName
-     * @return
+     * @param inputTransactionName raw transaction name
+     * @return refined transaction name
      */
     static String transformTransactionName(String inputTransactionName) {
         String transactionName = inputTransactionName;
 
         if (transactionName.length() > MAX_TRANSACTION_NAME_LENGTH) {
-            transactionName = transactionName.substring(0, MAX_TRANSACTION_NAME_LENGTH - TRANSACTION_NAME_ELLIPSIS.length()) + TRANSACTION_NAME_ELLIPSIS;
+            transactionName = transactionName.substring(0,
+                    MAX_TRANSACTION_NAME_LENGTH - TRANSACTION_NAME_ELLIPSIS.length()) + TRANSACTION_NAME_ELLIPSIS;
         } else if ("".equals(transactionName)) {
             transactionName = " "; //ensure that it at least has 1 character
         }
-
 
 
         transactionName = REPLACE_PATTERN.matcher(transactionName).replaceAll("_");
@@ -150,7 +155,8 @@ public class TransactionNameManager {
         transactionName = transactionName.toLowerCase();
 
         if (!transactionName.equalsIgnoreCase(inputTransactionName)) {
-            LOGGER.debug("Transaction name [" + inputTransactionName + "] has been transformed to [" + transactionName + "]");
+            LOGGER.debug(
+                    "Transaction name [" + inputTransactionName + "] has been transformed to [" + transactionName + "]");
         }
 
         return transactionName;
@@ -158,8 +164,9 @@ public class TransactionNameManager {
 
     /**
      * Builds a transaction name based on information provided in a span
-     * @param spanData
-     * @return  a transaction name built based on the span, null if no transaction name can be built
+     *
+     * @param spanData otel span data
+     * @return a transaction name built based on the span, null if no transaction name can be built
      */
     static String buildTransactionName(SpanData spanData) {
         return buildTransactionName(spanData.getTraceId(), spanData.getName(), spanData.getAttributes());
@@ -169,7 +176,7 @@ public class TransactionNameManager {
 
         String customName = CustomTransactionNameDict.get(traceId);
         if (customName != null) {
-            LOGGER.log(Logger.Level.DEBUG, String.format("Using custom transaction name(%s)",  customName));
+            LOGGER.debug(String.format("Using custom transaction name(%s)", customName));
             return customName;
         }
 
@@ -179,55 +186,60 @@ public class TransactionNameManager {
         // use HandlerName which may be injected by some MVC instrumentations (currently only Spring MVC)
         String handlerName = spanAttributes.get(AttributeKey.stringKey("HandlerName"));
         if (handlerName != null) {
-            LOGGER.log(Logger.Level.DEBUG, String.format("Using HandlerName(%s) as the transaction name",  handlerName));
+            LOGGER.debug(String.format("Using HandlerName(%s) as the transaction name", handlerName));
             return handlerName;
         }
 
         // use "http.route"
         String httpRoute = spanAttributes.get(SemanticAttributes.HTTP_ROUTE);
         if (httpRoute != null) {
-            LOGGER.log(Logger.Level.DEBUG, String.format("Using http.route (%s) as the transaction name",  httpRoute));
+            LOGGER.debug(String.format("Using http.route (%s) as the transaction name", httpRoute));
             return httpRoute;
         }
 
         // get transaction name from url
         if (customTransactionNamePattern != null) { //try forming transaction name by the custom configured pattern
-            String transactionName = getTransactionNameByUrlAndPattern(path, customTransactionNamePattern, false, CUSTOM_TRANSACTION_NAME_PATTERN_SEPARATOR);
+            String transactionName = getTransactionNameByUrlAndPattern(path, customTransactionNamePattern, false,
+                    CUSTOM_TRANSACTION_NAME_PATTERN_SEPARATOR);
 
             if (transactionName != null) {
-                LOGGER.log(Logger.Level.DEBUG, String.format("Using custom configure pattern to extract transaction name: (%s)",  transactionName));
+                LOGGER.debug(String.format("Using custom configure pattern to extract transaction name: (%s)",
+                        transactionName));
                 return transactionName;
             }
         }
 
         //try the default token name pattern
-        String transactionNameByUrl = getTransactionNameByUrlAndPattern(path, DEFAULT_TRANSACTION_NAME_PATTERN, true, DEFAULT_TRANSACTION_NAME_PATTERN_SEPARATOR);
+        String transactionNameByUrl = getTransactionNameByUrlAndPattern(path, DEFAULT_TRANSACTION_NAME_PATTERN, true,
+                DEFAULT_TRANSACTION_NAME_PATTERN_SEPARATOR);
         if (transactionNameByUrl != null) {
-            LOGGER.log(Logger.Level.DEBUG, String.format("Using token name pattern to extract transaction name: (%s)",  transactionNameByUrl));
+            LOGGER.debug(
+                    String.format("Using token name pattern to extract transaction name: (%s)", transactionNameByUrl));
             return transactionNameByUrl;
         }
 
-        LOGGER.log(Logger.Level.DEBUG, String.format("Using span name as the transaction name: (%s)",  spanName));
+        LOGGER.debug(String.format("Using span name as the transaction name: (%s)", spanName));
         return spanName;
     }
+
     /**
      * Gets transaction name based on host, URL and provided name pattern. It might look up and update the urlTransactionNameCache
      *
-     * @param url   url that must NOT contains query param
-     * @param transactionNamePattern
-     * @return
+     * @param url                    url that must NOT contains query param
+     * @param transactionNamePattern pattern used for extracting transaction name
+     * @return extracted transaction name
      */
-    static String getTransactionNameByUrlAndPattern(String url, String[] transactionNamePattern, boolean separatorAsPrefix, String separator) {
+    static String getTransactionNameByUrlAndPattern(String url, String[] transactionNamePattern,
+                                                    boolean separatorAsPrefix, String separator) {
         if (url == null) {
             return null;
         }
 
         String transactionName = URL_TRANSACTION_NAME_CACHE.getIfPresent(url);
         if (transactionName == null) {
-            transactionName = buildTransactionNameByUrlAndPattern(url, transactionNamePattern, separatorAsPrefix, separator);
-            if (transactionName != null) {
-                URL_TRANSACTION_NAME_CACHE.put(url, transactionName);
-            }
+            transactionName = buildTransactionNameByUrlAndPattern(url, transactionNamePattern, separatorAsPrefix,
+                    separator);
+            URL_TRANSACTION_NAME_CACHE.put(url, transactionName);
         }
 
         return transactionName;
@@ -235,47 +247,49 @@ public class TransactionNameManager {
 
     /**
      * Generates a transaction name by concatenating matching pattern tokens with '.'
+     * <p>
+     * The valid tokens are host and p1, p2, ... pn. For example a token list of ["host", "p2"] on URL <a href="http://localhost:8080/test-api/action/1">...</a>, will generate transaction name "localhost.action"</li>
      *
-     * The valid tokens are host and p1, p2, ... pn. For example a token list of ["host", "p2"] on URL http://localhost:8080/test-api/action/1, will generate transaction name "localhost.action"</li>
-     *
-     * @param url                       url that must NOT contains query param
-     * @param transactionNamePattern    the token pattern as an array
-     * @param separator
-     * @param separatorAsPrefix
-     * @return
+     * @param url                    url that must NOT contains query param
+     * @param transactionNamePattern the token pattern as an array
+     * @param separator              separator token
+     * @param separatorAsPrefix      whether to use separator as prefix
+     * @return formed transaction name
      */
-    static String buildTransactionNameByUrlAndPattern(String url, String[] transactionNamePattern, boolean separatorAsPrefix, String separator) {
-        Map<String, String> urlTokenMap = new HashMap<String, String>();
+    static String buildTransactionNameByUrlAndPattern(String url, String[] transactionNamePattern,
+                                                      boolean separatorAsPrefix, String separator) {
+        Map<String, String> urlTokenMap = new HashMap<>();
         int counter = 1;
         for (String token : url.split("/")) {
             if (!"".equals(token)) {
-                String tokenName = "p" + counter ++;
+                String tokenName = "p" + counter++;
                 urlTokenMap.put(tokenName, token);
             }
         }
 
-        String transactionName = separatorAsPrefix ? separator : "";
+        StringBuilder transactionName = new StringBuilder(separatorAsPrefix ? separator : "");
         boolean isFirstToken = true;
         for (String patternToken : transactionNamePattern) {
             if (urlTokenMap.containsKey(patternToken)) {
                 if (isFirstToken) {
-                    transactionName += urlTokenMap.get(patternToken);
+                    transactionName.append(urlTokenMap.get(patternToken));
                     isFirstToken = false;
                 } else {
-                    transactionName += separator + urlTokenMap.get(patternToken);
+                    transactionName.append(separator).append(urlTokenMap.get(patternToken));
                 }
             }
         }
-        return transactionName;
+        return transactionName.toString();
     }
 
     /**
      * Adds a transaction name to the tracking set
-     * @param transactionName   the name to be added, should NOT be null
-     * @return  true if transactionName is already existed or added successfully; false otherwise (limit exceeded)
+     *
+     * @param transactionName the name to be added, should NOT be null
+     * @return true if transactionName is already existed or added successfully; false otherwise (limit exceeded)
      */
     public static boolean addTransactionName(String transactionName) {
-        synchronized(EXISTING_TRANSACTION_NAMES) {
+        synchronized (EXISTING_TRANSACTION_NAMES) {
             if (!EXISTING_TRANSACTION_NAMES.contains(transactionName)) {
                 if (EXISTING_TRANSACTION_NAMES.size() < maxNameCount) {
                     EXISTING_TRANSACTION_NAMES.add(transactionName);
@@ -289,12 +303,13 @@ public class TransactionNameManager {
         return false;
     }
 
+    @SuppressWarnings("unused")
     public static boolean isLimitExceeded() {
         return limitExceeded;
     }
 
     public static void clearTransactionNames() {
-        synchronized(EXISTING_TRANSACTION_NAMES) {
+        synchronized (EXISTING_TRANSACTION_NAMES) {
             EXISTING_TRANSACTION_NAMES.clear();
 
             limitExceeded = false;
@@ -304,6 +319,7 @@ public class TransactionNameManager {
     /**
      * For internal testing usage only
      */
+    @SuppressWarnings("unused")
     static void reset() {
         clearTransactionNames();
         URL_TRANSACTION_NAME_CACHE.invalidateAll();
