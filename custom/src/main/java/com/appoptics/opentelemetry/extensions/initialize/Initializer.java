@@ -35,8 +35,6 @@ import com.tracelytics.joboe.rpc.RpcClientManager;
 import com.tracelytics.joboe.settings.SettingsManager;
 import com.tracelytics.logging.Logger;
 import com.tracelytics.logging.LoggerFactory;
-import com.tracelytics.monitor.SystemMonitor;
-import com.tracelytics.monitor.SystemMonitorBuilder;
 import com.tracelytics.monitor.SystemMonitorController;
 import com.tracelytics.monitor.SystemMonitorFactoryImpl;
 import com.tracelytics.monitor.metrics.MetricsCollector;
@@ -92,9 +90,6 @@ public class Initializer {
         ConfigProperty.AGENT_TRACING_MODE.setParser(new TracingModeParser());
         ConfigProperty.AGENT_SQL_QUERY_MAX_LENGTH.setParser(new RangeValidationParser<Integer>(ConfigConstants.MAX_SQL_QUERY_LENGTH_LOWER_LIMIT, ConfigConstants.MAX_SQL_QUERY_LENGTH_UPPER_LIMIT));
         ConfigProperty.AGENT_URL_SAMPLE_RATE.setParser(UrlSampleRateConfigParser.INSTANCE);
-//        ConfigProperty.AGENT_BACKTRACE_MODULES.setParser(ModulesParser.INSTANCE);
-//        ConfigProperty.AGENT_EXTENDED_BACK_TRACES_BY_MODULE.setParser(ModulesParser.INSTANCE);
-//        ConfigProperty.AGENT_HIDE_PARAMS.setParser(new HideParamsConfigParser());
         ConfigProperty.AGENT_TRANSACTION_SETTINGS.setParser(TransactionSettingsConfigParser.INSTANCE);
         ConfigProperty.AGENT_TRIGGER_TRACE_ENABLED.setParser(ModeStringToBooleanParser.INSTANCE);
         ConfigProperty.AGENT_PROXY.setParser(ProxyConfigParser.INSTANCE);
@@ -139,7 +134,7 @@ public class Initializer {
                 // trigger init on the Settings reader
                 CountDownLatch settingsLatch = null;
 
-                LOGGER.info("Initializing HostUtils");
+                LOGGER.debug("Initializing HostUtils");
                 HostInfoUtils.init(ServerHostInfoReader.INSTANCE);
                 try {
                     HostInfoUtils.NetworkAddressInfo networkAddressInfo = HostInfoUtils.getNetworkAddressInfo();
@@ -152,36 +147,30 @@ public class Initializer {
                 catch (ClientException e) {
                     LOGGER.debug("Failed to initialize RpcSettingsReader : " + e.getMessage());
                 }
-                LOGGER.info("Initialized HostUtils");
+                LOGGER.debug("Initialized HostUtils");
 
-                LOGGER.info("Sending init message");
+                LOGGER.debug("Sending init message");
                 reportInit();
 
-                LOGGER.info("Building reporter");
+                LOGGER.debug("Building reporter");
                 EventImpl.setDefaultReporter(RpcEventReporter.buildReporter(RpcClientManager.OperationType.TRACING));
-                LOGGER.info("Built reporter");
+                LOGGER.debug("Built reporter");
 
                 LOGGER.info("Starting System monitor");
-                SystemMonitorController.startWithBuilder(new SystemMonitorBuilder() {
+                SystemMonitorController.startWithBuilder(() -> new SystemMonitorFactoryImpl(ConfigManager.getConfigs(ConfigGroup.MONITOR)) {
                     @Override
-                    public List<SystemMonitor<?, ?>> build() {
-                        return new SystemMonitorFactoryImpl(ConfigManager.getConfigs(ConfigGroup.MONITOR)) {
-                            @Override
-                            protected MetricsMonitor buildMetricsMonitor() {
-                                try {
-                                    MetricsCollector metricsCollector = new MetricsCollector(configs, AppOpticsInboundMetricsSpanProcessor.buildSpanMetricsCollector());
-                                    return MetricsMonitor.buildInstance(configs, metricsCollector);
-                                }
-                                catch (InvalidConfigException | ClientException e) {
-                                    e.printStackTrace();
-                                }
-                                return null;
-                            }
-                        }.buildMonitors();
+                    protected MetricsMonitor buildMetricsMonitor() {
+                        try {
+                            MetricsCollector metricsCollector = new MetricsCollector(configs, AppOpticsInboundMetricsSpanProcessor.buildSpanMetricsCollector());
+                            return MetricsMonitor.buildInstance(configs, metricsCollector);
+                        }
+                        catch (InvalidConfigException | ClientException e) {
+                            e.printStackTrace();
+                        }
+                        return null;
                     }
-                });
-                LOGGER.info("Started System monitor");
-                //SystemMonitorController.start();
+                }.buildMonitors());
+                LOGGER.debug("Started System monitor");
 
                 ProfilerSetting profilerSetting = (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);
                 if (profilerSetting != null && profilerSetting.isEnabled()) {
@@ -203,7 +192,7 @@ public class Initializer {
                 LOGGER.warn("Failed post system startup operations due to : " + e.getMessage(), e);
             }
         }));
-        LOGGER.info("Submitted startup task");
+        LOGGER.debug("Submitted startup task");
 
         service.shutdown();
     }
@@ -300,17 +289,6 @@ public class Initializer {
             exceptions.add(new InvalidConfigReadSourceException(e.getConfigProperty(), ConfigSourceType.ENV_VAR, null, container, e));
         }
 
-        //JVM args are currently not supported as the OT initialization does not pass them down
-//        try {
-//            //Secondly, read from Java Agent Arguments
-//            logger.debug("Start reading configs from -javaagent arguments");
-//            new JavaAgentArgumentConfigReader(agentArgs).read(container);
-//            logger.debug("Finished reading configs from -javaagent arguments");
-//        } catch (InvalidConfigException e) {
-//            exceptions.add(new InvalidConfigReadSourceException(e.getConfigProperty(), ConfigSourceType.JVM_ARG, null, container, e));
-//        }
-
-
         String location = null;
         //Thirdly, read from Config Property File
         InputStream config = null;
@@ -389,9 +367,7 @@ public class Initializer {
         }
 
         if (!missingKeys.isEmpty()) {
-            StringBuffer errorMessage = new StringBuffer("Missing Configs ");
-            errorMessage.append(missingKeys.toString());
-            throw new InvalidConfigException(errorMessage.toString());
+            throw new InvalidConfigException("Missing Configs " + missingKeys);
         }
     }
 
@@ -577,11 +553,6 @@ public class Initializer {
         } catch (SecurityException exp) {
             LOGGER.warn("Cannot get process runtime information.", exp);
         }
-
-        // No longer reporting startup error for SWO but consider bringing back
-        // if (configException != null) {
-        //     initMessage.put("Error", configException.getClass().getName() + ":" + configException.getMessage());
-        // }
 
         return initMessage;
     }
