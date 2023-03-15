@@ -149,6 +149,9 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
             if (hasError) {
                 aoSecondaryKey.put("Errors", "true");
                 swoTags.put("sw.is_error", "true");
+
+            } else {
+                swoTags.put("sw.is_error", "false");
             }
 
             final long duration = (spanData.getEndEpochNanos() - spanData.getStartEpochNanos()) / 1000;
