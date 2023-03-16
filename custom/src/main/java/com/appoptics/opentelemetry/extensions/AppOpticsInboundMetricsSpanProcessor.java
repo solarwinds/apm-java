@@ -18,6 +18,7 @@ import com.tracelytics.util.HttpUtils;
 import com.tracelytics.util.ServiceKeyUtils;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
@@ -40,7 +41,8 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
     public static final String serviceName;
 
     static {
-        serviceName = ServiceKeyUtils.getServiceName((String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
+        serviceName = ServiceKeyUtils.getServiceName(
+                (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
     }
 
     public static SpanMetricsCollector buildSpanMetricsCollector() {
@@ -115,64 +117,68 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
 
         private void reportMetrics(SpanData spanData) {
             final String transactionName = TransactionNameManager.getTransactionName(spanData);
-
-            final Map<String, String> primaryKeysOld = Collections.singletonMap("TransactionName", transactionName);
-            final Map<String, String> primaryKeys = Collections.singletonMap("sw.transaction", transactionName);
-
-            //boolean hasError = spanData.getAttributes() TODO
-            boolean hasError = false;
-
-            final Map<String, String> optionalKeysOld = new HashMap<String, String>();
-            final Map<String, String> optionalKeys = new HashMap<String, String>();
+            final Map<String, String> aoPrimaryKeys = Collections.singletonMap("TransactionName", transactionName);
+            final Map<String, String> swoTags = new HashMap<String, String>() {
+                {
+                    put("sw.transaction", transactionName);
+                }
+            };
 
 
+            final Map<String, String> aoSecondaryKey = new HashMap<>();
+            boolean hasError = spanData.getStatus().getStatusCode() == StatusCode.ERROR;
             final Long status = spanData.getAttributes().get(SemanticAttributes.HTTP_STATUS_CODE);
+
             //special handling for status code
             if (!hasError && status != null) {
-                hasError = HttpUtils.isServerErrorStatusCode(status.intValue()); //do not attempt to override the property if it's already explicitly set
+                hasError = HttpUtils.isServerErrorStatusCode(
+                        status.intValue()); //do not attempt to override the property if it's already explicitly set
             }
 
             if (status != null) {
-                optionalKeysOld.put("HttpStatus", String.valueOf(status));
-                optionalKeys.put("http.status_code", String.valueOf(status));
+                aoSecondaryKey.put("HttpStatus", String.valueOf(status));
+                swoTags.put("http.status_code", String.valueOf(status));
             }
 
             final String method = spanData.getAttributes().get(SemanticAttributes.HTTP_METHOD);
             if (method != null) {
-                optionalKeysOld.put("HttpMethod", method);
-                optionalKeys.put("http.method", method);
+                aoSecondaryKey.put("HttpMethod", method);
+                swoTags.put("http.method", method);
             }
-
 
             if (hasError) {
-                optionalKeysOld.put("Errors", "true");
-                optionalKeys.put("sw.is_error", "true");
+                aoSecondaryKey.put("Errors", "true");
+                swoTags.put("sw.is_error", "true");
+
+            } else {
+                swoTags.put("sw.is_error", "false");
             }
 
-            if (!serviceName.equals("")) {
-                optionalKeys.put("sw.service_name", serviceName);
-            }
-            
             final long duration = (spanData.getEndEpochNanos() - spanData.getStartEpochNanos()) / 1000;
-            recordMeasurementEntry(MEASUREMENT_NAME_OLD, primaryKeysOld, optionalKeysOld, duration);
-            recordMeasurementEntry(MEASUREMENT_NAME, primaryKeys, optionalKeys, duration);
+            recordMeasurementEntryForAo(aoPrimaryKeys, aoSecondaryKey, duration);
+            recordMeasurementEntryForSwo(swoTags, duration);
         }
 
-        protected void recordMeasurementEntry(String measurementName, Map<String, String> primaryKeys, Map<String, String> optionalKeys, long duration) {
-            MetricKey measurementKey = new MetricKey(measurementName, new HashMap(primaryKeys));
-            this.measurements.computeIfAbsent(measurementKey, k -> new SummaryLongMeasurement()).recordValue(duration);
-            if (optionalKeys != null) {
-                final Iterator iterator = optionalKeys.entrySet().iterator();
+        protected void recordMeasurementEntryForAo(Map<String, String> primaryKeys,
+                                                   Map<String, String> secondaryKeys,
+                                                   long duration) {
+            MetricKey metricKey = new MetricKey(MEASUREMENT_NAME_OLD, new HashMap<>(primaryKeys));
+            this.measurements.computeIfAbsent(metricKey, k -> new SummaryLongMeasurement()).recordValue(duration);
 
-                while (iterator.hasNext()) {
-                    final Map.Entry<String, String> optionalKey = (Map.Entry) iterator.next();
-                    final Map<String, String> tags = new HashMap(primaryKeys);
-                    tags.put(optionalKey.getKey(), optionalKey.getValue());
-                    measurementKey = new MetricKey(measurementName, tags);
-                    this.measurements.computeIfAbsent(measurementKey, k -> new SummaryLongMeasurement()).recordValue(duration);
-                }
+            for (Map.Entry<String, String> optionalKey : secondaryKeys.entrySet()) {
+                final Map<String, String> tags = new HashMap<>(primaryKeys);
+                tags.put(optionalKey.getKey(), optionalKey.getValue());
+                metricKey = new MetricKey(MEASUREMENT_NAME_OLD, tags);
+
+                this.measurements.computeIfAbsent(metricKey, k -> new SummaryLongMeasurement())
+                        .recordValue(duration);
             }
+        }
 
+        protected void recordMeasurementEntryForSwo(Map<String, String> tags, long duration) {
+            MetricKey measurementKey = new MetricKey(MEASUREMENT_NAME, new HashMap<>(tags));
+            this.measurements.computeIfAbsent(measurementKey, k -> new SummaryLongMeasurement())
+                    .recordValue(duration);
         }
     }
 
@@ -206,7 +212,8 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
 
         /**
          * Consumes and resets metric entries on this reporter
-         * @return  a list of metric entries collected so since previous call to this method
+         *
+         * @return a list of metric entries collected so since previous call to this method
          */
         public List<MetricsEntry<?>> consumeMetricEntries() {
             final Map<MetricKey, Histogram> reportingHistograms = consumeHistograms();
@@ -227,15 +234,16 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
         }
 
         public void reportMetrics(SpanData spanData) {
-            final MetricKey serviceHistogramKey = new MetricKey(TRANSACTION_LATENCY_METRIC_NAME, null); //globally for all transactions within this service
+            final MetricKey serviceHistogramKey = new MetricKey(TRANSACTION_LATENCY_METRIC_NAME,
+                    null); //globally for all transactions within this service
             final Histogram serviceHistogram;
-            serviceHistogram = histograms.computeIfAbsent(serviceHistogramKey, k -> HistogramFactory.buildHistogram(HISTOGRAM_TYPE, MAX_DURATION));
+            serviceHistogram = histograms.computeIfAbsent(serviceHistogramKey,
+                    k -> HistogramFactory.buildHistogram(HISTOGRAM_TYPE, MAX_DURATION));
 
             final long duration = (spanData.getEndEpochNanos() - spanData.getStartEpochNanos()) / 1000;
             try {
                 serviceHistogram.recordValue(duration);
-            }
-            catch (HistogramException e) {
+            } catch (HistogramException e) {
                 logger.debug("Failed to report metrics to service level histogram : " + e.getMessage(), e);
             }
 
@@ -243,13 +251,16 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
 
             if (transactionName != null) {
                 //specifically for this transaction
-                final MetricKey transactionHistogramKey = new MetricKey(TRANSACTION_LATENCY_METRIC_NAME, Collections.singletonMap("TransactionName", transactionName));
-                final Histogram transactionHistogram = histograms.computeIfAbsent(transactionHistogramKey, k -> HistogramFactory.buildHistogram(HISTOGRAM_TYPE, MAX_DURATION));
+                final MetricKey transactionHistogramKey = new MetricKey(TRANSACTION_LATENCY_METRIC_NAME,
+                        Collections.singletonMap("TransactionName", transactionName));
+                final Histogram transactionHistogram = histograms.computeIfAbsent(transactionHistogramKey,
+                        k -> HistogramFactory.buildHistogram(HISTOGRAM_TYPE, MAX_DURATION));
                 try {
                     transactionHistogram.recordValue(duration);
-                }
-                catch (HistogramException e) {
-                    logger.debug("Failed to report metrics to transaction histogram with metrics key [" + transactionHistogramKey + "] : " + e.getMessage(), e);
+                } catch (HistogramException e) {
+                    logger.debug(
+                            "Failed to report metrics to transaction histogram with metrics key [" + transactionHistogramKey + "] : " + e.getMessage(),
+                            e);
                 }
             }
         }
