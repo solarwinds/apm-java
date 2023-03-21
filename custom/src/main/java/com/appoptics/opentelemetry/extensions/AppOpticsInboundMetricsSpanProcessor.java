@@ -51,12 +51,16 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
 
     @Override
     public void onStart(@Nonnull Context parentContext, @Nonnull ReadWriteSpan span) {
-
+        String dbUser = span.getAttribute(SemanticAttributes.DB_USER);
+        if (dbUser != null){
+            String[] components = dbUser.split(":");
+            span.setAttribute(SemanticAttributes.DB_USER, components[0]);
+        }
     }
 
     @Override
     public boolean isStartRequired() {
-        return false;
+        return true;
     }
 
     @Override
