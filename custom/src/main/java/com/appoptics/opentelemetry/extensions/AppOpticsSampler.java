@@ -25,7 +25,7 @@ import io.opentelemetry.sdk.trace.samplers.SamplingResult;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.SW_SPAN_PLACEHOLDER;
@@ -70,18 +70,13 @@ public class AppOpticsSampler implements Sampler {
                                        @Nonnull List<LinkData> parentLinks) {
         final SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
         final TraceState traceState = parentSpanContext.getTraceState() != null ? parentSpanContext.getTraceState() : TraceState.getDefault();
-        final String resource = getResource(attributes);
 
         final SamplingResult samplingResult;
         final AttributesBuilder additionalAttributesBuilder = Attributes.builder();
         final XTraceOptions xTraceOptions = parentContext.get(TriggerTraceContextKey.KEY);
 
-
         String xTraceOptionsResponseStr = null;
-        List<String> signals = Arrays.asList(
-                TransactionNameManager.buildTransactionName(traceId, name, attributes),
-                spanKind.name(),
-                resource);
+        List<String> signals = Collections.singletonList(constructUrl(attributes));
 
         if (!parentSpanContext.isValid()) { // no valid traceparent, it is a new trace
             TraceDecision traceDecision = computeTraceDecision(name, null, xTraceOptions, signals);
@@ -154,8 +149,14 @@ public class AppOpticsSampler implements Sampler {
                 && (swTraceState[1].equals("00") || swTraceState[1].equals("01"));
     }
 
-    private String getResource(Attributes attributes) {
-        return Util.parsePath(attributes.get(SemanticAttributes.HTTP_URL));
+    private String constructUrl(Attributes attributes) {
+        String scheme = attributes.get(SemanticAttributes.HTTP_SCHEME);
+        String host = attributes.get(SemanticAttributes.NET_HOST_NAME);
+        String target = attributes.get(SemanticAttributes.HTTP_TARGET);
+
+        String url = String.format("%s://%s%s", scheme, host, target);
+        logger.debug(String.format("Constructed url: %s", url));
+        return url;
     }
 
     @Override
@@ -192,7 +193,9 @@ public class AppOpticsSampler implements Sampler {
         return result;
     }
 
-    private TraceDecision computeTraceDecision(String layer, String inXTraceID, XTraceOptions xTraceOptions,
+    private TraceDecision computeTraceDecision(String layer,
+                                               String inXTraceID,
+                                               XTraceOptions xTraceOptions,
                                                List<String> signals) {
         TraceDecision traceDecision = null;
         logger.debug(String.format("Signals: %s", signals));
@@ -202,6 +205,7 @@ public class AppOpticsSampler implements Sampler {
                 return traceDecision;
             }
         }
+
         return traceDecision;
     }
 }
