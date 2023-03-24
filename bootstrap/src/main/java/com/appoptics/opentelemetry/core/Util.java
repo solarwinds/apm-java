@@ -2,9 +2,13 @@ package com.appoptics.opentelemetry.core;
 
 import com.tracelytics.joboe.Metadata;
 import com.tracelytics.joboe.OboeException;
-import io.opentelemetry.api.trace.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.tracelytics.logging.Logger;
+import com.tracelytics.logging.LoggerFactory;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanBuilder;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.TraceFlags;
+import io.opentelemetry.api.trace.TraceState;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -12,10 +16,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.appoptics.opentelemetry.core.Constants.*;
+import static com.appoptics.opentelemetry.core.Constants.SW_KEY_PREFIX;
 
 public class Util {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Util.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger();
     private static final byte EXIT_OP_ID_MASK = 0xf;
 
     /** Converts an OpenTelemetry span context to a hex string.
