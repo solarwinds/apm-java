@@ -47,6 +47,7 @@ import com.tracelytics.util.ServiceKeyUtils;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import otel_custom_distro.custom.BuildConfig;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -97,9 +98,11 @@ public class Initializer {
     }
 
     public static void initialize() throws InvalidConfigException {
+        LOGGER.info(String.format("Otel agent version: %s", BuildConfig.OTEL_AGENT_VERSION));
+        LOGGER.info(String.format("Solarwinds agent version: %s", BuildConfig.SOLARWINDS_AGENT_VERSION));
         initializeConfig();
-        registerShutdownTasks();
 
+        registerShutdownTasks();
         String serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
         LOGGER.info("Successfully initialized SolarwindsAPM OpenTelemetry extensions with service key " + ServiceKeyUtils.maskServiceKey(serviceKey));
     }
