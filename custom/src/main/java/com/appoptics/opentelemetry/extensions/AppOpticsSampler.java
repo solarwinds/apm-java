@@ -4,7 +4,6 @@ import com.appoptics.opentelemetry.core.Constants;
 import com.appoptics.opentelemetry.core.Util;
 import com.google.auto.service.AutoService;
 import com.tracelytics.joboe.TraceDecision;
-import com.tracelytics.joboe.TraceDecisionUtil;
 import com.tracelytics.joboe.XTraceOptions;
 import com.tracelytics.joboe.XTraceOptionsResponse;
 import com.tracelytics.logging.Logger;
@@ -25,11 +24,12 @@ import io.opentelemetry.sdk.trace.samplers.SamplingResult;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
 import javax.annotation.Nonnull;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.SW_SPAN_PLACEHOLDER;
 import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.SW_TRACESTATE_KEY;
+import static com.tracelytics.joboe.TraceDecisionUtil.shouldTraceRequest;
 
 /**
  * Sampler that uses trace decision logic from our joboe core (consult local and remote settings)
@@ -65,8 +65,11 @@ public class AppOpticsSampler implements Sampler {
     private static final Logger logger = LoggerFactory.getLogger();
 
     @Override
-    public SamplingResult shouldSample(@Nonnull Context parentContext, @Nonnull String traceId, @Nonnull String name,
-                                       @Nonnull SpanKind spanKind, @Nonnull Attributes attributes,
+    public SamplingResult shouldSample(@Nonnull Context parentContext,
+                                       @Nonnull String traceId,
+                                       @Nonnull String name,
+                                       @Nonnull SpanKind spanKind,
+                                       @Nonnull Attributes attributes,
                                        @Nonnull List<LinkData> parentLinks) {
         final SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
         final TraceState traceState = parentSpanContext.getTraceState() != null ? parentSpanContext.getTraceState() : TraceState.getDefault();
@@ -76,10 +79,10 @@ public class AppOpticsSampler implements Sampler {
         final XTraceOptions xTraceOptions = parentContext.get(TriggerTraceContextKey.KEY);
 
         String xTraceOptionsResponseStr = null;
-        List<String> signals = Collections.singletonList(constructUrl(attributes));
+        List<String> signals = Arrays.asList(constructUrl(attributes), String.format("%s:%s", spanKind, name));
 
         if (!parentSpanContext.isValid()) { // no valid traceparent, it is a new trace
-            TraceDecision traceDecision = computeTraceDecision(name, null, xTraceOptions, signals);
+            TraceDecision traceDecision = shouldTraceRequest(name, null, xTraceOptions, signals);
             samplingResult = toOtSamplingResult(traceDecision);
             XTraceOptionsResponse xTraceOptionsResponse = XTraceOptionsResponse.computeResponse(xTraceOptions,
                     traceDecision, true);
@@ -92,7 +95,7 @@ public class AppOpticsSampler implements Sampler {
             final String swVal = traceState.get(SW_TRACESTATE_KEY);
             String parentId = null;
             if (!isValidSWTraceStateKey(swVal)) { // broken or non-exist sw tracestate, treat it as a new trace
-                final TraceDecision traceDecision = computeTraceDecision(name, null, xTraceOptions, signals);
+                final TraceDecision traceDecision = shouldTraceRequest(name, null, xTraceOptions, signals);
                 samplingResult = toOtSamplingResult(traceDecision);
                 final XTraceOptionsResponse xTraceOptionsResponse = XTraceOptionsResponse.computeResponse(xTraceOptions,
                         traceDecision, true);
@@ -103,7 +106,7 @@ public class AppOpticsSampler implements Sampler {
                 final TraceFlags traceFlags = TraceFlags.fromByte(swVal.split("-")[1].getBytes()[1]);
                 if (parentSpanContext.isRemote()) { // root span needs to roll the dice
                     final String xTraceId = Util.w3CContextToHexString(parentSpanContext);
-                    final TraceDecision traceDecision = computeTraceDecision(name, xTraceId, xTraceOptions, signals);
+                    final TraceDecision traceDecision = shouldTraceRequest(name, xTraceId, xTraceOptions, signals);
                     samplingResult = toOtSamplingResult(traceDecision);
 
                     final XTraceOptionsResponse xTraceOptionsResponse = XTraceOptionsResponse.computeResponse(
@@ -191,21 +194,5 @@ public class AppOpticsSampler implements Sampler {
             }
         }
         return result;
-    }
-
-    private TraceDecision computeTraceDecision(String layer,
-                                               String inXTraceID,
-                                               XTraceOptions xTraceOptions,
-                                               List<String> signals) {
-        TraceDecision traceDecision = null;
-        logger.debug(String.format("Signals: %s", signals));
-        for (String signal : signals) {
-            traceDecision = TraceDecisionUtil.shouldTraceRequest(layer, inXTraceID, xTraceOptions, signal);
-            if (!traceDecision.isSampled() && !traceDecision.isReportMetrics()) {
-                return traceDecision;
-            }
-        }
-
-        return traceDecision;
     }
 }

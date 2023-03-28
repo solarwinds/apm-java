@@ -11,8 +11,6 @@ apply from: "$rootDir/gradle/instrumentation.gradle"
 
 dependencies {
   compileOnly project(":bootstrap")
-  compileOnly "org.slf4j:slf4j-api:2.0.6"
-  compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
   compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
   compileOnly "io.opentelemetry:opentelemetry-sdk-trace:${versions.opentelemetry}"
   compileOnly "io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}"

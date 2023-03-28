@@ -39,8 +39,7 @@ public class AppOpticsSpanExporter implements SpanExporter {
                     }
 
                     final String w3cContext = Util.w3CContextToHexString(spanData.getSpanContext());
-
-                    final String spanName = spanData.getKind().toString() + "." + spanData.getName();
+                    final String spanName = String.format("%s:%s", spanData.getKind().toString(), spanData.getName());
 
                     final Metadata spanMetadata = new Metadata(w3cContext);
                     spanMetadata.randomizeOpID(); //get around the metadata logic, this op id is not used
@@ -60,11 +59,13 @@ public class AppOpticsSpanExporter implements SpanExporter {
                     }
 
                     if (!spanData.getParentSpanContext().isValid() || spanData.getParentSpanContext().isRemote()) { //then a root span of this service
-                        String transactionName = spanData.getAttributes().get(AttributeKey.stringKey("TransactionName")); //check if there's transaction name set as attribute
+                        String transactionName = spanData.getAttributes().get(AttributeKey.stringKey(
+                                "TransactionName")); //check if there's transaction name set as attribute
                         if (transactionName == null) {
                             transactionName = TransactionNameManager.getTransactionName(spanData);
                             if (transactionName != null) {
-                                entryEvent.addInfo("TransactionName", transactionName); //only do this if we are generating a transaction name here. If it's already in attributes, it will be inserted by addInfo(getTags...)
+                                entryEvent.addInfo("TransactionName",
+                                        transactionName); //only do this if we are generating a transaction name here. If it's already in attributes, it will be inserted by addInfo(getTags...)
                             }
                         }
 
@@ -108,9 +109,9 @@ public class AppOpticsSpanExporter implements SpanExporter {
     }
 
     private static final List<AttributeKey<?>> OPEN_TELEMETRY_ERROR_ATTRIBUTE_KEYS = Arrays.asList(
-        SemanticAttributes.EXCEPTION_MESSAGE,
-        SemanticAttributes.EXCEPTION_TYPE,
-        SemanticAttributes.EXCEPTION_STACKTRACE
+            SemanticAttributes.EXCEPTION_MESSAGE,
+            SemanticAttributes.EXCEPTION_TYPE,
+            SemanticAttributes.EXCEPTION_STACKTRACE
     );
 
     private void reportErrorEvent(EventData eventData) {
@@ -121,11 +122,11 @@ public class AppOpticsSpanExporter implements SpanExporter {
             message = "";
         }
         event.addInfo("Label", "error",
-                    "Spec", "error",
-                    "ErrorClass", attributes.get(SemanticAttributes.EXCEPTION_TYPE),
-                    "ErrorMsg", message,
-                    "Backtrace", attributes.get(SemanticAttributes.EXCEPTION_STACKTRACE)
-            );
+                "Spec", "error",
+                "ErrorClass", attributes.get(SemanticAttributes.EXCEPTION_TYPE),
+                "ErrorMsg", message,
+                "Backtrace", attributes.get(SemanticAttributes.EXCEPTION_STACKTRACE)
+        );
 
         final Map<AttributeKey<?>, Object> otherKvs = filterAttributes(attributes);
         otherKvs.keySet().removeAll(OPEN_TELEMETRY_ERROR_ATTRIBUTE_KEYS);
@@ -140,8 +141,8 @@ public class AppOpticsSpanExporter implements SpanExporter {
         final Event event = Context.createEvent();
         final Attributes attributes = eventData.getAttributes();
         event.addInfo(
-            "Label", "info",
-            "sw.event_name", eventData.getName());
+                "Label", "info",
+                "sw.event_name", eventData.getName());
         final Map<AttributeKey<?>, Object> otherKvs = filterAttributes(attributes);
         for (Map.Entry<AttributeKey<?>, Object> keyValue : otherKvs.entrySet()) {
             event.addInfo(keyValue.getKey().getKey(), keyValue.getValue());
@@ -172,7 +173,7 @@ public class AppOpticsSpanExporter implements SpanExporter {
         return CompletableResultCode.ofSuccess();
     }
 
-    private Map<String,?> getEventKvs(Attributes inputAttributes) {
+    private Map<String, ?> getEventKvs(Attributes inputAttributes) {
         final Map<AttributeKey<?>, Object> attributes = filterAttributes(inputAttributes);
         final Map<String, Object> tags = new HashMap<String, Object>();
         for (Map.Entry<AttributeKey<?>, Object> entry : attributes.entrySet()) {
@@ -185,7 +186,8 @@ public class AppOpticsSpanExporter implements SpanExporter {
     }
 
     @Override
-    public void close() { }
+    public void close() {
+    }
 
     public static class Builder {
 
