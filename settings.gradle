@@ -8,7 +8,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'otel-custom-distro'
+rootProject.name = 'solarwinds-apm-java'
 
 include "agent"
 include "solarwinds-otel-sdk"

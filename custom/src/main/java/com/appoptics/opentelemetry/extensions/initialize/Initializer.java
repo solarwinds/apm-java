@@ -2,6 +2,7 @@ package com.appoptics.opentelemetry.extensions.initialize;
 
 import com.appoptics.opentelemetry.core.AgentState;
 import com.appoptics.opentelemetry.extensions.AppOpticsInboundMetricsSpanProcessor;
+import com.appoptics.opentelemetry.extensions.initialize.config.BuildConfig;
 import com.appoptics.opentelemetry.extensions.initialize.config.ConfigConstants;
 import com.appoptics.opentelemetry.extensions.initialize.config.LogFileStringParser;
 import com.appoptics.opentelemetry.extensions.initialize.config.LogSettingParser;
@@ -47,7 +48,6 @@ import com.tracelytics.util.ServiceKeyUtils;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import otel_custom_distro.custom.BuildConfig;
 
 import java.io.File;
 import java.io.FileInputStream;

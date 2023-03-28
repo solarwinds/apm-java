@@ -120,7 +120,7 @@ public class TransactionNameManager {
             httpHostValue = spanData.getAttributes().get(SemanticAttributes.NET_HOST_NAME);
         }
 
-        if (httpHostValue != null && !"".equals(httpHostValue)) {
+        if (httpHostValue != null && !httpHostValue.isEmpty()) {
 
             if (transactionName.startsWith("/")) {
                 return httpHostValue + transactionName;
