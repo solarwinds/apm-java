@@ -23,12 +23,12 @@ subprojects {
 
     ext {
         versions = [
-                opentelemetry         : "1.22.0",
-                opentelemetryJavaagent: "1.22.0",
+                opentelemetry         : "1.24.0",
+                opentelemetryJavaagent: "1.24.0",
                 bytebuddy             : "1.12.10",
                 guava                 : "30.1-jre",
                 appopticsCore         : "7.8.2",
-                agent                 : "0.15.2", // the custom distro agent version
+                agent                 : "0.15.3", // the custom distro agent version
                 autoservice           : "1.0.1",
         ]
         versions.appopticsMetrics = "${versions.appopticsCore}" // they share the same version now
