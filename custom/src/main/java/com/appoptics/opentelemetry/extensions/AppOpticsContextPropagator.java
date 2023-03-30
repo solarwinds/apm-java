@@ -9,6 +9,7 @@ import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.context.propagation.TextMapSetter;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
@@ -117,14 +118,13 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
     /**
      * Extract context from the carrier, first scanning for appoptics x-trace header.
      * If not found, try the w3c `tracestate`
-     * @param context
-     * @param carrier
-     * @param getter
-     * @param <C>
-     * @return
+     * @param context trace context
+     * @param carrier the input to the method being instrumented. Usually a request of some kind
+     * @param getter the object that knows how to extract data from {@param carrier} using preconfigured keys
+     * @return updated context
      */
     @Override
-    public <C> Context extract(Context context, @Nullable C carrier, TextMapGetter<C> getter) {
+    public <C> Context extract(@Nonnull Context context, @Nullable C carrier, TextMapGetter<C> getter) {
         final String traceOptions = getter.get(carrier, X_TRACE_OPTIONS);
         final String traceOptionsSignature = getter.get(carrier, X_TRACE_OPTIONS_SIGNATURE);
         final XTraceOptions xTraceOptions = XTraceOptions.getXTraceOptions(traceOptions, traceOptionsSignature);

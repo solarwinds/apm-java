@@ -1,7 +1,6 @@
 package com.appoptics.opentelemetry.extensions;
 
 import com.appoptics.opentelemetry.core.CustomTransactionNameDict;
-import com.appoptics.opentelemetry.core.Util;
 import com.tracelytics.ext.google.common.cache.Cache;
 import com.tracelytics.ext.google.common.cache.CacheBuilder;
 import com.tracelytics.joboe.config.ConfigManager;
@@ -113,15 +112,9 @@ public class TransactionNameManager {
         }
     }
 
-    @SuppressWarnings({"deprecation", "Suppressing this error because some of the intrumentation still use SemanticAttributes.HTTP_HOST"})
     private static String prefixTransactionNameWithDomainName(String transactionName, SpanData spanData) {
-        String httpHostValue = spanData.getAttributes().get(SemanticAttributes.HTTP_HOST);
-        if (httpHostValue == null) {
-            httpHostValue = spanData.getAttributes().get(SemanticAttributes.NET_HOST_NAME);
-        }
-
+        String httpHostValue = spanData.getAttributes().get(SemanticAttributes.NET_HOST_NAME);
         if (httpHostValue != null && !httpHostValue.isEmpty()) {
-
             if (transactionName.startsWith("/")) {
                 return httpHostValue + transactionName;
             } else {
@@ -180,9 +173,7 @@ public class TransactionNameManager {
             return customName;
         }
 
-        String url = spanAttributes.get(SemanticAttributes.HTTP_URL);
-        String path = url != null ? Util.parsePath(url) : spanAttributes.get(SemanticAttributes.HTTP_TARGET);
-
+        String path = spanAttributes.get(SemanticAttributes.HTTP_TARGET);
         // use HandlerName which may be injected by some MVC instrumentations (currently only Spring MVC)
         String handlerName = spanAttributes.get(AttributeKey.stringKey("HandlerName"));
         if (handlerName != null) {

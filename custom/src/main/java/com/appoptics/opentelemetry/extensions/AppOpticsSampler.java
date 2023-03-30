@@ -27,6 +27,7 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.appoptics.opentelemetry.extensions.AppOpticsSpanExporter.LAYER_FORMAT;
 import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.SW_SPAN_PLACEHOLDER;
 import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.SW_TRACESTATE_KEY;
 import static com.tracelytics.joboe.TraceDecisionUtil.shouldTraceRequest;
@@ -79,7 +80,7 @@ public class AppOpticsSampler implements Sampler {
         final XTraceOptions xTraceOptions = parentContext.get(TriggerTraceContextKey.KEY);
 
         String xTraceOptionsResponseStr = null;
-        List<String> signals = Arrays.asList(constructUrl(attributes), String.format("%s:%s", spanKind, name));
+        List<String> signals = Arrays.asList(constructUrl(attributes), String.format(LAYER_FORMAT, spanKind, name));
 
         if (!parentSpanContext.isValid()) { // no valid traceparent, it is a new trace
             TraceDecision traceDecision = shouldTraceRequest(name, null, xTraceOptions, signals);

@@ -20,6 +20,9 @@ import java.util.*;
 public class AppOpticsSpanExporter implements SpanExporter {
     private final Logger logger = LoggerFactory.getLogger();
 
+    // This format is visible to customer via span layer and can be used to configure transaction filtering setting.
+    static final String LAYER_FORMAT = "%s:%s";
+
     private AppOpticsSpanExporter() {
     }
 
@@ -39,7 +42,7 @@ public class AppOpticsSpanExporter implements SpanExporter {
                     }
 
                     final String w3cContext = Util.w3CContextToHexString(spanData.getSpanContext());
-                    final String spanName = String.format("%s:%s", spanData.getKind().toString(), spanData.getName());
+                    final String spanName = String.format(LAYER_FORMAT, spanData.getKind(), spanData.getName());
 
                     final Metadata spanMetadata = new Metadata(w3cContext);
                     spanMetadata.randomizeOpID(); //get around the metadata logic, this op id is not used
