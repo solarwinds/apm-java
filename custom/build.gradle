@@ -21,6 +21,7 @@ dependencies {
 }
 
 buildConfig {
+  packageName("com.appoptics.opentelemetry.extensions.initialize.config")
   buildConfigField('String', 'OTEL_AGENT_VERSION', "\"${versions.opentelemetry}\"")
   buildConfigField('String', 'SOLARWINDS_AGENT_VERSION', "\"${versions.agent}\"" )
 }
