@@ -10,17 +10,15 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 public class QueryArgsCollector {
+    private static final ThreadLocal<TreeMap<String, String>> instrumentationStore = ThreadLocal.withInitial(TreeMap::new);
+
     public static void collect(Context context, int index, Object value) {
         Span span = Span.fromContext(context);
         SpanContext spanContext = span.getSpanContext();
         if (!(spanContext.isValid() && spanContext.isSampled())) {
             return;
         }
-        SortedMap<String, String> queryArgs = context.get(AoPreparedStatementInstrumentation.QueryArgsContextKey.KEY);
-        if (queryArgs == null) {
-            queryArgs = new TreeMap<>();
-            context.with(AoPreparedStatementInstrumentation.QueryArgsContextKey.KEY, queryArgs).makeCurrent();
-        }
+        SortedMap<String, String> queryArgs = instrumentationStore.get();
         queryArgs.put(String.valueOf(index), JdbcEventValueConverter.convert(value).toString());
     }
 
@@ -28,12 +26,13 @@ public class QueryArgsCollector {
         Span span = Span.fromContext(context);
         SpanContext spanContext = span.getSpanContext();
         if ((spanContext.isValid() && spanContext.isSampled())) {
-            SortedMap<String, String> argsMap = context.get(AoPreparedStatementInstrumentation.QueryArgsContextKey.KEY);
+            SortedMap<String, String> argsMap = instrumentationStore.get();
 
-            if (argsMap != null) {
+            if (!argsMap.isEmpty()) {
                 List<String> queryArgs = new ArrayList<>(argsMap.values());
                 span.setAttribute(AoPreparedStatementInstrumentation.QueryArgsAttributeKey.KEY, queryArgs);
             }
+            argsMap.clear();
         }
     }
 }
