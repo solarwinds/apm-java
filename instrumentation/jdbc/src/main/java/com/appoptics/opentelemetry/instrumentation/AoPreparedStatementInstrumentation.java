@@ -61,7 +61,7 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
                 CallDepth.forClass(Statement.class).decrementAndGet();
                 return;
             }
-            QueryArgsCollector.collect(currentContext(), index, value);
+            QueryArgsCollector.collect(statement, currentContext(), index, value);
             CallDepth.forClass(Statement.class).decrementAndGet(); // do not want to interfere with the Otel's instrumentation
         }
 
@@ -86,6 +86,7 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
 
         @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
         public static void onExit(
+                @Advice.This PreparedStatement statement,
                 @Advice.Thrown Throwable throwable) {
             if (CallDepth.forClass(Statement.class).getAndIncrement() != 1) { //only report back when depth is one to avoid duplications
                 // Note that we need to decrement the call depth counter at every branch, otherwise the JDBC instrumentation of the
@@ -93,7 +94,7 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
                 CallDepth.forClass(Statement.class).decrementAndGet();
                 return;
             }
-            QueryArgsCollector.maybeAttach(currentContext());
+            QueryArgsCollector.maybeAttach(statement, currentContext());
             StatementTruncator.maybeTruncateStatement(currentContext());
             CallDepth.forClass(Statement.class).decrementAndGet(); // do not want to interfere with the Otel's instrumentation
         }
