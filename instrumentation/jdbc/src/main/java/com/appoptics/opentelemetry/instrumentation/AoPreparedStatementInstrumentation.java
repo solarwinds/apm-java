@@ -1,10 +1,9 @@
 package com.appoptics.opentelemetry.instrumentation;
 
 import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.context.ContextKey;
+import io.opentelemetry.javaagent.bootstrap.CallDepth;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
-import io.opentelemetry.javaagent.bootstrap.CallDepth;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -12,13 +11,14 @@ import net.bytebuddy.matcher.ElementMatcher;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
-import java.util.SortedMap;
 
+import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
-import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
-import static net.bytebuddy.matcher.ElementMatchers.*;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
+import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
+import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
 
@@ -70,11 +70,6 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
                 @Advice.Thrown Throwable throwable) {
             // we have to have this empty exit advice as otherwise local parameters in the enter method are not supported.
         }
-    }
-
-    public static class QueryArgsContextKey {
-        public static final ContextKey<SortedMap<String, String>> KEY = ContextKey.named("query-args-context-key");
-        private QueryArgsContextKey() {}
     }
 
     public static class QueryArgsAttributeKey {
