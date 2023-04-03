@@ -80,7 +80,7 @@ public class AppOpticsSampler implements Sampler {
         final XTraceOptions xTraceOptions = parentContext.get(TriggerTraceContextKey.KEY);
 
         String xTraceOptionsResponseStr = null;
-        List<String> signals = Arrays.asList(constructUrl(attributes), String.format(LAYER_FORMAT, spanKind, name));
+        List<String> signals = Arrays.asList(constructUrl(attributes), String.format(LAYER_FORMAT, spanKind, name.trim()));
 
         if (!parentSpanContext.isValid()) { // no valid traceparent, it is a new trace
             TraceDecision traceDecision = shouldTraceRequest(name, null, xTraceOptions, signals);

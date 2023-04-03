@@ -42,7 +42,7 @@ public class AppOpticsSpanExporter implements SpanExporter {
                     }
 
                     final String w3cContext = Util.w3CContextToHexString(spanData.getSpanContext());
-                    final String spanName = String.format(LAYER_FORMAT, spanData.getKind(), spanData.getName());
+                    final String spanName = String.format(LAYER_FORMAT, spanData.getKind(), spanData.getName().trim());
 
                     final Metadata spanMetadata = new Metadata(w3cContext);
                     spanMetadata.randomizeOpID(); //get around the metadata logic, this op id is not used
