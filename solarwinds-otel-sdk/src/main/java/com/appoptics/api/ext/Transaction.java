@@ -22,7 +22,7 @@ class Transaction {
         Span span = Span.fromContext(context);
         SpanContext spanContext = span.getSpanContext();
         
-        if (!(spanContext.isValid() && spanContext.isSampled())) {
+        if (!spanContext.isValid() || !spanContext.isSampled()) {
             return false;
         }
         CustomTransactionNameDict.set(spanContext.getTraceId(), name);
