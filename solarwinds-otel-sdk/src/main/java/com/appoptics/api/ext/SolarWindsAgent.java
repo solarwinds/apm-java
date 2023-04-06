@@ -28,7 +28,7 @@ public class SolarWindsAgent {
      * Set the name of the current transaction.
      *
      * @param transactionName the name of the transaction
-     * @return whether the name was successfully set
+     * @return returns true if transaction name was set
      */
     public static boolean setTransactionName(String transactionName) {
         if (agentAttached) {
@@ -46,7 +46,7 @@ public class SolarWindsAgent {
      *
      * @param timeout the maximum time to wait
      * @param unit    the time unit of the timeout argument
-     * @return whether the agent is ready
+     * @return returns true if the agent is ready
      */
     public static boolean waitUntilAgentReady(long timeout, TimeUnit unit) {
         if (agentAttached) {
