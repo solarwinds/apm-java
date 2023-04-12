@@ -27,7 +27,6 @@ import com.tracelytics.joboe.config.TraceConfigs;
 import com.tracelytics.logging.Logger;
 import com.tracelytics.logging.LoggerFactory;
 import com.tracelytics.util.ServiceKeyUtils;
-import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,7 +49,6 @@ public class AppOpticsConfigurationLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger();
     private static final String CONFIG_FILE = "solarwinds-apm-config.json";
     private static final String SYS_PROPERTIES_PREFIX = "sw.apm";
-    private static AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk;
 
     static {
         ConfigProperty.AGENT_LOGGING.setParser(LogSettingParser.INSTANCE);
