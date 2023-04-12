@@ -165,7 +165,7 @@ public class AppOpticsSampler implements Sampler {
 
     @Override
     public String getDescription() {
-        return "Solarwinds NH Sampler";
+        return "Solarwinds Observability Sampler";
     }
 
     private SamplingResult toOtSamplingResult(TraceDecision aoTraceDecision) {
