@@ -35,13 +35,18 @@ public class OtelAutoConfigurationCustomizerProviderImpl implements AutoConfigur
         }
 
         if (!agentEnabled) {
-            logger.warn("Agent is disabled");
+            logger.warn("Solarwinds' extension is disabled");
         }
     }
 
     public static boolean isAgentEnabled() {
         Object config = ConfigManager.getConfig(ConfigProperty.AGENT_ENABLED);
-        return agentEnabled && (config == null || Boolean.TRUE.equals(config));
+        boolean verdict = agentEnabled && (config == null || Boolean.TRUE.equals(config));
+        if (!verdict) {
+            logger.warn("Solarwinds' extension is disabled");
+        }
+
+        return verdict;
     }
 
     public static void setAgentEnabled(boolean agentEnabled) {

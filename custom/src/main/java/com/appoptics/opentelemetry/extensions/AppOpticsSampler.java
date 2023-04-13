@@ -63,6 +63,10 @@ public class AppOpticsSampler implements Sampler {
 
     private static final Logger logger = LoggerFactory.getLogger();
 
+    public AppOpticsSampler(){
+        logger.info("Attached Solarwinds' Sampler");
+    }
+
     @Override
     public SamplingResult shouldSample(@Nonnull Context parentContext,
                                        @Nonnull String traceId,

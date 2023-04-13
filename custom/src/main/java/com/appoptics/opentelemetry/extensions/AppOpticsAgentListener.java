@@ -60,6 +60,7 @@ public class AppOpticsAgentListener implements AgentListener {
         if (isAgentEnabled() && isUsingAppOpticsSampler(openTelemetrySdk)) {
             executeStartupTasks(openTelemetrySdk);
             registerShutdownTasks();
+            logger.info("Successfully submitted SolarwindsAPM OpenTelemetry extensions initialization tasks");
         }
     }
 
@@ -94,7 +95,7 @@ public class AppOpticsAgentListener implements AgentListener {
                     settingsLatch = SettingsManager.initialize();
                 }
                 catch (ClientException e) {
-                    logger.debug("Failed to initialize RpcSettingsReader : " + e.getMessage());
+                    logger.warn("Failed to initialize RpcSettingsReader : " + e.getMessage());
                 }
                 logger.debug("Initialized HostUtils");
 
@@ -136,13 +137,13 @@ public class AppOpticsAgentListener implements AgentListener {
                         settingsLatch.await();
                     }
                 } catch (InterruptedException e) {
-                    logger.debug("Failed to wait for settings from RpcSettingsReader : " + e.getMessage());
+                    logger.warn("Failed to wait for settings from RpcSettingsReader : " + e.getMessage());
                 }
             } catch (Throwable e) {
                 logger.warn("Failed post system startup operations due to : " + e.getMessage(), e);
             }
+            logger.info("Startup task completed");
         }));
-        logger.debug("Submitted startup task");
         service.shutdown();
     }
 

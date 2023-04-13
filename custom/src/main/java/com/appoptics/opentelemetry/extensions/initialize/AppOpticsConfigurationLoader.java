@@ -65,17 +65,17 @@ public class AppOpticsConfigurationLoader {
 
     public static void load() throws InvalidConfigException {
         LOGGER.info(String.format("Otel agent version: %s", BuildConfig.OTEL_AGENT_VERSION));
-        LOGGER.info(String.format("Solarwinds agent version: %s", BuildConfig.SOLARWINDS_AGENT_VERSION));
+        LOGGER.info(String.format("Solarwinds extension version: %s", BuildConfig.SOLARWINDS_AGENT_VERSION));
         loadConfigurations();
 
         String serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
-        LOGGER.info("Successfully initialized SolarwindsAPM OpenTelemetry extensions with service key " + ServiceKeyUtils.maskServiceKey(serviceKey));
+        LOGGER.info("Successfully loaded SolarwindsAPM OpenTelemetry extensions configurations. Service key: " + ServiceKeyUtils.maskServiceKey(serviceKey));
     }
 
     /**
      * Checks the OpenTelemetry Java agent's logger settings. If the NH custom distro doesn't set a log file
      * but the Otel has this config option, we just follow the Otel's config.
-     * @param configs
+     * @param configs the configuration container to hold configs
      */
     private static void maybeFollowOtelConfigProperties(ConfigContainer configs) {
         if (configs.get(ConfigProperty.AGENT_LOG_FILE) == null

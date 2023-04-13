@@ -114,8 +114,6 @@ public class AppOpticsSpanExporter implements SpanExporter {
             }
 
             logger.debug("Finished sending " + collection.size() + " spans to the collector.");
-        } else {
-            logger.warn("AppOpticsSpanExporter is disabled");
         }
         return CompletableResultCode.ofSuccess();
     }
