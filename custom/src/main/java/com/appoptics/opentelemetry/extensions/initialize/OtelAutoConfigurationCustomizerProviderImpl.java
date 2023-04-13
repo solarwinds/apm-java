@@ -3,8 +3,6 @@ package com.appoptics.opentelemetry.extensions.initialize;
 import com.appoptics.opentelemetry.extensions.AppOpticsPropertiesSupplier;
 import com.appoptics.opentelemetry.extensions.AppOpticsTracerProviderCustomizer;
 import com.google.auto.service.AutoService;
-import com.tracelytics.joboe.config.ConfigManager;
-import com.tracelytics.joboe.config.ConfigProperty;
 import com.tracelytics.joboe.config.InvalidConfigException;
 import com.tracelytics.logging.Logger;
 import com.tracelytics.logging.LoggerFactory;
@@ -40,13 +38,11 @@ public class OtelAutoConfigurationCustomizerProviderImpl implements AutoConfigur
     }
 
     public static boolean isAgentEnabled() {
-        Object config = ConfigManager.getConfig(ConfigProperty.AGENT_ENABLED);
-        boolean verdict = agentEnabled && (config == null || Boolean.TRUE.equals(config));
-        if (!verdict) {
+        if (!agentEnabled) {
             logger.warn("Solarwinds' extension is disabled");
         }
 
-        return verdict;
+        return agentEnabled;
     }
 
     public static void setAgentEnabled(boolean agentEnabled) {
