@@ -36,85 +36,86 @@ public class AppOpticsSpanExporter implements SpanExporter {
 
     @Override
     public CompletableResultCode export(@Nonnull Collection<SpanData> collection) {
-        if (isAgentEnabled()) {
-            logger.debug("Started to export span data to the collector.");
-            for (SpanData spanData : collection) {
-                if (spanData.hasEnded()) {
-                    try {
-                        Metadata parentMetadata = null;
-                        if (spanData.getParentSpanContext().isValid()) {
-                            parentMetadata = Util.buildMetadata(spanData.getParentSpanContext());
-                        }
+        if (!isAgentEnabled()) {
+            return CompletableResultCode.ofSuccess();
+        }
 
-                        final String w3cContext = Util.w3CContextToHexString(spanData.getSpanContext());
-                        final String spanName = String.format(LAYER_FORMAT, spanData.getKind(),
-                                spanData.getName().trim());
-
-                        final Metadata spanMetadata = new Metadata(w3cContext);
-                        spanMetadata.randomizeOpID(); //get around the metadata logic, this op id is not used
-                        // set spanMetadata into the current Context so that after the initial event, the metadata
-                        // does not need to be manually managed for event creation / linkage.  Context is updated
-                        // with the metadata of the last reported event.
-                        Context.setMetadata(spanMetadata);
-
-                        // create new event with an override metadata from the OTel spanData (w3cContext)
-                        // and link to OTel parent (if present).
-                        // do this with EventImpl instead of Context because we need to use the addEdge param.
-                        Event entryEvent;
-                        if (parentMetadata != null) {
-                            entryEvent = new EventImpl(parentMetadata, w3cContext, true);
-                        } else {
-                            entryEvent = new EventImpl(null, w3cContext, false);
-                        }
-
-                        if (!spanData.getParentSpanContext().isValid() || spanData.getParentSpanContext().isRemote()) { //then a root span of this service
-                            String transactionName = spanData.getAttributes().get(AttributeKey.stringKey(
-                                    "TransactionName")); //check if there's transaction name set as attribute
-                            if (transactionName == null) {
-                                transactionName = TransactionNameManager.getTransactionName(spanData);
-                                if (transactionName != null) {
-                                    entryEvent.addInfo("TransactionName",
-                                            transactionName); //only do this if we are generating a transaction name here. If it's already in attributes, it will be inserted by addInfo(getTags...)
-                                }
-                            }
-
-                        }
-
-                        entryEvent.addInfo(
-                                "Label", "entry",
-                                "Layer", spanName,
-                                "sw.span_kind", spanData.getKind().toString());
-                        entryEvent.setTimestamp(spanData.getStartEpochNanos() / 1000);
-                        entryEvent.addInfo(getEventKvs(spanData.getAttributes()));
-                        entryEvent.report();
-
-                        for (EventData event : spanData.getEvents()) {
-                            if (SemanticAttributes.EXCEPTION_EVENT_NAME.equals(event.getName())) {
-                                reportErrorEvent(event);
-                            } else {
-                                reportInfoEvent(event);
-                            }
-                        }
-
-                        final Event exitEvent = Context.createEvent();
-                        exitEvent.addInfo(
-                                "Label", "exit",
-                                "Layer", spanName,
-                                "sw.span_status_code", spanData.getStatus().getStatusCode().toString(),
-                                "sw.span_status_message", spanData.getStatus().getDescription());
-                        exitEvent.setTimestamp(spanData.getEndEpochNanos() / 1000);
-                        exitEvent.report();
-                    } catch (OboeException e) {
-                        e.printStackTrace();
-                    } finally {
-                        // clear Context for the next OTel span, which will initialize it with w3cContext
-                        Context.clearMetadata();
+        logger.debug("Started to export span data to the collector.");
+        for (SpanData spanData : collection) {
+            if (spanData.hasEnded()) {
+                try {
+                    Metadata parentMetadata = null;
+                    if (spanData.getParentSpanContext().isValid()) {
+                        parentMetadata = Util.buildMetadata(spanData.getParentSpanContext());
                     }
+
+                    final String w3cContext = Util.w3CContextToHexString(spanData.getSpanContext());
+                    final String spanName = String.format(LAYER_FORMAT, spanData.getKind(), spanData.getName().trim());
+
+                    final Metadata spanMetadata = new Metadata(w3cContext);
+                    spanMetadata.randomizeOpID(); //get around the metadata logic, this op id is not used
+                    // set spanMetadata into the current Context so that after the initial event, the metadata
+                    // does not need to be manually managed for event creation / linkage.  Context is updated
+                    // with the metadata of the last reported event.
+                    Context.setMetadata(spanMetadata);
+
+                    // create new event with an override metadata from the OTel spanData (w3cContext)
+                    // and link to OTel parent (if present).
+                    // do this with EventImpl instead of Context because we need to use the addEdge param.
+                    Event entryEvent;
+                    if (parentMetadata != null) {
+                        entryEvent = new EventImpl(parentMetadata, w3cContext, true);
+                    } else {
+                        entryEvent = new EventImpl(null, w3cContext, false);
+                    }
+
+                    if (!spanData.getParentSpanContext().isValid() || spanData.getParentSpanContext().isRemote()) { //then a root span of this service
+                        String transactionName = spanData.getAttributes().get(AttributeKey.stringKey(
+                                "TransactionName")); //check if there's transaction name set as attribute
+                        if (transactionName == null) {
+                            transactionName = TransactionNameManager.getTransactionName(spanData);
+                            if (transactionName != null) {
+                                entryEvent.addInfo("TransactionName",
+                                        transactionName); //only do this if we are generating a transaction name here. If it's already in attributes, it will be inserted by addInfo(getTags...)
+                            }
+                        }
+
+                    }
+
+                    entryEvent.addInfo(
+                            "Label", "entry",
+                            "Layer", spanName,
+                            "sw.span_kind", spanData.getKind().toString());
+                    entryEvent.setTimestamp(spanData.getStartEpochNanos() / 1000);
+                    entryEvent.addInfo(getEventKvs(spanData.getAttributes()));
+                    entryEvent.report();
+
+                    for (EventData event : spanData.getEvents()) {
+                        if (SemanticAttributes.EXCEPTION_EVENT_NAME.equals(event.getName())) {
+                            reportErrorEvent(event);
+                        } else {
+                            reportInfoEvent(event);
+                        }
+                    }
+
+                    final Event exitEvent = Context.createEvent();
+                    exitEvent.addInfo(
+                            "Label", "exit",
+                            "Layer", spanName,
+                            "sw.span_status_code", spanData.getStatus().getStatusCode().toString(),
+                            "sw.span_status_message", spanData.getStatus().getDescription());
+                    exitEvent.setTimestamp(spanData.getEndEpochNanos() / 1000);
+                    exitEvent.report();
+                } catch (OboeException e) {
+                    e.printStackTrace();
+                } finally {
+                    // clear Context for the next OTel span, which will initialize it with w3cContext
+                    Context.clearMetadata();
                 }
             }
-
-            logger.debug("Finished sending " + collection.size() + " spans to the collector.");
         }
+
+        logger.debug("Finished sending " + collection.size() + " spans to the collector.");
         return CompletableResultCode.ofSuccess();
     }
 

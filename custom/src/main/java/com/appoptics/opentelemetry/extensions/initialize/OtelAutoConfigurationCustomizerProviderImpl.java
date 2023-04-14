@@ -58,6 +58,8 @@ public class OtelAutoConfigurationCustomizerProviderImpl implements AutoConfigur
 
     @Override
     public int order() {
+        // Here, we return Integer.MAX_VALUE to force our extension customization to execute last.
+        // See https://github.com/appoptics/solarwinds-apm-java/pull/93#discussion_r1165987329 for more context
         return Integer.MAX_VALUE;
     }
 }
