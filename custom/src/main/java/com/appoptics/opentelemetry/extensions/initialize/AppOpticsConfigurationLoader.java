@@ -104,6 +104,10 @@ public class AppOpticsConfigurationLoader {
             }
             String envKey = key.toUpperCase().replace(".", "_");
             res.put(envKey, value);
+
+            if (envKey.endsWith("SERVICE_KEY")) {
+                value = ServiceKeyUtils.maskServiceKey(value);
+            }
             LOGGER.info("System property " + key + "=" + value + ", override " + envKey);
         }
         return res;
