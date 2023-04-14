@@ -84,4 +84,8 @@ subprojects {
             options.release.set(8)
         }
     }
+
+    javadoc{
+        source = sourceSets.main.allJava
+    }
 }

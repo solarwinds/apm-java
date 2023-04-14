@@ -15,8 +15,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
+import java.util.Set;
 
 public class AppOpticsContextPropagator implements TextMapPropagator {
     private static final String TRACE_STATE_APPOPTICS_KEY = "sw";
@@ -41,13 +41,13 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
     /**
      * Injects the both the AppOptics x-trace ID and the updated w3c `tracestate` with our x-trace ID prepended
      * into the carrier with values provided by current context
-     * @param context
-     * @param carrier
-     * @param setter
-     * @param <C>
+     *
+     * @param context trace context
+     * @param carrier the input to the method being instrumented. Usually a request of some kind
+     * @param setter  the object that knows how to inject data into carrier using preconfigured keys
      */
     @Override
-    public <C> void inject(Context context, @Nullable C carrier, TextMapSetter<C> setter) {
+    public <C> void inject(@Nonnull Context context, @Nullable C carrier, @Nonnull TextMapSetter<C> setter) {
         final SpanContext spanContext = Span.fromContext(context).getSpanContext();
         if (carrier == null || !spanContext.isValid()) {
             return;
@@ -70,57 +70,69 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
 
     /**
      * Update tracestate with the new SW tracestate value and do some truncation if needed.
-     * @param traceState
-     * @param swTraceStateValue
-     * @return
+     *
+     * @param traceState        w3c tracestate
+     * @param swTraceStateValue solarwinds tracestate
+     * @return updated tracestate serialized to string
      */
     private String updateTraceState(TraceState traceState, String swTraceStateValue) {
         final StringBuilder traceStateBuilder = new StringBuilder(TRACESTATE_MAX_SIZE);
-        traceStateBuilder.append(TRACE_STATE_APPOPTICS_KEY).append(TRACESTATE_KEY_VALUE_DELIMITER).append(swTraceStateValue);
-        final AtomicInteger count = new AtomicInteger(1);
+        traceStateBuilder.append(TRACE_STATE_APPOPTICS_KEY)
+                .append(TRACESTATE_KEY_VALUE_DELIMITER)
+                .append(swTraceStateValue);
 
+        final Set<Map.Entry<String, String>> tracestateEntries = traceState.asMap().entrySet();
+        int count = 1;
         // calculate current length of the tracestate
-        final AtomicInteger traceStateLength = new AtomicInteger(0);
-        traceState.forEach(
-                (key, value) -> {
-                    if (!TRACE_STATE_APPOPTICS_KEY.equals(key)
-                    && !TraceStateSamplingResult.SW_XTRACE_OPTIONS_RESP_KEY.equals(key)) {
-                        traceStateLength.addAndGet(key.length());
-                        traceStateLength.addAndGet(TRACESTATE_KEY_VALUE_DELIMITER.length());
-                        traceStateLength.addAndGet(value.length());
-                        traceStateLength.addAndGet(TRACESTATE_ENTRY_DELIMITER.length());
-                    }
-                }
-        );
+        int traceStateLength = 0;
+        for (Map.Entry<String, String> entry : tracestateEntries) {
+            String key = entry.getKey();
+            boolean verdict = (TRACE_STATE_APPOPTICS_KEY.equals(key)
+                    || TraceStateSamplingResult.SW_XTRACE_OPTIONS_RESP_KEY.equals(key));
+            if (!verdict) {
+                traceStateLength += (key.length());
+                traceStateLength += (TRACESTATE_KEY_VALUE_DELIMITER.length());
+                traceStateLength += (entry.getValue().length());
+                traceStateLength += (TRACESTATE_ENTRY_DELIMITER.length());
+            }
+        }
 
-        final AtomicBoolean truncateLargeEntry = new AtomicBoolean(traceStateLength.get() + traceStateBuilder.length() > TRACESTATE_MAX_SIZE);
-        traceState.forEach(
-                (key, value) -> {
-                    if (!TRACE_STATE_APPOPTICS_KEY.equals(key)
-                            && !TraceStateSamplingResult.SW_XTRACE_OPTIONS_RESP_KEY.equals(key)
-                            && count.get() < TRACESTATE_MAX_MEMBERS
-                            && traceStateBuilder.length() + TRACESTATE_ENTRY_DELIMITER.length() + key.length() + TRACESTATE_KEY_VALUE_DELIMITER.length() + value.length() <= TRACESTATE_MAX_SIZE) {
-                        if (key.length() + TRACESTATE_KEY_VALUE_DELIMITER.length() + value.length() >= OVERSIZE_ENTRY_LENGTH
-                        && truncateLargeEntry.get()) {
-                            truncateLargeEntry.set(false); // only truncate one oversize entry as SW tracestate entry is smaller than OVERSIZE_ENTRY_LENGTH
-                        }
-                        else {
-                            traceStateBuilder.append(TRACESTATE_ENTRY_DELIMITER)
-                                    .append(key)
-                                    .append(TRACESTATE_KEY_VALUE_DELIMITER)
-                                    .append(value);
-                            count.incrementAndGet();
-                        }
-                    }
-                });
+        boolean truncateLargeEntry = traceStateLength + traceStateBuilder.length() > TRACESTATE_MAX_SIZE;
+        for (Map.Entry<String, String> entry : tracestateEntries) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            boolean verdict = (TRACE_STATE_APPOPTICS_KEY.equals(key)
+                    || TraceStateSamplingResult.SW_XTRACE_OPTIONS_RESP_KEY.equals(key));
+
+            final int length =
+                    traceStateBuilder.length() + TRACESTATE_ENTRY_DELIMITER.length() +
+                            key.length() + TRACESTATE_KEY_VALUE_DELIMITER.length() + value.length();
+
+            if (!verdict && count < TRACESTATE_MAX_MEMBERS
+                    && length <= TRACESTATE_MAX_SIZE) {
+                if (key.length() + TRACESTATE_KEY_VALUE_DELIMITER.length() + value.length() >= OVERSIZE_ENTRY_LENGTH
+                        && truncateLargeEntry) {
+                    truncateLargeEntry = false; // only truncate one oversize entry as SW tracestate entry is
+                    // smaller than OVERSIZE_ENTRY_LENGTH
+                } else {
+                    traceStateBuilder.append(TRACESTATE_ENTRY_DELIMITER)
+                            .append(key)
+                            .append(TRACESTATE_KEY_VALUE_DELIMITER)
+                            .append(value);
+                    count++;
+                }
+            }
+        }
         return traceStateBuilder.toString();
     }
+
     /**
      * Extract context from the carrier, first scanning for appoptics x-trace header.
      * If not found, try the w3c `tracestate`
+     *
      * @param context trace context
      * @param carrier the input to the method being instrumented. Usually a request of some kind
-     * @param getter the object that knows how to extract data from {@param carrier} using preconfigured keys
+     * @param getter  the object that knows how to extract data from carrier using preconfigured keys
      * @return updated context
      */
     @Override
