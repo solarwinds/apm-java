@@ -127,8 +127,8 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
     }
 
     /**
-     * Extract context from the carrier, first scanning for appoptics x-trace header.
-     * If not found, try the w3c `tracestate`
+     * Extracts x-trace-options and tracestate from carrier and populates the extracted data into the current trace
+     * context.
      *
      * @param context trace context
      * @param carrier the input to the method being instrumented. Usually a request of some kind
