@@ -1,7 +1,11 @@
 package com.appoptics.opentelemetry.extensions;
 
 import com.appoptics.opentelemetry.core.Util;
-import com.tracelytics.joboe.*;
+import com.tracelytics.joboe.Context;
+import com.tracelytics.joboe.Event;
+import com.tracelytics.joboe.EventImpl;
+import com.tracelytics.joboe.Metadata;
+import com.tracelytics.joboe.OboeException;
 import com.tracelytics.logging.Logger;
 import com.tracelytics.logging.LoggerFactory;
 import io.opentelemetry.api.common.AttributeKey;
@@ -12,7 +16,14 @@ import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
-import java.util.*;
+import javax.annotation.Nonnull;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.appoptics.opentelemetry.extensions.initialize.OtelAutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 
 /**
  * Span exporter to be used with the OpenTelemetry auto agent
@@ -23,15 +34,12 @@ public class AppOpticsSpanExporter implements SpanExporter {
     // This format is visible to customer via span layer and can be used to configure transaction filtering setting.
     static final String LAYER_FORMAT = "%s:%s";
 
-    private AppOpticsSpanExporter() {
-    }
-
-    static Builder newBuilder() {
-        return new Builder();
-    }
-
     @Override
-    public CompletableResultCode export(Collection<SpanData> collection) {
+    public CompletableResultCode export(@Nonnull Collection<SpanData> collection) {
+        if (!isAgentEnabled()) {
+            return CompletableResultCode.ofSuccess();
+        }
+
         logger.debug("Started to export span data to the collector.");
         for (SpanData spanData : collection) {
             if (spanData.hasEnded()) {
@@ -190,15 +198,5 @@ public class AppOpticsSpanExporter implements SpanExporter {
 
     @Override
     public void close() {
-    }
-
-    public static class Builder {
-
-        public Builder() {
-        }
-
-        AppOpticsSpanExporter build() {
-            return new AppOpticsSpanExporter();
-        }
     }
 }

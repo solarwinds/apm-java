@@ -2,7 +2,6 @@ package com.appoptics.opentelemetry.extensions;
 
 import com.appoptics.opentelemetry.core.Constants;
 import com.appoptics.opentelemetry.core.Util;
-import com.google.auto.service.AutoService;
 import com.tracelytics.joboe.TraceDecision;
 import com.tracelytics.joboe.XTraceOptions;
 import com.tracelytics.joboe.XTraceOptionsResponse;
@@ -37,7 +36,6 @@ import static com.tracelytics.joboe.TraceDecisionUtil.shouldTraceRequest;
  * <p>
  * Also inject various AppOptics specific sampling KVs into the `SampleResult`
  */
-@AutoService(Sampler.class)
 public class AppOpticsSampler implements Sampler {
     private final SamplingResult PARENT_SAMPLED = SamplingResult.create(SamplingDecision.RECORD_AND_SAMPLE,
             Attributes.of(
@@ -64,6 +62,10 @@ public class AppOpticsSampler implements Sampler {
                     AttributeKey.booleanKey(Constants.SW_SAMPLER), true));
 
     private static final Logger logger = LoggerFactory.getLogger();
+
+    public AppOpticsSampler(){
+        logger.info("Attached Solarwinds' Sampler");
+    }
 
     @Override
     public SamplingResult shouldSample(@Nonnull Context parentContext,
@@ -165,7 +167,7 @@ public class AppOpticsSampler implements Sampler {
 
     @Override
     public String getDescription() {
-        return "Solarwinds NH Sampler";
+        return "Solarwinds Observability Sampler";
     }
 
     private SamplingResult toOtSamplingResult(TraceDecision aoTraceDecision) {

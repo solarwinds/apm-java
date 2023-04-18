@@ -6,11 +6,13 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.traces.ConfigurableSpanExporterProvider;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 
+import javax.annotation.Nonnull;
+
 @AutoService(ConfigurableSpanExporterProvider.class)
 public class AppOpticsSpanExporterProvider implements ConfigurableSpanExporterProvider {
     @Override
-    public SpanExporter createExporter(ConfigProperties config) {
-        return AppOpticsSpanExporter.newBuilder().build();
+    public SpanExporter createExporter(@Nonnull ConfigProperties config) {
+        return new AppOpticsSpanExporter();
     }
 
     @Override

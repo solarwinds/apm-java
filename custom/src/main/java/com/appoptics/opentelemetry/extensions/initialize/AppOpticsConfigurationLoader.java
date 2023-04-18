@@ -1,7 +1,5 @@
 package com.appoptics.opentelemetry.extensions.initialize;
 
-import com.appoptics.opentelemetry.core.AgentState;
-import com.appoptics.opentelemetry.extensions.AppOpticsInboundMetricsSpanProcessor;
 import com.appoptics.opentelemetry.extensions.initialize.config.BuildConfig;
 import com.appoptics.opentelemetry.extensions.initialize.config.ConfigConstants;
 import com.appoptics.opentelemetry.extensions.initialize.config.LogFileStringParser;
@@ -14,8 +12,6 @@ import com.appoptics.opentelemetry.extensions.initialize.config.RangeValidationP
 import com.appoptics.opentelemetry.extensions.initialize.config.TracingModeParser;
 import com.appoptics.opentelemetry.extensions.initialize.config.TransactionSettingsConfigParser;
 import com.appoptics.opentelemetry.extensions.initialize.config.UrlSampleRateConfigParser;
-import com.tracelytics.joboe.EventImpl;
-import com.tracelytics.joboe.RpcEventReporter;
 import com.tracelytics.joboe.config.ConfigContainer;
 import com.tracelytics.joboe.config.ConfigGroup;
 import com.tracelytics.joboe.config.ConfigManager;
@@ -28,26 +24,9 @@ import com.tracelytics.joboe.config.InvalidConfigServiceKeyException;
 import com.tracelytics.joboe.config.JsonConfigReader;
 import com.tracelytics.joboe.config.ProfilerSetting;
 import com.tracelytics.joboe.config.TraceConfigs;
-import com.tracelytics.joboe.rpc.Client;
-import com.tracelytics.joboe.rpc.ClientException;
-import com.tracelytics.joboe.rpc.ClientLoggingCallback;
-import com.tracelytics.joboe.rpc.Result;
-import com.tracelytics.joboe.rpc.RpcClientManager;
-import com.tracelytics.joboe.settings.SettingsManager;
 import com.tracelytics.logging.Logger;
 import com.tracelytics.logging.LoggerFactory;
-import com.tracelytics.monitor.SystemMonitorController;
-import com.tracelytics.monitor.SystemMonitorFactoryImpl;
-import com.tracelytics.monitor.metrics.MetricsCollector;
-import com.tracelytics.monitor.metrics.MetricsMonitor;
-import com.tracelytics.profiler.Profiler;
-import com.tracelytics.util.DaemonThreadFactory;
-import com.tracelytics.util.HostInfoUtils;
-import com.tracelytics.util.ServerHostInfoReader;
 import com.tracelytics.util.ServiceKeyUtils;
-import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -59,30 +38,17 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_COMMAND_ARGS;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_COMMAND_LINE;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_DESCRIPTION;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_NAME;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_VERSION;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.SERVICE_NAME;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.TELEMETRY_SDK_LANGUAGE;
-
-public class Initializer {
+public class AppOpticsConfigurationLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger();
     private static final String CONFIG_FILE = "solarwinds-apm-config.json";
     private static final String SYS_PROPERTIES_PREFIX = "sw.apm";
-    private static AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk;
 
     static {
         ConfigProperty.AGENT_LOGGING.setParser(LogSettingParser.INSTANCE);
@@ -97,113 +63,19 @@ public class Initializer {
         ConfigProperty.PROFILER.setParser(ProfilerSettingParser.INSTANCE);
     }
 
-    public static void initialize() throws InvalidConfigException {
+    public static void load() throws InvalidConfigException {
         LOGGER.info(String.format("Otel agent version: %s", BuildConfig.OTEL_AGENT_VERSION));
-        LOGGER.info(String.format("Solarwinds agent version: %s", BuildConfig.SOLARWINDS_AGENT_VERSION));
-        initializeConfig();
+        LOGGER.info(String.format("Solarwinds extension version: %s", BuildConfig.SOLARWINDS_AGENT_VERSION));
+        loadConfigurations();
 
-        registerShutdownTasks();
         String serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
-        LOGGER.info("Successfully initialized SolarwindsAPM OpenTelemetry extensions with service key " + ServiceKeyUtils.maskServiceKey(serviceKey));
-    }
-
-    private static void registerShutdownTasks() {
-        Thread shutdownThread = new Thread("SolarwindsAPM-shutdown-hook") {
-            @Override
-            public void run() {
-                SystemMonitorController.stop(); //stop system monitors, this might flush extra messages to reporters
-                if (EventImpl.getEventReporter() != null) {
-                    EventImpl.getEventReporter().close(); //close event reporter properly to give it chance to send out pending events in queue
-                }
-                RpcClientManager.closeAllManagers(); //close all rpc client, this should flush out all messages or stop immediately (if not connected)
-            }
-        };
-
-        shutdownThread.setContextClassLoader(null); //avoid memory leak warning
-
-        Runtime.getRuntime().addShutdownHook(shutdownThread);
-    }
-
-    public static void executeStartupTasks(AutoConfiguredOpenTelemetrySdk otelSDK) {
-        ExecutorService service = Executors.newSingleThreadExecutor(DaemonThreadFactory.newInstance("post-startup-tasks"));
-
-        // Make the auto-configured OTel SDK available later, for buildInitMessage to access
-        // its Resource attributes.
-        Initializer.autoConfiguredOpenTelemetrySdk = otelSDK;
-
-        AgentState.setStartupTasksFuture(service.submit(() -> {
-            try {
-                LOGGER.info("Starting startup task");
-                // trigger init on the Settings reader
-                CountDownLatch settingsLatch = null;
-
-                LOGGER.debug("Initializing HostUtils");
-                HostInfoUtils.init(ServerHostInfoReader.INSTANCE);
-                try {
-                    HostInfoUtils.NetworkAddressInfo networkAddressInfo = HostInfoUtils.getNetworkAddressInfo();
-                    List<String> ipAddresses = networkAddressInfo != null ? networkAddressInfo.getIpAddresses() : Collections.<String>emptyList();
-
-                    LOGGER.debug("Detected host id: " + HostInfoUtils.getHostId() + " ip addresses: " + ipAddresses);
-
-                    settingsLatch = SettingsManager.initialize();
-                }
-                catch (ClientException e) {
-                    LOGGER.debug("Failed to initialize RpcSettingsReader : " + e.getMessage());
-                }
-                LOGGER.debug("Initialized HostUtils");
-
-                LOGGER.debug("Sending init message");
-                reportInit();
-
-                LOGGER.debug("Building reporter");
-                EventImpl.setDefaultReporter(RpcEventReporter.buildReporter(RpcClientManager.OperationType.TRACING));
-                LOGGER.debug("Built reporter");
-
-                LOGGER.info("Starting System monitor");
-                SystemMonitorController.startWithBuilder(() -> new SystemMonitorFactoryImpl(ConfigManager.getConfigs(ConfigGroup.MONITOR)) {
-                    @Override
-                    protected MetricsMonitor buildMetricsMonitor() {
-                        try {
-                            MetricsCollector metricsCollector = new MetricsCollector(configs, AppOpticsInboundMetricsSpanProcessor.buildSpanMetricsCollector());
-                            return MetricsMonitor.buildInstance(configs, metricsCollector);
-                        }
-                        catch (InvalidConfigException | ClientException e) {
-                            e.printStackTrace();
-                        }
-                        return null;
-                    }
-                }.buildMonitors());
-                LOGGER.debug("Started System monitor");
-
-                ProfilerSetting profilerSetting = (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);
-                if (profilerSetting != null && profilerSetting.isEnabled()) {
-                    LOGGER.debug("Profiler is enabled, local settings : " + profilerSetting);
-                    Profiler.initialize(profilerSetting, RpcEventReporter.buildReporter(RpcClientManager.OperationType.PROFILING));
-                } else {
-                    LOGGER.debug("Profiler is disabled, local settings : " + profilerSetting);
-                }
-
-                //now wait for all the latches (for now there's only one for settings)
-                try {
-                    if (settingsLatch != null) {
-                        settingsLatch.await();
-                    }
-                } catch (InterruptedException e) {
-                    LOGGER.debug("Failed to wait for settings from RpcSettingsReader : " + e.getMessage());
-                }
-            } catch (Throwable e) {
-                LOGGER.warn("Failed post system startup operations due to : " + e.getMessage(), e);
-            }
-        }));
-        LOGGER.debug("Submitted startup task");
-
-        service.shutdown();
+        LOGGER.info("Successfully loaded SolarwindsAPM OpenTelemetry extensions configurations. Service key: " + ServiceKeyUtils.maskServiceKey(serviceKey));
     }
 
     /**
      * Checks the OpenTelemetry Java agent's logger settings. If the NH custom distro doesn't set a log file
      * but the Otel has this config option, we just follow the Otel's config.
-     * @param configs
+     * @param configs the configuration container to hold configs
      */
     private static void maybeFollowOtelConfigProperties(ConfigContainer configs) {
         if (configs.get(ConfigProperty.AGENT_LOG_FILE) == null
@@ -232,12 +104,16 @@ public class Initializer {
             }
             String envKey = key.toUpperCase().replace(".", "_");
             res.put(envKey, value);
+
+            if (envKey.endsWith("SERVICE_KEY")) {
+                value = ServiceKeyUtils.maskServiceKey(value);
+            }
             LOGGER.info("System property " + key + "=" + value + ", override " + envKey);
         }
         return res;
     }
 
-    private static void initializeConfig() throws InvalidConfigException {
+    private static void loadConfigurations() throws InvalidConfigException {
         ConfigContainer configs = null;
         boolean hasReadConfigException = false;
         try {
@@ -306,7 +182,7 @@ public class Initializer {
                 }
             } else {
                 try { // read from the same directory as the agent jar file
-                    File jarDirectory = new File(Initializer.class.getProtectionDomain().getCodeSource().getLocation()
+                    File jarDirectory = new File(AppOpticsConfigurationLoader.class.getProtectionDomain().getCodeSource().getLocation()
                             .toURI()).getParentFile();
                     File confFromJarDir = new File(jarDirectory, CONFIG_FILE);
                     config = new FileInputStream(confFromJarDir);
@@ -320,7 +196,7 @@ public class Initializer {
                 LOGGER.info("Finished reading configs from config file: " + location);
             }
 
-            new JsonConfigReader(Initializer.class.getResourceAsStream("/" + CONFIG_FILE)).read(container);
+            new JsonConfigReader(AppOpticsConfigurationLoader.class.getResourceAsStream("/" + CONFIG_FILE)).read(container);
             LOGGER.debug("Finished reading built-in default settings.");
         }
         catch (InvalidConfigException e) {
@@ -449,7 +325,7 @@ public class Initializer {
             profilerIntervalFromEnvVar = (Integer) configs.get(ConfigProperty.PROFILER_INTERVAL_ENV_VAR);
         }
 
-        ProfilerSetting finalProfilerSetting = null;
+        ProfilerSetting finalProfilerSetting;
         if (configs.containsProperty(ConfigProperty.PROFILER)) {
             ProfilerSetting profilerSettingsFromConfigFile = (ProfilerSetting) configs.get(ConfigProperty.PROFILER);
             boolean finalEnabled = profilerEnabledFromEnvVar != null ? profilerEnabledFromEnvVar : profilerSettingsFromConfigFile.isEnabled();
@@ -468,96 +344,4 @@ public class Initializer {
 
         ConfigManager.initialize(configs);
     }
-
-    /**
-     * Reports the agent init message.
-     * <p>
-     * Only the first call to this method will have effect, all other subsequent invocations will be ignored.
-     * <p>
-     * If timeout (default as 10 seconds, configurable) is non-zero, block until either the init message is sent or timeout elapsed. Otherwise submit the message to the client and return without blocking.
-     */
-    private static void reportInit() {
-        try {
-            String layerName = (String) ConfigManager.getConfig(ConfigProperty.AGENT_LAYER);
-            reportLayerInit(layerName, getVersion());
-        }
-        catch (Exception e) {
-            LOGGER.warn("Failed to post init message: " + (e.getMessage() != null ? e.getMessage() : e.toString()));
-        }
-    }
-
-    private static String getVersion() {
-        return Initializer.class.getPackage().getImplementationVersion();
-    }
-
-    private static void reportLayerInit(final String layer, final String version) throws ClientException {
-        //must call buildInitMessage before initializing RPC client, otherwise it might deadlock as discussed in https://github.com/librato/joboe/pull/767
-        Map<String, Object> initMessage = buildInitMessage(layer, version);
-
-        Client rpcClient = RpcClientManager.getClient(RpcClientManager.OperationType.STATUS);
-        rpcClient.postStatus(Collections.singletonList(initMessage), new ClientLoggingCallback<Result>("post init message"));
-    }
-
-    static Map<String, Object> buildInitMessage(String layer, String version) {
-        Map<String, Object> initMessage = new HashMap<String, Object>();
-
-        initMessage.put("Layer", layer);
-        initMessage.put("__Init", true);
-
-        if (version != null) {
-            initMessage.put("APM.Version", version);
-        }
-
-        // Capture OTel Resource attributes
-        if (autoConfiguredOpenTelemetrySdk != null) {
-            Attributes attributes = autoConfiguredOpenTelemetrySdk.getResource().getAttributes();
-            LOGGER.debug("Resource attributes " +
-                    attributes.toString().replaceAll("(sw.apm.service.key=)\\S+", "$1****"));
-
-            for (Map.Entry<AttributeKey<?>, Object> keyValue : attributes.asMap().entrySet()) {
-                AttributeKey<?> attributeKey = keyValue.getKey();
-                String attrName = attributeKey.getKey();
-                Object attrValue = keyValue.getValue();
-
-                // Do not set service name in __Init message
-                if (attrName.equals(SERVICE_NAME.getKey())) {
-                    continue;
-                }
-                // Mask service key if captured in process command line or arg
-                if ((attrName.equals(PROCESS_COMMAND_LINE.getKey()) || attrName.equals(PROCESS_COMMAND_ARGS.getKey()))
-                    && attrValue.toString().contains("sw.apm.service.key=")) {
-                    attrValue = attrValue.toString().replaceAll("(sw.apm.service.key=)\\S+","$1****");
-                }
-                initMessage.put(attrName, attrValue);
-            }
-        } else {
-            LOGGER.warn("autoConfiguredOpenTelemetrySdk is null, cannot get Resource attributes.");
-        }
-
-        // Ensure required keys are set
-        if (!initMessage.containsKey(TELEMETRY_SDK_LANGUAGE.getKey())) {
-            initMessage.put(TELEMETRY_SDK_LANGUAGE.getKey(), "java");
-        }
-        try {
-            if (!initMessage.containsKey(PROCESS_RUNTIME_DESCRIPTION.getKey())) {
-                // these three java.vm properties are always available
-                initMessage.put(PROCESS_RUNTIME_DESCRIPTION.getKey(),
-                    System.getProperty("java.vm.vendor") + " " +
-                    System.getProperty("java.vm.name") + " " +
-                    System.getProperty("java.vm.version")
-                );
-            }
-            if (!initMessage.containsKey(PROCESS_RUNTIME_NAME.getKey())) {
-                initMessage.put(PROCESS_RUNTIME_NAME.getKey(), System.getProperty("java.runtime.name", "unavailable"));
-            }
-            if (!initMessage.containsKey(PROCESS_RUNTIME_VERSION.getKey())) {
-                initMessage.put(PROCESS_RUNTIME_VERSION.getKey(), System.getProperty("java.runtime.version", "unavailable"));
-            }
-        } catch (SecurityException exp) {
-            LOGGER.warn("Cannot get process runtime information.", exp);
-        }
-
-        return initMessage;
-    }
-
 }
