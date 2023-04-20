@@ -12,6 +12,8 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
 
 import javax.annotation.Nonnull;
 
+import static com.appoptics.opentelemetry.extensions.SamplingUtil.isValidSWTraceState;
+
 /**
  * Span processor to keep track of the root span of a trace
  */
@@ -48,7 +50,9 @@ public class AppOpticsRootSpanProcessor implements SpanProcessor {
         if (xTraceOptions != null) {
             xTraceOptions.getCustomKvs().forEach(
                     ((stringXTraceOption, s) -> span.setAttribute(stringXTraceOption.getKey(), s)));
-            if (xTraceOptions.getOptionValue(XTraceOption.TRIGGER_TRACE)) {
+            if (xTraceOptions.getOptionValue(XTraceOption.TRIGGER_TRACE)
+                && !isValidSWTraceState(span.getSpanContext().getTraceState())
+            ) {
                 span.setAttribute("TriggeredTrace", true);
             }
 
