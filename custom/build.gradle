@@ -18,6 +18,8 @@ dependencies {
 
   compileOnly "com.google.auto.service:auto-service-annotations:1.0.1"
   annotationProcessor 'com.google.auto.service:auto-service:1.0.1'
+  testImplementation project(path: ":bootstrap")
+
 
   testImplementation 'org.mockito:mockito-core:5.3.0'
   testImplementation 'org.mockito:mockito-junit-jupiter:5.3.0'
@@ -53,4 +55,5 @@ test {
   testLogging {
     events "passed", "skipped", "failed"
   }
+  environment("SW_APM_SERVICE_KEY", "00000")
 }
