@@ -51,7 +51,7 @@ public class AppOpticsRootSpanProcessor implements SpanProcessor {
             xTraceOptions.getCustomKvs().forEach(
                     ((stringXTraceOption, s) -> span.setAttribute(stringXTraceOption.getKey(), s)));
             if (xTraceOptions.getOptionValue(XTraceOption.TRIGGER_TRACE)
-                && isValidSWTraceState(span.getSpanContext().getTraceState())
+                && !isValidSWTraceState(span.getSpanContext().getTraceState())
             ) {
                 span.setAttribute("TriggeredTrace", true);
             }
