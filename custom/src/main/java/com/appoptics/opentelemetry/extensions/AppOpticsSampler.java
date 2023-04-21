@@ -27,8 +27,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.appoptics.opentelemetry.extensions.AppOpticsSpanExporter.LAYER_FORMAT;
-import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.SW_SPAN_PLACEHOLDER;
-import static com.appoptics.opentelemetry.extensions.TraceStateSamplingResult.SW_TRACESTATE_KEY;
+import static com.appoptics.opentelemetry.extensions.SamplingUtil.SW_TRACESTATE_KEY;
+import static com.appoptics.opentelemetry.extensions.SamplingUtil.isValidSWTraceState;
 import static com.tracelytics.joboe.TraceDecisionUtil.shouldTraceRequest;
 
 /**
@@ -97,7 +97,7 @@ public class AppOpticsSampler implements Sampler {
         } else {
             final String swVal = traceState.get(SW_TRACESTATE_KEY);
             String parentId = null;
-            if (!isValidSWTraceStateKey(swVal)) { // broken or non-exist sw tracestate, treat it as a new trace
+            if (!isValidSWTraceState(swVal)) { // broken or non-exist sw tracestate, treat it as a new trace
                 final TraceDecision traceDecision = shouldTraceRequest(name, null, xTraceOptions, signals);
                 samplingResult = toOtSamplingResult(traceDecision);
                 final XTraceOptionsResponse xTraceOptionsResponse = XTraceOptionsResponse.computeResponse(xTraceOptions,
@@ -113,7 +113,7 @@ public class AppOpticsSampler implements Sampler {
                     samplingResult = toOtSamplingResult(traceDecision);
 
                     final XTraceOptionsResponse xTraceOptionsResponse = XTraceOptionsResponse.computeResponse(
-                            xTraceOptions, traceDecision, true);
+                            xTraceOptions, traceDecision, false);
                     if (xTraceOptionsResponse != null) {
                         xTraceOptionsResponseStr = xTraceOptionsResponse.toString();
                     }
@@ -141,19 +141,6 @@ public class AppOpticsSampler implements Sampler {
         return result;
     }
 
-    private boolean isValidSWTraceStateKey(String swVal) {
-        if (swVal == null || !swVal.contains("-")) {
-            return false;
-        }
-        final String[] swTraceState = swVal.split("-");
-        if (swTraceState.length != 2) {
-            return false;
-        }
-
-        return (swTraceState[0].equals(
-                SW_SPAN_PLACEHOLDER) || swTraceState[0].length() == 16) // 16 is the HEXLENGTH of the Otel trace id
-                && (swTraceState[1].equals("00") || swTraceState[1].equals("01"));
-    }
 
     private String constructUrl(Attributes attributes) {
         String scheme = attributes.get(SemanticAttributes.HTTP_SCHEME);
