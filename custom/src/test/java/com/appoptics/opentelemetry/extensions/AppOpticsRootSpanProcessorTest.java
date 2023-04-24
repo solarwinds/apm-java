@@ -27,89 +27,109 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AppOpticsRootSpanProcessorTest {
 
-  @InjectMocks
-  private AppOpticsRootSpanProcessor appOpticsRootSpanProcessor;
+    @InjectMocks
+    private AppOpticsRootSpanProcessor appOpticsRootSpanProcessor;
 
-  @Mock
-  private ReadWriteSpan readWriteSpanMock;
+    @Mock
+    private ReadWriteSpan readWriteSpanMock;
 
-  @Mock
-  private SpanContext spanContextMock;
+    @Mock
+    private SpanContext spanContextMock;
 
-  @Captor
-  private ArgumentCaptor<String> stringArgumentCaptor;
+    @Captor
+    private ArgumentCaptor<String> stringArgumentCaptor;
 
-  private final TraceState traceState = TraceState.builder()
-      .put("sw", "789b5fa910da28f9-01")
-      .build();
+    private final TraceState traceState = TraceState.builder()
+            .put("sw", "789b5fa910da28f9-01")
+            .build();
 
-  private final String traceId = "6ddb2613c236c123158100b91879c76b";
-
-
-  @Test
-  void verifThatTriggeredTraceAttributeIsAddedForTriggerTrace() {
-    Context context = Context.current()
-        .with(TriggerTraceContextKey.KEY, XTraceOptions.getXTraceOptions("trigger-trace", null));
-
-    when(readWriteSpanMock.getSpanContext()).thenReturn(spanContextMock);
-    when(spanContextMock.getTraceId()).thenReturn(traceId);
-
-    when(spanContextMock.getTraceState()).thenReturn(TraceState.getDefault());
-    appOpticsRootSpanProcessor.onStart(context, readWriteSpanMock);
-    verify(readWriteSpanMock, atMostOnce()).setAttribute(stringArgumentCaptor.capture(),
-        anyBoolean());
-
-    List<String> allValues = stringArgumentCaptor.getAllValues();
-    assertEquals(1, allValues.size());
-    assertEquals("TriggeredTrace", allValues.get(0));
-  }
+    private final String traceId = "6ddb2613c236c123158100b91879c76b";
 
 
-  @Test
-  void verifThatTriggeredTraceAttributeIsNotAddedForContinuedTrace() {
-    Context context = Context.current()
-        .with(TriggerTraceContextKey.KEY, XTraceOptions.getXTraceOptions("trigger-trace", null));
+    @Test
+    void verifyThatTriggeredTraceAttributeIsAddedForTriggerTrace() {
+        Context context = Context.current()
+                .with(TriggerTraceContextKey.KEY, XTraceOptions.getXTraceOptions("trigger-trace", null));
 
-    when(readWriteSpanMock.getSpanContext()).thenReturn(spanContextMock);
-    when(spanContextMock.getTraceId()).thenReturn(traceId);
+        when(readWriteSpanMock.getSpanContext()).thenReturn(spanContextMock);
+        when(spanContextMock.getTraceId()).thenReturn(traceId);
+
+        when(spanContextMock.getTraceState()).thenReturn(TraceState.getDefault());
+        appOpticsRootSpanProcessor.onStart(context, readWriteSpanMock);
+        verify(readWriteSpanMock, atMostOnce()).setAttribute(stringArgumentCaptor.capture(),
+                anyBoolean());
+
+        List<String> allValues = stringArgumentCaptor.getAllValues();
+        assertEquals(1, allValues.size());
+        assertEquals("TriggeredTrace", allValues.get(0));
+    }
+
+    @Test
+    void verifyThatTriggeredTraceAttributeIsAddedForTriggerTraceWhenPlaceSwTraceStateIsAdded() {
+        Context context = Context.current()
+                .with(TriggerTraceContextKey.KEY, XTraceOptions.getXTraceOptions("trigger-trace", null));
+
+        when(readWriteSpanMock.getSpanContext()).thenReturn(spanContextMock);
+        when(spanContextMock.getTraceId()).thenReturn(traceId);
+
+        when(spanContextMock.getTraceState()).thenReturn(TraceState.builder()
+                .put("sw", "SWSpanIdPlaceHolder-00")
+                .build());
+
+        appOpticsRootSpanProcessor.onStart(context, readWriteSpanMock);
+        verify(readWriteSpanMock, atMostOnce()).setAttribute(stringArgumentCaptor.capture(),
+                anyBoolean());
+
+        List<String> allValues = stringArgumentCaptor.getAllValues();
+        assertEquals(1, allValues.size());
+        assertEquals("TriggeredTrace", allValues.get(0));
+    }
+
+    @Test
+    void verifThatTriggeredTraceAttributeIsNotAddedForContinuedTrace() {
+        Context context = Context.current()
+                .with(TriggerTraceContextKey.KEY, XTraceOptions.getXTraceOptions("trigger-trace", null));
+
+        when(readWriteSpanMock.getSpanContext()).thenReturn(spanContextMock);
+        when(spanContextMock.getTraceId()).thenReturn(traceId);
 
 
-    when(spanContextMock.getTraceState()).thenReturn(traceState);
-    appOpticsRootSpanProcessor.onStart(context, readWriteSpanMock);
-    verify(readWriteSpanMock, never()).setAttribute(anyString(), any());
-  }
+        when(spanContextMock.getTraceState()).thenReturn(traceState);
+        appOpticsRootSpanProcessor.onStart(context, readWriteSpanMock);
+        verify(readWriteSpanMock, never()).setAttribute(anyString(), any());
+    }
 
-  @Test
-  void verifThatCustomKvAttributesAreAdded() {
-    Context context = Context.current()
-        .with(TriggerTraceContextKey.KEY, XTraceOptions.getXTraceOptions("custom-chubi=chubby;", null));
+    @Test
+    void verifThatCustomKvAttributesAreAdded() {
+        Context context = Context.current()
+                .with(TriggerTraceContextKey.KEY, XTraceOptions.getXTraceOptions("custom-chubi=chubby;", null));
 
-    when(readWriteSpanMock.getSpanContext()).thenReturn(spanContextMock);
-    when(spanContextMock.getTraceId()).thenReturn(traceId);
+        when(readWriteSpanMock.getSpanContext()).thenReturn(spanContextMock);
+        when(spanContextMock.getTraceId()).thenReturn(traceId);
 
-    appOpticsRootSpanProcessor.onStart(context, readWriteSpanMock);
-    verify(readWriteSpanMock, atMostOnce()).setAttribute(stringArgumentCaptor.capture(),
-        stringArgumentCaptor.capture());
+        appOpticsRootSpanProcessor.onStart(context, readWriteSpanMock);
+        verify(readWriteSpanMock, atMostOnce()).setAttribute(stringArgumentCaptor.capture(),
+                stringArgumentCaptor.capture());
 
-    List<String> allValues = stringArgumentCaptor.getAllValues();
-    assertEquals(2, allValues.size());
-    assertEquals("custom-chubi=chubby", String.format("%s=%s", allValues.get(0), allValues.get(1)));
-  }
+        List<String> allValues = stringArgumentCaptor.getAllValues();
+        assertEquals(2, allValues.size());
+        assertEquals("custom-chubi=chubby", String.format("%s=%s", allValues.get(0), allValues.get(1)));
+    }
 
-  @Test
-  void verifThatSwKeysAttributeIsAdded() {
-    Context context = Context.current()
-        .with(TriggerTraceContextKey.KEY, XTraceOptions.getXTraceOptions("sw-keys=lo:se,check-id:123", null));
+    @Test
+    void verifThatSwKeysAttributeIsAdded() {
+        Context context = Context.current()
+                .with(TriggerTraceContextKey.KEY, XTraceOptions.getXTraceOptions("sw-keys=lo:se,check-id:123", null));
 
-    when(readWriteSpanMock.getSpanContext()).thenReturn(spanContextMock);
-    when(spanContextMock.getTraceId()).thenReturn(traceId);
+        when(readWriteSpanMock.getSpanContext()).thenReturn(spanContextMock);
+        when(spanContextMock.getTraceId()).thenReturn(traceId);
 
-    appOpticsRootSpanProcessor.onStart(context, readWriteSpanMock);
-    verify(readWriteSpanMock, atMostOnce()).setAttribute(stringArgumentCaptor.capture(),
-        stringArgumentCaptor.capture());
+        appOpticsRootSpanProcessor.onStart(context, readWriteSpanMock);
+        verify(readWriteSpanMock, atMostOnce()).setAttribute(stringArgumentCaptor.capture(),
+                stringArgumentCaptor.capture());
 
-    List<String> allValues = stringArgumentCaptor.getAllValues();
-    assertEquals(2, allValues.size());
-    assertEquals("SWKeys=lo:se,check-id:123", String.format("%s=%s", allValues.get(0), allValues.get(1)));
-  }
+        List<String> allValues = stringArgumentCaptor.getAllValues();
+        assertEquals(2, allValues.size());
+        assertEquals("SWKeys=lo:se,check-id:123", String.format("%s=%s", allValues.get(0), allValues.get(1)));
+    }
 }
