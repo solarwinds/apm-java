@@ -25,6 +25,11 @@ public class SamplingUtil {
         && (swTraceState[1].equals("00") || swTraceState[1].equals("01"));
   }
 
+  public static boolean isSwSpanPlaceHolder(TraceState traceState){
+    String swTracestate = traceState.get(SW_TRACESTATE_KEY);
+    return swTracestate != null && SW_SPAN_PLACEHOLDER.equals(swTracestate.split("-")[0]);
+  }
+
   public static boolean isValidSWTraceState(TraceState traceState) {
     return isValidSWTraceState(traceState.get(SW_TRACESTATE_KEY));
   }

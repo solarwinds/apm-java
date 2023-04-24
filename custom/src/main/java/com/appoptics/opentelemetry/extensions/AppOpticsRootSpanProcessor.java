@@ -5,6 +5,7 @@ import com.tracelytics.joboe.XTraceOption;
 import com.tracelytics.joboe.XTraceOptions;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
@@ -12,6 +13,7 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
 
 import javax.annotation.Nonnull;
 
+import static com.appoptics.opentelemetry.extensions.SamplingUtil.isSwSpanPlaceHolder;
 import static com.appoptics.opentelemetry.extensions.SamplingUtil.isValidSWTraceState;
 
 /**
@@ -50,8 +52,10 @@ public class AppOpticsRootSpanProcessor implements SpanProcessor {
         if (xTraceOptions != null) {
             xTraceOptions.getCustomKvs().forEach(
                     ((stringXTraceOption, s) -> span.setAttribute(stringXTraceOption.getKey(), s)));
+
+            TraceState traceState = span.getSpanContext().getTraceState();
             if (xTraceOptions.getOptionValue(XTraceOption.TRIGGER_TRACE)
-                && !isValidSWTraceState(span.getSpanContext().getTraceState())
+                && (!isValidSWTraceState(traceState) || isSwSpanPlaceHolder(traceState))
             ) {
                 span.setAttribute("TriggeredTrace", true);
             }
