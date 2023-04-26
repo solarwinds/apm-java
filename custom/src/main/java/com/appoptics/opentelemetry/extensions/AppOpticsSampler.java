@@ -28,6 +28,7 @@ import java.util.List;
 
 import static com.appoptics.opentelemetry.extensions.AppOpticsSpanExporter.LAYER_FORMAT;
 import static com.appoptics.opentelemetry.extensions.SamplingUtil.SW_TRACESTATE_KEY;
+import static com.appoptics.opentelemetry.extensions.SamplingUtil.addXtraceOptionsToAttribute;
 import static com.appoptics.opentelemetry.extensions.SamplingUtil.isValidSWTraceState;
 import static com.tracelytics.joboe.TraceDecisionUtil.shouldTraceRequest;
 
@@ -63,7 +64,7 @@ public class AppOpticsSampler implements Sampler {
 
     private static final Logger logger = LoggerFactory.getLogger();
 
-    public AppOpticsSampler(){
+    public AppOpticsSampler() {
         logger.info("Attached Solarwinds' Sampler");
     }
 
@@ -82,11 +83,12 @@ public class AppOpticsSampler implements Sampler {
         final XTraceOptions xTraceOptions = parentContext.get(TriggerTraceContextKey.KEY);
 
         String xTraceOptionsResponseStr = null;
-        List<String> signals = Arrays.asList(constructUrl(attributes), String.format(LAYER_FORMAT, spanKind, name.trim()));
+        List<String> signals = Arrays.asList(constructUrl(attributes),
+                String.format(LAYER_FORMAT, spanKind, name.trim()));
 
         if (!parentSpanContext.isValid()) { // no valid traceparent, it is a new trace
             TraceDecision traceDecision = shouldTraceRequest(name, null, xTraceOptions, signals);
-            samplingResult = toOtSamplingResult(traceDecision);
+            samplingResult = toOtSamplingResult(traceDecision, xTraceOptions, true);
             XTraceOptionsResponse xTraceOptionsResponse = XTraceOptionsResponse.computeResponse(xTraceOptions,
                     traceDecision, true);
 
@@ -99,7 +101,7 @@ public class AppOpticsSampler implements Sampler {
             String parentId = null;
             if (!isValidSWTraceState(swVal)) { // broken or non-exist sw tracestate, treat it as a new trace
                 final TraceDecision traceDecision = shouldTraceRequest(name, null, xTraceOptions, signals);
-                samplingResult = toOtSamplingResult(traceDecision);
+                samplingResult = toOtSamplingResult(traceDecision, xTraceOptions, true);
                 final XTraceOptionsResponse xTraceOptionsResponse = XTraceOptionsResponse.computeResponse(xTraceOptions,
                         traceDecision, true);
                 if (xTraceOptionsResponse != null) {
@@ -110,7 +112,7 @@ public class AppOpticsSampler implements Sampler {
                 if (parentSpanContext.isRemote()) { // root span needs to roll the dice
                     final String xTraceId = Util.w3CContextToHexString(parentSpanContext);
                     final TraceDecision traceDecision = shouldTraceRequest(name, xTraceId, xTraceOptions, signals);
-                    samplingResult = toOtSamplingResult(traceDecision);
+                    samplingResult = toOtSamplingResult(traceDecision, xTraceOptions, false);
 
                     final XTraceOptionsResponse xTraceOptionsResponse = XTraceOptionsResponse.computeResponse(
                             xTraceOptions, traceDecision, false);
@@ -157,29 +159,33 @@ public class AppOpticsSampler implements Sampler {
         return "Solarwinds Observability Sampler";
     }
 
-    private SamplingResult toOtSamplingResult(TraceDecision aoTraceDecision) {
+    private SamplingResult toOtSamplingResult(TraceDecision traceDecision, XTraceOptions xTraceOptions,
+                                              boolean genesis) {
         SamplingResult result = NOT_TRACED;
 
-        if (aoTraceDecision.isSampled()) {
+        if (traceDecision.isSampled()) {
             final SamplingDecision samplingDecision = SamplingDecision.RECORD_AND_SAMPLE;
-            final AttributesBuilder aoAttributesBuilder = Attributes.builder();
-            aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "SampleRate",
-                    aoTraceDecision.getTraceConfig().getSampleRate());
-            aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "SampleSource",
-                    aoTraceDecision.getTraceConfig().getSampleRateSourceValue());
-            aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "BucketRate",
-                    aoTraceDecision.getTraceConfig().getBucketRate(aoTraceDecision.getRequestType().getBucketType()));
-            aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "BucketCapacity",
-                    aoTraceDecision.getTraceConfig().getBucketCapacity(
-                            aoTraceDecision.getRequestType().getBucketType()));
-            aoAttributesBuilder.put(Constants.SW_KEY_PREFIX + "RequestType", aoTraceDecision.getRequestType().name());
-            aoAttributesBuilder.put(Constants.SW_DETAILED_TRACING, aoTraceDecision.isSampled());
-            aoAttributesBuilder.put(Constants.SW_METRICS, aoTraceDecision.isReportMetrics());
-            aoAttributesBuilder.put(Constants.SW_SAMPLER, true); //mark that it has been sampled by us
+            final AttributesBuilder attributesBuilder = Attributes.builder();
+            attributesBuilder.put(Constants.SW_KEY_PREFIX + "SampleRate",
+                    traceDecision.getTraceConfig().getSampleRate());
+            attributesBuilder.put(Constants.SW_KEY_PREFIX + "SampleSource",
+                    traceDecision.getTraceConfig().getSampleRateSourceValue());
+            attributesBuilder.put(Constants.SW_KEY_PREFIX + "BucketRate",
+                    traceDecision.getTraceConfig().getBucketRate(traceDecision.getRequestType().getBucketType()));
+            attributesBuilder.put(Constants.SW_KEY_PREFIX + "BucketCapacity",
+                    traceDecision.getTraceConfig().getBucketCapacity(
+                            traceDecision.getRequestType().getBucketType()));
+            attributesBuilder.put(Constants.SW_KEY_PREFIX + "RequestType", traceDecision.getRequestType().name());
+            attributesBuilder.put(Constants.SW_DETAILED_TRACING, traceDecision.isSampled());
+            attributesBuilder.put(Constants.SW_METRICS, traceDecision.isReportMetrics());
+            attributesBuilder.put(Constants.SW_SAMPLER, true); //mark that it has been sampled by us
 
-            result = SamplingResult.create(samplingDecision, aoAttributesBuilder.build());
+            if (genesis) {
+                addXtraceOptionsToAttribute(traceDecision, xTraceOptions, attributesBuilder);
+            }
+            result = SamplingResult.create(samplingDecision, attributesBuilder.build());
         } else {
-            if (aoTraceDecision.isReportMetrics()) {
+            if (traceDecision.isReportMetrics()) {
                 result = METRICS_ONLY;
             }
         }

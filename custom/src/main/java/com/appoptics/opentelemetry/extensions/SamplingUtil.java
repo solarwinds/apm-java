@@ -1,5 +1,10 @@
 package com.appoptics.opentelemetry.extensions;
 
+import com.tracelytics.joboe.TraceDecision;
+import com.tracelytics.joboe.TraceDecisionUtil;
+import com.tracelytics.joboe.XTraceOption;
+import com.tracelytics.joboe.XTraceOptions;
+import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.TraceState;
 
 public class SamplingUtil {
@@ -32,5 +37,23 @@ public class SamplingUtil {
 
   public static boolean isValidSWTraceState(TraceState traceState) {
     return isValidSWTraceState(traceState.get(SW_TRACESTATE_KEY));
+  }
+
+  public static void addXtraceOptionsToAttribute(TraceDecision traceDecision, XTraceOptions xTraceOptions,
+                                    AttributesBuilder attributesBuilder) {
+    if (xTraceOptions != null) {
+      xTraceOptions.getCustomKvs().forEach(
+              ((stringXTraceOption, s) -> attributesBuilder.put(stringXTraceOption.getKey(), s)));
+
+      if (traceDecision.getRequestType() == TraceDecisionUtil.RequestType.AUTHENTICATED_TRIGGER_TRACE ||
+              traceDecision.getRequestType() == TraceDecisionUtil.RequestType.UNAUTHENTICATED_TRIGGER_TRACE) {
+        attributesBuilder.put("TriggeredTrace", true);
+      }
+
+      String swKeys = xTraceOptions.getOptionValue(XTraceOption.SW_KEYS);
+      if (swKeys != null) {
+        attributesBuilder.put("SWKeys", swKeys);
+      }
+    }
   }
 }
