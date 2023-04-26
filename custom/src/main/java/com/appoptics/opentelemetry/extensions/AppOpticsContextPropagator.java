@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.appoptics.opentelemetry.extensions.SamplingUtil.SW_XTRACE_OPTIONS_RESP_KEY;
+
 public class AppOpticsContextPropagator implements TextMapPropagator {
     private static final String TRACE_STATE_APPOPTICS_KEY = "sw";
     static final String TRACE_PARENT = "traceparent";
@@ -88,7 +90,7 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
         for (Map.Entry<String, String> entry : tracestateEntries) {
             String key = entry.getKey();
             boolean verdict = (TRACE_STATE_APPOPTICS_KEY.equals(key)
-                    || TraceStateSamplingResult.SW_XTRACE_OPTIONS_RESP_KEY.equals(key));
+                    || SW_XTRACE_OPTIONS_RESP_KEY.equals(key));
             if (!verdict) {
                 traceStateLength += (key.length());
                 traceStateLength += (TRACESTATE_KEY_VALUE_DELIMITER.length());
@@ -102,7 +104,7 @@ public class AppOpticsContextPropagator implements TextMapPropagator {
             String key = entry.getKey();
             String value = entry.getValue();
             boolean verdict = (TRACE_STATE_APPOPTICS_KEY.equals(key)
-                    || TraceStateSamplingResult.SW_XTRACE_OPTIONS_RESP_KEY.equals(key));
+                    || SW_XTRACE_OPTIONS_RESP_KEY.equals(key));
 
             final int length =
                     traceStateBuilder.length() + TRACESTATE_ENTRY_DELIMITER.length() +

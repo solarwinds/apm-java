@@ -1,8 +1,6 @@
 package com.appoptics.opentelemetry.extensions;
 
 import com.appoptics.opentelemetry.core.RootSpan;
-import com.tracelytics.joboe.XTraceOption;
-import com.tracelytics.joboe.XTraceOptions;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
@@ -21,7 +19,6 @@ public class AppOpticsRootSpanProcessor implements SpanProcessor {
         SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
         if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) { //then a root span of this service
             RootSpan.setRootSpan(span);
-            processXtraceOptions(parentContext, span);
         }
     }
 
@@ -41,21 +38,5 @@ public class AppOpticsRootSpanProcessor implements SpanProcessor {
     @Override
     public boolean isEndRequired() {
         return true;
-    }
-
-    private void processXtraceOptions(@Nonnull Context parentContext, @Nonnull ReadWriteSpan span) {
-        XTraceOptions xTraceOptions = parentContext.get(TriggerTraceContextKey.KEY);
-        if (xTraceOptions != null) {
-            xTraceOptions.getCustomKvs().forEach(
-                    ((stringXTraceOption, s) -> span.setAttribute(stringXTraceOption.getKey(), s)));
-            if (xTraceOptions.getOptionValue(XTraceOption.TRIGGER_TRACE)) {
-                span.setAttribute("TriggeredTrace", true);
-            }
-
-            String swKeys = xTraceOptions.getOptionValue(XTraceOption.SW_KEYS);
-            if (swKeys != null) {
-                span.setAttribute("SWKeys", swKeys);
-            }
-        }
     }
 }
