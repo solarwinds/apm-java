@@ -8,6 +8,8 @@ import io.opentelemetry.sdk.trace.export.SpanExporter;
 
 import javax.annotation.Nonnull;
 
+import static com.appoptics.opentelemetry.extensions.initialize.config.ConfigConstants.COMPONENT_NAME;
+
 @AutoService(ConfigurableSpanExporterProvider.class)
 public class AppOpticsSpanExporterProvider implements ConfigurableSpanExporterProvider {
     @Override
@@ -17,6 +19,6 @@ public class AppOpticsSpanExporterProvider implements ConfigurableSpanExporterPr
 
     @Override
     public String getName() {
-        return "appoptics";
+        return COMPONENT_NAME;
     }
 }
