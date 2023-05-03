@@ -7,4 +7,6 @@ public final class ConfigConstants {
     public static final String CONFIG_PREFIX = "sw.apm";
     public static final String SYS_PROPERTY_SERVICE_KEY = CONFIG_PREFIX + ".service.key";
     public static final String SYS_PROPERTY_CONFIG_FILE = CONFIG_PREFIX + ".config.file";
+
+    public static final String COMPONENT_NAME = "solarwinds";
 }

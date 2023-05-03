@@ -5,6 +5,8 @@ import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigurablePropagatorProvider;
 
+import static com.appoptics.opentelemetry.extensions.initialize.config.ConfigConstants.COMPONENT_NAME;
+
 @AutoService(ConfigurablePropagatorProvider.class)
 public class AppOpticsContextPropagatorProvider implements ConfigurablePropagatorProvider {
 
@@ -15,6 +17,6 @@ public class AppOpticsContextPropagatorProvider implements ConfigurablePropagato
 
     @Override
     public String getName() {
-        return "appoptics";
+        return COMPONENT_NAME;
     }
 }

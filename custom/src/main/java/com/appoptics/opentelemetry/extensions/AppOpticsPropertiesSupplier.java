@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import static com.appoptics.opentelemetry.extensions.initialize.OtelAutoConfigurationCustomizerProviderImpl.isAgentEnabled;
+import static com.appoptics.opentelemetry.extensions.initialize.config.ConfigConstants.COMPONENT_NAME;
 
 /**
  * Provide various default properties when running OT agent with AO SPI implementations
@@ -15,9 +16,9 @@ public class AppOpticsPropertiesSupplier implements Supplier<Map<String, String>
 
     static {
         if (isAgentEnabled()) {
-            PROPERTIES.put("otel.traces.exporter", "appoptics");
+            PROPERTIES.put("otel.traces.exporter", COMPONENT_NAME);
             PROPERTIES.put("otel.metrics.exporter", "none");
-            PROPERTIES.put("otel.propagators", "tracecontext,baggage,appoptics");
+            PROPERTIES.put("otel.propagators", String.format("tracecontext,baggage,%s", COMPONENT_NAME));
         } else {
             PROPERTIES.put("otel.javaagent.enabled", "false");
         }
