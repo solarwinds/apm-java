@@ -169,6 +169,7 @@ public class TransactionNameManager {
 
         String customName = CustomTransactionNameDict.get(traceId);
         if (customName != null) {
+            LOGGER.trace(String.format("Using custom transaction name(%s)", customName));
             return customName;
         }
 
@@ -176,12 +177,14 @@ public class TransactionNameManager {
         // use HandlerName which may be injected by some MVC instrumentations (currently only Spring MVC)
         String handlerName = spanAttributes.get(AttributeKey.stringKey("HandlerName"));
         if (handlerName != null) {
+            LOGGER.trace(String.format("Using HandlerName(%s) as the transaction name", handlerName));
             return handlerName;
         }
 
         // use "http.route"
         String httpRoute = spanAttributes.get(SemanticAttributes.HTTP_ROUTE);
         if (httpRoute != null) {
+            LOGGER.trace(String.format("Using http.route (%s) as the transaction name", httpRoute));
             return httpRoute;
         }
 
@@ -191,6 +194,8 @@ public class TransactionNameManager {
                     CUSTOM_TRANSACTION_NAME_PATTERN_SEPARATOR);
 
             if (transactionName != null) {
+                LOGGER.trace(String.format("Using custom configure pattern to extract transaction name: (%s)",
+                        transactionName));
                 return transactionName;
             }
         }
@@ -199,9 +204,12 @@ public class TransactionNameManager {
         String transactionNameByUrl = getTransactionNameByUrlAndPattern(path, DEFAULT_TRANSACTION_NAME_PATTERN, true,
                 DEFAULT_TRANSACTION_NAME_PATTERN_SEPARATOR);
         if (transactionNameByUrl != null) {
+            LOGGER.trace(
+                    String.format("Using token name pattern to extract transaction name: (%s)", transactionNameByUrl));
             return transactionNameByUrl;
         }
 
+        LOGGER.trace(String.format("Using span name as the transaction name: (%s)", spanName));
         return spanName;
     }
 
