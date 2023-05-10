@@ -139,7 +139,7 @@ public class AppOpticsSampler implements Sampler {
         SamplingResult result = TraceStateSamplingResult.wrap(samplingResult, additionalAttributesBuilder.build(),
                 xTraceOptionsResponseStr);
 
-        logger.debug(String.format("Sampling decision: %s", result.getDecision()));
+        logger.trace(String.format("Sampling decision: %s", result.getDecision()));
         return result;
     }
 
@@ -150,7 +150,7 @@ public class AppOpticsSampler implements Sampler {
         String target = attributes.get(SemanticAttributes.HTTP_TARGET);
 
         String url = String.format("%s://%s%s", scheme, host, target);
-        logger.debug(String.format("Constructed url: %s", url));
+        logger.trace(String.format("Constructed url: %s", url));
         return url;
     }
 
