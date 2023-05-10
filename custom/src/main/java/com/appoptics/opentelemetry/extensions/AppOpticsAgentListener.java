@@ -9,10 +9,7 @@ import com.tracelytics.joboe.config.ConfigManager;
 import com.tracelytics.joboe.config.ConfigProperty;
 import com.tracelytics.joboe.config.InvalidConfigException;
 import com.tracelytics.joboe.config.ProfilerSetting;
-import com.tracelytics.joboe.rpc.Client;
-import com.tracelytics.joboe.rpc.ClientException;
-import com.tracelytics.joboe.rpc.ClientLoggingCallback;
-import com.tracelytics.joboe.rpc.RpcClientManager;
+import com.tracelytics.joboe.rpc.*;
 import com.tracelytics.joboe.settings.SettingsManager;
 import com.tracelytics.logging.Logger;
 import com.tracelytics.logging.LoggerFactory;
@@ -239,7 +236,7 @@ public class AppOpticsAgentListener implements AgentListener {
                 if (EventImpl.getEventReporter() != null) {
                     EventImpl.getEventReporter().close(); //close event reporter properly to give it chance to send out pending events in queue
                 }
-                RpcClientManager.closeAllManagers(); //close all rpc client, this should flush out all messages or stop immediately (if not connected)
+                ClientManagerProvider.closeAllManagers(); //close all rpc client, this should flush out all messages or stop immediately (if not connected)
             }
         };
 
