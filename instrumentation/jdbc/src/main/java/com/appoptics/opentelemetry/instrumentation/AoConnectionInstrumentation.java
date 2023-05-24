@@ -35,7 +35,7 @@ public class AoConnectionInstrumentation implements TypeInstrumentation {
         transformer.applyAdviceToMethod(
                 nameStartsWith("prepare")
                         .and(takesArgument(0, String.class))
-                        // Also include CallableStatement, which is a sub type of PreparedStatement
+                        // Also include CallableStatement, which is a subtype of PreparedStatement
                         .and(returns(implementsInterface(named("java.sql.PreparedStatement")))),
                 AoConnectionInstrumentation.class.getName() + "$PrepareAdvice");
     }

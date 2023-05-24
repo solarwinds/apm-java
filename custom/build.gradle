@@ -46,7 +46,7 @@ buildConfig {
   buildConfigField('String', 'SOLARWINDS_AGENT_VERSION', "\"${versions.agent}\"")
 }
 
-tasks.withType(Checkstyle) {
+tasks.withType(Checkstyle).configureEach {
   exclude '**/BuildConfig.java'
 }
 
