@@ -21,19 +21,23 @@ dependencies {
   compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
   compileOnly "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
 
-  testImplementation 'junit:junit:4.13.1'
-  testImplementation "com.appoptics.agent.java:core:${versions.appopticsCore}"
-  testImplementation "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
+  testImplementation project(path: ":bootstrap")
+  testImplementation 'org.mockito:mockito-core:5.3.0'
+  testImplementation 'org.mockito:mockito-junit-jupiter:5.3.0'
+
+  testImplementation 'org.mockito:mockito-inline:5.2.0'
+  testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
 }
 
-task sourcesJar(type: Jar) {
+tasks.register('sourcesJar', Jar) {
   from('.') {
     include 'SOURCES_DOC_README'
   }
   archiveClassifier.set("sources")
 }
 
-task javadocJar(type: Jar) {
+tasks.register('javadocJar', Jar) {
   from('.') {
     include 'SOURCES_DOC_README'
   }
@@ -104,4 +108,12 @@ signing {
   def signingPassword = System.getenv("SIGNING_PASSWORD")
   useInMemoryPgpKeys(signingKey, signingPassword)
   sign publishing.publications.mavenJava
+}
+
+
+test {
+  useJUnitPlatform()
+  testLogging {
+    events "passed", "skipped", "failed"
+  }
 }

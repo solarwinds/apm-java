@@ -34,7 +34,7 @@ public class SolarWindsAgent {
         if (agentAttached) {
             return Transaction.setName(transactionName);
         }
-        return false;
+        return true;
     }
 
     /**
@@ -53,5 +53,10 @@ public class SolarWindsAgent {
             return AgentState.waitForReady(timeout, unit);
         }
         return false;
+    }
+
+    // Visible for testing
+    static void setAgentAttachedToFalse() {
+        SolarWindsAgent.agentAttached = false;
     }
 }
