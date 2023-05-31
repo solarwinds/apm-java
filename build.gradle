@@ -85,7 +85,7 @@ subprojects {
         }
     }
 
-    javadoc{
+    javadoc {
         source = sourceSets.main.allJava
     }
 }

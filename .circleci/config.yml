@@ -1,0 +1,51 @@
+version: 2.1 # use CircleCI 2.1
+
+executors:
+  java:
+    parameters:
+      tag:
+        type: string
+        default: 11-jdk-hotspot
+    docker:
+      - image: 377069709311.dkr.ecr.us-east-1.amazonaws.com/base_ci_build:<< parameters.tag >>
+        aws_auth:
+          aws_access_key_id: $ECR_AWS_ACCESS_KEY_ID
+          aws_secret_access_key: $ECR_AWS_SECRET_ACCESS_KEY
+    working_directory: ~/repo
+    environment:
+      PROJECT_NAME: solarwinds-apm-java
+      SLACK_NOTIFY_CHANNEL: "#chubi-test"
+      EMOJI: ":circle-pass:"
+      GP_USERNAME: librato-ci
+
+commands:
+  cacheit:
+    steps:
+      - restore_cache:
+          keys:
+            - v2-dependencies-{{ checksum "build.gradle" }}
+            # fallback to using the latest cache if no exact match is found
+            - v2-dependencies-
+      - run: ./gradlew classes
+      - save_cache:
+          paths:
+            - ~/.gradle/caches
+          key: v2-dependencies-{{ checksum "build.gradle" }}
+
+jobs:
+  test:
+    executor: java
+    steps:
+      - checkout
+      - cacheit
+      - run:
+          name: Execute tests
+          command: ./gradlew clean test
+
+workflows:
+  build_test_release:
+    jobs:
+      - test:
+          context:
+            - AWS_CIRCLE_CI_BUILD
+            - JAVA_APM_CI
