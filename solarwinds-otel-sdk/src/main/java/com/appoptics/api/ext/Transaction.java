@@ -1,6 +1,7 @@
 package com.appoptics.api.ext;
 
 import com.appoptics.opentelemetry.core.CustomTransactionNameDict;
+import com.tracelytics.ext.google.common.base.Strings;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
@@ -15,14 +16,15 @@ class Transaction {
      * Set the transaction name of the current trace.
      *
      * @param name the custom transaction name to be set to the current trace
-     * @return {@code true} if the transaction name is successfully set, or {@code false} if the transaction name is not set because the span is invalid or the not sampled.
+     * @return {@code true} if the transaction name is successfully set, or {@code false} if the transaction name is
+     * not set because the span is invalid or the not sampled.
      */
     static boolean setName(String name) {
         Context context = Context.current();
         Span span = Span.fromContext(context);
         SpanContext spanContext = span.getSpanContext();
         
-        if (!spanContext.isValid() || !spanContext.isSampled()) {
+        if (!spanContext.isValid() || !spanContext.isSampled() || Strings.isNullOrEmpty(name)) {
             return false;
         }
         CustomTransactionNameDict.set(spanContext.getTraceId(), name);
