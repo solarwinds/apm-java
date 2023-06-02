@@ -17,7 +17,7 @@ class Transaction {
      *
      * @param name the custom transaction name to be set to the current trace
      * @return {@code true} if the transaction name is successfully set, or {@code false} if the transaction name is
-     * not set because the span is invalid or the not sampled.
+     * not set because the span is invalid or the not sampled or name is not valid(null or empty).
      */
     static boolean setName(String name) {
         Context context = Context.current();
