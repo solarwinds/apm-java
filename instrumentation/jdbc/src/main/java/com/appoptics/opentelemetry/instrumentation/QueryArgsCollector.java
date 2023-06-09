@@ -40,6 +40,7 @@ public class QueryArgsCollector {
                 span.setAttribute(AoPreparedStatementInstrumentation.QueryArgsAttributeKey.KEY, queryArgs);
                 argsMap.clear();
             }
+            instrumentationStore.computeIfPresent(statement, (__, ___) -> null);
         }
     }
 }
