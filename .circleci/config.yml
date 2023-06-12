@@ -16,7 +16,8 @@ executors:
       PROJECT_NAME: solarwinds-apm-java
       SLACK_NOTIFY_CHANNEL: "#chubi-test"
       EMOJI: ":circle-pass:"
-      GP_USERNAME: librato-ci
+      GP_USERNAME: lt-global-circleci
+      GP_TOKEN: $GITHUB_TOKEN
 
 commands:
   cacheit:
@@ -41,6 +42,21 @@ jobs:
       - run:
           name: Execute tests
           command: ./gradlew clean test
+  maven-release:
+    executor: java
+    environment:
+      # The secrets are for publishing the build artifacts to the Maven Central.
+      MAVEN_USERNAME: $SONATYPE_USERNAME
+      MAVEN_PASSWORD: $SONATYPE_TOKEN
+      SIGNING_KEY: $GPG_PRIVATE_KEY
+      SIGNING_PASSWORD: $GPG_PRIVATE_KEY_PASSPHRASE
+
+    steps:
+      - checkout
+      - cacheit
+      - run:
+          name: release
+          command: ./gradlew clean publish
 
 workflows:
   build_test_release:
@@ -48,4 +64,8 @@ workflows:
       - test:
           context:
             - AWS_CIRCLE_CI_BUILD
-            - JAVA_APM_CI
+            - GH_LIBRATO_CI_PKG_WRITE
+      - maven-release:
+          context:
+            - AWS_CIRCLE_CI_BUILD
+            - GH_LIBRATO_CI_PKG_WRITE
