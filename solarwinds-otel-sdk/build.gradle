@@ -85,15 +85,15 @@ publishing {
       name = "OSSRH"
       url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
       credentials {
-        username = System.getenv("MAVEN_USERNAME")
-        password = System.getenv("MAVEN_PASSWORD")
+        username = System.getenv("SONATYPE_USERNAME")
+        password = System.getenv("SONATYPE_TOKEN")
       }
     }
     maven {
       name = "GitHubPackages"
       url = "https://maven.pkg.github.com/appoptics/solarwinds-apm-java"
       credentials {
-        username = System.getenv("GITHUB_ACTOR")
+        username = System.getenv("GITHUB_USERNAME")
         password = System.getenv("GITHUB_TOKEN")
       }
     }
@@ -104,8 +104,8 @@ signing {
   setRequired {
     gradle.taskGraph.allTasks.any { (it.getClass() == PublishToMavenRepository.class) }
   }
-  def signingKey = System.getenv("SIGNING_KEY")
-  def signingPassword = System.getenv("SIGNING_PASSWORD")
+  def signingKey = System.getenv("GPG_PRIVATE_KEY")
+  def signingPassword = System.getenv("GPG_PRIVATE_KEY_PASSPHRASE")
   useInMemoryPgpKeys(signingKey, signingPassword)
   sign publishing.publications.mavenJava
 }
