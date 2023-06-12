@@ -49,6 +49,39 @@ jobs:
       - run:
           name: release
           command: ./gradlew clean publish
+  github-release:
+    executor: java
+    steps:
+      - checkout
+      - cacheit
+      - run:
+          name: Configure git for release
+          command: |
+            git config user.name "${GITHUB_USERNAME}"
+            git config user.email "${GITHUB_USERNAME}-github@solarwinds.com"
+      - run:
+          name: Rewrite github url for release tagging
+          command: |
+            git config --global url."https://${GITHUB_TOKEN}:@github.com/".insteadOf git@github.com:
+      - run:
+          name: build
+          command: ./gradlew clean build -x test
+      - run:
+          name: Perform release
+          command: |
+            VERSION=$(unzip -p agent/build/libs/solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }')
+            VERSION=$(echo $VERSION | sed 's/[^a-z0-9.-]//g') # remove illegal characters
+            echo "Current version is $VERSION"
+            
+            curl -f -L \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}"\
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/releases \
+              -d '{"tag_name":"v'"$VERSION"'", "name":"v'"$VERSION"'", "body":"New release: v'"$VERSION"'", "draft":false, "prerelease":false}'
+            
+            source /ci-scripts/bin/helpers.sh
+            send_to_slack "A new release is ready \`$VERSION\`"
 
 workflows:
   build_test_release:
@@ -57,9 +90,32 @@ workflows:
           context:
             - AWS_CIRCLE_CI_BUILD
             - GH_LIBRATO_CI_PKG_WRITE
+      - approve_me:
+          type: approval
+          requires:
+            - test
+          filters:
+            branches:
+              only: main
+      - github-release:
+          context:
+            - AWS_CIRCLE_CI_BUILD
+            - GH_LIBRATO_CI_PKG_WRITE
+          requires:
+            - test
+            - approve_me
+          filters:
+            branches:
+              only: main
       - maven-release:
           context:
             - AWS_CIRCLE_CI_BUILD
             - GH_LIBRATO_CI_PKG_WRITE
             - sonatype
             - apm-gpg-signing
+          requires:
+            - test
+            - approve_me
+          filters:
+            branches:
+              only: main
