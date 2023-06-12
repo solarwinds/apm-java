@@ -5,7 +5,7 @@ executors:
     parameters:
       tag:
         type: string
-        default: 11-jdk-hotspot
+        default: 12-jdk-hotspot
     docker:
       - image: 377069709311.dkr.ecr.us-east-1.amazonaws.com/base_ci_build:<< parameters.tag >>
         aws_auth:
