@@ -16,8 +16,7 @@ executors:
       PROJECT_NAME: solarwinds-apm-java
       SLACK_NOTIFY_CHANNEL: "#chubi-test"
       EMOJI: ":circle-pass:"
-      GP_USERNAME: lt-global-circleci
-      GP_TOKEN: $GITHUB_TOKEN
+      GITHUB_USERNAME: lt-global-circleci
 
 commands:
   cacheit:
