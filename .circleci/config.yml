@@ -91,6 +91,9 @@ jobs:
       - checkout
       - cacheit
       - run:
+          name: install jq
+          command: apt-get install -y --no-install-recommends jq
+      - run:
           name: build
           command: ./gradlew clean build -x test
       - aws-util/assume-role:
