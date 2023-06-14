@@ -1,5 +1,6 @@
 version: 2.1 # use CircleCI 2.1
 orbs:
+  aws-util: solarwindscloud/aws@0
   aws-s3: circleci/aws-s3@3.1.1
 
 executors:
@@ -92,12 +93,14 @@ jobs:
       - run:
           name: build
           command: ./gradlew clean build -x test
+      - aws-util/assume-role:
+          iam-role-arn: $AWS_S3_ROLE_ARN_SSP_STAGE
+          install-cli: true
       - aws-s3/copy:
           arguments: |
             --dryrun \
             --acl public-read
           from: agent/build/libs/solarwinds-apm-agent.jar
-          role-arn: $AWS_S3_ROLE_ARN_SSP_STAGE
           to: s3://ssp-stage-global-agent-binaries/apm/java/$(unzip -p agent/build/libs/solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g')
 
 workflows:
