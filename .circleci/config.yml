@@ -1,4 +1,6 @@
 version: 2.1 # use CircleCI 2.1
+orbs:
+  aws-s3: circleci/aws-s3@3.1.1
 
 executors:
   java:
@@ -82,6 +84,21 @@ jobs:
             
             source /ci-scripts/bin/helpers.sh
             send_to_slack "A new release is ready \`$VERSION\`"
+  s3-stage-upload:
+    executor: java
+    steps:
+      - checkout
+      - cacheit
+      - run:
+          name: build
+          command: ./gradlew clean build -x test
+      - aws-s3/copy:
+          arguments: |
+            --dryrun \
+            --acl public-read
+          from: agent/build/libs/solarwinds-apm-agent.jar
+          role-arn: $AWS_S3_ROLE_ARN_SSP_STAGE
+          to: s3://ssp-stage-global-agent-binaries/apm/java/$(unzip -p agent/build/libs/solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g')
 
 workflows:
   build_test_release:
@@ -119,3 +136,9 @@ workflows:
           filters:
             branches:
               only: main
+      - s3-stage-upload:
+          context:
+            - AWS_CIRCLE_CI
+            - AWS_CIRCLE_CI_BUILD
+            - GH_LIBRATO_CI_PKG_WRITE
+            - apm-s3-publishing
