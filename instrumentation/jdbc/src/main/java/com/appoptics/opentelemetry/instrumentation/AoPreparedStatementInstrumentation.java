@@ -1,7 +1,6 @@
 package com.appoptics.opentelemetry.instrumentation;
 
 import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.javaagent.bootstrap.CallDepth;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import net.bytebuddy.asm.Advice;
@@ -9,7 +8,6 @@ import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
 import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.util.List;
 
 import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
@@ -50,19 +48,7 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
                 @Advice.This PreparedStatement statement,
                 @Advice.Argument(value = 0, readOnly = true) int index,
                 @Advice.Argument(value = 1, readOnly = true) Object value) {
-            // Connection#getMetaData() may execute a Statement or PreparedStatement to retrieve DB info
-            // this happens before the DB CLIENT span is started (and put in the current context), so this
-            // instrumentation runs again and the shouldStartSpan() check always returns true - and so on
-            // until we get a StackOverflowError
-            // using CallDepth prevents this, because this check happens before Connection#getMetadata()
-            // is called - the first recursive Statement call is just skipped and we do not create a span
-            // for it
-            if (CallDepth.forClass(Statement.class).getAndIncrement() != 0) { //only report back when depth is one to avoid duplications
-                CallDepth.forClass(Statement.class).decrementAndGet();
-                return;
-            }
             QueryArgsCollector.collect(statement, currentContext(), index, value);
-            CallDepth.forClass(Statement.class).decrementAndGet(); // do not want to interfere with the Otel's instrumentation
         }
 
         @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
@@ -88,15 +74,8 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
         public static void onExit(
                 @Advice.This PreparedStatement statement,
                 @Advice.Thrown Throwable throwable) {
-            if (CallDepth.forClass(Statement.class).getAndIncrement() != 1) { //only report back when depth is one to avoid duplications
-                // Note that we need to decrement the call depth counter at every branch, otherwise the JDBC instrumentation of the
-                // Otel agent will break.
-                CallDepth.forClass(Statement.class).decrementAndGet();
-                return;
-            }
             QueryArgsCollector.maybeAttach(statement, currentContext());
             StatementTruncator.maybeTruncateStatement(currentContext());
-            CallDepth.forClass(Statement.class).decrementAndGet(); // do not want to interfere with the Otel's instrumentation
         }
     }
 }

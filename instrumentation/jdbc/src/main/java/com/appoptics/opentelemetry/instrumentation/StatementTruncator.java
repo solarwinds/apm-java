@@ -3,14 +3,13 @@ package com.appoptics.opentelemetry.instrumentation;
 import com.tracelytics.joboe.config.ConfigManager;
 import com.tracelytics.joboe.config.ConfigProperty;
 import com.tracelytics.logging.Logger;
+import com.tracelytics.logging.LoggerFactory;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
-import com.tracelytics.logging.LoggerFactory;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 
@@ -32,8 +31,8 @@ public class StatementTruncator {
                 Method getAttribute = span.getClass().getDeclaredMethod("getAttribute", AttributeKey.class);
                 getAttribute.setAccessible(true);
                 sql = (String) getAttribute.invoke(span, SemanticAttributes.DB_STATEMENT);
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                logger.debug("Cannot execute method getAttribute: " + e);
+            } catch (Throwable throwable) {
+                logger.debug("Cannot execute method getAttribute: " + throwable);
             }
             if (sql == null) {
                 return;
