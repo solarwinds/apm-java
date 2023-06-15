@@ -8,7 +8,7 @@ executors:
       tag:
         type: string
         default: 12-jdk-hotspot
-    docker: # use docker images curated my solarwinds. the scripts that builds them is here: https://github.com/librato/ci-scripts
+    docker: # use docker images curated by solarwinds. the script that builds them is here: https://github.com/librato/ci-scripts
       - image: 377069709311.dkr.ecr.us-east-1.amazonaws.com/base_ci_build:<< parameters.tag >>
         aws_auth:
           # below environment variables are provided by attaching AWS_CIRCLE_CI_BUILD context to the job
