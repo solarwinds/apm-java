@@ -1,7 +1,6 @@
 version: 2.1 # use CircleCI 2.1
 orbs:
   aws-util: solarwindscloud/aws@0
-  aws-s3: circleci/aws-s3@3.1.1
 
 executors:
   java:
@@ -9,9 +8,10 @@ executors:
       tag:
         type: string
         default: 12-jdk-hotspot
-    docker:
+    docker: # use docker images curated my solarwinds. the scripts that builds them is here: https://github.com/librato/ci-scripts
       - image: 377069709311.dkr.ecr.us-east-1.amazonaws.com/base_ci_build:<< parameters.tag >>
         aws_auth:
+          # below environment variables are provided by attaching AWS_CIRCLE_CI_BUILD context to the job
           aws_access_key_id: $ECR_AWS_ACCESS_KEY_ID
           aws_secret_access_key: $ECR_AWS_SECRET_ACCESS_KEY
     working_directory: ~/repo
@@ -29,14 +29,25 @@ commands:
             - v2-dependencies-{{ checksum "build.gradle" }}
             # fallback to using the latest cache if no exact match is found
             - v2-dependencies-
-      - run: ./gradlew classes
+      - run:
+          name: Build classes
+          command: ./gradlew classes
       - save_cache:
           paths:
             - ~/.gradle/caches
           key: v2-dependencies-{{ checksum "build.gradle" }}
-
+  initialize-me:
+    steps:
+      - checkout
+      - cacheit
+      - run:
+          name: Install jq # this is needed for the aws steps to work
+          command: apt-get update && apt-get install -y --no-install-recommends jq && rm -rf /var/lib/apt/lists/*
+      - run:
+          name: Build
+          command: ./gradlew clean build -x test
 jobs:
-  test:
+  test: # this job executes tests
     executor: java
     steps:
       - checkout
@@ -44,7 +55,7 @@ jobs:
       - run:
           name: Execute tests
           command: ./gradlew clean test
-  maven-release:
+  maven-release: # this job runs the maven release as configured in build.gradle
     executor: java
     steps:
       - checkout
@@ -52,7 +63,7 @@ jobs:
       - run:
           name: release
           command: ./gradlew clean publish
-  github-release:
+  github-release: # this job runs creates a git release and tag from the last commit on the current branch
     executor: java
     steps:
       - checkout
@@ -67,7 +78,7 @@ jobs:
           command: |
             git config --global url."https://${GITHUB_TOKEN}:@github.com/".insteadOf git@github.com:
       - run:
-          name: build
+          name: Build
           command: ./gradlew clean build -x test
       - run:
           name: Perform release
@@ -85,26 +96,72 @@ jobs:
             
             source /ci-scripts/bin/helpers.sh
             send_to_slack "A new release is ready \`$VERSION\`"
-  s3-stage-upload:
+  s3-stage-upload:  # this job uploads the jar to stage s3
     executor: java
     steps:
-      - checkout
-      - cacheit
-      - run:
-          name: install jq
-          command: apt-get update && apt-get install -y --no-install-recommends jq && rm -rf /var/lib/apt/lists/*
-      - run:
-          name: build
-          command: ./gradlew clean build -x test
+      - initialize-me
       - aws-util/assume-role:
           iam-role-arn: $AWS_S3_ROLE_ARN_SSP_STAGE
           install-cli: true
-      - aws-s3/copy:
-          arguments: |
-            --dryrun \
+      - run:
+          # this step adds the script stored in .circleci/version.sh to the BASH startup script so the agent version is available
+          # for subsequent steps
+          name: Store version
+          command: |
+            cat .circleci/version.sh >> $BASH_ENV
+      - run:
+          name: Copy to S3
+          command: |
+            aws s3 cp agent/build/libs/solarwinds-apm-agent.jar \
+            s3://ssp-stage-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-agent.jar \
             --acl public-read
-          from: agent/build/libs/solarwinds-apm-agent.jar
-          to: s3://ssp-stage-global-agent-binaries/apm/java/$(unzip -p agent/build/libs/solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g')
+            
+            aws s3 cp custom/src/main/resources/solarwinds-apm-config.json \
+            s3://ssp-stage-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-config.json \
+            --acl public-read
+      - run:
+          name: Send to slack
+          command: |
+            source /ci-scripts/bin/helpers.sh
+            send_to_slack "A new release:\`$AGENTVERSION\` is ready for download in stage bucket"
+  s3-prod-upload:  # this job uploads the jar and default config json to prod s3
+    executor: java
+    steps:
+      - initialize-me
+      - aws-util/assume-role:
+          iam-role-arn: $AWS_S3_ROLE_ARN_SSP_PROD
+          install-cli: true
+      - run:
+          # this step adds the script stored in .circleci/version.sh to the BASH startup script so the agent version is available
+          # for subsequent steps
+          name: Store version
+          command: |
+            cat .circleci/version.sh >> $BASH_ENV
+      - run:
+          name: Copy to S3
+          command: |
+            aws s3 cp agent/build/libs/solarwinds-apm-agent.jar \
+            s3://ssp-prod-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-agent.jar \
+            --acl public-read
+
+            aws s3 cp custom/src/main/resources/solarwinds-apm-config.json \
+            s3://ssp-prod-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-config.json \
+            --acl public-read
+      - run:
+          name: Copy to S3(latest)
+          command: |
+            aws s3 cp s3://ssp-prod-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-agent.jar \
+            s3://ssp-prod-global-agent-binaries/apm/java/latest/solarwinds-apm-agent.jar \
+            --acl public-read
+
+            aws s3 cp s3://ssp-prod-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-config.json \
+            s3://ssp-prod-global-agent-binaries/apm/java/latest/solarwinds-apm-config.json \
+            --acl public-read
+      - run:
+          name: Send to slack
+          command: |
+            source /ci-scripts/bin/helpers.sh
+            send_to_slack "A new release:\`$AGENTVERSION\` is ready for download in prod bucket"
 
 workflows:
   build_test_release:
@@ -124,8 +181,8 @@ workflows:
           context:
             - AWS_CIRCLE_CI_BUILD
             - GH_LIBRATO_CI_PKG_WRITE
+            - SLACK_HOOK
           requires:
-            - test
             - approve_me
           filters:
             branches:
@@ -137,7 +194,6 @@ workflows:
             - sonatype
             - apm-gpg-signing
           requires:
-            - test
             - approve_me
           filters:
             branches:
@@ -147,4 +203,17 @@ workflows:
             - AWS_CIRCLE_CI
             - AWS_CIRCLE_CI_BUILD
             - GH_LIBRATO_CI_PKG_WRITE
+            - SLACK_HOOK
             - apm-s3-publishing
+      - s3-prod-upload:
+          context:
+            - AWS_CIRCLE_CI
+            - AWS_CIRCLE_CI_BUILD
+            - GH_LIBRATO_CI_PKG_WRITE
+            - SLACK_HOOK
+            - apm-s3-publishing
+          requires:
+            - approve_me
+          filters:
+            branches:
+              only: main
