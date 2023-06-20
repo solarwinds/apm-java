@@ -191,7 +191,7 @@ workflows:
             - GH_LIBRATO_CI_PKG_WRITE
             - SLACK_HOOK
           requires:
-            - approve_me
+            - s3-prod-upload
           filters:
             branches:
               only: main
@@ -202,7 +202,7 @@ workflows:
             - sonatype
             - apm-gpg-signing
           requires:
-            - approve_me
+            - s3-prod-upload
           filters:
             branches:
               only: main
