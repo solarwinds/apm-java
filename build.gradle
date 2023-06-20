@@ -28,7 +28,7 @@ subprojects {
                 bytebuddy             : "1.12.10",
                 guava                 : "30.1-jre",
                 appopticsCore         : "7.8.6",
-                agent                 : "0.16.1", // the custom distro agent version
+                agent                 : "0.16.2-alpha", // the custom distro agent version
                 autoservice           : "1.0.1",
         ]
         versions.appopticsMetrics = "${versions.appopticsCore}" // they share the same version now
@@ -51,8 +51,8 @@ subprojects {
         maven {
             url = uri("https://maven.pkg.github.com/librato/joboe")
             credentials {
-                username = project.findProperty("gpr.user") ?: System.getenv("GP_USERNAME")
-                password = project.findProperty("gpr.key") ?: System.getenv("GP_TOKEN")
+                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
             }
         }
         mavenLocal()
