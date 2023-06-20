@@ -27,10 +27,8 @@ public class ProfilerSettingParser implements ConfigParser<String, ProfilerSetti
 
 
     public ProfilerSetting convert(String javaValue) throws InvalidConfigException {
-        String stringValue = (String) javaValue;
-
         try {
-            JSONObject jsonObject = new JSONObject(stringValue);
+            JSONObject jsonObject = new JSONObject(javaValue);
 
             boolean isEnabled  = jsonObject.getBoolean(ENABLED_KEY);
 
