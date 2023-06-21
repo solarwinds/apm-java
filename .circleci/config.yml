@@ -120,6 +120,16 @@ jobs:
             s3://ssp-stage-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-config.json \
             --acl public-read
       - run:
+          name: Copy to S3(latest)
+          command: |
+            aws s3 cp s3://ssp-stage-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-agent.jar \
+            s3://ssp-stage-global-agent-binaries/apm/java/latest/solarwinds-apm-agent.jar \
+            --acl public-read
+
+            aws s3 cp s3://ssp-stage-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-config.json \
+            s3://ssp-stage-global-agent-binaries/apm/java/latest/solarwinds-apm-config.json \
+            --acl public-read
+      - run:
           name: Send to slack
           command: |
             source /ci-scripts/bin/helpers.sh
