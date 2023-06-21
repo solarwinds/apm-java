@@ -140,7 +140,7 @@ public class AppOpticsSpanExporter implements SpanExporter {
         );
 
         final Map<AttributeKey<?>, Object> otherKvs = filterAttributes(attributes);
-        otherKvs.keySet().removeAll(OPEN_TELEMETRY_ERROR_ATTRIBUTE_KEYS);
+        OPEN_TELEMETRY_ERROR_ATTRIBUTE_KEYS.forEach(otherKvs.keySet()::remove);
         for (Map.Entry<AttributeKey<?>, Object> keyValue : otherKvs.entrySet()) {
             event.addInfo(keyValue.getKey().getKey(), keyValue.getValue());
         }
