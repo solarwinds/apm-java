@@ -49,14 +49,14 @@ public class AppOpticsSampler implements Sampler {
                     AttributeKey.booleanKey(Constants.SW_METRICS), false,
                     AttributeKey.booleanKey(Constants.SW_SAMPLER), true));
 
-    private final SamplingResult METRICS_ONLY = SamplingResult.create(SamplingDecision.RECORD_ONLY,
+    public static final SamplingResult METRICS_ONLY = SamplingResult.create(SamplingDecision.RECORD_ONLY,
             Attributes.of(
                     AttributeKey.booleanKey(Constants.SW_DETAILED_TRACING), false,
                     AttributeKey.booleanKey(Constants.SW_METRICS), true,
                     AttributeKey.booleanKey(Constants.SW_SAMPLER), true
             ));
 
-    private final SamplingResult NOT_TRACED = SamplingResult.create(SamplingDecision.DROP,
+    public static final SamplingResult NOT_TRACED = SamplingResult.create(SamplingDecision.DROP,
             Attributes.of(
                     AttributeKey.booleanKey(Constants.SW_DETAILED_TRACING), false,
                     AttributeKey.booleanKey(Constants.SW_METRICS), false,
@@ -159,7 +159,7 @@ public class AppOpticsSampler implements Sampler {
         return "Solarwinds Observability Sampler";
     }
 
-    private SamplingResult toOtSamplingResult(TraceDecision traceDecision, XTraceOptions xTraceOptions,
+     SamplingResult toOtSamplingResult(TraceDecision traceDecision, XTraceOptions xTraceOptions,
                                               boolean genesis) {
         SamplingResult result = NOT_TRACED;
 
