@@ -119,7 +119,9 @@ public class AppOpticsSampler implements Sampler {
                     if (xTraceOptionsResponse != null) {
                         xTraceOptionsResponseStr = xTraceOptionsResponse.toString();
                     }
-                } else { // non-root span just follows the parent span's decision
+                } else {
+                    // non-root span just follows the parent span's decision. this works because local tracestate is
+                    // propagated as sw="SWSpanIdPlaceHolder-(00|01)"
                     samplingResult = (traceFlags.isSampled() ? Sampler.alwaysOn() : Sampler.alwaysOff())
                             .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks);
                 }
