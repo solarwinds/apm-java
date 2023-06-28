@@ -11,6 +11,7 @@ import com.tracelytics.logging.LoggerFactory;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.common.CompletableResultCode;
+import io.opentelemetry.sdk.common.InstrumentationScopeInfo;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
@@ -82,10 +83,14 @@ public class AppOpticsSpanExporter implements SpanExporter {
 
                     }
 
+                    InstrumentationScopeInfo scopeInfo = spanData.getInstrumentationScopeInfo();
                     entryEvent.addInfo(
                             "Label", "entry",
                             "Layer", spanName,
-                            "sw.span_kind", spanData.getKind().toString());
+                            "sw.span_kind", spanData.getKind().toString(),
+                            "otel.scope.name", scopeInfo.getName());
+
+                    entryEvent.addInfo("otel.scope.version", scopeInfo.getVersion());
                     entryEvent.setTimestamp(spanData.getStartEpochNanos() / 1000);
                     entryEvent.addInfo(getEventKvs(spanData.getAttributes()));
                     entryEvent.report();
