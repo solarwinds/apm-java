@@ -93,6 +93,9 @@ public class AppOpticsSpanExporter implements SpanExporter {
                     if (scopeInfo.getVersion() != null) {
                         entryEvent.addInfo(
                                 "otel.scope.version", scopeInfo.getVersion());
+                    } else {
+                        entryEvent.addInfo(
+                                "otel.scope.version", null);
                     }
 
                     entryEvent.setTimestamp(spanData.getStartEpochNanos() / 1000);
