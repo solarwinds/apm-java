@@ -90,11 +90,7 @@ public class AppOpticsSpanExporter implements SpanExporter {
                             "sw.span_kind", spanData.getKind().toString(),
                             "otel.scope.name", scopeInfo.getName());
 
-                    if (scopeInfo.getVersion() != null) {
-                        entryEvent.addInfo(
-                                "otel.scope.version", scopeInfo.getVersion());
-                    }
-
+                    entryEvent.addInfo("otel.scope.version", scopeInfo.getVersion());
                     entryEvent.setTimestamp(spanData.getStartEpochNanos() / 1000);
                     entryEvent.addInfo(getEventKvs(spanData.getAttributes()));
                     entryEvent.report();
