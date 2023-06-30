@@ -1,5 +1,6 @@
 package com.appoptics.opentelemetry.extensions;
 
+import com.appoptics.opentelemetry.core.RootSpan;
 import com.appoptics.opentelemetry.core.Util;
 import com.tracelytics.joboe.Context;
 import com.tracelytics.joboe.Event;
@@ -93,6 +94,13 @@ public class AppOpticsSpanExporter implements SpanExporter {
                     entryEvent.addInfo("otel.scope.version", scopeInfo.getVersion());
                     entryEvent.setTimestamp(spanData.getStartEpochNanos() / 1000);
                     entryEvent.addInfo(getEventKvs(spanData.getAttributes()));
+                    if (!spanData.getParentSpanContext().isValid() || spanData.getParentSpanContext().isRemote()){
+                        Map<String, String> attributes = RootSpan.getAttributes(spanData.getSpanContext().getTraceId());
+
+                        entryEvent.addInfo(attributes);
+                        LoggerFactory.getLogger().info("Collected Attributes: " + attributes);
+                        RootSpan.clearAttributes(spanData.getSpanContext().getTraceId());
+                    }
                     entryEvent.report();
 
                     for (EventData event : spanData.getEvents()) {

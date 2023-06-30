@@ -16,8 +16,9 @@ public class AppOpticsPropertiesSupplier implements Supplier<Map<String, String>
 
     static {
         if (isAgentEnabled()) {
-            PROPERTIES.put("otel.traces.exporter", COMPONENT_NAME);
             PROPERTIES.put("otel.metrics.exporter", "none");
+            PROPERTIES.put("otel.instrumentation.sw-guidewire.enabled", "false");
+            PROPERTIES.put("otel.traces.exporter", COMPONENT_NAME);
             PROPERTIES.put("otel.propagators", String.format("tracecontext,baggage,%s", COMPONENT_NAME));
         } else {
             PROPERTIES.put("otel.sdk.disabled", "true");

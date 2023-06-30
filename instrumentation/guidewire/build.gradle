@@ -1,0 +1,15 @@
+apply from: "$rootDir/gradle/instrumentation.gradle"
+archivesBaseName = "swGuidewire"
+
+dependencies {
+    compileOnly project(":bootstrap")
+    compileOnly 'javax.servlet:javax.servlet-api:4.0.0'
+    compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
+
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}

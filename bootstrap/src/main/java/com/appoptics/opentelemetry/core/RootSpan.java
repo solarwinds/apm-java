@@ -7,31 +7,50 @@ package com.appoptics.opentelemetry.core;
 
 import io.opentelemetry.api.trace.Span;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This class stores the root span of a particular trace by its trace ID.
- *
+ * <p>
  * Code logic can then perform lookup to get the root span of a particular trace anywhere by providing trace ID.
- *
+ * <p>
  * Take note that this cannot be implemented using <code>io.opentelemetry.context.Context</code> similar to
  * <code>io.opentelemetry.instrumentation.api.tracer.ServerSpan</code> as the context can be overwritten
  * by OT Tracer's instrumentation
  */
 public final class RootSpan {
-  private static final ConcurrentHashMap<String, Span> ROOT_SPAN_LOOKUP = new ConcurrentHashMap<>();
 
-  public static Span fromTraceId(String traceId) {
-    return ROOT_SPAN_LOOKUP.get(traceId);
-  }
+    private static final ConcurrentHashMap<String, Span> ROOT_SPAN_LOOKUP = new ConcurrentHashMap<>();
 
-  public static void setRootSpan(Span rootSpan) {
-    ROOT_SPAN_LOOKUP.put(rootSpan.getSpanContext().getTraceId(), rootSpan);
-  }
+    private static final ConcurrentHashMap<String, Map<String, String>> attributes = new ConcurrentHashMap<>();
 
-  public static Span clearRootSpan(String traceId) {
-    return ROOT_SPAN_LOOKUP.remove(traceId);
-  }
+    public static Span fromTraceId(String traceId) {
+        return ROOT_SPAN_LOOKUP.get(traceId);
+    }
 
-  private RootSpan() { }
+    public static void setRootSpan(Span rootSpan) {
+        ROOT_SPAN_LOOKUP.put(rootSpan.getSpanContext().getTraceId(), rootSpan);
+    }
+
+    public static void clearRootSpan(String traceId) {
+        ROOT_SPAN_LOOKUP.remove(traceId);
+    }
+
+    public static void addAttribute(String traceId, String attribute, String value) {
+        Map<String, String> stringStringMap = attributes.computeIfAbsent(traceId, __ -> new HashMap<>());
+        stringStringMap.put(attribute, value);
+    }
+
+    public static Map<String, String> getAttributes(String traceId){
+        return attributes.computeIfAbsent(traceId, __ -> new HashMap<>());
+    }
+
+    private RootSpan() {
+    }
+
+    public static void clearAttributes(String traceId) {
+        attributes.computeIfPresent(traceId, (__, ___) -> null);
+    }
 }
