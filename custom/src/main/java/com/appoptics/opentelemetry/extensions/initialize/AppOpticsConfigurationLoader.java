@@ -71,6 +71,7 @@ public class AppOpticsConfigurationLoader {
     public static void load() throws InvalidConfigException {
         LOGGER.info(String.format("Otel agent version: %s", BuildConfig.OTEL_AGENT_VERSION));
         LOGGER.info(String.format("Solarwinds extension version: %s", BuildConfig.SOLARWINDS_AGENT_VERSION));
+        LOGGER.info(String.format("Solarwinds build datetime: %s", BuildConfig.BUILD_DATETIME));
         loadConfigurations();
 
         String serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
