@@ -65,8 +65,9 @@ public class GuidewireTypeInstrumentation implements TypeInstrumentation {
 
         public static void service(HttpServletRequest request) {
             Span currentSpan = Span.fromContext(Context.current());
-            RootSpan.addAttribute(currentSpan.getSpanContext().getTraceId(), "Custom.Inst.name", "SWOGuideWire");
+            String traceId = currentSpan.getSpanContext().getTraceId();
             Logger logger = LoggerFactory.getLogger();
+
             logger.trace("GUIDEWIRE - Starting HttpServlet service method");
             logger.trace("GUIDEWIRE - browser character encoding before GW: " + request.getCharacterEncoding());
             logger.trace("GUIDEWIRE - Calling original HttpServlet.service method");
@@ -99,13 +100,13 @@ public class GuidewireTypeInstrumentation implements TypeInstrumentation {
                         logger.trace("GUIDEWIRE - Found request param: " + pKey);
                         String[] pValue = request.getParameterValues(pKey);
                         if ((pValue != null) && (pValue.length > 0)) {
-                            String pValueString = "";
+                            StringBuilder pValueString = new StringBuilder();
                             for (String pThisString : pValue) {
-                                pValueString = pValueString + " " + pThisString;
+                                pValueString.append(" ").append(pThisString);
                             }
-                            pValueString = pValueString.trim();
-                            if (!pValueString.isEmpty()) {
-                                RootSpan.addAttribute(currentSpan.getSpanContext().getTraceId(),paramDisplayName, pValueString);
+                            pValueString = new StringBuilder(pValueString.toString().trim());
+                            if (pValueString.length() > 0) {
+                                RootSpan.addAttribute(traceId, paramDisplayName, pValueString.toString());
                                 logger.trace("GUIDEWIRE - adding attribute for request parameter: " + paramDisplayName + " = " + pValueString);
 
                             }
@@ -128,7 +129,7 @@ public class GuidewireTypeInstrumentation implements TypeInstrumentation {
                                     pScreen = pSplitKey.trim();
                                     bScreenFound = true;
                                 }
-                                if ((bWizardFound) && (bScreenFound)) {
+                                if (bWizardFound && bScreenFound) {
                                     bWizardAndScreenFound = true;
                                     break;
                                 }
@@ -144,7 +145,7 @@ public class GuidewireTypeInstrumentation implements TypeInstrumentation {
                     for (Cookie cookie : cookies) {
                         String cName = cookie.getName();
                         if (cName != null && cName.startsWith("JSESSIONID")) {
-                            RootSpan.addAttribute(currentSpan.getSpanContext().getTraceId(),cookie.getName(), cookie.getValue());
+                            RootSpan.addAttribute(traceId, cookie.getName(), cookie.getValue());
                             logger.trace(
 
                                     "GUIDEWIRE - adding attribute for JSESSIONID cookie: " + cookie.getName() + " = " +
@@ -160,27 +161,28 @@ public class GuidewireTypeInstrumentation implements TypeInstrumentation {
                         String eventParam = request.getParameter("eventParam");
                         if (eventParam != null && !eventParam.isEmpty()) {
                             logger.trace("GUIDEWIRE - Setting eventParam to transaction name since eventSource was _refresh_: " + eventParam);
-                            CustomTransactionNameDict.set(currentSpan.getSpanContext().getTraceId(), eventParam);
+                            CustomTransactionNameDict.set(traceId, eventParam);
                         } else {
                             logger.trace("GUIDEWIRE - Setting eventSource to transaction name: " + eventSource);
-                            CustomTransactionNameDict.set(currentSpan.getSpanContext().getTraceId(), eventSource);
+                            CustomTransactionNameDict.set(traceId, eventSource);
                         }
                     } else {
-                        if ((bWizardAndScreenCheckNeeded) && (bWizardAndScreenFound)) {
+                        if (bWizardAndScreenCheckNeeded && bWizardAndScreenFound) {
                             logger.trace("GUIDEWIRE - Setting Wizard Name and Screen name to transaction name since eventSource contained Wizard:Next_Act: " + pWizard + ":" + pScreen);
-                            CustomTransactionNameDict.set(currentSpan.getSpanContext().getTraceId(), pWizard + ":" + pScreen);
-                            RootSpan.addAttribute(currentSpan.getSpanContext().getTraceId(),"Wizard", pWizard);
-                            RootSpan.addAttribute(currentSpan.getSpanContext().getTraceId(),"Screen", pScreen);
+                            CustomTransactionNameDict.set(traceId, pWizard + ":" + pScreen);
+                            RootSpan.addAttribute(traceId, "Wizard", pWizard);
+
+                            RootSpan.addAttribute(traceId, "Screen", pScreen);
                         } else {
                             logger.trace("GUIDEWIRE - Setting eventSource to transaction name: " + eventSource);
-                            CustomTransactionNameDict.set(currentSpan.getSpanContext().getTraceId(), eventSource);
+                            CustomTransactionNameDict.set(traceId, eventSource);
                         }
                     }
                 }
 
 
                 String name = Thread.currentThread().getName();
-                RootSpan.addAttribute(currentSpan.getSpanContext().getTraceId(),"ThreadName", name);
+                RootSpan.addAttribute(traceId, "ThreadName", name);
 
             } catch (Exception e) {
                 logger.trace("GUIDEWIRE -- exception processing servlet service method: " + e.getMessage());
