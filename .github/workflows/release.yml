@@ -35,10 +35,10 @@ jobs:
         # GITHUB_TOKEN is used to publish the build artifacts (the NightHawk agent) to Github Packages.
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # The secrets are for publishing the build artifacts to the Maven Central.
-        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-        SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-        SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        SONATYPE_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        SONATYPE_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+        GPG_PRIVATE_KEY: ${{ secrets.SIGNING_KEY }}
+        GPG_PRIVATE_KEY_PASSPHRASE: ${{ secrets.SIGNING_PASSWORD }}
     - name: Set agent version env
       run: |
         echo "AGENT_VERSION=v$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }')" >> $GITHUB_ENV
