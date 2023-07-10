@@ -20,7 +20,7 @@ public class AppOpticsPropertiesSupplier implements Supplier<Map<String, String>
             PROPERTIES.put("otel.metrics.exporter", "none");
             PROPERTIES.put("otel.propagators", String.format("tracecontext,baggage,%s", COMPONENT_NAME));
         } else {
-            PROPERTIES.put("otel.javaagent.enabled", "false");
+            PROPERTIES.put("otel.sdk.disabled", "true");
         }
     }
 

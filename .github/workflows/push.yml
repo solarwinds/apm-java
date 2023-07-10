@@ -24,5 +24,5 @@ jobs:
         with:
           arguments: test
         env:
-          GP_USERNAME: ${{ secrets.GP_USERNAME }}
-          GP_TOKEN: ${{ secrets.GP_TOKEN }}
+          GITHUB_USERNAME: ${{ secrets.GP_USERNAME }}
+          GITHUB_TOKEN: ${{ secrets.GP_TOKEN }}

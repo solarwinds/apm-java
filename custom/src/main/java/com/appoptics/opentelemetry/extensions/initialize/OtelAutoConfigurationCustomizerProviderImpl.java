@@ -38,10 +38,6 @@ public class OtelAutoConfigurationCustomizerProviderImpl implements AutoConfigur
     }
 
     public static boolean isAgentEnabled() {
-        if (!agentEnabled) {
-            logger.warn("Solarwinds' extension is disabled");
-        }
-
         return agentEnabled;
     }
 
