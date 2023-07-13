@@ -1,5 +1,6 @@
 package com.appoptics.opentelemetry.extensions.initialize;
 
+import com.appoptics.opentelemetry.extensions.TransactionNameManager;
 import com.appoptics.opentelemetry.extensions.initialize.config.BuildConfig;
 import com.appoptics.opentelemetry.extensions.initialize.config.ConfigConstants;
 import com.appoptics.opentelemetry.extensions.initialize.config.LogFileStringParser;
@@ -12,6 +13,9 @@ import com.appoptics.opentelemetry.extensions.initialize.config.RangeValidationP
 import com.appoptics.opentelemetry.extensions.initialize.config.TracingModeParser;
 import com.appoptics.opentelemetry.extensions.initialize.config.TransactionSettingsConfigParser;
 import com.appoptics.opentelemetry.extensions.initialize.config.UrlSampleRateConfigParser;
+import com.appoptics.opentelemetry.extensions.transaction.NamingScheme;
+import com.appoptics.opentelemetry.extensions.transaction.TransactionNamingScheme;
+import com.appoptics.opentelemetry.extensions.transaction.TransactionNamingSchemesParser;
 import com.tracelytics.joboe.config.ConfigContainer;
 import com.tracelytics.joboe.config.ConfigGroup;
 import com.tracelytics.joboe.config.ConfigManager;
@@ -61,6 +65,7 @@ public class AppOpticsConfigurationLoader {
         ConfigProperty.AGENT_TRIGGER_TRACE_ENABLED.setParser(ModeStringToBooleanParser.INSTANCE);
         ConfigProperty.AGENT_PROXY.setParser(ProxyConfigParser.INSTANCE);
         ConfigProperty.PROFILER.setParser(ProfilerSettingParser.INSTANCE);
+        ConfigProperty.AGENT_TRANSACTION_NAMING_SCHEMES.setParser(new TransactionNamingSchemesParser());
     }
 
     public static void load() throws InvalidConfigException {
@@ -75,11 +80,12 @@ public class AppOpticsConfigurationLoader {
     /**
      * Checks the OpenTelemetry Java agent's logger settings. If the NH custom distro doesn't set a log file
      * but the Otel has this config option, we just follow the Otel's config.
+     *
      * @param configs the configuration container to hold configs
      */
     private static void maybeFollowOtelConfigProperties(ConfigContainer configs) {
         if (configs.get(ConfigProperty.AGENT_LOG_FILE) == null
-        && System.getProperty("io.opentelemetry.javaagent.slf4j.simpleLogger.logFile") != null) {
+                && System.getProperty("io.opentelemetry.javaagent.slf4j.simpleLogger.logFile") != null) {
             try {
                 Path path = Paths.get(System.getProperty("io.opentelemetry.javaagent.slf4j.simpleLogger.logFile"));
                 configs.put(ConfigProperty.AGENT_LOG_FILE, path);
@@ -118,8 +124,7 @@ public class AppOpticsConfigurationLoader {
         boolean hasReadConfigException = false;
         try {
             configs = readConfigs(mergeEnvWithSysProperties(System.getenv(), System.getProperties()));
-        }
-        catch (InvalidConfigException e) {
+        } catch (InvalidConfigException e) {
             hasReadConfigException = true;
             //attempt to initialize the logger factory, as it could contain valid logging config and it's valuable to log message to it if possible
             if (e instanceof InvalidConfigReadSourceException) {
@@ -132,8 +137,7 @@ public class AppOpticsConfigurationLoader {
                 LoggerFactory.init(configs.subset(ConfigGroup.AGENT)); //initialize the logger factory as soon as the config is available
                 try {
                     processConfigs(configs);
-                }
-                catch (InvalidConfigException e) {
+                } catch (InvalidConfigException e) {
                     //if there was a config read exception then processConfigs might throw exception due to incomplete config container.
                     //Do NOT override the original exception by not rethrowing the exception
                     if (!hasReadConfigException) {
@@ -148,10 +152,9 @@ public class AppOpticsConfigurationLoader {
     /**
      * Collect configuration properties from both the -javaagent arguments and the configuration property file
      *
-     *
-     * @param env						the environment variables
-     * @return                          ConfigContainer filled with the properties parsed from the -javaagent arguments and configuration property file
-     * @throws InvalidConfigException   failed to read the configs
+     * @param env the environment variables
+     * @return ConfigContainer filled with the properties parsed from the -javaagent arguments and configuration property file
+     * @throws InvalidConfigException failed to read the configs
      */
     static ConfigContainer readConfigs(Map<String, String> env) throws InvalidConfigException {
         ConfigContainer container = new ConfigContainer();
@@ -163,8 +166,7 @@ public class AppOpticsConfigurationLoader {
             LOGGER.debug("Start reading configs from ENV");
             new EnvConfigReader(env).read(container);
             LOGGER.debug("Finished reading configs from ENV");
-        }
-        catch (InvalidConfigException e) {
+        } catch (InvalidConfigException e) {
             exceptions.add(new InvalidConfigReadSourceException(e.getConfigProperty(), ConfigSourceType.ENV_VAR, null, container, e));
         }
 
@@ -176,8 +178,7 @@ public class AppOpticsConfigurationLoader {
                 location = (String) container.get(ConfigProperty.AGENT_CONFIG);
                 try {
                     config = new FileInputStream(location);
-                }
-                catch (FileNotFoundException e) {
+                } catch (FileNotFoundException e) {
                     throw new InvalidConfigException(e);
                 }
             } else {
@@ -198,8 +199,7 @@ public class AppOpticsConfigurationLoader {
 
             new JsonConfigReader(AppOpticsConfigurationLoader.class.getResourceAsStream("/" + CONFIG_FILE)).read(container);
             LOGGER.debug("Finished reading built-in default settings.");
-        }
-        catch (InvalidConfigException e) {
+        } catch (InvalidConfigException e) {
             exceptions.add(new InvalidConfigReadSourceException(e.getConfigProperty(), ConfigSourceType.JSON_FILE, location, container, e));
         } finally {
             if (config != null) {
@@ -253,19 +253,19 @@ public class AppOpticsConfigurationLoader {
 
     /**
      * Validate and populate the ConfigContainer with defaults if not found from the config loading
-     *
+     * <p>
      * Then initializes {@link ConfigManager} with the processed values
      *
      * @param configs
      */
-    private static void processConfigs(ConfigContainer configs) throws InvalidConfigException {
+    public static void processConfigs(ConfigContainer configs) throws InvalidConfigException {
         if (configs.containsProperty(ConfigProperty.AGENT_DEBUG)) { //legacy flag
             configs.put(ConfigProperty.AGENT_LOGGING, false);
         }
 
         if (configs.containsProperty(ConfigProperty.AGENT_SAMPLE_RATE)) {
             Integer sampleRateFromConfig = (Integer) configs.get(ConfigProperty.AGENT_SAMPLE_RATE);
-            if (sampleRateFromConfig < 0 ||  sampleRateFromConfig > ConfigConstants.SAMPLE_RESOLUTION) {
+            if (sampleRateFromConfig < 0 || sampleRateFromConfig > ConfigConstants.SAMPLE_RESOLUTION) {
                 LOGGER.warn(ConfigProperty.AGENT_SAMPLE_RATE + ": Invalid argument value: " + sampleRateFromConfig + ": must be between 0 and " + ConfigConstants.SAMPLE_RESOLUTION);
                 throw new InvalidConfigException("Invalid " + ConfigProperty.AGENT_SAMPLE_RATE.getConfigFileKey() + " : " + sampleRateFromConfig);
             }
@@ -282,13 +282,11 @@ public class AppOpticsConfigurationLoader {
             }
             LOGGER.debug("Service key (masked) is [" + ServiceKeyUtils.maskServiceKey(serviceKey) + "]");
 
-        }
-        else {
+        } else {
             if (!configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)) {
                 LOGGER.warn("Could not find the service key! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in " + CONFIG_FILE + " or via env variable.");
                 throw new InvalidConfigServiceKeyException("Service key not found");
-            }
-            else {
+            } else {
                 LOGGER.warn("Service key is empty! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in " + CONFIG_FILE + " or via env variable.");
                 throw new InvalidConfigServiceKeyException("Service key is empty");
             }
@@ -305,8 +303,8 @@ public class AppOpticsConfigurationLoader {
                 LOGGER.warn(ConfigProperty.AGENT_URL_SAMPLE_RATE.getConfigFileKey() + " is ignored as " + ConfigProperty.AGENT_TRANSACTION_SETTINGS.getConfigFileKey() + " is also defined");
             }
             traceConfigs = (TraceConfigs) configs.get(ConfigProperty.AGENT_TRANSACTION_SETTINGS);
-        }
-        else if (configs.containsProperty(ConfigProperty.AGENT_URL_SAMPLE_RATE)) {
+
+        } else if (configs.containsProperty(ConfigProperty.AGENT_URL_SAMPLE_RATE)) {
             traceConfigs = (TraceConfigs) configs.get(ConfigProperty.AGENT_URL_SAMPLE_RATE);
         }
 
@@ -314,6 +312,11 @@ public class AppOpticsConfigurationLoader {
             configs.put(ConfigProperty.AGENT_INTERNAL_TRANSACTION_SETTINGS, traceConfigs);
         }
 
+        if (configs.containsProperty(ConfigProperty.AGENT_TRANSACTION_NAMING_SCHEMES)) {
+            List<TransactionNamingScheme> schemes = (List<TransactionNamingScheme>) configs.get(ConfigProperty.AGENT_TRANSACTION_NAMING_SCHEMES);
+            NamingScheme namingScheme = NamingScheme.createDecisionChain(schemes);
+            TransactionNameManager.setNamingScheme(namingScheme);
+        }
 
         Boolean profilerEnabledFromEnvVar = null;
         if (configs.containsProperty(ConfigProperty.PROFILER_ENABLED_ENV_VAR)) {
@@ -329,13 +332,14 @@ public class AppOpticsConfigurationLoader {
         if (configs.containsProperty(ConfigProperty.PROFILER)) {
             ProfilerSetting profilerSettingsFromConfigFile = (ProfilerSetting) configs.get(ConfigProperty.PROFILER);
             boolean finalEnabled = profilerEnabledFromEnvVar != null ? profilerEnabledFromEnvVar : profilerSettingsFromConfigFile.isEnabled();
+
             int finalInterval = profilerIntervalFromEnvVar != null ? profilerIntervalFromEnvVar : profilerSettingsFromConfigFile.getInterval();
             finalProfilerSetting = new ProfilerSetting(finalEnabled, profilerSettingsFromConfigFile.getExcludePackages(), finalInterval, profilerSettingsFromConfigFile.getCircuitBreakerDurationThreshold(), profilerSettingsFromConfigFile.getCircuitBreakerCountThreshold());
-        }
-        else if (profilerEnabledFromEnvVar != null || profilerIntervalFromEnvVar != null) {
+
+        } else if (profilerEnabledFromEnvVar != null || profilerIntervalFromEnvVar != null) {
             finalProfilerSetting = new ProfilerSetting(profilerEnabledFromEnvVar != null ? profilerEnabledFromEnvVar : false, profilerIntervalFromEnvVar != null ? profilerIntervalFromEnvVar : ProfilerSetting.DEFAULT_INTERVAL);
-        }
-        else {
+
+        } else {
             finalProfilerSetting = new ProfilerSetting(false, ProfilerSetting.DEFAULT_INTERVAL);
         }
 
