@@ -1,6 +1,8 @@
 package com.appoptics.opentelemetry.extensions;
 
 import com.appoptics.opentelemetry.core.CustomTransactionNameDict;
+import com.appoptics.opentelemetry.extensions.transaction.DefaultNamingScheme;
+import com.appoptics.opentelemetry.extensions.transaction.NamingScheme;
 import com.tracelytics.ext.google.common.cache.Cache;
 import com.tracelytics.ext.google.common.cache.CacheBuilder;
 import com.tracelytics.joboe.config.ConfigManager;
@@ -45,6 +47,8 @@ public class TransactionNameManager {
 
     private static final boolean domainPrefixedTransactionName;
 
+    private static NamingScheme namingScheme = new DefaultNamingScheme(null);
+
     static {
         customTransactionNamePattern = getTransactionNamePattern();
         addNameCountChangeListener();
@@ -55,6 +59,14 @@ public class TransactionNameManager {
     }
 
     private TransactionNameManager() { //forbid instantiation
+    }
+
+    public static void setNamingScheme(NamingScheme namingScheme) {
+        TransactionNameManager.namingScheme = namingScheme;
+    }
+
+    public static NamingScheme getNamingScheme() {
+        return namingScheme;
     }
 
     private static void addNameCountChangeListener() {
@@ -171,6 +183,11 @@ public class TransactionNameManager {
         if (customName != null) {
             LOGGER.trace(String.format("Using custom transaction name(%s)", customName));
             return customName;
+        }
+
+        String name = namingScheme.createName(spanAttributes);
+        if (name != null && !name.isEmpty()){
+            return name;
         }
 
         String path = spanAttributes.get(SemanticAttributes.HTTP_TARGET);
