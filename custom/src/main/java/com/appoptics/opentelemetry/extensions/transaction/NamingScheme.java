@@ -21,10 +21,15 @@ public abstract class NamingScheme {
 
         for (int index = schemes.size() - 1; index > -1; index--) {
             TransactionNamingScheme scheme = schemes.get(index);
+            if (scheme == null) {
+                logger.debug("Null scheme was encountered. Ensure you don't have any trailing commas");
+                continue;
+            }
+
             if (scheme.getDelimiter() != null && scheme.getAttributes() != null) {
                 head = new SpanAttributeNamingScheme(head, scheme.getDelimiter(), scheme.getAttributes());
             } else {
-                logger.warn("Configured scheme is missing required fields. Hence, scheme has no effect");
+                logger.warn(String.format("Configured scheme(%s) is missing required fields. Hence, scheme has no effect", scheme.getScheme()));
             }
         }
 
