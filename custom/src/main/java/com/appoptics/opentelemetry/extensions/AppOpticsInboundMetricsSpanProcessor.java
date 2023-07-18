@@ -27,7 +27,11 @@ import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -40,9 +44,11 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
 
     public static final String serviceName;
 
+
     static {
         serviceName = ServiceKeyUtils.getServiceName(
                 (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
+
     }
 
     public static SpanMetricsCollector buildSpanMetricsCollector() {
@@ -155,8 +161,15 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
             }
 
             final long duration = (spanData.getEndEpochNanos() - spanData.getStartEpochNanos()) / 1000;
-            recordMeasurementEntryForAo(aoPrimaryKeys, aoSecondaryKey, duration);
-            recordMeasurementEntryForSwo(swoTags, duration);
+
+            String collector = (String) ConfigManager.getConfig(ConfigProperty.AGENT_COLLECTOR);
+            if (collector != null && collector.contains("appoptics.com")) {
+                logger.debug("Sending metrics to AO");
+                recordMeasurementEntryForAo(aoPrimaryKeys, aoSecondaryKey, duration);
+            } else {
+                logger.debug("Sending metrics to SWO");
+                recordMeasurementEntryForSwo(swoTags, duration);
+            }
         }
 
         protected void recordMeasurementEntryForAo(Map<String, String> primaryKeys,
