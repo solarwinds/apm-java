@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 import java.util.List;
+import java.util.Objects;
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -23,10 +24,19 @@ public class SpanAttributeNamingScheme extends NamingScheme {
     public String createName(Attributes attributes) {
         StringBuilder name = new StringBuilder();
         this.attributes.forEach(attr -> {
-            String value = attributes.get(AttributeKey.stringKey(attr));
-            if (value != null) {
-                name.append(value)
-                        .append(delimiter);
+            if (attributes.get(AttributeKey.stringArrayKey(attr)) != null) {
+                Objects.requireNonNull(attributes.get(AttributeKey.stringArrayKey(attr)))
+                        .forEach(innerAttr ->
+                                name.append(innerAttr)
+                                        .append(delimiter)
+                        );
+
+            } else if (attributes.get(AttributeKey.stringKey(attr)) != null) {
+                String value = attributes.get(AttributeKey.stringKey(attr));
+                if (value != null) {
+                    name.append(value)
+                            .append(delimiter);
+                }
             }
         });
 

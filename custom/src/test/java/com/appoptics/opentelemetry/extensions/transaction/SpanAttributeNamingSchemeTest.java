@@ -48,6 +48,17 @@ class SpanAttributeNamingSchemeTest {
         assertEquals("POST-Controller.segfault", name);
     }
 
+
+    @Test
+    void verifyThatNameIsReturnedWhenAttributeValueIsList() {
+        Attributes attributes = Attributes.builder()
+                .put(AttributeKey.stringArrayKey("Handler"), Arrays.asList("POST", "Controller.segfault"))
+                .build();
+
+        String name = tested.createName(attributes);
+        assertEquals("POST-Controller.segfault", name);
+    }
+
     @Test
     void verifyDelegationToNextWhenNoMatchingAttributeExist() {
         when(namingSchemeMock.createName(any())).thenReturn("Hello");
