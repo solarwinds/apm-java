@@ -1,6 +1,7 @@
 package com.appoptics.opentelemetry.extensions;
 
 import com.appoptics.opentelemetry.core.CustomTransactionNameDict;
+import com.appoptics.opentelemetry.extensions.attrrename.AttributeRenamer;
 import com.appoptics.opentelemetry.extensions.transaction.DefaultNamingScheme;
 import com.appoptics.opentelemetry.extensions.transaction.NamingScheme;
 import com.tracelytics.ext.google.common.cache.Cache;
@@ -185,7 +186,7 @@ public class TransactionNameManager {
             return customName;
         }
 
-        String name = namingScheme.createName(spanAttributes);
+        String name = namingScheme.createName(AttributeRenamer.getInstance().rename(spanAttributes));
         if (name != null && !name.isEmpty()){
             return name;
         }

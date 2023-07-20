@@ -1,6 +1,7 @@
 package com.appoptics.opentelemetry.extensions.initialize;
 
 import com.appoptics.opentelemetry.extensions.TransactionNameManager;
+import com.appoptics.opentelemetry.extensions.attrrename.AttributeRenamer;
 import com.appoptics.opentelemetry.extensions.transaction.DefaultNamingScheme;
 import com.appoptics.opentelemetry.extensions.transaction.NamingScheme;
 import com.appoptics.opentelemetry.extensions.transaction.SpanAttributeNamingScheme;
@@ -24,7 +25,7 @@ class AppOpticsConfigurationLoaderTest {
     private AppOpticsConfigurationLoader tested;
 
     @Test
-    void processConfigs() throws InvalidConfigException {
+    void processTransactionSchemesConfig() throws InvalidConfigException {
         String json =
                 "  [\n" +
                         "   {\n" +
@@ -50,5 +51,18 @@ class AppOpticsConfigurationLoaderTest {
                 "-", Collections.singletonList("http.method"));
 
         assertEquals(expected, TransactionNameManager.getNamingScheme());
+    }
+    @Test
+    void processAttributeRenameConfig() throws InvalidConfigException {
+        String attrRename = "old_key_0=new_key_0,old_key_1= new_key_1";
+        ConfigContainer configContainer = new ConfigContainer();
+        configContainer.putByStringValue(ConfigProperty.AGENT_ATTR_RENAME, attrRename);
+
+        configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "Key");
+        AppOpticsConfigurationLoader.processConfigs(configContainer);
+        String actual = AttributeRenamer.getInstance().rename("old_key_0");
+
+        String expected = "new_key_0";
+        assertEquals(expected, actual);
     }
 }

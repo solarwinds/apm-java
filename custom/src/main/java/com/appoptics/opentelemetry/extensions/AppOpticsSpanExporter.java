@@ -1,6 +1,7 @@
 package com.appoptics.opentelemetry.extensions;
 
 import com.appoptics.opentelemetry.core.Util;
+import com.appoptics.opentelemetry.extensions.attrrename.AttributeRenamer;
 import com.tracelytics.joboe.Context;
 import com.tracelytics.joboe.Event;
 import com.tracelytics.joboe.EventImpl;
@@ -134,6 +135,7 @@ public class AppOpticsSpanExporter implements SpanExporter {
         final Event event = Context.createEvent();
         final Attributes attributes = eventData.getAttributes();
         String message = attributes.get(SemanticAttributes.EXCEPTION_MESSAGE);
+
         if (message == null) {
             message = "";
         }
@@ -146,11 +148,17 @@ public class AppOpticsSpanExporter implements SpanExporter {
 
         final Map<AttributeKey<?>, Object> otherKvs = filterAttributes(attributes);
         OPEN_TELEMETRY_ERROR_ATTRIBUTE_KEYS.forEach(otherKvs.keySet()::remove);
-        for (Map.Entry<AttributeKey<?>, Object> keyValue : otherKvs.entrySet()) {
-            event.addInfo(keyValue.getKey().getKey(), keyValue.getValue());
-        }
+        addAttrAsEventInfo(event, otherKvs);
+
         event.setTimestamp(eventData.getEpochNanos() / 1000); //convert to micro second
         event.report();
+    }
+
+    private void addAttrAsEventInfo(Event event, Map<AttributeKey<?>, Object> otherKvs) {
+        for (Map.Entry<AttributeKey<?>, Object> keyValue : otherKvs.entrySet()) {
+            String key = AttributeRenamer.getInstance().rename(keyValue.getKey().getKey());
+            event.addInfo(key, keyValue.getValue());
+        }
     }
 
     private void reportInfoEvent(EventData eventData) {
@@ -159,12 +167,11 @@ public class AppOpticsSpanExporter implements SpanExporter {
         event.addInfo(
                 "Label", "info",
                 "sw.event_name", eventData.getName());
-        final Map<AttributeKey<?>, Object> otherKvs = filterAttributes(attributes);
-        for (Map.Entry<AttributeKey<?>, Object> keyValue : otherKvs.entrySet()) {
-            event.addInfo(keyValue.getKey().getKey(), keyValue.getValue());
-        }
 
+        final Map<AttributeKey<?>, Object> otherKvs = filterAttributes(attributes);
+        addAttrAsEventInfo(event, otherKvs);
         event.setTimestamp(eventData.getEpochNanos() / 1000); //convert to micro second
+
         event.report();
     }
 
@@ -192,9 +199,10 @@ public class AppOpticsSpanExporter implements SpanExporter {
     private Map<String, ?> getEventKvs(Attributes inputAttributes) {
         final Map<AttributeKey<?>, Object> attributes = filterAttributes(inputAttributes);
         final Map<String, Object> tags = new HashMap<String, Object>();
+
         for (Map.Entry<AttributeKey<?>, Object> entry : attributes.entrySet()) {
             Object attributeValue = entry.getValue();
-            final String attributeKey = entry.getKey().getKey();
+            final String attributeKey = AttributeRenamer.getInstance().rename(entry.getKey().getKey());
 
             tags.put(attributeKey, attributeValue);
         }

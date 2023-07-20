@@ -1,6 +1,8 @@
 package com.appoptics.opentelemetry.extensions.initialize;
 
 import com.appoptics.opentelemetry.extensions.TransactionNameManager;
+import com.appoptics.opentelemetry.extensions.attrrename.AttributeRenameConfigParser;
+import com.appoptics.opentelemetry.extensions.attrrename.AttributeRenamer;
 import com.appoptics.opentelemetry.extensions.initialize.config.BuildConfig;
 import com.appoptics.opentelemetry.extensions.initialize.config.ConfigConstants;
 import com.appoptics.opentelemetry.extensions.initialize.config.LogFileStringParser;
@@ -45,6 +47,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -66,6 +69,7 @@ public class AppOpticsConfigurationLoader {
         ConfigProperty.AGENT_PROXY.setParser(ProxyConfigParser.INSTANCE);
         ConfigProperty.PROFILER.setParser(ProfilerSettingParser.INSTANCE);
         ConfigProperty.AGENT_TRANSACTION_NAMING_SCHEMES.setParser(new TransactionNamingSchemesParser());
+        ConfigProperty.AGENT_ATTR_RENAME.setParser(new AttributeRenameConfigParser());
     }
 
     public static void load() throws InvalidConfigException {
@@ -108,7 +112,7 @@ public class AppOpticsConfigurationLoader {
             if (value == null) {
                 continue;
             }
-            String envKey = key.toUpperCase().replace(".", "_");
+            String envKey = normalizePropertyKey(key);
             res.put(envKey, value);
 
             if (envKey.endsWith("SERVICE_KEY")) {
@@ -117,6 +121,10 @@ public class AppOpticsConfigurationLoader {
             LOGGER.info("System property " + key + "=" + value + ", override " + envKey);
         }
         return res;
+    }
+
+    static String normalizePropertyKey(String key){
+        return key.toUpperCase(Locale.ROOT).replace(".", "_");
     }
 
     private static void loadConfigurations() throws InvalidConfigException {
@@ -316,6 +324,11 @@ public class AppOpticsConfigurationLoader {
             List<TransactionNamingScheme> schemes = (List<TransactionNamingScheme>) configs.get(ConfigProperty.AGENT_TRANSACTION_NAMING_SCHEMES);
             NamingScheme namingScheme = NamingScheme.createDecisionChain(schemes);
             TransactionNameManager.setNamingScheme(namingScheme);
+        }
+
+        if (configs.containsProperty(ConfigProperty.AGENT_ATTR_RENAME)) {
+            Map<String, String> attrMap = (Map<String, String>) configs.get(ConfigProperty.AGENT_ATTR_RENAME);
+            AttributeRenamer.initialize(attrMap);
         }
 
         Boolean profilerEnabledFromEnvVar = null;
