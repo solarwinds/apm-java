@@ -216,13 +216,13 @@ workflows:
           filters:
             branches:
               only: main
-      - s3-stage-upload:
-          context:
-            - AWS_CIRCLE_CI
-            - AWS_CIRCLE_CI_BUILD
-            - GH_LIBRATO_CI_PKG_WRITE
-            - SLACK_HOOK
-            - apm-s3-publishing
+#      - s3-stage-upload:
+#          context:
+#            - AWS_CIRCLE_CI
+#            - AWS_CIRCLE_CI_BUILD
+#            - GH_LIBRATO_CI_PKG_WRITE
+#            - SLACK_HOOK
+#            - apm-s3-publishing
       - s3-prod-upload:
           context:
             - AWS_CIRCLE_CI
