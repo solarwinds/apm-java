@@ -19,13 +19,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     # check out the branch `benchmark-results` for staging the benchmark data and summary.
-    - uses: actions/checkout@v3
-      with:
-        ref: benchmark-results
-        path: benchmark-results
-    - name: copy results from benchmark-results branch
-      run: |
-        cp -r benchmark-results/benchmark/results/ benchmark/
+#    - uses: actions/checkout@v3
+#      with:
+#        ref: benchmark-results
+#        path: benchmark-results
+#    - name: copy results from benchmark-results branch
+#      run: |
+#        cp -r benchmark-results/benchmark/results/ benchmark/
     - name: Log in to registry
       # These two secrets `secrets.GP_USERNAME` and `secrets.GP_TOKEN` are Github's PAT (Personal Access Token),
       # which are used to download private packages from Github Packages (in our case, the test collector docker image).
@@ -48,16 +48,15 @@ jobs:
       if: always()
       working-directory: benchmark
       run: ls -lR results
-    - name: copy results back to benchmark-results branch
-      if: always()
-      run: |
-        rsync -aR benchmark/./results/ benchmark-results/benchmark/
-        rsync -aR benchmark/./build/reports benchmark-results/benchmark/
-        rsync -aR benchmark/build/test-results benchmark-results/benchmark/
+#    - name: copy results back to benchmark-results branch
+#      if: always()
+#      run: |
+#        rsync -aR benchmark/./results/ benchmark-results/benchmark/
+#        rsync -aR benchmark/./build/reports benchmark-results/benchmark/
+#        rsync -aR benchmark/build/test-results benchmark-results/benchmark/
     - name: commit updated results
       if: always()
       run: |
-        cd benchmark-results
         git config --global user.name "${{ secrets.GP_USERNAME }}"
         git add benchmark/
         git commit -m "update test result data"
