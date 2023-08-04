@@ -20,6 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - uses: actions/checkout@v3
+      with:
+        ref: $GITHUB_HEAD_REF
+        path: $GITHUB_HEAD_REF
     - name: Log in to registry
       # These two secrets `secrets.GP_USERNAME` and `secrets.GP_TOKEN` are Github's PAT (Personal Access Token),
       # which are used to download private packages from Github Packages (in our case, the test collector docker image).
