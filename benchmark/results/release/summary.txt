@@ -1,0 +1,24 @@
+----------------------------------------------------------
+ Run at Fri Aug 04 13:07:12 UTC 2023
+ release : compares no agent, latest Otel standard, and latest NH/AO agents
+ 5 users, 5000 iterations
+----------------------------------------------------------
+Agent               :            latest               NH             none
+Run duration        :          00:00:16         00:00:13         00:00:13
+Avg. CPU (user) %   :        0.47128442       0.47372162       0.44770142
+Max. CPU (user) %   :         0.5959596        0.6138614            0.555
+Avg. mch tot cpu %  :        0.92738646         0.921294         0.914818
+Startup time (ms)   :             23350            16713            10957
+Total allocated MB  :           4081.30          2471.85          2068.06
+Min heap used (MB)  :             64.19            50.78            39.10
+Max heap used (MB)  :            218.44           180.28           142.10
+Thread switch rate  :         17068.672        20175.395          19624.6
+GC time (ms)        :          99822134        115672140        144412459
+GC pause time (ms)  :                99              115              144
+Req. mean (ms)      :              6.16             5.06             5.01
+Req. p95 (ms)       :             21.21            15.01            15.61
+Iter. mean (ms)     :             12.84            10.66            10.56
+Iter. p95 (ms)      :             37.65            26.60            27.15
+Net read avg (bps)  :        2474677.00       3059970.00       3001048.00
+Net write avg (bps) :       29541621.00       4694608.00       4282624.00
+Peak threads        :                51               34               36
