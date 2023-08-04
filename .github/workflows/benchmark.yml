@@ -13,8 +13,8 @@ on: # add cron schedule if you plan to run it periodically.
         required: false
         default: 'NH'
   push:
-    branches:
-      - main
+#    branches:
+#      - main
 
 jobs:
   run-overhead-tests:
