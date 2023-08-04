@@ -48,4 +48,4 @@ jobs:
         git config --global user.name "${{ secrets.GP_USERNAME }}"
         git add benchmark/
         git commit -m "update test result data"
-        git push origin
+        git push origin $GITHUB_HEAD_REF
