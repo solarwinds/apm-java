@@ -12,18 +12,15 @@ on: # add cron schedule if you plan to run it periodically.
         description: The benchmark will run with the NH agent by default, type AO to run with the AO agent.
         required: false
         default: 'NH'
-  pull_request:
-    types: [opened, reopened]
+  push:
+    branches:
+      - main
 
 jobs:
   run-overhead-tests:
     runs-on: ubuntu-latest
     steps:
-#    - uses: actions/checkout@v3
     - uses: actions/checkout@v3
-      with:
-        ref: $GITHUB_HEAD_REF
-        path: $GITHUB_HEAD_REF
     - name: Log in to registry
       # These two secrets `secrets.GP_USERNAME` and `secrets.GP_TOKEN` are Github's PAT (Personal Access Token),
       # which are used to download private packages from Github Packages (in our case, the test collector docker image).
@@ -46,10 +43,10 @@ jobs:
       if: always()
       working-directory: benchmark
       run: ls -lR results
-    - name: commit updated results
-      if: always()
-      run: |
-        git config --global user.name "${{ secrets.GP_USERNAME }}"
-        git add benchmark/
-        git commit -m "update test result data"
-        git push origin $GITHUB_HEAD_REF
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v5.0.2
+      with:
+        commit-message: update test result data
+        title: update test result data
+        body: Update benchmark results
+        branch: update-benchmark
