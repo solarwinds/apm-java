@@ -25,10 +25,10 @@ public class LatestSolarwindsAgentResolver {
 
     private Path downloadAgent() throws Exception {
         String assetURL;
-        if (!useAOAgent) {
-            assetURL = NH_URL;
-        } else {
+        if (useAOAgent) {
             assetURL = AO_URL;
+        } else {
+            assetURL = NH_URL;
         }
 
         OkHttpClient client = new OkHttpClient();
