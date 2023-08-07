@@ -19,4 +19,3 @@ include "instrumentation:jdbc"
 include "instrumentation:spring-webmvc-3.1"
 include "instrumentation:servlet-5.0"
 include "instrumentation:servlet-3.0"
-include 'instrumentation:guidewire'
