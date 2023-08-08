@@ -31,7 +31,7 @@ class DoubleValueExtractorTest {
     @Test
     void returnStringBuilderValueGivenDoubleListValue() {
         String attributeKey = "key-name";
-        Attributes attributes = Attributes.of(AttributeKey.doubleArrayKey(attributeKey), Arrays.asList(23D, 0D));
+        Attributes attributes = Attributes.of(AttributeKey.doubleArrayKey(attributeKey), Arrays.asList(23.0, 0.0));
 
         StringBuilder actual = tested.extract(attributeKey, attributes);
         assertEquals("23.00.0", actual.toString());
