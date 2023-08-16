@@ -12,6 +12,9 @@ on: # add cron schedule if you plan to run it periodically.
         description: The benchmark will run with the NH agent by default, type AO to run with the AO agent.
         required: false
         default: 'NH'
+  push:
+    branches:
+      - main
 
 jobs:
   run-overhead-tests:
