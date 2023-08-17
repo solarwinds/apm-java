@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-  compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetryAlpha}")
+  compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetry}")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
@@ -31,7 +31,7 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
 
-  testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetryAlpha}")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetry}")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}")
 

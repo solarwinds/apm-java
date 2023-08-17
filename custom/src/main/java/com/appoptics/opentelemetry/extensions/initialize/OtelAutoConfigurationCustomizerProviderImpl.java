@@ -49,7 +49,8 @@ public class OtelAutoConfigurationCustomizerProviderImpl implements AutoConfigur
     @Override
     public void customize(@Nonnull AutoConfigurationCustomizer autoConfiguration) {
         autoConfiguration.addPropertiesSupplier(new AppOpticsPropertiesSupplier())
-                .addTracerProviderCustomizer(new AppOpticsTracerProviderCustomizer());
+                .addTracerProviderCustomizer(new AppOpticsTracerProviderCustomizer())
+                .addResourceCustomizer(new AutoConfiguredResourceCustomizer());
     }
 
     @Override
