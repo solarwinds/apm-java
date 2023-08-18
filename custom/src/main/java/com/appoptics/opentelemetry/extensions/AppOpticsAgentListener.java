@@ -1,6 +1,7 @@
 package com.appoptics.opentelemetry.extensions;
 
 import com.appoptics.opentelemetry.core.AgentState;
+import com.appoptics.opentelemetry.extensions.initialize.AutoConfiguredResourceCustomizer;
 import com.google.auto.service.AutoService;
 import com.tracelytics.joboe.EventImpl;
 import com.tracelytics.joboe.RpcEventReporter;
@@ -9,7 +10,11 @@ import com.tracelytics.joboe.config.ConfigManager;
 import com.tracelytics.joboe.config.ConfigProperty;
 import com.tracelytics.joboe.config.InvalidConfigException;
 import com.tracelytics.joboe.config.ProfilerSetting;
-import com.tracelytics.joboe.rpc.*;
+import com.tracelytics.joboe.rpc.Client;
+import com.tracelytics.joboe.rpc.ClientException;
+import com.tracelytics.joboe.rpc.ClientLoggingCallback;
+import com.tracelytics.joboe.rpc.ClientManagerProvider;
+import com.tracelytics.joboe.rpc.RpcClientManager;
 import com.tracelytics.joboe.settings.SettingsManager;
 import com.tracelytics.logging.Logger;
 import com.tracelytics.logging.LoggerFactory;
@@ -55,13 +60,13 @@ public class AppOpticsAgentListener implements AgentListener {
     @Override
     public void afterAgent(AutoConfiguredOpenTelemetrySdk openTelemetrySdk) {
         if (isAgentEnabled() && isUsingAppOpticsSampler(openTelemetrySdk)) {
-            executeStartupTasks(openTelemetrySdk);
+            executeStartupTasks();
             registerShutdownTasks();
             logger.info("Successfully submitted SolarwindsAPM OpenTelemetry extensions initialization tasks");
         }
     }
 
-    private boolean isUsingAppOpticsSampler(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk){
+    boolean isUsingAppOpticsSampler(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk){
         Sampler sampler = autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk().getSdkTracerProvider().getSampler();
         boolean verdict =  sampler instanceof AppOpticsSampler;
         setAgentEnabled(verdict);
@@ -72,7 +77,7 @@ public class AppOpticsAgentListener implements AgentListener {
         return verdict;
     }
 
-    private void executeStartupTasks(AutoConfiguredOpenTelemetrySdk otelSDK) {
+    private void executeStartupTasks() {
         ExecutorService service = Executors.newSingleThreadExecutor(DaemonThreadFactory.newInstance("post-startup-tasks"));
 
         AgentState.setStartupTasksFuture(service.submit(() -> {
@@ -97,7 +102,7 @@ public class AppOpticsAgentListener implements AgentListener {
                 logger.debug("Initialized HostUtils");
 
                 logger.debug("Sending init message");
-                reportInit(otelSDK);
+                reportInit();
 
                 logger.debug("Building reporter");
                 EventImpl.setDefaultReporter(RpcEventReporter.buildReporter(RpcClientManager.OperationType.TRACING));
@@ -151,26 +156,26 @@ public class AppOpticsAgentListener implements AgentListener {
      * <p>
      * If timeout (default as 10 seconds, configurable) is non-zero, block until either the init message is sent or timeout elapsed. Otherwise submit the message to the client and return without blocking.
      */
-    private void reportInit(AutoConfiguredOpenTelemetrySdk openTelemetrySdk) {
+    private void reportInit() {
         try {
             String layerName = (String) ConfigManager.getConfig(ConfigProperty.AGENT_LAYER);
-            reportLayerInit(layerName, openTelemetrySdk);
+            reportLayerInit(layerName);
         }
         catch (Exception e) {
             logger.warn("Failed to post init message: " + (e.getMessage() != null ? e.getMessage() : e));
         }
     }
 
-    private void reportLayerInit(final String layer, final AutoConfiguredOpenTelemetrySdk openTelemetrySdk) throws ClientException {
+    private void reportLayerInit(final String layer) throws ClientException {
         // Must call buildInitMessage before initializing RPC client, otherwise it might deadlock
         // as discussed in https://github.com/librato/joboe/pull/767
-        Map<String, Object> initMessage = buildInitMessage(layer, openTelemetrySdk);
+        Map<String, Object> initMessage = buildInitMessage(layer);
 
         Client rpcClient = RpcClientManager.getClient(RpcClientManager.OperationType.STATUS);
         rpcClient.postStatus(Collections.singletonList(initMessage), new ClientLoggingCallback<>("post init message"));
     }
 
-    Map<String, Object> buildInitMessage(String layer, AutoConfiguredOpenTelemetrySdk openTelemetrySdk) {
+    Map<String, Object> buildInitMessage(String layer) {
         Map<String, Object> initMessage = new HashMap<>();
         initMessage.put("Layer", layer);
         initMessage.put("__Init", true);
@@ -181,7 +186,7 @@ public class AppOpticsAgentListener implements AgentListener {
         }
 
         // Capture OTel Resource attributes
-        Attributes attributes = openTelemetrySdk.getResource().getAttributes();
+        Attributes attributes = AutoConfiguredResourceCustomizer.getResource().getAttributes();
         logger.debug("Resource attributes " +
                 attributes.toString().replaceAll("(sw.apm.service.key=)\\S+", "$1****"));
 
