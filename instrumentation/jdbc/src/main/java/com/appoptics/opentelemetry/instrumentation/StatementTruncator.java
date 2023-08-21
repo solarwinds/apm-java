@@ -16,7 +16,6 @@ import java.lang.reflect.Method;
 public class StatementTruncator {
     private static final Logger logger = LoggerFactory.getLogger();
     public static final int DEFAULT_SQL_MAX_LENGTH = 128 * 1024; //control the max length of the SQL string to avoid BufferOverFlowException
-    private static final int sqlMaxLength = ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_QUERY_MAX_LENGTH, DEFAULT_SQL_MAX_LENGTH);
 
     public static void maybeTruncateStatement(Context context) {
         Span span = Span.fromContext(context);
@@ -38,6 +37,7 @@ public class StatementTruncator {
                 return;
             }
 
+            int sqlMaxLength = ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_QUERY_MAX_LENGTH, DEFAULT_SQL_MAX_LENGTH);
             if (sql.length() > sqlMaxLength) {
                 sql = sql.substring(0, sqlMaxLength);
                 span.setAttribute(QueryTruncatedAttributeKey.KEY, true);

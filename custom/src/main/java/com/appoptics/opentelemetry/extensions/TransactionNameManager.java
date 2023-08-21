@@ -45,17 +45,11 @@ public class TransactionNameManager {
     private static boolean limitExceeded;
     private static int maxNameCount = DEFAULT_MAX_NAME_COUNT;
 
-    private static final boolean domainPrefixedTransactionName;
-
     private static NamingScheme namingScheme = new DefaultNamingScheme(null);
 
     static {
         customTransactionNamePattern = getTransactionNamePattern();
         addNameCountChangeListener();
-
-        Boolean domainPrefixedTransactionNameObject = (Boolean) ConfigManager.getConfig(
-                ConfigProperty.AGENT_DOMAIN_PREFIXED_TRANSACTION_NAME);
-        domainPrefixedTransactionName = domainPrefixedTransactionNameObject != null && domainPrefixedTransactionNameObject; //only set it to true if the flag present and is set to true
     }
 
     private TransactionNameManager() { //forbid instantiation
@@ -112,6 +106,7 @@ public class TransactionNameManager {
     public static String getTransactionName(SpanData spanData) {
         String transactionName = buildTransactionName(spanData);
         if (transactionName != null) {
+            Boolean domainPrefixedTransactionName = ConfigManager.getConfigOptional(ConfigProperty.AGENT_DOMAIN_PREFIXED_TRANSACTION_NAME, false);
             if (domainPrefixedTransactionName) {
                 transactionName = prefixTransactionNameWithDomainName(transactionName, spanData);
             }
