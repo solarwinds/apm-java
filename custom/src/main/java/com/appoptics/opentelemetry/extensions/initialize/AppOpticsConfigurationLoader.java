@@ -13,6 +13,7 @@ import com.appoptics.opentelemetry.extensions.initialize.config.RangeValidationP
 import com.appoptics.opentelemetry.extensions.initialize.config.TracingModeParser;
 import com.appoptics.opentelemetry.extensions.initialize.config.TransactionSettingsConfigParser;
 import com.appoptics.opentelemetry.extensions.initialize.config.UrlSampleRateConfigParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.livereload.ConfigurationFileChangeWatcher;
 import com.appoptics.opentelemetry.extensions.transaction.NamingScheme;
 import com.appoptics.opentelemetry.extensions.transaction.TransactionNamingScheme;
 import com.appoptics.opentelemetry.extensions.transaction.TransactionNamingSchemesParser;
@@ -38,9 +39,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,11 +47,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class AppOpticsConfigurationLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger();
     private static final String CONFIG_FILE = "solarwinds-apm-config.json";
     private static final String SYS_PROPERTIES_PREFIX = "sw.apm";
+
+    private static String configurationFileDir = null;
+    private static String runtimeConfigFilename = null;
+
+    private static WatchService watchService = null;
+
+    private static ScheduledExecutorService watchScheduler;
 
     static {
         ConfigProperty.AGENT_LOGGING.setParser(LogSettingParser.INSTANCE);
@@ -72,10 +80,39 @@ public class AppOpticsConfigurationLoader {
         LOGGER.info(String.format("Otel agent version: %s", BuildConfig.OTEL_AGENT_VERSION));
         LOGGER.info(String.format("Solarwinds extension version: %s", BuildConfig.SOLARWINDS_AGENT_VERSION));
         LOGGER.info(String.format("Solarwinds build datetime: %s", BuildConfig.BUILD_DATETIME));
-        loadConfigurations();
 
+        loadConfigurations();
         String serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
         LOGGER.info("Successfully loaded SolarwindsAPM OpenTelemetry extensions configurations. Service key: " + ServiceKeyUtils.maskServiceKey(serviceKey));
+    }
+
+    private static void attachConfigurationFileWatcher() {
+        Long watchPeriod = ConfigManager.getConfigOptional(ConfigProperty.AGENT_CONFIG_FILE_WATCH_PERIOD, 0L);
+        if (watchPeriod > 0) {
+            try {
+                if (watchService == null) {
+                    watchService = FileSystems.getDefault().newWatchService();
+                    watchScheduler = Executors.newSingleThreadScheduledExecutor();
+                }
+
+                ConfigurationFileChangeWatcher.restartWatch(Paths.get(configurationFileDir),
+                        runtimeConfigFilename,
+                        watchPeriod,
+                        watchService,
+                        watchScheduler,
+                        filePath -> {
+                            try {
+                                LOGGER.info("Configuration file change detected. Reloading configuration");
+                                loadConfigurations();
+                            } catch (InvalidConfigException invalidConfigException) {
+                                LOGGER.info(String.format("Invalid configuration found on reload. Error - %s", invalidConfigException));
+                            }
+                        }
+                );
+            } catch (Throwable e) {
+                LOGGER.warn(String.format("Failed to attach configuration file watcher due error: %s", e));
+            }
+        }
     }
 
     /**
@@ -147,6 +184,7 @@ public class AppOpticsConfigurationLoader {
                 }
             }
         }
+        attachConfigurationFileWatcher();
     }
 
 
@@ -195,11 +233,14 @@ public class AppOpticsConfigurationLoader {
             }
             if (config != null) {
                 new JsonConfigReader(config).read(container);
+                configurationFileDir = location.substring(0, location.lastIndexOf("/"));
+                runtimeConfigFilename = location.substring(location.lastIndexOf("/") + 1);
                 LOGGER.info("Finished reading configs from config file: " + location);
             }
 
             new JsonConfigReader(AppOpticsConfigurationLoader.class.getResourceAsStream("/" + CONFIG_FILE)).read(container);
             LOGGER.debug("Finished reading built-in default settings.");
+
         } catch (InvalidConfigException e) {
             exceptions.add(new InvalidConfigReadSourceException(e.getConfigProperty(), ConfigSourceType.JSON_FILE, location, container, e));
         } finally {
