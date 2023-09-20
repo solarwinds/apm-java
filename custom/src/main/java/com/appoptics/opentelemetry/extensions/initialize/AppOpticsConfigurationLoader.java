@@ -32,6 +32,7 @@ import com.tracelytics.joboe.config.TraceConfigs;
 import com.tracelytics.logging.Logger;
 import com.tracelytics.logging.LoggerFactory;
 import com.tracelytics.util.ServiceKeyUtils;
+import lombok.Getter;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -55,7 +56,10 @@ public class AppOpticsConfigurationLoader {
     private static final String CONFIG_FILE = "solarwinds-apm-config.json";
     private static final String SYS_PROPERTIES_PREFIX = "sw.apm";
 
+    @Getter
     private static String configurationFileDir = null;
+
+    @Getter
     private static String runtimeConfigFilename = null;
 
     private static WatchService watchService = null;
@@ -88,7 +92,7 @@ public class AppOpticsConfigurationLoader {
 
     private static void attachConfigurationFileWatcher() {
         Long watchPeriod = ConfigManager.getConfigOptional(ConfigProperty.AGENT_CONFIG_FILE_WATCH_PERIOD, 0L);
-        if (watchPeriod > 0) {
+        if (watchPeriod > 0 && configurationFileDir != null && runtimeConfigFilename != null) {
             try {
                 if (watchService == null) {
                     watchService = FileSystems.getDefault().newWatchService();
@@ -233,8 +237,7 @@ public class AppOpticsConfigurationLoader {
             }
             if (config != null) {
                 new JsonConfigReader(config).read(container);
-                configurationFileDir = location.substring(0, location.lastIndexOf("/"));
-                runtimeConfigFilename = location.substring(location.lastIndexOf("/") + 1);
+                setWatchedPaths(location, File.separatorChar);
                 LOGGER.info("Finished reading configs from config file: " + location);
             }
 
@@ -261,6 +264,21 @@ public class AppOpticsConfigurationLoader {
         checkRequiredConfigKeys(container);
 
         return container;
+    }
+
+    // visible for testing
+    static void setWatchedPaths(String location, char sep) {
+        int lastIndexOf = location.lastIndexOf(sep);
+        if (lastIndexOf != -1 && lastIndexOf + 1 < location.length()) {
+            configurationFileDir = location.substring(0, lastIndexOf);
+            runtimeConfigFilename = location.substring(lastIndexOf + 1);
+        }
+    }
+
+    // only for testing purposes
+    static void resetWatchedPaths() {
+        configurationFileDir = null;
+        runtimeConfigFilename = null;
     }
 
     /**
