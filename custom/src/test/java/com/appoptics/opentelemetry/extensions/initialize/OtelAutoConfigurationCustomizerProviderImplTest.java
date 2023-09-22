@@ -40,6 +40,8 @@ class OtelAutoConfigurationCustomizerProviderImplTest {
     void verifyThatAutoConfigurationIsCustomizedWithSWODefaultPropertiesAndTraceProviderCustomizer() {
         when(autoConfigurationCustomizerMock.addTracerProviderCustomizer(any())).thenReturn(autoConfigurationCustomizerMock);
         when(autoConfigurationCustomizerMock.addPropertiesSupplier(any())).thenReturn(autoConfigurationCustomizerMock);
+        when(autoConfigurationCustomizerMock.addResourceCustomizer(any())).thenReturn(autoConfigurationCustomizerMock);
+        when(autoConfigurationCustomizerMock.addPropertiesCustomizer(any())).thenReturn(autoConfigurationCustomizerMock);
 
         tested.customize(autoConfigurationCustomizerMock);
         verify(autoConfigurationCustomizerMock, atMostOnce()).addPropertiesCustomizer(any());

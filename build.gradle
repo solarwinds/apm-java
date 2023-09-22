@@ -27,7 +27,7 @@ subprojects {
                 opentelemetryJavaagent: "1.29.0",
                 bytebuddy             : "1.12.10",
                 guava                 : "30.1-jre",
-                appopticsCore         : "7.8.19",
+                appopticsCore         : "7.8.20-cc.nh-56657-settings-8163b9b-SNAPSHOT",
                 agent                 : "0.17.3", // the custom distro agent version
                 autoservice           : "1.0.1",
         ]
