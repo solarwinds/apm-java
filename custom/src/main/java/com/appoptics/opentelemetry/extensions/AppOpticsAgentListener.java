@@ -4,17 +4,9 @@ import com.appoptics.opentelemetry.core.AgentState;
 import com.appoptics.opentelemetry.extensions.initialize.AutoConfiguredResourceCustomizer;
 import com.google.auto.service.AutoService;
 import com.tracelytics.joboe.EventImpl;
-import com.tracelytics.joboe.RpcEventReporter;
-import com.tracelytics.joboe.config.ConfigGroup;
-import com.tracelytics.joboe.config.ConfigManager;
-import com.tracelytics.joboe.config.ConfigProperty;
-import com.tracelytics.joboe.config.InvalidConfigException;
-import com.tracelytics.joboe.config.ProfilerSetting;
-import com.tracelytics.joboe.rpc.Client;
-import com.tracelytics.joboe.rpc.ClientException;
-import com.tracelytics.joboe.rpc.ClientLoggingCallback;
-import com.tracelytics.joboe.rpc.ClientManagerProvider;
-import com.tracelytics.joboe.rpc.RpcClientManager;
+import com.tracelytics.joboe.ReporterFactory;
+import com.tracelytics.joboe.config.*;
+import com.tracelytics.joboe.rpc.*;
 import com.tracelytics.joboe.settings.SettingsManager;
 import com.tracelytics.logging.Logger;
 import com.tracelytics.logging.LoggerFactory;
@@ -25,7 +17,7 @@ import com.tracelytics.monitor.metrics.MetricsMonitor;
 import com.tracelytics.profiler.Profiler;
 import com.tracelytics.util.DaemonThreadFactory;
 import com.tracelytics.util.HostInfoUtils;
-import com.tracelytics.util.ServerHostInfoReader;
+import com.tracelytics.util.HostTypeDetector;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.javaagent.extension.AgentListener;
@@ -49,6 +41,7 @@ import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_NAME;
 import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_VERSION;
 import static io.opentelemetry.semconv.ResourceAttributes.SERVICE_NAME;
 import static io.opentelemetry.semconv.ResourceAttributes.TELEMETRY_SDK_LANGUAGE;
+import static com.tracelytics.util.HostTypeDetector.isLambda;
 
 /**
  * Executes startup task after it's safe to do so. See <a href="https://github.com/appoptics/opentelemetry-custom-distro/pull/7">...</a>
@@ -59,6 +52,14 @@ public class AppOpticsAgentListener implements AgentListener {
 
     @Override
     public void afterAgent(AutoConfiguredOpenTelemetrySdk openTelemetrySdk) {
+        if (isLambda()) {
+            try {
+                SettingsManager.initialize();
+            } catch (ClientException ignore) {
+            }
+            return;
+        }
+
         if (isAgentEnabled() && isUsingAppOpticsSampler(openTelemetrySdk)) {
             executeStartupTasks();
             registerShutdownTasks();
@@ -87,10 +88,9 @@ public class AppOpticsAgentListener implements AgentListener {
                 CountDownLatch settingsLatch = null;
 
                 logger.debug("Initializing HostUtils");
-                HostInfoUtils.init(ServerHostInfoReader.INSTANCE);
                 try {
                     HostInfoUtils.NetworkAddressInfo networkAddressInfo = HostInfoUtils.getNetworkAddressInfo();
-                    List<String> ipAddresses = networkAddressInfo != null ? networkAddressInfo.getIpAddresses() : Collections.emptyList();
+                    List<String> ipAddresses = networkAddressInfo != null ? networkAddressInfo.getIpAddresses() : Collections.<String>emptyList();
 
                     logger.debug("Detected host id: " + HostInfoUtils.getHostId() + " ip addresses: " + ipAddresses);
 
@@ -104,7 +104,11 @@ public class AppOpticsAgentListener implements AgentListener {
                 reportInit();
 
                 logger.debug("Building reporter");
-                EventImpl.setDefaultReporter(RpcEventReporter.buildReporter(RpcClientManager.OperationType.TRACING));
+                EventImpl.setDefaultReporter(ReporterFactory.getInstance()
+                        .createHostTypeReporter(
+                                RpcClientManager.getClient(RpcClientManager.OperationType.TRACING),
+                                HostTypeDetector.getHostType())
+                );
                 logger.debug("Built reporter");
 
                 logger.info("Starting System monitor");
@@ -116,7 +120,7 @@ public class AppOpticsAgentListener implements AgentListener {
                             MetricsCollector metricsCollector = new MetricsCollector(configs, AppOpticsInboundMetricsSpanProcessor.buildSpanMetricsCollector());
                             return MetricsMonitor.buildInstance(configs, metricsCollector);
                         } catch (InvalidConfigException | ClientException e) {
-                            logger.debug("Error building monitor", e);
+                            logger.debug(String.format("Error creating MetricsCollector: %s", e));
                         }
                         return null;
                     }
@@ -126,7 +130,8 @@ public class AppOpticsAgentListener implements AgentListener {
                 ProfilerSetting profilerSetting = (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);
                 if (profilerSetting != null && profilerSetting.isEnabled()) {
                     logger.debug("Profiler is enabled, local settings : " + profilerSetting);
-                    Profiler.initialize(profilerSetting, RpcEventReporter.buildReporter(RpcClientManager.OperationType.PROFILING));
+                    Profiler.initialize(profilerSetting, ReporterFactory.getInstance()
+                            .createRpcReporter(RpcClientManager.getClient(RpcClientManager.OperationType.PROFILING)));
                 } else {
                     logger.debug("Profiler is disabled, local settings : " + profilerSetting);
                 }
