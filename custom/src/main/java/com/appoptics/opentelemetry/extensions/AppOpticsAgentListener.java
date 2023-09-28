@@ -49,7 +49,8 @@ public class AppOpticsAgentListener implements AgentListener {
         if (isLambda()) {
             try {
                 SettingsManager.initialize();
-            } catch (ClientException ignore) {
+            } catch (ClientException clientException) {
+                logger.warn("Failed to initialized settings", clientException);
             }
             return;
         }
