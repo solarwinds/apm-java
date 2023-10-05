@@ -5,6 +5,8 @@
 
 package com.appoptics.opentelemetry.instrumentation;
 
+import com.tracelytics.joboe.config.ConfigManager;
+import com.tracelytics.joboe.config.ConfigProperty;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import net.bytebuddy.asm.Advice;
@@ -14,10 +16,7 @@ import net.bytebuddy.matcher.ElementMatcher;
 import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
-import static net.bytebuddy.matcher.ElementMatchers.isPublic;
-import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
-import static net.bytebuddy.matcher.ElementMatchers.named;
-import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
+import static net.bytebuddy.matcher.ElementMatchers.*;
 
 /**
  * Experimental instrumentation to add back traces to existing OT spans.
@@ -33,7 +32,12 @@ public class AoStatementInstrumentation implements TypeInstrumentation {
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        return implementsInterface(named("java.sql.Statement"));
+        Boolean sqlTag = ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_TAG, false);
+        if (sqlTag) {
+            return implementsInterface(named("java.sql.Statement"));
+        }
+
+        return none();
     }
 
     @Override

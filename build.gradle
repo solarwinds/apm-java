@@ -27,8 +27,8 @@ subprojects {
                 opentelemetryJavaagent: "1.29.0",
                 bytebuddy             : "1.12.10",
                 guava                 : "30.1-jre",
-                appopticsCore         : "7.8.19",
-                agent                 : "0.17.3", // the custom distro agent version
+                appopticsCore         : "7.8.20",
+                agent                 : "0.17.4-alpha", // the custom distro agent version
                 autoservice           : "1.0.1",
         ]
         versions.appopticsMetrics = "${versions.appopticsCore}" // they share the same version now
@@ -36,8 +36,8 @@ subprojects {
         versions.opentelemetryJavaagentAlpha = "${versions.opentelemetryJavaagent}-alpha"
 
         deps = [
-                bytebuddy           : "net.bytebuddy:byte-buddy-dep:${versions.bytebuddy}",
-                autoservice         : [
+                bytebuddy  : "net.bytebuddy:byte-buddy-dep:${versions.bytebuddy}",
+                autoservice: [
                         "com.google.auto.service:auto-service:${versions.autoservice}",
                         "com.google.auto.service:auto-service-annotations:${versions.autoservice}",
                 ],
@@ -60,9 +60,23 @@ subprojects {
     }
 
     dependencies {
-        testImplementation("org.mockito:mockito-core:3.3.3")
-        testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.2")
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.2")
+        testImplementation project(path: ":bootstrap")
+        testImplementation 'org.mockito:mockito-core:5.3.0'
+        testImplementation 'org.mockito:mockito-junit-jupiter:5.3.0'
+        testImplementation 'javax.annotation:javax.annotation-api:1.3.2'
+
+        testImplementation 'org.mockito:mockito-inline:5.2.0'
+        testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
+
+        testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetry}")
+        testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
+        testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}")
+
+        testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
+        testImplementation("io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}")
+        testImplementation "com.appoptics.agent.java:core:${versions.appopticsCore}"
+        testImplementation "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
     }
 
     checkstyleMain {
