@@ -37,6 +37,11 @@ public class SolarWindsAgent {
         return true;
     }
 
+    @Deprecated
+    public static boolean waitUntilAgentReady(long timeout, TimeUnit unit) {
+        return waitUntilReady(timeout, unit);
+    }
+
     /**
      * Blocks until agent is ready (established connection with data collector) or timeout expired.
      * <p>
@@ -48,7 +53,7 @@ public class SolarWindsAgent {
      * @param unit    the time unit of the timeout argument
      * @return returns true if the agent is ready
      */
-    public static boolean waitUntilAgentReady(long timeout, TimeUnit unit) {
+    public static boolean waitUntilReady(long timeout, TimeUnit unit) {
         if (agentAttached) {
             return AgentState.waitForReady(timeout, unit);
         }

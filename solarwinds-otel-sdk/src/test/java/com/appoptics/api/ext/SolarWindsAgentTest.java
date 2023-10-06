@@ -21,7 +21,7 @@ class SolarWindsAgentTest {
     }
 
     @Test
-    void verifyThatWaitUntilAgentReadyReturnsFalseWhenNoop() {
-        assertFalse(SolarWindsAgent.waitUntilAgentReady(0, TimeUnit.MILLISECONDS));
+    void verifyThatWaitUntilReadyReturnsFalseWhenNoop() {
+        assertFalse(SolarWindsAgent.waitUntilReady(0, TimeUnit.MILLISECONDS));
     }
 }
