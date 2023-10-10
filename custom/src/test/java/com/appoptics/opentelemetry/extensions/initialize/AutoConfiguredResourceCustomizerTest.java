@@ -1,6 +1,9 @@
 package com.appoptics.opentelemetry.extensions.initialize;
 
+import com.tracelytics.joboe.config.ConfigManager;
 import com.tracelytics.joboe.config.ConfigProperty;
+import com.tracelytics.joboe.config.InvalidConfigException;
+import com.tracelytics.util.ServiceKeyUtils;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
@@ -16,8 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 
@@ -72,9 +74,9 @@ class AutoConfiguredResourceCustomizerTest {
 
     @Test
     void verifyThatServiceNameIsSetWhenNonExist() {
-        try(MockedStatic<AppOpticsConfigurationLoader> configLoaderMock = mockStatic(AppOpticsConfigurationLoader.class)){
-            configLoaderMock.when(()-> AppOpticsConfigurationLoader.mergeEnvWithSysProperties(any(),any()))
-                    .thenReturn(new HashMap<String, String>(){{
+        try (MockedStatic<AppOpticsConfigurationLoader> configLoaderMock = mockStatic(AppOpticsConfigurationLoader.class)) {
+            configLoaderMock.when(() -> AppOpticsConfigurationLoader.mergeEnvWithSysProperties(any(), any()))
+                    .thenReturn(new HashMap<String, String>() {{
                         put(ConfigProperty.AGENT_SERVICE_KEY.getEnvironmentVariableKey(), "token:my-name-is");
                     }});
 
@@ -90,6 +92,23 @@ class AutoConfiguredResourceCustomizerTest {
                 .put(ResourceAttributes.SERVICE_NAME, "default-name").build());
         Resource actual = tested.apply(resource, DefaultConfigProperties.create(Collections.emptyMap()));
         assertEquals("default-name", actual.getAttribute(ResourceAttributes.SERVICE_NAME));
+    }
+
+
+    @Test
+    void verifyThatServiceKeyIsUpdatedWithOtelServiceName() throws InvalidConfigException {
+        ConfigManager.setConfig(ConfigProperty.AGENT_SERVICE_KEY, "token:chubi-zero");
+        Resource resource = Resource.create(Attributes.builder()
+                .put(ResourceAttributes.SERVICE_NAME, "chubi-one").build());
+
+        String serviceKeyBefore = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
+        tested.apply(resource, DefaultConfigProperties.create(Collections.emptyMap()));
+        String serviceKeyAfter = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
+
+        assertNotEquals(serviceKeyBefore, serviceKeyAfter);
+        assertEquals("chubi-zero", ServiceKeyUtils.getServiceName(serviceKeyBefore));
+        assertEquals("chubi-one", ServiceKeyUtils.getServiceName(serviceKeyAfter));
+        assertEquals("token:chubi-one", serviceKeyAfter);
     }
 
 }
