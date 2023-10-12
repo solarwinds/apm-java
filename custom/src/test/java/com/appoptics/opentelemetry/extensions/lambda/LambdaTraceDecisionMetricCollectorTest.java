@@ -113,9 +113,9 @@ class LambdaTraceDecisionMetricCollectorTest {
     @Test
     void verifyMetricsActivatedInLambda() {
         try(MockedStatic<HostTypeDetector> mockedHD = mockStatic(HostTypeDetector.class);
-            MockedStatic<GlobalOpenTelemetry> mockedGOT = mockStatic(GlobalOpenTelemetry.class)){
+            MockedStatic<MeterProvider> meterProviderMock = mockStatic(MeterProvider.class)){
 
-            mockedGOT.when(() -> GlobalOpenTelemetry.getMeter(anyString())).thenReturn(meterMock);
+            meterProviderMock.when(MeterProvider::getSamplingMetricsMeter).thenReturn(meterMock);
             mockedHD.when(HostTypeDetector::isLambda).thenReturn(true);
 
             when(meterMock.gaugeBuilder(anyString())).thenReturn(doubleGaugeBuilderMock);
@@ -129,9 +129,9 @@ class LambdaTraceDecisionMetricCollectorTest {
     @Test
     void verifyMetricsNotActivatedWhenNotLambda() {
         try(MockedStatic<HostTypeDetector> mockedHD = mockStatic(HostTypeDetector.class);
-            MockedStatic<GlobalOpenTelemetry> mockedGOT = mockStatic(GlobalOpenTelemetry.class)){
+            MockedStatic<MeterProvider> meterProviderMock = mockStatic(MeterProvider.class)){
 
-            mockedGOT.when(() -> GlobalOpenTelemetry.getMeter(anyString())).thenReturn(meterMock);
+            meterProviderMock.when(MeterProvider::getSamplingMetricsMeter).thenReturn(meterMock);
             mockedHD.when(HostTypeDetector::isLambda).thenReturn(false);
 
             tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
