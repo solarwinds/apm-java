@@ -23,7 +23,8 @@ public class LambdaRuntimeTraceProviderCustomizer implements BiFunction<SdkTrace
             if (isLambda()) {
                 sdkTracerProviderBuilder
                         .setSampler(new AppOpticsSampler())
-                        .addSpanProcessor(new AppOpticsRootSpanProcessor());
+                        .addSpanProcessor(new AppOpticsRootSpanProcessor())
+                        .addSpanProcessor(new InboundMeasurementMetricsGenerator());
             } else {
                 return delegate.apply(sdkTracerProviderBuilder, configProperties);
             }

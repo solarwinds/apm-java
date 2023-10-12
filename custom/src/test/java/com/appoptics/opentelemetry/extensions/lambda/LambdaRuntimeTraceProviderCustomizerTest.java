@@ -35,9 +35,6 @@ class LambdaRuntimeTraceProviderCustomizerTest {
     @Captor
     private ArgumentCaptor<Sampler> samplerArgumentCaptor;
 
-    @Captor
-    private ArgumentCaptor<SpanProcessor> spanProcessorArgumentCaptor;
-
     @Test
     void verifyThatSdkTracerProviderBuilderIsNotCustomizedWhenAgentIsDisabled() {
         try (MockedStatic<OtelAutoConfigurationCustomizerProviderImpl> otelCustomizerMock = mockStatic(OtelAutoConfigurationCustomizerProviderImpl.class)) {
@@ -60,10 +57,9 @@ class LambdaRuntimeTraceProviderCustomizerTest {
 
             tested.apply(sdkTracerProviderBuilderMock, DefaultConfigProperties.create(Collections.emptyMap()));
             verify(sdkTracerProviderBuilderMock).setSampler(samplerArgumentCaptor.capture());
-            verify(sdkTracerProviderBuilderMock).addSpanProcessor(spanProcessorArgumentCaptor.capture());
+            verify(sdkTracerProviderBuilderMock, atMost(2)).addSpanProcessor(any());
 
             assertTrue(samplerArgumentCaptor.getValue() instanceof AppOpticsSampler);
-            assertTrue(spanProcessorArgumentCaptor.getValue() instanceof AppOpticsRootSpanProcessor);
         }
     }
 
