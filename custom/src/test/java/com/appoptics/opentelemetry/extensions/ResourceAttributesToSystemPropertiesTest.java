@@ -28,7 +28,7 @@ class ResourceAttributesToSystemPropertiesTest {
             resourceCustomizerMock.when(AutoConfiguredResourceCustomizer::getResource)
                     .thenReturn(Resource.builder().put(ResourceAttributes.SERVICE_NAME, "service").build());
             tested.afterAgent(sdkMock);
-            assertEquals("service", System.getProperty("otel.resource.service.name"));
+            assertEquals("service", System.getProperty("service.name"));
         }
     }
 

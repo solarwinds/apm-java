@@ -16,7 +16,7 @@ public class ResourceAttributesToSystemProperties implements AgentListener {
         Resource resource = getResource();
         String serviceName = resource.getAttribute(ResourceAttributes.SERVICE_NAME);
         if (serviceName != null) {
-            System.setProperty("otel.resource." + ResourceAttributes.SERVICE_NAME, serviceName);
+            System.setProperty(ResourceAttributes.SERVICE_NAME.getKey(), serviceName);
         }
     }
 
