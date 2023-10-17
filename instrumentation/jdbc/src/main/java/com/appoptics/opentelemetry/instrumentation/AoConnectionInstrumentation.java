@@ -22,12 +22,13 @@ public class AoConnectionInstrumentation implements TypeInstrumentation {
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        Boolean sqlTag = ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_TAG, false);
-        if (!sqlTag) {
-            return none();
+        Boolean sqlTagPrepared = ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_TAG_PREPARED, false);
+        if (sqlTagPrepared) {
+            return named("com.mysql.cj.jdbc.ConnectionImpl") // only inject MySQL JDBC driver
+                    .and(implementsInterface(named("java.sql.Connection")));
         }
-        return named("com.mysql.cj.jdbc.ConnectionImpl") // only inject MySQL JDBC driver
-                .and(implementsInterface(named("java.sql.Connection")));
+
+        return none();
     }
 
     @Override

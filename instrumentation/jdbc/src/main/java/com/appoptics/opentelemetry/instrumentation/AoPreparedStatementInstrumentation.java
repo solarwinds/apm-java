@@ -1,5 +1,7 @@
 package com.appoptics.opentelemetry.instrumentation;
 
+import com.tracelytics.joboe.config.ConfigManager;
+import com.tracelytics.joboe.config.ConfigProperty;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
@@ -13,10 +15,7 @@ import java.util.List;
 import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
-import static net.bytebuddy.matcher.ElementMatchers.isPublic;
-import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
-import static net.bytebuddy.matcher.ElementMatchers.named;
-import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
+import static net.bytebuddy.matcher.ElementMatchers.*;
 
 public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
 
@@ -27,7 +26,11 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-        return implementsInterface(named("java.sql.PreparedStatement"));
+        Boolean sqlTagPrepared = ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_TAG_PREPARED, false);
+        if (sqlTagPrepared) {
+            return implementsInterface(named("java.sql.PreparedStatement"));
+        }
+        return none();
     }
 
     @Override
@@ -48,7 +51,6 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
                 @Advice.This PreparedStatement statement,
                 @Advice.Argument(value = 0, readOnly = true) int index,
                 @Advice.Argument(value = 1, readOnly = true) Object value) {
-            QueryArgsCollector.collect(statement, currentContext(), index, value);
         }
 
         @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
@@ -74,7 +76,6 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
         public static void onExit(
                 @Advice.This PreparedStatement statement,
                 @Advice.Thrown Throwable throwable) {
-            QueryArgsCollector.maybeAttach(statement, currentContext());
             StatementTruncator.maybeTruncateStatement(currentContext());
         }
     }

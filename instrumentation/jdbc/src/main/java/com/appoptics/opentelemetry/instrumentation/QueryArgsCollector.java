@@ -23,6 +23,7 @@ public class QueryArgsCollector {
         if (!(spanContext.isValid() && spanContext.isSampled())) {
             return;
         }
+
         SortedMap<String, String> queryArgs = instrumentationStore
                 .computeIfAbsent(statement,
                         stmt -> Collections.synchronizedSortedMap(new TreeMap<>()));
@@ -32,15 +33,16 @@ public class QueryArgsCollector {
     public static void maybeAttach(Statement statement, Context context) {
         Span span = Span.fromContext(context);
         SpanContext spanContext = span.getSpanContext();
-        if ((spanContext.isValid() && spanContext.isSampled())) {
-            SortedMap<String, String> argsMap = instrumentationStore.get(statement);
-
-            if (argsMap != null && !argsMap.isEmpty()) {
-                List<String> queryArgs = new ArrayList<>(argsMap.values());
-                span.setAttribute(AoPreparedStatementInstrumentation.QueryArgsAttributeKey.KEY, queryArgs);
-                argsMap.clear();
-            }
-            instrumentationStore.computeIfPresent(statement, (__, ___) -> null);
+        if (!(spanContext.isValid() && spanContext.isSampled())) {
+            return;
         }
+
+        SortedMap<String, String> argsMap = instrumentationStore.get(statement);
+        if (argsMap != null && !argsMap.isEmpty()) {
+            List<String> queryArgs = new ArrayList<>(argsMap.values());
+            span.setAttribute(AoPreparedStatementInstrumentation.QueryArgsAttributeKey.KEY, queryArgs);
+            argsMap.clear();
+        }
+        instrumentationStore.computeIfPresent(statement, (__, ___) -> null);
     }
 }
