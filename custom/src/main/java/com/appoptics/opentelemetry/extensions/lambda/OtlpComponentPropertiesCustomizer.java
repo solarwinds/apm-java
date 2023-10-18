@@ -13,11 +13,21 @@ public class OtlpComponentPropertiesCustomizer implements Function<ConfigPropert
     @Override
     public Map<String, String> apply(ConfigProperties configProperties) {
         if (isLambda()) {
+            String defaultTrace = configProperties.getString("otel.traces.exporter");
+            String defaultMetric = configProperties.getString("otel.metrics.exporter");
+
             return new HashMap<String, String>() {{
-                put("otel.traces.exporter", "otlp");
-                put("otel.metrics.exporter", "otlp");
+                put("otel.traces.exporter", concatenate(defaultTrace));
+                put("otel.metrics.exporter", concatenate(defaultMetric));
             }};
         }
         return Collections.emptyMap();
+    }
+
+    private String concatenate(String value){
+        if (value == null){
+            return "otlp";
+        }
+        return String.format("otlp,%s", value);
     }
 }
