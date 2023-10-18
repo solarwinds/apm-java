@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,6 +30,21 @@ class OtlpComponentPropertiesCustomizerTest {
 
             assertEquals("otlp", configUpdate.get("otel.traces.exporter"));
             assertEquals("otlp", configUpdate.get("otel.metrics.exporter"));
+        }
+    }
+
+    @Test
+    void verifyThatConcatenatedConfigsIsReturnedWhenInLambda() {
+        try(MockedStatic<HostTypeDetector> hostTypeDetectorMockedStatic = mockStatic(HostTypeDetector.class)){
+            hostTypeDetectorMockedStatic.when(HostTypeDetector::isLambda).thenReturn(true);
+            Map<String, String> configUpdate = tested.apply(DefaultConfigProperties.create(new HashMap<>() {{
+                put("otel.traces.exporter", "logging");
+                put("otel.metrics.exporter", "logging");
+            }}));
+            assertFalse(configUpdate.isEmpty());
+
+            assertEquals("otlp,logging", configUpdate.get("otel.traces.exporter"));
+            assertEquals("otlp,logging", configUpdate.get("otel.metrics.exporter"));
         }
     }
 }
