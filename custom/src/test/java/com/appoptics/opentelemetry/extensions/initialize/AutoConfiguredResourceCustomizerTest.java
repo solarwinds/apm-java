@@ -94,6 +94,21 @@ class AutoConfiguredResourceCustomizerTest {
         assertEquals("default-name", actual.getAttribute(ResourceAttributes.SERVICE_NAME));
     }
 
+    @Test
+    void verifyThatServiceNameIsModifiedWhenUnknown() {
+        try (MockedStatic<AppOpticsConfigurationLoader> configLoaderMock = mockStatic(AppOpticsConfigurationLoader.class)) {
+            configLoaderMock.when(() -> AppOpticsConfigurationLoader.mergeEnvWithSysProperties(any(), any()))
+                    .thenReturn(new HashMap<String, String>() {{
+                        put(ConfigProperty.AGENT_SERVICE_KEY.getEnvironmentVariableKey(), "token:my-name-is");
+                    }});
+
+            Resource resource = Resource.create(Attributes.builder()
+                    .put(ResourceAttributes.SERVICE_NAME, "unknown_default-name").build());
+            Resource updateResource = tested.apply(resource, DefaultConfigProperties.create(Collections.emptyMap()));
+            assertEquals("my-name-is", updateResource.getAttribute(ResourceAttributes.SERVICE_NAME));
+        }
+    }
+
 
     @Test
     void verifyThatServiceKeyIsUpdatedWithOtelServiceName() throws InvalidConfigException {

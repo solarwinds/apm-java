@@ -25,7 +25,7 @@ public class AutoConfiguredResourceCustomizer implements BiFunction<Resource, Co
         String serviceName = resource.getAttribute(ResourceAttributes.SERVICE_NAME);
         ResourceBuilder resourceBuilder = resource.toBuilder();
 
-        if (serviceName == null) {
+        if (isServiceNameNullOrUndefined(serviceName)) {
             Map<String, String> configs = mergeEnvWithSysProperties(System.getenv(), System.getProperties());
             String serviceKey = configs.get(ConfigProperty.AGENT_SERVICE_KEY.getEnvironmentVariableKey());
             if (serviceKey != null) {
@@ -63,6 +63,10 @@ public class AutoConfiguredResourceCustomizer implements BiFunction<Resource, Co
 
         AutoConfiguredResourceCustomizer.resource = resourceBuilder.build();
         return AutoConfiguredResourceCustomizer.resource;
+    }
+
+    private boolean isServiceNameNullOrUndefined(String serviceName){
+        return serviceName == null || serviceName.matches("unknown.*");
     }
 
     public static Resource getResource() {
