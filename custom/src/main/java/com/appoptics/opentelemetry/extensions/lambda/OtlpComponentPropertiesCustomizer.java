@@ -25,7 +25,7 @@ public class OtlpComponentPropertiesCustomizer implements Function<ConfigPropert
     }
 
     private String concatenate(String value){
-        if (value == null){
+        if (value == null || "none".equalsIgnoreCase(value)){
             return "otlp";
         }
         return String.format("otlp,%s", value);
