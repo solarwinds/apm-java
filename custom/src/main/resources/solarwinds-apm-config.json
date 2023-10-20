@@ -1,8 +1,6 @@
 {
   "agent.serviceKey": "",
   "agent.logging": "info",
-  "agent.jdbcInstAll": false,
-  "agent.sqlSanitize": 1,
   "monitor.jmx.scopes": {
     "java.lang:type=MemoryPool,*": [
       "Usage"
