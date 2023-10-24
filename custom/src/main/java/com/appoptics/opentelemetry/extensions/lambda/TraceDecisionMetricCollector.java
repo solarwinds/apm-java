@@ -19,7 +19,7 @@ import static com.tracelytics.util.HostTypeDetector.isLambda;
 
 
 @AutoService(AgentListener.class)
-public class LambdaTraceDecisionMetricCollector implements AutoCloseable, AgentListener {
+public class TraceDecisionMetricCollector implements AutoCloseable, AgentListener {
     private final List<ObservableLongGauge> gauges = new LinkedList<>();
 
     @Getter
