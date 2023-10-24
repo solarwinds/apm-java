@@ -2,7 +2,8 @@ package com.appoptics.opentelemetry.extensions.initialize;
 
 import com.appoptics.opentelemetry.extensions.AppOpticsPropertiesSupplier;
 import com.appoptics.opentelemetry.extensions.AppOpticsTracerProviderCustomizer;
-import com.appoptics.opentelemetry.extensions.lambda.LambdaRuntimeTraceProviderCustomizer;
+import com.appoptics.opentelemetry.extensions.lambda.RuntimeTraceProviderCustomizer;
+import com.appoptics.opentelemetry.extensions.lambda.PropertiesSupplier;
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.core.config.InvalidConfigException;
 import com.solarwinds.joboe.core.logging.Logger;
@@ -49,8 +50,8 @@ public class OtelAutoConfigurationCustomizerProviderImpl implements AutoConfigur
     @Override
     public void customize(@Nonnull AutoConfigurationCustomizer autoConfiguration) {
         autoConfiguration
-                .addPropertiesSupplier(new AppOpticsPropertiesSupplier())
-                .addTracerProviderCustomizer(new LambdaRuntimeTraceProviderCustomizer(new AppOpticsTracerProviderCustomizer()))
+                .addPropertiesSupplier(new PropertiesSupplier(new AppOpticsPropertiesSupplier()))
+                .addTracerProviderCustomizer(new RuntimeTraceProviderCustomizer(new AppOpticsTracerProviderCustomizer()))
                 .addResourceCustomizer(new AutoConfiguredResourceCustomizer());
     }
 
