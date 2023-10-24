@@ -27,7 +27,7 @@ subprojects {
                 opentelemetryJavaagent: "1.29.0",
                 bytebuddy             : "1.12.10",
                 guava                 : "30.1-jre",
-                appopticsCore         : "7.8.20-cc.lambda-pr-1419e54-SNAPSHOT",
+                appopticsCore         : "7.8.22-cc.lambda-pr-39a0355-SNAPSHOT",
                 agent                 : "0.17.4-lambda", // the custom distro agent version
                 autoservice           : "1.0.1",
         ]
@@ -70,6 +70,7 @@ subprojects {
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
 
         testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetry}")
+        testImplementation("io.opentelemetry:opentelemetry-sdk-testing:${versions.opentelemetry}")
         testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
         testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}")
 
