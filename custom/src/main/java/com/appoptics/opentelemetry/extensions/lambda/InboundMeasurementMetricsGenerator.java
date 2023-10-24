@@ -1,5 +1,6 @@
 package com.appoptics.opentelemetry.extensions.lambda;
 
+import com.appoptics.opentelemetry.extensions.TransactionNameManager;
 import com.tracelytics.util.HttpUtils;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
@@ -14,6 +15,8 @@ import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+
+import javax.annotation.Nonnull;
 
 
 public class InboundMeasurementMetricsGenerator implements SpanProcessor {
@@ -37,7 +40,7 @@ public class InboundMeasurementMetricsGenerator implements SpanProcessor {
     }
 
     @Override
-    public void onStart(Context parentContext, ReadWriteSpan span) {
+    public void onStart(@Nonnull Context parentContext, @Nonnull ReadWriteSpan span) {
 
     }
 
@@ -52,6 +55,7 @@ public class InboundMeasurementMetricsGenerator implements SpanProcessor {
         if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) {
             initializeMeasurements();
             final SpanData spanData = span.toSpanData();
+            final String transactionName = TransactionNameManager.getTransactionName(spanData);
 
             boolean hasError = spanData.getStatus().getStatusCode() == StatusCode.ERROR;
             final Long status = spanData.getAttributes().get(SemanticAttributes.HTTP_STATUS_CODE);
@@ -77,7 +81,7 @@ public class InboundMeasurementMetricsGenerator implements SpanProcessor {
                 requestErrorCounterAttr.put("sw.is_error", "true");
                 responseTimeAttr.put("sw.is_error", "true");
 
-                requestErrorCounter.add(1, requestErrorCounterAttr.build());
+                requestErrorCounter.add(1, requestErrorCounterAttr.put("sw.transaction", transactionName).build());
 
             } else {
                 requestCounterAttr.put("sw.is_error", "false");
@@ -85,8 +89,8 @@ public class InboundMeasurementMetricsGenerator implements SpanProcessor {
                 responseTimeAttr.put("sw.is_error", "false");
             }
 
-            requestCounter.add(1, requestCounterAttr.build());
-            responseTime.record(duration, responseTimeAttr.build());
+            requestCounter.add(1, requestCounterAttr.put("sw.transaction", transactionName).build());
+            responseTime.record(duration, responseTimeAttr.put("sw.transaction", transactionName).build());
         }
     }
 
