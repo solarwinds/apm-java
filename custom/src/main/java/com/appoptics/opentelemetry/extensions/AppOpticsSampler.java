@@ -20,7 +20,7 @@ import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.sdk.trace.samplers.SamplingDecision;
 import io.opentelemetry.sdk.trace.samplers.SamplingResult;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import io.opentelemetry.semconv.SemanticAttributes;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -147,9 +147,9 @@ public class AppOpticsSampler implements Sampler {
 
 
     private String constructUrl(Attributes attributes) {
-        String scheme = attributes.get(SemanticAttributes.HTTP_SCHEME);
-        String host = attributes.get(SemanticAttributes.NET_HOST_NAME);
-        String target = attributes.get(SemanticAttributes.HTTP_TARGET);
+        String scheme = attributes.get(SemanticAttributes.URL_SCHEME);
+        String host = attributes.get(SemanticAttributes.SERVER_ADDRESS);
+        String target = attributes.get(SemanticAttributes.URL_PATH);
 
         String url = String.format("%s://%s%s", scheme, host, target);
         logger.trace(String.format("Constructed url: %s", url));

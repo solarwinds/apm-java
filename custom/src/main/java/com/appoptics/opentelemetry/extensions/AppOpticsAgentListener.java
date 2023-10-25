@@ -42,13 +42,13 @@ import java.util.concurrent.Executors;
 
 import static com.appoptics.opentelemetry.extensions.initialize.OtelAutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 import static com.appoptics.opentelemetry.extensions.initialize.OtelAutoConfigurationCustomizerProviderImpl.setAgentEnabled;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_COMMAND_ARGS;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_COMMAND_LINE;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_DESCRIPTION;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_NAME;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_VERSION;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.SERVICE_NAME;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.TELEMETRY_SDK_LANGUAGE;
+import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_COMMAND_ARGS;
+import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_COMMAND_LINE;
+import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_DESCRIPTION;
+import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_NAME;
+import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_VERSION;
+import static io.opentelemetry.semconv.ResourceAttributes.SERVICE_NAME;
+import static io.opentelemetry.semconv.ResourceAttributes.TELEMETRY_SDK_LANGUAGE;
 
 /**
  * Executes startup task after it's safe to do so. See <a href="https://github.com/appoptics/opentelemetry-custom-distro/pull/7">...</a>
@@ -66,12 +66,12 @@ public class AppOpticsAgentListener implements AgentListener {
         }
     }
 
-    boolean isUsingAppOpticsSampler(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk){
+    boolean isUsingAppOpticsSampler(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
         Sampler sampler = autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk().getSdkTracerProvider().getSampler();
-        boolean verdict =  sampler instanceof AppOpticsSampler;
+        boolean verdict = sampler instanceof AppOpticsSampler;
         setAgentEnabled(verdict);
 
-        if (!verdict){
+        if (!verdict) {
             logger.warn("Not using AppOptics sampler. Configured sampler is: " + sampler.getDescription());
         }
         return verdict;
@@ -90,13 +90,12 @@ public class AppOpticsAgentListener implements AgentListener {
                 HostInfoUtils.init(ServerHostInfoReader.INSTANCE);
                 try {
                     HostInfoUtils.NetworkAddressInfo networkAddressInfo = HostInfoUtils.getNetworkAddressInfo();
-                    List<String> ipAddresses = networkAddressInfo != null ? networkAddressInfo.getIpAddresses() : Collections.<String>emptyList();
+                    List<String> ipAddresses = networkAddressInfo != null ? networkAddressInfo.getIpAddresses() : Collections.emptyList();
 
                     logger.debug("Detected host id: " + HostInfoUtils.getHostId() + " ip addresses: " + ipAddresses);
 
                     settingsLatch = SettingsManager.initialize();
-                }
-                catch (ClientException e) {
+                } catch (ClientException e) {
                     logger.warn("Failed to initialize RpcSettingsReader : " + e.getMessage());
                 }
                 logger.debug("Initialized HostUtils");
@@ -116,9 +115,8 @@ public class AppOpticsAgentListener implements AgentListener {
                         try {
                             MetricsCollector metricsCollector = new MetricsCollector(configs, AppOpticsInboundMetricsSpanProcessor.buildSpanMetricsCollector());
                             return MetricsMonitor.buildInstance(configs, metricsCollector);
-                        }
-                        catch (InvalidConfigException | ClientException e) {
-                            e.printStackTrace();
+                        } catch (InvalidConfigException | ClientException e) {
+                            logger.debug("Error building monitor", e);
                         }
                         return null;
                     }
@@ -160,8 +158,7 @@ public class AppOpticsAgentListener implements AgentListener {
         try {
             String layerName = (String) ConfigManager.getConfig(ConfigProperty.AGENT_LAYER);
             reportLayerInit(layerName);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.warn("Failed to post init message: " + (e.getMessage() != null ? e.getMessage() : e));
         }
     }
@@ -202,7 +199,7 @@ public class AppOpticsAgentListener implements AgentListener {
             // Mask service key if captured in process command line or arg
             if ((attrName.equals(PROCESS_COMMAND_LINE.getKey()) || attrName.equals(PROCESS_COMMAND_ARGS.getKey()))
                     && attrValue.toString().contains("sw.apm.service.key=")) {
-                attrValue = attrValue.toString().replaceAll("(sw.apm.service.key=)\\S+","$1****");
+                attrValue = attrValue.toString().replaceAll("(sw.apm.service.key=)\\S+", "$1****");
             }
             initMessage.put(attrName, attrValue);
         }

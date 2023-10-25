@@ -13,7 +13,7 @@ buildscript {
     dependencies {
         classpath "com.diffplug.spotless:spotless-plugin-gradle:6.14.0"
         classpath "gradle.plugin.com.github.johnrengelman:shadow:7.1.2"
-        classpath "io.opentelemetry.instrumentation:gradle-plugins:1.29.0-alpha"
+        classpath "io.opentelemetry.instrumentation:gradle-plugins:1.31.0-alpha"
     }
 }
 
@@ -23,16 +23,17 @@ subprojects {
 
     ext {
         versions = [
-                opentelemetry         : "1.29.0",
-                opentelemetryJavaagent: "1.29.0",
+                opentelemetry         : "1.31.0",
+                opentelemetryJavaagent: "1.31.0",
                 bytebuddy             : "1.12.10",
                 guava                 : "30.1-jre",
                 appopticsCore         : "7.8.22",
-                agent                 : "0.17.4", // the custom distro agent version
+                agent                 : "0.17.5-alpha", // the custom distro agent version
                 autoservice           : "1.0.1",
         ]
         versions.appopticsMetrics = "${versions.appopticsCore}" // they share the same version now
         versions.opentelemetryAlpha = "${versions.opentelemetry}-alpha"
+        versions.opentelemetrySemconv = "1.21.0-alpha"
         versions.opentelemetryJavaagentAlpha = "${versions.opentelemetryJavaagent}-alpha"
 
         deps = [
@@ -74,7 +75,7 @@ subprojects {
         testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}")
 
         testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
-        testImplementation("io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}")
+        testImplementation("io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}")
         testImplementation "com.appoptics.agent.java:core:${versions.appopticsCore}"
         testImplementation "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
     }

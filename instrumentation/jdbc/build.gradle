@@ -13,7 +13,7 @@ dependencies {
   compileOnly project(":bootstrap")
   compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
   compileOnly "io.opentelemetry:opentelemetry-sdk-trace:${versions.opentelemetry}"
-  compileOnly "io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}"
+  compileOnly "io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}"
 
   testImplementation project(path: ":instrumentation:jdbc")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagentAlpha}") {

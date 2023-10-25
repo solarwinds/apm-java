@@ -15,7 +15,7 @@ import com.tracelytics.logging.LoggerFactory;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.trace.data.SpanData;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import io.opentelemetry.semconv.SemanticAttributes;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -81,7 +81,7 @@ public class TransactionNameManager {
     }
 
     private static String[] getTransactionNamePattern() {
-        String pattern = (String) ConfigManager.getConfig(ConfigProperty.AGENT_TRANSACTION_NAME_PATTERN);
+        String pattern = ConfigManager.getConfigOptional(ConfigProperty.AGENT_TRANSACTION_NAME_PATTERN, null);
         return pattern != null ? parseTransactionNamePattern(pattern) : null;
     }
 
@@ -120,7 +120,7 @@ public class TransactionNameManager {
     }
 
     private static String prefixTransactionNameWithDomainName(String transactionName, SpanData spanData) {
-        String httpHostValue = spanData.getAttributes().get(SemanticAttributes.NET_HOST_NAME);
+        String httpHostValue = spanData.getAttributes().get(SemanticAttributes.SERVER_ADDRESS);
         if (httpHostValue != null && !httpHostValue.isEmpty()) {
             if (transactionName.startsWith("/")) {
                 return httpHostValue + transactionName;
@@ -185,7 +185,7 @@ public class TransactionNameManager {
             return name;
         }
 
-        String path = spanAttributes.get(SemanticAttributes.HTTP_TARGET);
+        String path = spanAttributes.get(SemanticAttributes.URL_PATH);
         // use HandlerName which may be injected by some MVC instrumentations (currently only Spring MVC)
         String handlerName = spanAttributes.get(AttributeKey.stringKey("HandlerName"));
         if (handlerName != null) {

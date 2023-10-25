@@ -3,7 +3,7 @@ package com.appoptics.opentelemetry.extensions.transaction;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.trace.data.SpanData;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import io.opentelemetry.semconv.SemanticAttributes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,19 +28,19 @@ class SpanAttributeNamingSchemeTest {
 
     @BeforeEach
     void setup() {
-        tested = new SpanAttributeNamingScheme(namingSchemeMock, "-", Arrays.asList("http.method", "Handler","key-name"));
+        tested = new SpanAttributeNamingScheme(namingSchemeMock, "-", Arrays.asList("http.request.method", "Handler","key-name"));
     }
 
     @Test
     void verifyThatNameIsReturnedWhenOneAttributeExists() {
-        String name = tested.createName(Attributes.of(SemanticAttributes.HTTP_METHOD, "POST"));
+        String name = tested.createName(Attributes.of(SemanticAttributes.HTTP_REQUEST_METHOD, "POST"));
         assertEquals("POST", name);
     }
 
     @Test
     void verifyThatNameIsReturnedWhenMoreThanOneAttributesExist() {
         Attributes attributes = Attributes.builder()
-                .put(SemanticAttributes.HTTP_METHOD, "POST")
+                .put(SemanticAttributes.HTTP_REQUEST_METHOD, "POST")
                 .put(AttributeKey.stringKey("Handler"), "Controller.segfault")
                 .build();
 

@@ -6,9 +6,18 @@ import com.tracelytics.ext.json.JSONObject;
 import com.tracelytics.joboe.SampleRateSource;
 import com.tracelytics.joboe.TraceConfig;
 import com.tracelytics.joboe.TracingMode;
-import com.tracelytics.joboe.config.*;
+import com.tracelytics.joboe.config.ConfigParser;
+import com.tracelytics.joboe.config.ConfigProperty;
+import com.tracelytics.joboe.config.InvalidConfigException;
+import com.tracelytics.joboe.config.ResourceMatcher;
+import com.tracelytics.joboe.config.TraceConfigs;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -21,11 +30,8 @@ public class TransactionSettingsConfigParser implements ConfigParser<String, Tra
     private static final String TRACING_KEY = "tracing";
     private static final String REGEX_KEY = "regex";
     private static final String EXTENSIONS_KEY = "com/appoptics/opentelemetry/extensions";
-    @Deprecated
-    private static final String TYPE_KEY = "type";
-    private static final List<String> VALID_TYPES = Arrays.asList("url");
 
-    private static final List<String> KEYS = Arrays.asList(TRACING_KEY, EXTENSIONS_KEY, REGEX_KEY, TYPE_KEY);
+    private static final List<String> KEYS = Arrays.asList(TRACING_KEY, EXTENSIONS_KEY, REGEX_KEY);
 
     public static final TransactionSettingsConfigParser INSTANCE = new TransactionSettingsConfigParser();
 
@@ -55,15 +61,6 @@ public class TransactionSettingsConfigParser implements ConfigParser<String, Tra
 
     private ResourceMatcher parseMatcher(JSONObject transactionSettingEntry) throws InvalidConfigException, JSONException {
         checkKeys(transactionSettingEntry.keySet());
-
-//        if (!transactionSettingEntry.has(TYPE_KEY)) {
-//            throw new InvalidConfigException("Missing property \"" + TYPE_KEY + "\" in \"" + ConfigProperty.AGENT_TRANSACTION_SETTINGS.getConfigFileKey() + "\" entry " + transactionSettingEntry.toString());
-//        }
-
-//        String type = transactionSettingEntry.getString(TYPE_KEY);
-//        if (!validTypes.contains(type)) {
-//            throw new InvalidConfigException("Property \"" + TYPE_KEY + "\" with value " + type + " in \"" + ConfigProperty.AGENT_TRANSACTION_SETTINGS.getConfigFileKey() + "\" entry " + transactionSettingEntry.toString() + " is invalid. Valid types : " + validTypes);
-//        }
 
         if (transactionSettingEntry.has(REGEX_KEY) && transactionSettingEntry.has(EXTENSIONS_KEY)) {
             throw new InvalidConfigException("Multiple matchers found for \"" + ConfigProperty.AGENT_TRANSACTION_SETTINGS.getConfigFileKey() + "\" entry " + transactionSettingEntry.toString());
@@ -101,7 +98,7 @@ public class TransactionSettingsConfigParser implements ConfigParser<String, Tra
 
     private TraceConfig parseTraceConfig(JSONObject transactionSettingEntry) throws InvalidConfigException, JSONException {
         Set<?> keys = transactionSettingEntry.keySet();
-        TracingMode tracingMode = null;
+        TracingMode tracingMode;
 
         if (keys.contains(TRACING_KEY)) {
             String tracingModeString = transactionSettingEntry.getString(TRACING_KEY);

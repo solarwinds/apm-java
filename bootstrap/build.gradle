@@ -3,7 +3,8 @@ plugins {
 }
 
 dependencies {
-  compileOnly("io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}")
+  compileOnly "io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}"
+  compileOnly "io.opentelemetry:opentelemetry-api:${versions.opentelemetry}"
   compileOnly('org.checkerframework:checker-qual:3.32.0')
 
   compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
