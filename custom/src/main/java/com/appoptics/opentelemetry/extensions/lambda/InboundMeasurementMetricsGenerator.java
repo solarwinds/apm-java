@@ -60,6 +60,7 @@ public class InboundMeasurementMetricsGenerator implements SpanProcessor {
             boolean hasError = spanData.getStatus().getStatusCode() == StatusCode.ERROR;
             final Long status = spanData.getAttributes().get(SemanticAttributes.HTTP_STATUS_CODE);
 
+
             final long duration = (spanData.getEndEpochNanos() - spanData.getStartEpochNanos()) / 1000;
             if (!hasError && status != null) {
                 hasError = HttpUtils.isServerErrorStatusCode(status.intValue());
@@ -69,11 +70,17 @@ public class InboundMeasurementMetricsGenerator implements SpanProcessor {
             AttributesBuilder requestErrorCounterAttr = Attributes.builder();
             AttributesBuilder responseTimeAttr = Attributes.builder();
 
+            if (status != null) {
+                requestCounterAttr.put(SemanticAttributes.HTTP_STATUS_CODE, status);
+                requestErrorCounterAttr.put(SemanticAttributes.HTTP_STATUS_CODE, status);
+                responseTimeAttr.put(SemanticAttributes.HTTP_STATUS_CODE, status);
+            }
+
             final String method = spanData.getAttributes().get(SemanticAttributes.HTTP_METHOD);
             if (method != null) {
-                requestCounterAttr.put("http.method", method);
-                requestErrorCounterAttr.put("http.method", method);
-                responseTimeAttr.put("http.method", method);
+                requestCounterAttr.put(SemanticAttributes.HTTP_METHOD, method);
+                requestErrorCounterAttr.put(SemanticAttributes.HTTP_METHOD, method);
+                responseTimeAttr.put(SemanticAttributes.HTTP_METHOD, method);
             }
 
             if (hasError) {
