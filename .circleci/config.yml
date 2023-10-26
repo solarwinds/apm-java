@@ -54,7 +54,20 @@ jobs:
       - cacheit
       - run:
           name: Execute tests
-          command: ./gradlew clean test
+          command: ./gradlew clean build
+      - run:
+          name: Check shading
+          command: |
+            code=0
+            for path in $(jar -tf agent/build/libs/solarwinds-apm-agent.jar | grep -E -v '^((com/tracelytics|com/appoptics|inst|io/open|META))')
+            do
+              PACKAGE=$(echo "$path" | awk -F/ '{print $2}')
+              if [ -n "$PACKAGE" ] && [ "$PACKAGE" != "annotation" ]; then
+                echo "Package ($path) is not shaded"
+                code=1
+              fi
+            done
+            exit $code
   maven-release: # this job runs the maven release as configured in build.gradle
     executor: java
     steps:
