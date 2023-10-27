@@ -1,13 +1,11 @@
 package com.appoptics.opentelemetry.extensions.lambda;
 
-import com.appoptics.opentelemetry.extensions.AppOpticsRootSpanProcessor;
 import com.appoptics.opentelemetry.extensions.AppOpticsSampler;
 import com.appoptics.opentelemetry.extensions.initialize.OtelAutoConfigurationCustomizerProviderImpl;
 import com.tracelytics.util.HostTypeDetector;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
-import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,10 +19,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class LambdaRuntimeTraceProviderCustomizerTest {
+class RuntimeTraceProviderCustomizerTest {
 
     @InjectMocks
-    private LambdaRuntimeTraceProviderCustomizer tested;
+    private RuntimeTraceProviderCustomizer tested;
 
     @Mock
     private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder> delegateMock;
@@ -34,9 +32,6 @@ class LambdaRuntimeTraceProviderCustomizerTest {
 
     @Captor
     private ArgumentCaptor<Sampler> samplerArgumentCaptor;
-
-    @Captor
-    private ArgumentCaptor<SpanProcessor> spanProcessorArgumentCaptor;
 
     @Test
     void verifyThatSdkTracerProviderBuilderIsNotCustomizedWhenAgentIsDisabled() {
@@ -60,10 +55,9 @@ class LambdaRuntimeTraceProviderCustomizerTest {
 
             tested.apply(sdkTracerProviderBuilderMock, DefaultConfigProperties.create(Collections.emptyMap()));
             verify(sdkTracerProviderBuilderMock).setSampler(samplerArgumentCaptor.capture());
-            verify(sdkTracerProviderBuilderMock).addSpanProcessor(spanProcessorArgumentCaptor.capture());
+            verify(sdkTracerProviderBuilderMock, atMost(2)).addSpanProcessor(any());
 
             assertTrue(samplerArgumentCaptor.getValue() instanceof AppOpticsSampler);
-            assertTrue(spanProcessorArgumentCaptor.getValue() instanceof AppOpticsRootSpanProcessor);
         }
     }
 

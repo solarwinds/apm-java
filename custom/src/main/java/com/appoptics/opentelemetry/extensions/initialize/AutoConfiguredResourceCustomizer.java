@@ -23,7 +23,8 @@ public class AutoConfiguredResourceCustomizer implements BiFunction<Resource, Co
     @Override
     public Resource apply(Resource resource, ConfigProperties configProperties) {
         String serviceName = resource.getAttribute(ResourceAttributes.SERVICE_NAME);
-        ResourceBuilder resourceBuilder = resource.toBuilder();
+        ResourceBuilder resourceBuilder = resource.toBuilder()
+                .put("sw.trace_span_mode", "otel");
 
         if (isServiceNameNullOrUndefined(serviceName)) {
             Map<String, String> configs = mergeEnvWithSysProperties(System.getenv(), System.getProperties());

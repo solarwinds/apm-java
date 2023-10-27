@@ -5,7 +5,6 @@ import com.tracelytics.joboe.TraceConfig;
 import com.tracelytics.joboe.TraceDecisionUtil;
 import com.tracelytics.metrics.measurement.SimpleMeasurementMetricsEntry;
 import com.tracelytics.util.HostTypeDetector;
-import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.DoubleGaugeBuilder;
@@ -31,8 +30,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class LambdaTraceDecisionMetricCollectorTest {
-    private final LambdaTraceDecisionMetricCollector tested = new LambdaTraceDecisionMetricCollector();
+class TraceDecisionMetricCollectorTest {
+    private final TraceDecisionMetricCollector tested = new TraceDecisionMetricCollector();
 
     @Mock
     private ObservableLongMeasurement observableLongMeasurementMock;
@@ -113,9 +112,9 @@ class LambdaTraceDecisionMetricCollectorTest {
     @Test
     void verifyMetricsActivatedInLambda() {
         try(MockedStatic<HostTypeDetector> mockedHD = mockStatic(HostTypeDetector.class);
-            MockedStatic<GlobalOpenTelemetry> mockedGOT = mockStatic(GlobalOpenTelemetry.class)){
+            MockedStatic<MeterProvider> meterProviderMock = mockStatic(MeterProvider.class)){
 
-            mockedGOT.when(() -> GlobalOpenTelemetry.getMeter(anyString())).thenReturn(meterMock);
+            meterProviderMock.when(MeterProvider::getSamplingMetricsMeter).thenReturn(meterMock);
             mockedHD.when(HostTypeDetector::isLambda).thenReturn(true);
 
             when(meterMock.gaugeBuilder(anyString())).thenReturn(doubleGaugeBuilderMock);
@@ -129,9 +128,9 @@ class LambdaTraceDecisionMetricCollectorTest {
     @Test
     void verifyMetricsNotActivatedWhenNotLambda() {
         try(MockedStatic<HostTypeDetector> mockedHD = mockStatic(HostTypeDetector.class);
-            MockedStatic<GlobalOpenTelemetry> mockedGOT = mockStatic(GlobalOpenTelemetry.class)){
+            MockedStatic<MeterProvider> meterProviderMock = mockStatic(MeterProvider.class)){
 
-            mockedGOT.when(() -> GlobalOpenTelemetry.getMeter(anyString())).thenReturn(meterMock);
+            meterProviderMock.when(MeterProvider::getSamplingMetricsMeter).thenReturn(meterMock);
             mockedHD.when(HostTypeDetector::isLambda).thenReturn(false);
 
             tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);

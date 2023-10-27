@@ -4,10 +4,11 @@ import com.google.auto.service.AutoService;
 import com.tracelytics.joboe.TraceConfig;
 import com.tracelytics.joboe.TraceDecisionUtil;
 import com.tracelytics.metrics.measurement.SimpleMeasurementMetricsEntry;
-import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
-import io.opentelemetry.api.metrics.*;
+import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.metrics.ObservableLongGauge;
+import io.opentelemetry.api.metrics.ObservableLongMeasurement;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import lombok.Getter;
@@ -18,7 +19,7 @@ import static com.tracelytics.util.HostTypeDetector.isLambda;
 
 
 @AutoService(AgentListener.class)
-public class LambdaTraceDecisionMetricCollector implements AutoCloseable, AgentListener {
+public class TraceDecisionMetricCollector implements AutoCloseable, AgentListener {
     private final List<ObservableLongGauge> gauges = new LinkedList<>();
 
     @Getter
@@ -118,7 +119,7 @@ public class LambdaTraceDecisionMetricCollector implements AutoCloseable, AgentL
     @Override
     public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
         if (isLambda()) {
-            collect(GlobalOpenTelemetry.getMeter("sw-trace-metrics"));
+            collect(MeterProvider.getSamplingMetricsMeter());
         }
     }
 }

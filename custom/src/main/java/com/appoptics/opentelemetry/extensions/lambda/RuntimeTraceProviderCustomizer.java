@@ -10,10 +10,10 @@ import java.util.function.BiFunction;
 import static com.appoptics.opentelemetry.extensions.initialize.OtelAutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 import static com.tracelytics.util.HostTypeDetector.isLambda;
 
-public class LambdaRuntimeTraceProviderCustomizer implements BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder> {
+public class RuntimeTraceProviderCustomizer implements BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder> {
     private final BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder> delegate;
 
-    public LambdaRuntimeTraceProviderCustomizer(BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder> delegate) {
+    public RuntimeTraceProviderCustomizer(BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder> delegate) {
         this.delegate = delegate;
     }
 
@@ -23,7 +23,8 @@ public class LambdaRuntimeTraceProviderCustomizer implements BiFunction<SdkTrace
             if (isLambda()) {
                 sdkTracerProviderBuilder
                         .setSampler(new AppOpticsSampler())
-                        .addSpanProcessor(new AppOpticsRootSpanProcessor());
+                        .addSpanProcessor(new AppOpticsRootSpanProcessor())
+                        .addSpanProcessor(new InboundMeasurementMetricsGenerator());
             } else {
                 return delegate.apply(sdkTracerProviderBuilder, configProperties);
             }
