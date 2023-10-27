@@ -58,7 +58,7 @@ class InboundMeasurementMetricsGeneratorTest {
                 .setName("test")
                 .setKind(SpanKind.SERVER)
                 .setStartEpochNanos(0)
-                .setEndEpochNanos(10000)
+                .setEndEpochNanos(10_000_000)
                 .setHasEnded(true)
                 .setStatus(StatusData.ok())
                 .build();
