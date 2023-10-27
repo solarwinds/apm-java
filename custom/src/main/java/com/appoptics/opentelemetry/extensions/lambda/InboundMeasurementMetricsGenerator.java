@@ -36,7 +36,10 @@ public class InboundMeasurementMetricsGenerator implements SpanProcessor {
         requestCounter = meter.counterBuilder("trace.service.requests").build();
 
         requestErrorCounter = meter.counterBuilder("trace.service.errors").build();
-        responseTime = meter.histogramBuilder("trace.service.response_time").ofLongs().build();
+        responseTime = meter.histogramBuilder("trace.service.response_time")
+                .setUnit("ms")
+                .ofLongs()
+                .build();
     }
 
     @Override
@@ -61,7 +64,7 @@ public class InboundMeasurementMetricsGenerator implements SpanProcessor {
             final Long status = spanData.getAttributes().get(SemanticAttributes.HTTP_STATUS_CODE);
 
 
-            final long duration = (spanData.getEndEpochNanos() - spanData.getStartEpochNanos()) / 1000;
+            final long duration = (spanData.getEndEpochNanos() - spanData.getStartEpochNanos()) / 1_000_000;
             if (!hasError && status != null) {
                 hasError = HttpUtils.isServerErrorStatusCode(status.intValue());
             }
