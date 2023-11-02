@@ -33,7 +33,7 @@ public class LatestSolarwindsAgentResolver {
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder().url(assetURL)
-                .header("Authorization", "token " + System.getenv("GP_TOKEN"))
+                .header("Authorization", "token " + System.getenv("GITHUB_TOKEN"))
                 .header("Accept", "application/octet-stream").build();
 
         Path path = Paths.get(".", useAOAgent ? AO_AGENT_JAR_NAME : NH_AGENT_JAR_NAME);
