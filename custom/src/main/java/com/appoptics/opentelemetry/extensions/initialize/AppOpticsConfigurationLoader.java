@@ -37,7 +37,6 @@ public class AppOpticsConfigurationLoader {
     static {
         ConfigProperty.AGENT_LOGGING.setParser(LogSettingParser.INSTANCE);
         ConfigProperty.AGENT_LOG_FILE.setParser(new LogFileStringParser());
-        ConfigProperty.AGENT_LOGGING_TRACE_ID.setParser(LogTraceIdSettingParser.INSTANCE);
         ConfigProperty.AGENT_TRACING_MODE.setParser(new TracingModeParser());
         ConfigProperty.AGENT_SQL_QUERY_MAX_LENGTH.setParser(new RangeValidationParser<Integer>(ConfigConstants.MAX_SQL_QUERY_LENGTH_LOWER_LIMIT, ConfigConstants.MAX_SQL_QUERY_LENGTH_UPPER_LIMIT));
         ConfigProperty.AGENT_URL_SAMPLE_RATE.setParser(UrlSampleRateConfigParser.INSTANCE);
@@ -260,7 +259,6 @@ public class AppOpticsConfigurationLoader {
 
         requiredKeys.add(ConfigProperty.AGENT_SERVICE_KEY);
         requiredKeys.add(ConfigProperty.AGENT_LOGGING);
-        requiredKeys.add(ConfigProperty.AGENT_JDBC_INST_ALL);
 
         requiredKeys.add(ConfigProperty.MONITOR_JMX_ENABLE);
         requiredKeys.add(ConfigProperty.MONITOR_JMX_SCOPES);
@@ -318,11 +316,6 @@ public class AppOpticsConfigurationLoader {
                 LOGGER.warn("Service key is empty! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in " + CONFIG_FILE + " or via env variable.");
                 throw new InvalidConfigServiceKeyException("Service key is empty");
             }
-        }
-
-
-        if (!configs.containsProperty(ConfigProperty.AGENT_JDBC_INST_ALL)) {
-            configs.put(ConfigProperty.AGENT_JDBC_INST_ALL, false);
         }
 
         TraceConfigs traceConfigs = null;

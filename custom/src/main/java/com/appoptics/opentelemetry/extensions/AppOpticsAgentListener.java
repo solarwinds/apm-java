@@ -156,25 +156,23 @@ public class AppOpticsAgentListener implements AgentListener {
      */
     private void reportInit() {
         try {
-            String layerName = (String) ConfigManager.getConfig(ConfigProperty.AGENT_LAYER);
-            reportLayerInit(layerName);
+            reportLayerInit();
         } catch (Exception e) {
             logger.warn("Failed to post init message: " + (e.getMessage() != null ? e.getMessage() : e));
         }
     }
 
-    private void reportLayerInit(final String layer) throws ClientException {
+    private void reportLayerInit() throws ClientException {
         // Must call buildInitMessage before initializing RPC client, otherwise it might deadlock
         // as discussed in https://github.com/librato/joboe/pull/767
-        Map<String, Object> initMessage = buildInitMessage(layer);
+        Map<String, Object> initMessage = buildInitMessage();
 
         Client rpcClient = RpcClientManager.getClient(RpcClientManager.OperationType.STATUS);
         rpcClient.postStatus(Collections.singletonList(initMessage), new ClientLoggingCallback<>("post init message"));
     }
 
-    Map<String, Object> buildInitMessage(String layer) {
+    Map<String, Object> buildInitMessage() {
         Map<String, Object> initMessage = new HashMap<>();
-        initMessage.put("Layer", layer);
         initMessage.put("__Init", true);
 
         String version = AppOpticsAgentListener.class.getPackage().getImplementationVersion();
