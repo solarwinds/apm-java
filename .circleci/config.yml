@@ -70,17 +70,29 @@ commands:
       - run:
           name: Docker login
           command: echo "$GITHUB_TOKEN" | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
+  docker-logout:
+    steps:
+      - run:
+          name: Docker logout
+          command: docker logout
 jobs:
   benchmark:
     executor: linux
-    working_directory: benchmark
+    environment:
+      <<: *default-envs
     steps:
       - checkout
+      - docker-login
       - run:
           name: Benchmark test
           command: |
-            pwd
+            cd benchmark
             ./gradlew test
+      - store_artifacts:
+          path: benchmark/results/release/summary.txt
+      - store_artifacts:
+          path: benchmark/build/reports/tests/test/
+      - docker-logout
   release-test:
     executor: linux
     steps:
@@ -95,6 +107,7 @@ jobs:
           command: ./gradlew smoke-test:test
       - store_artifacts:
           path: smoke-tests/build/reports/tests/test
+      - docker-logout
   os-test-linux:
     executor: linux
     environment:
@@ -340,3 +353,9 @@ workflows:
           filters:
             branches:
               only: main
+  benchmarking:
+    jobs:
+      - benchmark:
+          context:
+            - AWS_CIRCLE_CI_BUILD
+            - librato-github-read-access

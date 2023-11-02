@@ -17,9 +17,9 @@ public class AOTestCollectorContainer {
 
     static {
         // needs to be executed, before Docker images are resolved
-        if (System.getenv("GP_USERNAME") != null && System.getenv("GP_TOKEN") != null) {
-            System.setProperty("registry.username", System.getenv("GP_USERNAME"));
-            System.setProperty("registry.password", System.getenv("GP_TOKEN"));
+        if (System.getenv("GITHUB_USERNAME") != null && System.getenv("GITHUB_TOKEN") != null) {
+            System.setProperty("registry.username", System.getenv("GITHUB_USERNAME"));
+            System.setProperty("registry.password", System.getenv("GITHUB_TOKEN"));
         } else {
             throw new RuntimeException("GP_USERNAME and GP_TOKEN are needed.");
         }
