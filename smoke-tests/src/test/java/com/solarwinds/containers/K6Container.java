@@ -5,9 +5,6 @@
 
 package com.solarwinds.containers;
 
-import java.nio.file.Path;
-import java.time.Duration;
-
 import com.solarwinds.agents.Agent;
 import com.solarwinds.config.TestConfig;
 import com.solarwinds.util.NamingConventions;
@@ -20,6 +17,7 @@ import org.testcontainers.containers.startupcheck.OneShotStartupCheckStrategy;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
+import java.nio.file.Path;
 import java.time.Duration;
 
 public class K6Container {
@@ -46,6 +44,9 @@ public class K6Container {
         .withCopyFileToContainer(MountableFile.forHostPath("./k6"), "/app")
         .withFileSystemBind(namingConventions.localResults(), namingConventions.containerResults())
         .withCreateContainerCmdModifier(cmd -> cmd.withUser("root"))
+            .withEnv("SWO_HOST_URL", System.getenv("SWO_HOST_URL"))
+            .withEnv("SWO_COOKIE", System.getenv("SWO_COOKIE"))
+            .withEnv("SWO_XSR_TOKEN", System.getenv("SWO_XSR_TOKEN"))
         .withCommand(
             "run",
             "-u",

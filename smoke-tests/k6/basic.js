@@ -15,6 +15,51 @@ const checkXtraceHeader = (headers) => {
         'should have X-Trace header': (h) => h['X-Trace'] !== undefined
     })
 }
+
+function verify_that_trace_is_persisted() {
+    const newOwner = names.randomOwner();
+    let retryCount = 10;
+    for (; retryCount; retryCount--) {
+        const newOwnerResponse = http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
+            {headers: {'Content-Type': 'application/json', 'x-trace-options': 'trigger-trace'}});
+
+        check(newOwnerResponse, {"new owner status 201": r => r.status === 201});
+        checkXtraceHeader(newOwnerResponse.headers)
+
+        const traceContext = newOwnerResponse.headers['X-Trace']
+        const [_, traceId, spanId, flag] = traceContext.split("-")
+        if (flag === '00') continue;
+
+        const payload = {
+            "operationName": "getTraceDetails",
+            "variables": {
+                "traceId": traceId.toUpperCase(),
+                "spanId": spanId.toUpperCase(),
+                "aggregateSpans": true
+            },
+            "query": "query getTraceDetails($traceId: ID!, $spanId: ID, $aggregateSpans: Boolean, $incomplete: Boolean) {\n  traceDetails(\n    traceId: $traceId\n    spanId: $spanId\n    aggregateSpans: $aggregateSpans\n    incomplete: $incomplete\n  ) {\n    traceId\n    action\n    spanCount\n    time\n    controller\n    duration\n    originSpan {\n      id\n      service\n      status\n      transaction\n      duration\n      method\n      errorCount\n      host\n      startTime\n      action\n      controller\n      serviceEntity\n      containerEntity\n      hostEntity\n      websiteEntity\n      hostEntityName\n      websiteEntityName\n      serviceInstanceEntityName\n      __typename\n    }\n    selectedSpan {\n      id\n      service\n      status\n      transaction\n      duration\n      method\n      errorCount\n      host\n      startTime\n      action\n      controller\n      serviceEntity\n      containerEntity\n      hostEntity\n      websiteEntity\n      hostEntityName\n      websiteEntityName\n      serviceInstanceEntityName\n      __typename\n    }\n    allErrors {\n      hostname\n      message\n      spanLayer\n      time\n      exceptionClassMessageHash\n      spanId\n      __typename\n    }\n    allQueries {\n      ...QueryItem\n      __typename\n    }\n    traceBreakdown {\n      duration\n      errorCount\n      layer\n      percentOfTraceDuration\n      spanCount\n      spanIds\n      __typename\n    }\n    waterfall {\n      ...WaterfallRow\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment QueryItem on QueryItem {\n  averageTime\n  count\n  query\n  queryHash\n  totalTime\n  percentOfTraceDuration\n  spanIds\n  dboQueryId\n  __typename\n}\n\nfragment WaterfallRow on WaterfallRow {\n  parentId\n  items {\n    layer\n    spanId\n    endTime\n    startTime\n    service\n    error {\n      exceptionClassMessageHash\n      message\n      spanId\n      timestamp\n      __typename\n    }\n    async\n    __typename\n  }\n  __typename\n}\n"
+        }
+
+        for (; retryCount; retryCount--) {
+            const traceDetailResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(payload),
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cookie': `${__ENV.SWO_COOKIE}`,
+                        'X-Csrf-Token': `${__ENV.SWO_XSR_TOKEN}`
+                    }
+                });
+
+            const responsePayload = JSON.parse(traceDetailResponse.body)
+            if (responsePayload['errors']) continue;
+            check(traceDetailResponse, {"trace is returned": _ => responsePayload.data.traceDetails.traceId.toLowerCase() === traceId.toLowerCase()});
+
+            return
+        }
+
+    }
+
+}
 export default function() {
     const specialtiesUrl = `${baseUri}/specialties`;
     const specialtiesResponse = http.get(specialtiesUrl);
@@ -112,4 +157,6 @@ export default function() {
     const delVet = http.del(`${baseUri}/vets/${vetId}`);
     check(delVet, { "owner deleted 204": r => r.status === 204});
     checkXtraceHeader(delVet.headers)
+
+    verify_that_trace_is_persisted()
 };

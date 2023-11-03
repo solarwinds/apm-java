@@ -42,6 +42,7 @@ public class SmokeTest {
                             try {
                                 String resultJson = runAppOnce(config, agent);
                                 assertXTrace(resultJson);
+                                assertTraceIngestion(resultJson);
                             } catch (Exception e) {
                                 fail("Unhandled exception in " + config.name(), e);
                             }
@@ -69,6 +70,11 @@ public class SmokeTest {
     void assertXTrace(String resultJson){
         double fail = ResultsCollector.read(resultJson, "$.root_group.checks.['should have X-Trace header'].fails");
         assertEquals(0, fail,"verify that 100 percent of the responses has X-Trace header");
+    }
+
+    void assertTraceIngestion(String resultJson){
+        double fail = ResultsCollector.read(resultJson, "$.root_group.checks.['trace is returned'].fails");
+        assertEquals(0, fail,"verify that trace ingestion is working");
     }
 
 }
