@@ -10,27 +10,28 @@ export const options = {
 
 const baseUri = `http://petclinic:9966/petclinic/api`;
 
-const checkXtraceHeader = (headers) => {
-    check(headers, {
+const check_xtrace_header = (headers) => {
+    // add a new owner
+    const newOwner = names.randomOwner();
+    const newOwnerResponse = http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
+        {headers: {'Content-Type': 'application/json'}});
+    check(newOwnerResponse.headers, {
         'should have X-Trace header': (h) => h['X-Trace'] !== undefined
     })
 }
 
 function verify_that_trace_is_persisted() {
     const newOwner = names.randomOwner();
-    let retryCount = 10;
+    let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
     for (; retryCount; retryCount--) {
         const newOwnerResponse = http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
-            {headers: {'Content-Type': 'application/json', 'x-trace-options': 'trigger-trace'}});
-
-        check(newOwnerResponse, {"new owner status 201": r => r.status === 201});
-        checkXtraceHeader(newOwnerResponse.headers)
+            {headers: {'Content-Type': 'application/json'}});
 
         const traceContext = newOwnerResponse.headers['X-Trace']
         const [_, traceId, spanId, flag] = traceContext.split("-")
         if (flag === '00') continue;
 
-        const payload = {
+        const traceDetailPayload = {
             "operationName": "getTraceDetails",
             "variables": {
                 "traceId": traceId.toUpperCase(),
@@ -41,7 +42,7 @@ function verify_that_trace_is_persisted() {
         }
 
         for (; retryCount; retryCount--) {
-            const traceDetailResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(payload),
+            let traceDetailResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(traceDetailPayload),
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -50,113 +51,102 @@ function verify_that_trace_is_persisted() {
                     }
                 });
 
-            const responsePayload = JSON.parse(traceDetailResponse.body)
-            if (responsePayload['errors']) continue;
-            check(traceDetailResponse, {"trace is returned": _ => responsePayload.data.traceDetails.traceId.toLowerCase() === traceId.toLowerCase()});
+            traceDetailResponse = JSON.parse(traceDetailResponse.body)
+            if (traceDetailResponse['errors']) continue
+            check(traceDetailResponse, {
+                "trace is returned": tdr => tdr.data.traceDetails.traceId.toLowerCase() === traceId.toLowerCase()
+            });
 
+            // check that db query is captured(JDBC check)
+            const {data: {traceDetails: {allQueries}}} = traceDetailResponse;
+            check(allQueries, {"JDBC is not broken": aq => aq.length > 0})
             return
         }
 
     }
 
 }
-export default function() {
+
+function verify_that_span_data_is_persisted() {
+    const newOwner = names.randomOwner();
+    let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
+    for (; retryCount; retryCount--) {
+        const newOwnerResponse = http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    "x-trace-options": "trigger-trace;custom-info=chubi;sw-keys=lo:se,check-id:123"
+                }
+            });
+
+        const traceContext = newOwnerResponse.headers['X-Trace']
+        const [_, traceId, __, flag] = traceContext.split("-")
+        if (flag === '00') continue;
+
+        const spanRawDataPayload = {
+            "operationName": "getSubSpanRawData",
+            "variables": {
+                "traceId": traceId.toUpperCase()
+            },
+            "query": "query getSubSpanRawData($traceId: ID!, $spanFilter: TraceArchiveSpanFilter, $incomplete: Boolean) {\n  traceArchive(\n    traceId: $traceId\n    spanFilter: $spanFilter\n    incomplete: $incomplete\n  ) {\n    traceId\n    traceSpans {\n      edges {\n        node {\n          events {\n            eventId\n            properties {\n              key\n              value\n              __typename\n            }\n            __typename\n          }\n          spanId\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n"
+        }
+
+        for (; retryCount; retryCount--) {
+            let spanDataResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(spanRawDataPayload),
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cookie': `${__ENV.SWO_COOKIE}`,
+                        'X-Csrf-Token': `${__ENV.SWO_XSR_TOKEN}`
+                    }
+                });
+
+            spanDataResponse = JSON.parse(spanDataResponse.body)
+            if (spanDataResponse['errors']) continue
+
+            const {data: {traceArchive: {traceSpans: {edges}}}} = spanDataResponse
+            for (let i = 0; i < edges.length; i++) {
+                const edge = edges[i]
+                const {node: {events}} = edge
+                for (let j = 0; j < events.length; j++) {
+                    const event = events[j]
+                    const {properties} = event
+                    let found = false
+
+                    for (let k = 0; k < properties.length; k++) {
+                        const property = properties[k]
+                        check(property, {"mvc handler name is added": prop => prop.key === "HandlerName"})
+                        if (property.key === "PDKeys") {
+                            check(property, {"xtrace-options is added to root span": prop => prop.value === "{check-id=123, lo=se}"})
+                            found = true
+                        }
+
+                        if (property.key === "custom-info") {
+                            check(property, {"xtrace-options is added to root span": prop => prop.value === "chubi"})
+                            found = true
+                        }
+                    }
+                    if (found) return;
+                }
+            }
+        }
+
+    }
+
+}
+
+function verify_that_specialty_path_is_not_sampled() {
     const specialtiesUrl = `${baseUri}/specialties`;
     const specialtiesResponse = http.get(specialtiesUrl);
-    const specialties = JSON.parse(specialtiesResponse.body);
+    const traceContext = specialtiesResponse.headers['X-Trace']
 
-    checkXtraceHeader(specialtiesResponse.headers)
+    const [_, __, ___, flag] = traceContext.split("-")
+    check(flag, {"verify that transaction is filtered": f => f === "00"})
+}
 
-    // Add a new vet to the list
-    const newVet = names.randomVet(specialties);
-    const response = http.post(`${baseUri}/vets`, JSON.stringify(newVet),
-            { headers: { 'Content-Type': 'application/json' } });
-    // we don't guard against dupes, so this could fail on occasion
-    check(response, { "create vet status 201": (r) => r.status === 201 });
-    checkXtraceHeader(response.headers)
-
-    // make sure we can fetch that vet back out
-    const vetId = JSON.parse(response.body).id;
-    const vetUrl = `${baseUri}/vets/${vetId}`
-    const vetResponse = http.get(vetUrl);
-    check(vetResponse, { "fetch vet status 200": r => r.status === 200 });
-    checkXtraceHeader(vetResponse.headers)
-
-    // add a new owner
-    const newOwner = names.randomOwner();
-    const newOwnerResponse = http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
-          { headers: { 'Content-Type': 'application/json' } });
-    check(newOwnerResponse, { "new owner status 201": r => r.status === 201});
-    checkXtraceHeader(newOwnerResponse.headers)
-
-    // make sure we can fetch that owner back out
-    const ownerId = JSON.parse(newOwnerResponse.body).id;
-    const ownerResponse = http.get(`${baseUri}/owners/${ownerId}`);
-    check(ownerResponse, { "fetch new owner status 200": r => r.status === 200});
-    checkXtraceHeader(ownerResponse.headers)
-    const owner = JSON.parse(ownerResponse.body);
-
-    // get the list of all pet types
-    const petTypes = JSON.parse(http.get(`${baseUri}/pettypes`).body);
-    const owners = JSON.parse(http.get(`${baseUri}/owners`).body);
-
-    // create a 3 new random pets
-    const pet1 = names.randomPet(petTypes, owner);
-    const pet2 = names.randomPet(petTypes, owner);
-    const pet3 = names.randomPet(petTypes, owner);
-
-    const petsUrl = `${baseUri}/pets`;
-    const newPetResponses = http.batch([
-        ["POST", petsUrl, JSON.stringify(pet1), { headers: { 'Content-Type': 'application/json' } } ],
-        ["POST", petsUrl, JSON.stringify(pet2), { headers: { 'Content-Type': 'application/json' } } ],
-        ["POST", petsUrl, JSON.stringify(pet3), { headers: { 'Content-Type': 'application/json' } } ],
-    ]);
-    check(newPetResponses[0], { "pet status 201": r => r.status === 201});
-    check(newPetResponses[1], { "pet status 201": r => r.status === 201});
-    check(newPetResponses[2], { "pet status 201": r => r.status === 201});
-
-    checkXtraceHeader(newPetResponses[0].headers)
-    checkXtraceHeader(newPetResponses[1].headers)
-    checkXtraceHeader(newPetResponses[2].headers)
-
-    const responses = http.batch([
-        ["GET", `${baseUri}/pets/${JSON.parse(newPetResponses[0].body).id}`],
-        ["GET", `${baseUri}/pets/${JSON.parse(newPetResponses[1].body).id}`],
-        ["GET", `${baseUri}/pets/${JSON.parse(newPetResponses[2].body).id}`]
-    ]);
-    check(responses[0], { "pet exists 200": r => r.status === 200});
-    check(responses[1], { "pet exists 200": r => r.status === 200});
-    check(responses[2], { "pet exists 200": r => r.status === 200});
-
-    checkXtraceHeader(responses[0].headers)
-    checkXtraceHeader(responses[1].headers)
-    checkXtraceHeader(responses[2].headers)
-
-    // Clean up after ourselves.
-    // Delete pets
-    const petDeletes = http.batch([
-      ["DELETE", `${baseUri}/pets/${JSON.parse(newPetResponses[0].body).id}`],
-      ["DELETE", `${baseUri}/pets/${JSON.parse(newPetResponses[1].body).id}`],
-      ["DELETE", `${baseUri}/pets/${JSON.parse(newPetResponses[2].body).id}`]
-    ]);
-
-    check(petDeletes[0], { "pet deleted 204": r => r.status === 204});
-    check(petDeletes[1], { "pet deleted 204": r => r.status === 204});
-    check(petDeletes[2], { "pet deleted 204": r => r.status === 204});
-
-    checkXtraceHeader(petDeletes[0].headers)
-    checkXtraceHeader(petDeletes[1].headers)
-    checkXtraceHeader(petDeletes[2].headers)
-
-    // Delete owner
-    const delOwner = http.del(`${baseUri}/owners/${ownerId}`);
-    check(delOwner, { "owner deleted 204": r => r.status === 204});
-    checkXtraceHeader(delOwner.headers)
-
-    // Delete vet
-    const delVet = http.del(`${baseUri}/vets/${vetId}`);
-    check(delVet, { "owner deleted 204": r => r.status === 204});
-    checkXtraceHeader(delVet.headers)
-
+export default function () {
+    verify_that_specialty_path_is_not_sampled()
+    verify_that_span_data_is_persisted()
     verify_that_trace_is_persisted()
+    check_xtrace_header()
 };

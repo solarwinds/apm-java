@@ -50,6 +50,8 @@ public class PetClinicRestContainer {
             .withLogConsumer(new Slf4jLogConsumer(logger))
             .withExposedPorts(PETCLINIC_PORT)
             .withFileSystemBind(namingConventions.localResults(), namingConventions.containerResults())
+            .withFileSystemBind("./apm-config.json", "/app/apm-config.json")
+            .withEnv("SW_APM_CONFIG_FILE", "/app/apm-config.json")
             .waitingFor(Wait.forHttp("/petclinic/actuator/health").withReadTimeout(Duration.ofMinutes(5)).forPort(PETCLINIC_PORT))
             .withEnv("spring_profiles_active", "postgresql,spring-data-jpa")
             .withEnv(

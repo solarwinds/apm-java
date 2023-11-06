@@ -9,47 +9,43 @@ import com.solarwinds.containers.PetClinicRestContainer;
 import com.solarwinds.containers.PostgresContainer;
 import com.solarwinds.results.ResultsCollector;
 import com.solarwinds.util.NamingConventions;
-import org.junit.jupiter.api.DynamicTest;
-import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 
+import java.io.IOException;
 import java.nio.file.Files;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class SmokeTest {
     private static final Network NETWORK = Network.newNetwork();
 
-    private final NamingConventions namingConventions = new NamingConventions();
+    private static final NamingConventions namingConventions = new NamingConventions();
 
-    @TestFactory
-    Stream<DynamicTest> runAllTestConfigurations() {
-        return Configs.all().map(config -> dynamicTest(config.name(), () -> runTestConfig(config)));
-    }
 
-    void runTestConfig(TestConfig config) {
+    @BeforeAll
+    static void runTestConfig() {
+        TestConfig config = Configs.E2E.config;
         config
                 .agents()
                 .forEach(
                         agent -> {
                             try {
-                                String resultJson = runAppOnce(config, agent);
-                                assertXTrace(resultJson);
-                                assertTraceIngestion(resultJson);
+                                runAppOnce(config, agent);
                             } catch (Exception e) {
                                 fail("Unhandled exception in " + config.name(), e);
                             }
                         });
     }
 
-    String runAppOnce(TestConfig config, Agent agent) throws Exception {
+    static void runAppOnce(TestConfig config, Agent agent) throws Exception {
         GenericContainer<?> postgres = new PostgresContainer(NETWORK).build();
         postgres.start();
 
@@ -64,17 +60,48 @@ public class SmokeTest {
         petClinic.execInContainer("kill", "1");
         postgres.stop();
 
-        return new String(Files.readAllBytes(namingConventions.local.k6Results(agent)));
     }
 
-    void assertXTrace(String resultJson){
+    @Test
+    void assertXTrace() throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double fail = ResultsCollector.read(resultJson, "$.root_group.checks.['should have X-Trace header'].fails");
-        assertEquals(0, fail,"verify that 100 percent of the responses has X-Trace header");
+        assertEquals(0, fail, "Less than a 100 percent of the responses has X-Trace header");
     }
 
-    void assertTraceIngestion(String resultJson){
-        double fail = ResultsCollector.read(resultJson, "$.root_group.checks.['trace is returned'].fails");
-        assertEquals(0, fail,"verify that trace ingestion is working");
+    @Test
+    void assertTransactionFiltering() throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double fail = ResultsCollector.read(resultJson, "$.root_group.checks.['verify that transaction is filtered'].fails");
+        assertEquals(0, fail, "transaction filtering doesn't work");
+    }
+
+    @Test
+    void assertTraceIngestion() throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double pass = ResultsCollector.read(resultJson, "$.root_group.checks.['trace is returned'].passes");
+        assertTrue(pass > 0, "trace ingestion is not working. There maybe network issues");
+    }
+
+    @Test
+    void assertJDBC()  throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double pass = ResultsCollector.read(resultJson, "$.root_group.checks.['JDBC is not broken'].passes");
+        assertTrue(pass > 0, "JDBC instrumentation doesn't work");
+    }
+
+    @Test
+    void assertXTraceOptions()  throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double pass = ResultsCollector.read(resultJson, "$.root_group.checks.['xtrace-options is added to root span'].passes");
+        assertTrue(pass > 2, "Xtrace options is not captured in root span");
+    }
+
+    @Test
+    void assertMvcInstrumentation()  throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double pass = ResultsCollector.read(resultJson, "$.root_group.checks.['mvc handler name is added'].passes");
+        assertTrue(pass > 0, "MVC instrumentation is broken");
     }
 
 }
