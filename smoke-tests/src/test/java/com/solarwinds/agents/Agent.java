@@ -29,7 +29,7 @@ public class Agent {
   }
 
   public Agent(String name, String description, String url) {
-    this(name, description, url, Collections.emptyList());
+    this(name, description, url, Collections.singletonList("-Dio.opentelemetry.context.enableStrictContext=true"));
   }
 
   public Agent(String name, String description, String url, List<String> additionalJvmArgs) {

@@ -23,36 +23,32 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PetClinicRestContainer {
+public class AoPetClinicRestContainer {
 
-  private static final Logger logger = LoggerFactory.getLogger(PetClinicRestContainer.class);
-  private static final int PETCLINIC_PORT = 9966;
+  private static final Logger logger = LoggerFactory.getLogger(AoPetClinicRestContainer.class);
+  private static final int PETCLINIC_PORT = 9967;
   private final AgentResolver agentResolver;
 
   private final Network network;
   private final Agent agent;
   private final NamingConventions namingConventions;
 
-  public PetClinicRestContainer(AgentResolver agentResolver, Network network, Agent agent, NamingConventions namingConventions) {
+  public AoPetClinicRestContainer(AgentResolver agentResolver, Network network, Agent agent, NamingConventions namingConventions) {
     this.agentResolver = agentResolver;
     this.network = network;
     this.agent = agent;
     this.namingConventions = namingConventions;
   }
 
-  public GenericContainer<?> build() throws Exception {
+  public GenericContainer<?> build() {
     Path agentPath = agentResolver.resolve(this.agent).orElseThrow();
     return new GenericContainer<>(
             DockerImageName.parse(
                     "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/petclinic-rest-base:20230601125442"))
             .withNetwork(network)
-            .withNetworkAliases("petclinic")
+            .withNetworkAliases("petclinic-ao")
             .withLogConsumer(new Slf4jLogConsumer(logger))
             .withExposedPorts(PETCLINIC_PORT)
-            .withFileSystemBind(namingConventions.localResults(), namingConventions.containerResults())
-            .withFileSystemBind("./apm-config.json", "/app/apm-config.json")
-            .withEnv("SW_APM_CONFIG_FILE", "/app/apm-config.json")
-            .withEnv("OTEL_JAVAAGENT_DEBUG", "true")
             .waitingFor(Wait.forHttp("/petclinic/actuator/health").withReadTimeout(Duration.ofMinutes(5)).forPort(PETCLINIC_PORT))
             .withEnv("spring_profiles_active", "postgresql,spring-data-jpa")
             .withEnv(
@@ -62,8 +58,8 @@ public class PetClinicRestContainer {
             .withEnv("spring_datasource_password", PostgresContainer.PASSWORD)
             .withEnv("spring_jpa_hibernate_ddl-auto", "none")
             .withEnv("SW_APM_DEBUG_LEVEL", "trace")
-            .withEnv("SW_APM_COLLECTOR", System.getenv("SW_APM_COLLECTOR"))
-            .withEnv("SW_APM_SERVICE_KEY", System.getenv("SW_APM_SERVICE_KEY") + ":java-apm-smoke-test")
+            .withEnv("SW_APM_COLLECTOR", "collector.appoptics.com")
+            .withEnv("SW_APM_SERVICE_KEY", System.getenv("SW_APM_SERVICE_KEY_AO") + ":java-apm-smoke-test")
             .withEnv("OTEL_SERVICE_NAME", "java-apm-smoke-test")
             .withStartupTimeout(Duration.ofMinutes(5))
             .withCopyFileToContainer(

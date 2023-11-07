@@ -1,3 +1,7 @@
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+
 plugins {
     id 'java'
 }
@@ -10,10 +14,11 @@ repositories {
 }
 
 dependencies {
+    testImplementation platform("org.testcontainers:testcontainers-bom:1.19.1")
+    testImplementation("org.testcontainers:testcontainers")
     testImplementation platform('org.junit:junit-bom:5.9.1')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation("org.testcontainers:testcontainers:1.16.2")
-    testImplementation("org.testcontainers:postgresql:1.15.3")
+    testImplementation("org.testcontainers:postgresql")
     testImplementation("com.squareup.okhttp3:okhttp:4.9.1")
     testCompileOnly 'org.projectlombok:lombok:1.18.28'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.28'
@@ -32,9 +37,55 @@ sourceSets {
     }
 }
 
+static Boolean aws() {
+    try {
+        def url = new URL("http://169.254.169.254/latest/api/token")
+        def req = HttpRequest.newBuilder(url.toURI())
+                .header("X-aws-ec2-metadata-token-ttl-seconds", "100")
+                .PUT(HttpRequest.BodyPublishers.noBody())
+                .build()
+
+        def res = HttpClient.newHttpClient()
+                .send(req, HttpResponse.BodyHandlers.ofString())
+        print("Status aws: ${res.statusCode()}")
+        return res.statusCode() == 200
+
+    } catch (Exception ignored) {
+        return false
+    }
+}
+
+static Boolean azure() {
+    try {
+        def url = new URL("http://169.254.169.254/metadata/instance?api-version=2021-12-13")
+        def req = HttpRequest.newBuilder(url.toURI())
+                .header("Metadata", "true")
+                .GET()
+                .build()
+
+        def res = HttpClient.newHttpClient()
+                .send(req, HttpResponse.BodyHandlers.ofString())
+        return res.statusCode() == 200
+
+    } catch (Exception ignored) {
+        return false
+    }
+}
+
 test {
+    String cloud = "NONE"
+    if (aws()) {
+        cloud = "AWS"
+    }
+    if (azure()) {
+        cloud = "AZURE"
+    }
+
     useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed")
+        setEnvironment([
+                "TEST_CLOUD"        : cloud,
+        ])
     }
 }

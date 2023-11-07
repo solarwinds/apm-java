@@ -22,7 +22,6 @@ public class SwoAgentResolver implements AgentResolver {
     private Path downloadAgent() {
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder().url(NH_URL)
-                .header("Authorization", "token " + System.getenv("GP_TOKEN"))
                 .header("Accept", "application/octet-stream").build();
 
         Path path = Paths.get(".", NH_AGENT_JAR_NAME);

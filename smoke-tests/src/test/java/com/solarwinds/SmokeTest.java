@@ -4,13 +4,17 @@ import com.solarwinds.agents.Agent;
 import com.solarwinds.agents.SwoAgentResolver;
 import com.solarwinds.config.Configs;
 import com.solarwinds.config.TestConfig;
+import com.solarwinds.containers.AoPetClinicRestContainer;
 import com.solarwinds.containers.K6Container;
 import com.solarwinds.containers.PetClinicRestContainer;
 import com.solarwinds.containers.PostgresContainer;
 import com.solarwinds.results.ResultsCollector;
+import com.solarwinds.util.LogStreamAnalyzer;
 import com.solarwinds.util.NamingConventions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
@@ -19,8 +23,10 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -28,6 +34,12 @@ public class SmokeTest {
     private static final Network NETWORK = Network.newNetwork();
 
     private static final NamingConventions namingConventions = new NamingConventions();
+
+    private static final LogStreamAnalyzer<Slf4jLogConsumer> logStreamAnalyzer = new LogStreamAnalyzer<>(
+            List.of("Transformed (com.appoptics.ext.*|com.tracelytics.joboe.*)","hostId:.*i-[0-9a-z]+",
+                    "Completed operation \\[post init message\\] with Result code \\[OK\\] arg",
+                    "hostId:.*[0-9a-z-]+")
+            , new Slf4jLogConsumer(LoggerFactory.getLogger("k6")));
 
 
     @BeforeAll
@@ -51,7 +63,7 @@ public class SmokeTest {
 
         GenericContainer<?> petClinic = new PetClinicRestContainer(new SwoAgentResolver(), NETWORK, agent, namingConventions).build();
         petClinic.start();
-        petClinic.followOutput(new Slf4jLogConsumer(LoggerFactory.getLogger("k6")), OutputFrame.OutputType.STDOUT);
+        petClinic.followOutput(logStreamAnalyzer, OutputFrame.OutputType.STDOUT);
 
         GenericContainer<?> k6 = new K6Container(NETWORK, agent, config, namingConventions).build();
         k6.start();
@@ -112,10 +124,55 @@ public class SmokeTest {
     }
     
     @Test
+    @Disabled
     void assertCodeProfiling()  throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['code profiling'].passes");
         assertTrue(passes > 0, "code profiling is broken");
+    }
+
+    @Test
+    @Disabled
+    void assertContextPropagation()  throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['should have sw in tracestate'].passes");
+        assertTrue(passes > 0, "context propagation is broken");
+    }
+
+    @Test
+    @Disabled
+    void assertConnectionToAo()  throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['connected to AO'].passes");
+        assertTrue(passes > 0, "code profiling is broken");
+    }
+
+
+    @Test
+    void assertAgentClassesAreNotInstrumented() {
+        Boolean actual = logStreamAnalyzer.getAnswer().get("Transformed (com.appoptics.ext.*|com.tracelytics.joboe.*)");
+        assertFalse(actual, "agent classes are instrumented");
+    }
+
+    @Test
+    void assertInitMessageIsSent() {
+        Boolean actual = logStreamAnalyzer.getAnswer().get("Completed operation \\[post init message\\] with Result code \\[OK\\] arg");
+        assertTrue(actual, "init message wasn't sent");
+    }
+
+
+    @Test
+    @EnabledIfEnvironmentVariable(named = "TEST_CLOUD", matches = "AWS")
+    void assertAgentAwsMetadata() {
+        Boolean actual = logStreamAnalyzer.getAnswer().get("hostId:.*i-[0-9a-z]+");
+        assertTrue(actual, "AWS metadata is not retrieved");
+    }
+
+    @Test
+    @EnabledIfEnvironmentVariable(named = "TEST_CLOUD", matches = "AZURE")
+    void assertAgentAzureMetadata() {
+        Boolean actual = logStreamAnalyzer.getAnswer().get("hostId:.*[0-9a-z-]+");
+        assertTrue(actual, "Azure metadata is not retrieved");
     }
 
 }

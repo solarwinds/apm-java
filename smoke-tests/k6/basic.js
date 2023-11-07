@@ -3,25 +3,32 @@ import {check} from "k6";
 import names from "./names.js";
 
 const baseUri = `http://petclinic:9966/petclinic/api`;
-
-function check_xtrace_header() {
-    // add a new owner
-    const newOwner = names.randomOwner();
-    const newOwnerResponse = http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
-        {headers: {'Content-Type': 'application/json'}});
-    check(newOwnerResponse.headers, {
-        'should have X-Trace header': (h) => h['X-Trace'] !== undefined
-    })
-}
+const baseUriAo = `http://petclinic-ao:9967/petclinic/api`;
 
 function verify_that_trace_is_persisted() {
-    const newOwner = names.randomOwner();
     let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
     for (; retryCount; retryCount--) {
-        const newOwnerResponse = http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
-            {headers: {'Content-Type': 'application/json'}});
+        const petTypesResponse = http.get(`${baseUri}/pettypes`);
+        check(petTypesResponse.headers, {
+            'should have X-Trace header': (h) => h['X-Trace'] !== undefined
+        })
 
-        const traceContext = newOwnerResponse.headers['X-Trace']
+        check(petTypesResponse.headers, {
+            'should have sw in tracestate': (h) => {
+                if (h['tracestate'] !== undefined) {
+                    const states = h['tracestate'].split(",")
+                    for (let i = 0; i < states.length; i++) {
+                        const [key, _] = states[i].split('=')
+                        if (key === "sw") {
+                            return true
+                        }
+                    }
+                }
+                return false
+            }
+        })
+
+        const traceContext = petTypesResponse.headers['X-Trace']
         const [_, traceId, spanId, flag] = traceContext.split("-")
         if (flag === '00') continue;
 
@@ -141,9 +148,17 @@ function verify_that_specialty_path_is_not_sampled() {
     check(flag, {"verify that transaction is filtered": f => f === "00"})
 }
 
+function verify_connection_to_ao() {
+    const ownersResponse = http.get(`${baseUri}/owners`);
+    const traceContext = ownersResponse.headers['X-Trace']
+
+    const [_, __, ___, flag] = traceContext.split("-")
+    check(flag, {"connected to AO": f => f === "01"})
+}
+
 export default function () {
     verify_that_specialty_path_is_not_sampled()
     verify_that_span_data_is_persisted()
     verify_that_trace_is_persisted()
-    check_xtrace_header()
+    verify_connection_to_ao()
 };
