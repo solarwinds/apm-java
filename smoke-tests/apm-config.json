@@ -43,5 +43,8 @@
       "Uptime"
     ]
   },
-  "monitor.jmx.enable": true
+  "monitor.jmx.enable": true,
+  "profiler": {
+    "enabled": true
+  }
 }

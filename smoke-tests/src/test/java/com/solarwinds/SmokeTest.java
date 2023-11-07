@@ -65,50 +65,57 @@ public class SmokeTest {
     @Test
     void assertXTrace() throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double fail = ResultsCollector.read(resultJson, "$.root_group.checks.['should have X-Trace header'].fails");
-        assertEquals(0, fail, "Less than a 100 percent of the responses has X-Trace header");
+        double fails = ResultsCollector.read(resultJson, "$.root_group.checks.['should have X-Trace header'].fails");
+        assertEquals(0, fails, "Less than a 100 percent of the responses has X-Trace header");
     }
 
     @Test
     void assertTransactionFiltering() throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double fail = ResultsCollector.read(resultJson, "$.root_group.checks.['verify that transaction is filtered'].fails");
-        assertEquals(0, fail, "transaction filtering doesn't work");
+        double fails = ResultsCollector.read(resultJson, "$.root_group.checks.['verify that transaction is filtered'].fails");
+        assertEquals(0, fails, "transaction filtering doesn't work");
     }
 
     @Test
     void assertTraceIngestion() throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double pass = ResultsCollector.read(resultJson, "$.root_group.checks.['trace is returned'].passes");
-        assertTrue(pass > 0, "trace ingestion is not working. There maybe network issues");
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['trace is returned'].passes");
+        assertTrue(passes > 0, "trace ingestion is not working. There maybe network issues");
     }
 
     @Test
     void assertJDBC()  throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double pass = ResultsCollector.read(resultJson, "$.root_group.checks.['JDBC is not broken'].passes");
-        assertTrue(pass > 0, "JDBC instrumentation doesn't work");
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['JDBC is not broken'].passes");
+        assertTrue(passes > 0, "JDBC instrumentation doesn't work");
     }
 
     @Test
     void assertXTraceOptions()  throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double pass = ResultsCollector.read(resultJson, "$.root_group.checks.['xtrace-options is added to root span'].passes");
-        assertTrue(pass > 2, "Xtrace options is not captured in root span");
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['xtrace-options is added to root span'].passes");
+        assertTrue(passes > 2, "Xtrace options is not captured in root span");
     }
 
     @Test
     void assertMvcInstrumentation()  throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double pass = ResultsCollector.read(resultJson, "$.root_group.checks.['mvc handler name is added'].passes");
-        assertTrue(pass > 0, "MVC instrumentation is broken");
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['mvc handler name is added'].passes");
+        assertTrue(passes > 0, "MVC instrumentation is broken");
     }
 
     @Test
     void assertTriggerTrace()  throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double pass = ResultsCollector.read(resultJson, "$.root_group.checks.['trigger trace'].passes");
-        assertTrue(pass > 0, "trigger trace is broken");
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['trigger trace'].passes");
+        assertTrue(passes > 0, "trigger trace is broken");
+    }
+    
+    @Test
+    void assertCodeProfiling()  throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['code profiling'].passes");
+        assertTrue(passes > 0, "code profiling is broken");
     }
 
 }
