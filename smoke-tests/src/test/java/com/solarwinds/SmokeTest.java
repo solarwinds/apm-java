@@ -104,4 +104,11 @@ public class SmokeTest {
         assertTrue(pass > 0, "MVC instrumentation is broken");
     }
 
+    @Test
+    void assertTriggerTrace()  throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double pass = ResultsCollector.read(resultJson, "$.root_group.checks.['trigger trace'].passes");
+        assertTrue(pass > 0, "trigger trace is broken");
+    }
+
 }
