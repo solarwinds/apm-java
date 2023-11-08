@@ -5,12 +5,11 @@
   "agent.transactionNameSchemes": [
     {
       "scheme": "spanAttribute",
-      "delimiter": "/",
+      "delimiter": ":",
       "attributes": [
+        "HandlerName",
         "http.request.method",
-        "http.method",
-        "http.response.status_code",
-        "http.status_code"
+        "http.method"
       ]
     }
   ],

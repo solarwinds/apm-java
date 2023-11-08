@@ -4,7 +4,6 @@ import com.solarwinds.agents.Agent;
 import com.solarwinds.agents.SwoAgentResolver;
 import com.solarwinds.config.Configs;
 import com.solarwinds.config.TestConfig;
-import com.solarwinds.containers.AoPetClinicRestContainer;
 import com.solarwinds.containers.K6Container;
 import com.solarwinds.containers.PetClinicRestContainer;
 import com.solarwinds.containers.PostgresContainer;
@@ -14,7 +13,7 @@ import com.solarwinds.util.NamingConventions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
@@ -162,14 +161,14 @@ public class SmokeTest {
 
 
     @Test
-    @EnabledIfEnvironmentVariable(named = "TEST_CLOUD", matches = "AWS")
+    @EnabledIfSystemProperty(named = "test.cloud", matches = "AWS")
     void assertAgentAwsMetadata() {
         Boolean actual = logStreamAnalyzer.getAnswer().get("hostId:.*i-[0-9a-z]+");
         assertTrue(actual, "AWS metadata is not retrieved");
     }
 
     @Test
-    @EnabledIfEnvironmentVariable(named = "TEST_CLOUD", matches = "AZURE")
+    @EnabledIfSystemProperty(named = "test.cloud", matches = "AZURE")
     void assertAgentAzureMetadata() {
         Boolean actual = logStreamAnalyzer.getAnswer().get("hostId:.*[0-9a-z-]+");
         assertTrue(actual, "Azure metadata is not retrieved");

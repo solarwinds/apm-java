@@ -33,6 +33,7 @@ public class PetClinicRestContainer {
   private final Agent agent;
   private final NamingConventions namingConventions;
 
+
   public PetClinicRestContainer(AgentResolver agentResolver, Network network, Agent agent, NamingConventions namingConventions) {
     this.agentResolver = agentResolver;
     this.network = network;
@@ -63,7 +64,7 @@ public class PetClinicRestContainer {
             .withEnv("spring_jpa_hibernate_ddl-auto", "none")
             .withEnv("SW_APM_DEBUG_LEVEL", "trace")
             .withEnv("SW_APM_COLLECTOR", System.getenv("SW_APM_COLLECTOR"))
-            .withEnv("SW_APM_SERVICE_KEY", System.getenv("SW_APM_SERVICE_KEY") + ":java-apm-smoke-test")
+            .withEnv("SW_APM_SERVICE_KEY", String.format("%s:java-apm-smoke-test", System.getenv("SW_APM_SERVICE_KEY")))
             .withEnv("OTEL_SERVICE_NAME", "java-apm-smoke-test")
             .withStartupTimeout(Duration.ofMinutes(5))
             .withCopyFileToContainer(

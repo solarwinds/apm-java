@@ -84,8 +84,7 @@ test {
     useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed")
-        setEnvironment([
-                "TEST_CLOUD"        : cloud,
-        ])
     }
+
+    setSystemProperties(["test.cloud": cloud])
 }
