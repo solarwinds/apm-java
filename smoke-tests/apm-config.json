@@ -44,6 +44,7 @@
   },
   "monitor.jmx.enable": true,
   "profiler": {
-    "enabled": true
+    "enabled": true,
+    "interval": 5
   }
 }
