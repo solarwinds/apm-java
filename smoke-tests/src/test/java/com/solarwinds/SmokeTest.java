@@ -4,9 +4,11 @@ import com.solarwinds.agents.Agent;
 import com.solarwinds.agents.SwoAgentResolver;
 import com.solarwinds.config.Configs;
 import com.solarwinds.config.TestConfig;
+import com.solarwinds.containers.AoContainer;
 import com.solarwinds.containers.K6Container;
 import com.solarwinds.containers.PetClinicRestContainer;
 import com.solarwinds.containers.PostgresContainer;
+import com.solarwinds.containers.SpringBootWebMvcContainer;
 import com.solarwinds.results.ResultsCollector;
 import com.solarwinds.util.LogStreamAnalyzer;
 import com.solarwinds.util.NamingConventions;
@@ -37,7 +39,8 @@ public class SmokeTest {
     private static final LogStreamAnalyzer<Slf4jLogConsumer> logStreamAnalyzer = new LogStreamAnalyzer<>(
             List.of("Transformed (com.appoptics.ext.*|com.tracelytics.joboe.*)","hostId:.*i-[0-9a-z]+",
                     "Completed operation \\[post init message\\] with Result code \\[OK\\] arg",
-                    "hostId:.*[0-9a-z-]+")
+                    "hostId:.*[0-9a-z-]+", "Extension attached!","Created collector client  : collector.appoptics.com:443",
+                    "trace_id=[a-z0-9]+\\s+span_id=[a-z0-9]+\\s+trace_flags=(01|00)")
             , new Slf4jLogConsumer(LoggerFactory.getLogger("k6")));
 
 
@@ -57,6 +60,14 @@ public class SmokeTest {
     }
 
     static void runAppOnce(TestConfig config, Agent agent) throws Exception {
+        GenericContainer<?> webMvc = new SpringBootWebMvcContainer(new SwoAgentResolver(), NETWORK, agent).build();
+        webMvc.start();
+        webMvc.followOutput(logStreamAnalyzer, OutputFrame.OutputType.STDOUT);
+
+        GenericContainer<?> webMvcAo = new AoContainer(new SwoAgentResolver(), NETWORK, agent).build();
+        webMvcAo.start();
+        webMvcAo.followOutput(logStreamAnalyzer, OutputFrame.OutputType.STDOUT);
+
         GenericContainer<?> postgres = new PostgresContainer(NETWORK).build();
         postgres.start();
 
@@ -69,6 +80,8 @@ public class SmokeTest {
         k6.followOutput(new Slf4jLogConsumer(LoggerFactory.getLogger("k6")), OutputFrame.OutputType.STDOUT);
 
         petClinic.execInContainer("kill", "1");
+        webMvc.execInContainer("kill", "1");
+        webMvcAo.execInContainer("kill", "1");
         postgres.stop();
 
     }
@@ -123,7 +136,6 @@ public class SmokeTest {
     }
     
     @Test
-    @Disabled
     void assertCodeProfiling()  throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['code profiling'].passes");
@@ -139,11 +151,16 @@ public class SmokeTest {
     }
 
     @Test
-    @Disabled
-    void assertConnectionToAo()  throws IOException {
+    void assertConnectionToAo() {
+        Boolean actual = logStreamAnalyzer.getAnswer().get("collector.appoptics.com");
+        assertTrue(actual, "connectivity to appoptics is broken");
+    }
+
+    @Test
+    void assertTransactionNaming() throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['connected to AO'].passes");
-        assertTrue(passes > 0, "code profiling is broken");
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['custom transaction name'].passes");
+        assertTrue(passes > 1, "transaction naming is broken");
     }
 
 
@@ -151,6 +168,18 @@ public class SmokeTest {
     void assertAgentClassesAreNotInstrumented() {
         Boolean actual = logStreamAnalyzer.getAnswer().get("Transformed (com.appoptics.ext.*|com.tracelytics.joboe.*)");
         assertFalse(actual, "agent classes are instrumented");
+    }
+
+    @Test
+    void assertTraceContextInLog() {
+        Boolean actual = logStreamAnalyzer.getAnswer().get("trace_id=[a-z0-9]+\\s+span_id=[a-z0-9]+\\s+trace_flags=(01|00)");
+        assertTrue(actual, "trace context is not injected in logs");
+    }
+
+    @Test
+    void assertAgentExtensionLoading() {
+        Boolean actual = logStreamAnalyzer.getAnswer().get("Extension attached!");
+        assertTrue(actual, "expected log output from extension was not found");
     }
 
     @Test

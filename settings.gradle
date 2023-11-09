@@ -21,4 +21,5 @@ include "instrumentation:servlet-5.0"
 include "instrumentation:servlet-3.0"
 include 'smoke-tests'
 include 'smoke-tests:netty-test'
+include 'smoke-tests:spring-boot-webmvc'
 

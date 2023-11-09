@@ -23,7 +23,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PetClinicRestContainer {
+public class PetClinicRestContainer implements Container {
 
   private static final Logger logger = LoggerFactory.getLogger(PetClinicRestContainer.class);
   private static final int PETCLINIC_PORT = 9966;
@@ -41,7 +41,7 @@ public class PetClinicRestContainer {
     this.namingConventions = namingConventions;
   }
 
-  public GenericContainer<?> build() throws Exception {
+  public GenericContainer<?> build() {
     Path agentPath = agentResolver.resolve(this.agent).orElseThrow();
     return new GenericContainer<>(
             DockerImageName.parse(

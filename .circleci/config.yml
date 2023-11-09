@@ -81,6 +81,15 @@ jobs:
           command: ./gradlew smoke-test:build -x test
       - docker-login
       - run:
+          name: Build webmvc jar
+          command: |
+            ./gradlew smoke-tests:spring-boot-webmvc:build
+      - run:
+          name: Build webmvc image
+          command: |
+            cd smoke-tests/spring-boot-webmvc
+            docker image build --tag smt:webmvc .
+      - run:
           name: Execute smoke tests
           command: ./gradlew smoke-test:test
       - store_artifacts:
@@ -113,11 +122,11 @@ jobs:
       - checkout
       - run:
           name: Build agent
-          command: ./gradlew clean build -x smoke-test:build -x test
+          command: ./gradlew clean build -x smoke-test:build -x test -x smoke-tests:spring-boot-webmvc:build
       - cache-it
       - run:
           name: Execute tests
-          command: ./gradlew clean test -x smoke-test:test
+          command: ./gradlew clean test -x smoke-test:test -x smoke-tests:spring-boot-webmvc:test
       - run:
           name: Check shading
           command: |
@@ -153,7 +162,7 @@ jobs:
             git config --global url."https://${GITHUB_TOKEN}:@github.com/".insteadOf git@github.com:
       - run:
           name: Build
-          command: ./gradlew clean build -x test -x smoke-test:build
+          command: ./gradlew clean build -x test -x smoke-test:build -x smoke-tests:spring-boot-webmvc:build
       - run:
           name: Perform release
           command: |

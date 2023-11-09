@@ -3,7 +3,8 @@ import {check} from "k6";
 import names from "./names.js";
 
 const baseUri = `http://petclinic:9966/petclinic/api`;
-const baseUriAo = `http://petclinic-ao:9967/petclinic/api`;
+const webMvcUri = `http://webmvc:8080/greet`;
+const webMvcUriAo = `http://webmvc:8081/greet`;
 
 function verify_that_trace_is_persisted() {
     let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
@@ -139,6 +140,68 @@ function verify_that_span_data_is_persisted() {
 
 }
 
+function verify_that_span_data_is_persisted_0() {
+    const newOwner = names.randomOwner();
+    let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
+    for (; retryCount; retryCount--) {
+        const transactionName = "int-test"
+        const response = http.get(`${webMvcUri}/${transactionName}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                "x-trace-options": "trigger-trace;custom-info=chubi;sw-keys=lo:se,check-id:123"
+            }
+        });
+
+        const traceContext = response.headers['X-Trace']
+        const [_, traceId, __, flag] = traceContext.split("-")
+        if (flag === '00') continue;
+
+        const spanRawDataPayload = {
+            "operationName": "getSubSpanRawData",
+            "variables": {
+                "traceId": traceId.toUpperCase()
+            },
+            "query": "query getSubSpanRawData($traceId: ID!, $spanFilter: TraceArchiveSpanFilter, $incomplete: Boolean) {\n  traceArchive(\n    traceId: $traceId\n    spanFilter: $spanFilter\n    incomplete: $incomplete\n  ) {\n    traceId\n    traceSpans {\n      edges {\n        node {\n          events {\n            eventId\n            properties {\n              key\n              value\n              __typename\n            }\n            __typename\n          }\n          spanId\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n"
+        }
+
+        for (; retryCount; retryCount--) {
+            let spanDataResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(spanRawDataPayload),
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cookie': `${__ENV.SWO_COOKIE}`,
+                        'X-Csrf-Token': `${__ENV.SWO_XSR_TOKEN}`
+                    }
+                });
+
+            spanDataResponse = JSON.parse(spanDataResponse.body)
+            if (spanDataResponse['errors']) continue
+
+            const {data: {traceArchive: {traceSpans: {edges}}}} = spanDataResponse
+            for (let i = 0; i < edges.length; i++) {
+                const edge = edges[i]
+                const {node: {events}} = edge
+
+                for (let j = 0; j < events.length; j++) {
+                    const event = events[j]
+                    const {properties} = event
+
+                    for (let k = 0; k < properties.length; k++) {
+                        const property = properties[k]
+
+                        check(property, {"trigger trace": prop => prop.key === "TriggeredTrace"})
+                        check(property, {"code profiling": prop => prop.key === "NewFrames"})
+                        if (property.key === "TransactionName") {
+                            check(property, {"custom transaction name": prop => prop.value === transactionName})
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 function verify_that_specialty_path_is_not_sampled() {
     const specialtiesUrl = `${baseUri}/specialties`;
     const specialtiesResponse = http.get(specialtiesUrl);
@@ -148,17 +211,10 @@ function verify_that_specialty_path_is_not_sampled() {
     check(flag, {"verify that transaction is filtered": f => f === "00"})
 }
 
-function verify_connection_to_ao() {
-    const ownersResponse = http.get(`${baseUri}/owners`);
-    const traceContext = ownersResponse.headers['X-Trace']
-
-    const [_, __, ___, flag] = traceContext.split("-")
-    check(flag, {"connected to AO": f => f === "01"})
-}
 
 export default function () {
     verify_that_specialty_path_is_not_sampled()
+    verify_that_span_data_is_persisted_0()
     verify_that_span_data_is_persisted()
     verify_that_trace_is_persisted()
-    verify_connection_to_ao()
 };

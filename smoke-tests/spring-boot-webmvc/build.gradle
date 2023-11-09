@@ -1,0 +1,49 @@
+plugins {
+    id("java")
+    id("org.jetbrains.kotlin.jvm") version "1.8.22"
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.8.22'
+    id("org.springframework.boot") version "2.7.8"
+    id("io.spring.dependency-management") version "1.0.15.RELEASE"
+    id("de.undercouch.download") version "4.1.1"
+}
+
+group = "com.solarwinds"
+version = "0.0.1-SNAPSHOT"
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("io.github.appoptics:solarwinds-otel-sdk:0.15.2")
+    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+}
+
+test {
+    useJUnitPlatform()
+}
+
+bootJar {
+    archiveFileName.set("${project.name}.jar")
+    manifest {
+        attributes 'Start-Class': 'com.solarwinds.webmvc.WebMVCAppApplicationKt'
+    }
+}
+
+compileJava {
+    options.release.set(17)
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "17"
+    compilerOptions.freeCompilerArgs.add("-Xjsr305=strict")
+}
