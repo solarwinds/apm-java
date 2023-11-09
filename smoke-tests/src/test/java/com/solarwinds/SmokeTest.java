@@ -152,7 +152,7 @@ public class SmokeTest {
 
     @Test
     void assertConnectionToAo() {
-        Boolean actual = logStreamAnalyzer.getAnswer().get("collector.appoptics.com");
+        Boolean actual = logStreamAnalyzer.getAnswer().get("Created collector client  : collector.appoptics.com:443");
         assertTrue(actual, "connectivity to appoptics is broken");
     }
 
