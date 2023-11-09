@@ -4,7 +4,6 @@ import names from "./names.js";
 
 const baseUri = `http://petclinic:9966/petclinic/api`;
 const webMvcUri = `http://webmvc:8080/greet`;
-const webMvcUriAo = `http://webmvc:8081/greet`;
 
 function verify_that_trace_is_persisted() {
     let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
@@ -141,7 +140,6 @@ function verify_that_span_data_is_persisted() {
 }
 
 function verify_that_span_data_is_persisted_0() {
-    const newOwner = names.randomOwner();
     let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
     for (; retryCount; retryCount--) {
         const transactionName = "int-test"
