@@ -13,7 +13,6 @@ import com.solarwinds.results.ResultsCollector;
 import com.solarwinds.util.LogStreamAnalyzer;
 import com.solarwinds.util.NamingConventions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.slf4j.LoggerFactory;
@@ -143,10 +142,9 @@ public class SmokeTest {
     }
 
     @Test
-    @Disabled
     void assertContextPropagation()  throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['should have sw in tracestate'].passes");
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['check that remote service, java-apm-smoke-test, is path of the trace'].passes");
         assertTrue(passes > 0, "context propagation is broken");
     }
 

@@ -45,6 +45,6 @@
   "monitor.jmx.enable": true,
   "profiler": {
     "enabled": true,
-    "interval": 5
+    "interval": 10
   }
 }

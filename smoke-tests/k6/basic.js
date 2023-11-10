@@ -3,7 +3,7 @@ import {check} from "k6";
 import names from "./names.js";
 
 const baseUri = `http://petclinic:9966/petclinic/api`;
-const webMvcUri = `http://webmvc:8080/greet`;
+const webMvcUri = `http://webmvc:8080`;
 
 function verify_that_trace_is_persisted() {
     let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
@@ -11,21 +11,6 @@ function verify_that_trace_is_persisted() {
         const petTypesResponse = http.get(`${baseUri}/pettypes`);
         check(petTypesResponse.headers, {
             'should have X-Trace header': (h) => h['X-Trace'] !== undefined
-        })
-
-        check(petTypesResponse.headers, {
-            'should have sw in tracestate': (h) => {
-                if (h['tracestate'] !== undefined) {
-                    const states = h['tracestate'].split(",")
-                    for (let i = 0; i < states.length; i++) {
-                        const [key, _] = states[i].split('=')
-                        if (key === "sw") {
-                            return true
-                        }
-                    }
-                }
-                return false
-            }
         })
 
         const traceContext = petTypesResponse.headers['X-Trace']
@@ -143,7 +128,7 @@ function verify_that_span_data_is_persisted_0() {
     let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
     for (; retryCount; retryCount--) {
         const transactionName = "int-test"
-        const response = http.get(`${webMvcUri}/${transactionName}`, {
+        const response = http.get(`${webMvcUri}/greet/${transactionName}`, {
             headers: {
                 'Content-Type': 'application/json',
                 "x-trace-options": "trigger-trace;custom-info=chubi;sw-keys=lo:se,check-id:123"
@@ -200,6 +185,65 @@ function verify_that_span_data_is_persisted_0() {
     }
 }
 
+
+function verify_distributed_trace() {
+    let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
+    for (; retryCount; retryCount--) {
+        const response = http.get(`${webMvcUri}/distributed`, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const traceContext = response.headers['X-Trace']
+        const [_, traceId, __, flag] = traceContext.split("-")
+        if (flag === '00') continue;
+
+        const spanRawDataPayload = {
+            "operationName": "getSubSpanRawData",
+            "variables": {
+                "traceId": traceId.toUpperCase()
+            },
+            "query": "query getSubSpanRawData($traceId: ID!, $spanFilter: TraceArchiveSpanFilter, $incomplete: Boolean) {\n  traceArchive(\n    traceId: $traceId\n    spanFilter: $spanFilter\n    incomplete: $incomplete\n  ) {\n    traceId\n    traceSpans {\n      edges {\n        node {\n          events {\n            eventId\n            properties {\n              key\n              value\n              __typename\n            }\n            __typename\n          }\n          spanId\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n"
+        }
+
+        for (; retryCount; retryCount--) {
+            let spanDataResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(spanRawDataPayload),
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cookie': `${__ENV.SWO_COOKIE}`,
+                        'X-Csrf-Token': `${__ENV.SWO_XSR_TOKEN}`
+                    }
+                });
+
+            spanDataResponse = JSON.parse(spanDataResponse.body)
+            if (spanDataResponse['errors']) continue
+
+            const {data: {traceArchive: {traceSpans: {edges}}}} = spanDataResponse
+            console.log("Edges: ", edges)
+
+            for (let i = 0; i < edges.length; i++) {
+                const edge = edges[i]
+                const {node: {events}} = edge
+
+                for (let j = 0; j < events.length; j++) {
+                    const event = events[j]
+                    const {properties} = event
+
+                    for (let k = 0; k < properties.length; k++) {
+                        const property = properties[k]
+                        if (property.key === "service.name") {
+                            check(property, {"check that remote service, java-apm-smoke-test, is path of the trace": prop => prop.value === "java-apm-smoke-test"})
+                            if (property.value === "java-apm-smoke-test") return;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 function verify_that_specialty_path_is_not_sampled() {
     const specialtiesUrl = `${baseUri}/specialties`;
     const specialtiesResponse = http.get(specialtiesUrl);
@@ -215,4 +259,5 @@ export default function () {
     verify_that_span_data_is_persisted_0()
     verify_that_span_data_is_persisted()
     verify_that_trace_is_persisted()
+    verify_distributed_trace()
 };
