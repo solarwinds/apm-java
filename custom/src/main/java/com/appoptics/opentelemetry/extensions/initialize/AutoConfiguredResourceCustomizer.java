@@ -16,7 +16,8 @@ public class AutoConfiguredResourceCustomizer implements BiFunction<Resource, Co
     @Override
     public Resource apply(Resource resource, ConfigProperties configProperties) {
         ResourceBuilder resourceBuilder = resource.toBuilder()
-                .put("sw.trace_span_mode", "otel");
+                .put("sw.trace_span_mode", "otel")
+                .put("sw.data.module", "apm");
         String resourceAttribute = resource.getAttribute(ResourceAttributes.PROCESS_COMMAND_LINE);
         List<String> processArgs = resource.getAttribute(ResourceAttributes.PROCESS_COMMAND_ARGS);
 
