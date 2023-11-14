@@ -27,7 +27,7 @@ executors:
 
   linux:
     machine:
-      image: ubuntu-2004:current
+      image: ubuntu-2204:2022.04.1
     resource_class: medium+
     environment:
       <<: *default-envs
