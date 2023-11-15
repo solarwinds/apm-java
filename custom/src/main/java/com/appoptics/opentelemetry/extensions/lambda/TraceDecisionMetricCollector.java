@@ -33,46 +33,41 @@ public class TraceDecisionMetricCollector implements AutoCloseable, AgentListene
                 .ofLongs()
                 .buildWithCallback(this::consumeTraceConfigs));
 
-        gauges.add(meter.gaugeBuilder("RequestCount")
+        gauges.add(meter.gaugeBuilder("trace.service.request_count")
                 .ofLongs()
                 .buildWithCallback(observableLongMeasurement ->
                         observableLongMeasurement.record(TraceDecisionUtil.consumeMetricsData(TraceDecisionUtil.MetricType.THROUGHPUT))));
 
-        gauges.add(meter.gaugeBuilder("TokenBucketExhaustionCount")
+        gauges.add(meter.gaugeBuilder("trace.service.tokenbucket_exhaustion_count")
                 .ofLongs()
                 .buildWithCallback(observableLongMeasurement ->
                         observableLongMeasurement.record(TraceDecisionUtil.consumeMetricsData(TraceDecisionUtil.MetricType.TOKEN_BUCKET_EXHAUSTION))));
 
-        gauges.add(meter.gaugeBuilder("TraceCount")
+        gauges.add(meter.gaugeBuilder("trace.service.tracecount")
                 .ofLongs()
                 .buildWithCallback(observableLongMeasurement ->
                         observableLongMeasurement.record(TraceDecisionUtil.consumeMetricsData(TraceDecisionUtil.MetricType.TRACE_COUNT))));
 
-        gauges.add(meter.gaugeBuilder("SampleCount")
+        gauges.add(meter.gaugeBuilder("trace.service.samplecount")
                 .ofLongs()
                 .buildWithCallback(observableLongMeasurement ->
                         observableLongMeasurement.record(TraceDecisionUtil.consumeMetricsData(TraceDecisionUtil.MetricType.SAMPLE_COUNT))));
 
-        gauges.add(meter.gaugeBuilder("ThroughTraceCount")
+        gauges.add(meter.gaugeBuilder("trace.service.through_trace_count")
                 .ofLongs()
                 .buildWithCallback(observableLongMeasurement ->
                         observableLongMeasurement.record(TraceDecisionUtil.consumeMetricsData(TraceDecisionUtil.MetricType.THROUGH_TRACE_COUNT))));
 
-        gauges.add(meter.gaugeBuilder("ThroughIgnoredCount")
-                .ofLongs()
-                .buildWithCallback(observableLongMeasurement ->
-                        observableLongMeasurement.record(TraceDecisionUtil.consumeMetricsData(TraceDecisionUtil.MetricType.THROUGH_IGNORED_COUNT))));
-
-        gauges.add(meter.gaugeBuilder("TriggeredTraceCount")
+        gauges.add(meter.gaugeBuilder("trace.service.triggered_trace_count")
                 .ofLongs()
                 .buildWithCallback(observableLongMeasurement ->
                         observableLongMeasurement.record(TraceDecisionUtil.consumeMetricsData(TraceDecisionUtil.MetricType.TRIGGERED_TRACE_COUNT))));
 
-        gauges.add(meter.gaugeBuilder("SampleRate")
+        gauges.add(meter.gaugeBuilder("trace.service.sample_rate")
                 .ofLongs()
                 .buildWithCallback(longMeasurement -> record(longMeasurement, sampleRateQueue)));
 
-        gauges.add(meter.gaugeBuilder("SampleSource")
+        gauges.add(meter.gaugeBuilder("trace.service.sample_source")
                 .ofLongs()
                 .buildWithCallback(longMeasurement -> record(longMeasurement, sampleSourceQueue)));
     }
