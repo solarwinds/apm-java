@@ -1,6 +1,13 @@
 version: 2.1 # use CircleCI 2.1
 orbs:
   aws-util: solarwindscloud/aws@0
+  win: circleci/windows@5.0
+
+envs: &default-envs
+  PROJECT_NAME: solarwinds-apm-java
+  SLACK_NOTIFY_CHANNEL: "#chubi-test"
+  EMOJI: ":circle-pass:"
+  GITHUB_USERNAME: lt-global-circleci
 
 executors:
   java:
@@ -16,13 +23,17 @@ executors:
           aws_secret_access_key: $ECR_AWS_SECRET_ACCESS_KEY
     working_directory: ~/repo
     environment:
-      PROJECT_NAME: solarwinds-apm-java
-      SLACK_NOTIFY_CHANNEL: "#chubi-test"
-      EMOJI: ":circle-pass:"
-      GITHUB_USERNAME: lt-global-circleci
+      <<: *default-envs
+
+  linux:
+    machine:
+      image: ubuntu-2204:2022.04.1
+    resource_class: medium+
+    environment:
+      <<: *default-envs
 
 commands:
-  cacheit:
+  cache-it:
     steps:
       - restore_cache:
           keys:
@@ -39,22 +50,106 @@ commands:
   initialize-me:
     steps:
       - checkout
-      - cacheit
       - run:
           name: Install jq # this is needed for the aws steps to work
           command: apt-get update && apt-get install -y --no-install-recommends jq && rm -rf /var/lib/apt/lists/*
       - run:
           name: Build
-          command: ./gradlew clean build -x test
+          command: ./gradlew clean build -x test -x smoke-test:build
+  install-jdk-17:
+    steps:
+      - run:
+          name: Install OpenJDK 17
+          command: |
+            sudo apt-get update && sudo apt-get install openjdk-17-jdk
+            sudo update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+            sudo update-alternatives --set javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
+            java -version
+  docker-login:
+    steps:
+      - run:
+          name: Docker login
+          command: echo "$GITHUB_TOKEN" | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
+  docker-logout:
+    steps:
+      - run:
+          name: Docker logout
+          command: docker logout
 jobs:
+  benchmark:
+    executor: linux
+    environment:
+      <<: *default-envs
+    steps:
+      - checkout
+      - docker-login
+      - run:
+          name: Benchmark test
+          command: |
+            cd benchmark
+            ./gradlew test
+      - store_artifacts:
+          path: benchmark/results/release/summary.txt
+      - store_artifacts:
+          path: benchmark/build/reports/tests/test/
+      - docker-logout
+  release-test:
+    executor: linux
+    steps:
+      - install-jdk-17
+      - checkout
+      - run:
+          name: Build smoke-test
+          command: ./gradlew smoke-test:build -x test
+      - docker-login
+      - run:
+          name: Build webmvc jar
+          command: |
+            ./gradlew smoke-tests:spring-boot-webmvc:build
+      - run:
+          name: Build webmvc image
+          command: |
+            cd smoke-tests/spring-boot-webmvc
+            docker image build --tag smt:webmvc .
+      - run:
+          name: Execute smoke tests
+          command: ./gradlew smoke-test:test
+      - store_artifacts:
+          path: smoke-tests/build/reports/tests/test
+      - docker-logout
+  os-test-linux:
+    executor: linux
+    environment:
+      SW_APM_DEBUG_LEVEL: trace
+      AGENT_DOWNLOAD_URL: https://agent-binaries.global.st-ssp.solarwinds.com/apm/java/latest/solarwinds-apm-agent.jar
+    steps:
+      - checkout
+      - run:
+          name: Execute Netty app
+          command: ./gradlew smoke-test:netty-test:run
+  os-test-windows:
+    executor: win/server-2022
+    environment:
+      <<: *default-envs
+      SW_APM_DEBUG_LEVEL: trace
+      AGENT_DOWNLOAD_URL: https://agent-binaries.global.st-ssp.solarwinds.com/apm/java/latest/solarwinds-apm-agent.jar
+    steps:
+      - checkout
+      - run:
+          name: Execute Netty app
+          shell: bash.exe
+          command: ./gradlew smoke-test:netty-test:run
   test: # this job executes tests
     executor: java
     steps:
       - checkout
-      - cacheit
+      - run:
+          name: Build agent
+          command: ./gradlew clean build -x smoke-test:build -x test -x smoke-tests:spring-boot-webmvc:build
+      - cache-it
       - run:
           name: Execute tests
-          command: ./gradlew clean build
+          command: ./gradlew clean test -x smoke-test:test -x smoke-tests:spring-boot-webmvc:test
       - run:
           name: Check shading
           command: |
@@ -72,7 +167,6 @@ jobs:
     executor: java
     steps:
       - checkout
-      - cacheit
       - run:
           name: release
           command: ./gradlew clean publish
@@ -80,7 +174,6 @@ jobs:
     executor: java
     steps:
       - checkout
-      - cacheit
       - run:
           name: Configure git for release
           command: |
@@ -92,7 +185,7 @@ jobs:
             git config --global url."https://${GITHUB_TOKEN}:@github.com/".insteadOf git@github.com:
       - run:
           name: Build
-          command: ./gradlew clean build -x test
+          command: ./gradlew clean build -x test -x smoke-test:build -x smoke-tests:spring-boot-webmvc:build
       - run:
           name: Perform release
           command: |
@@ -201,6 +294,27 @@ workflows:
           context:
             - AWS_CIRCLE_CI_BUILD
             - GH_LIBRATO_CI_PKG_WRITE
+      - release-test:
+          context:
+            - AWS_CIRCLE_CI_BUILD
+            - GH_LIBRATO_CI_PKG_WRITE
+            - java-apm-smoke-test
+          requires:
+            - s3-stage-upload
+      - os-test-linux:
+          context:
+            - AWS_CIRCLE_CI_BUILD
+            - GH_LIBRATO_CI_PKG_WRITE
+            - java-apm-smoke-test
+          requires:
+            - s3-stage-upload
+      - os-test-windows:
+          context:
+            - AWS_CIRCLE_CI_BUILD
+            - GH_LIBRATO_CI_PKG_WRITE
+            - java-apm-smoke-test
+          requires:
+            - s3-stage-upload
       - approve_me:
           type: approval
           requires:
@@ -248,3 +362,9 @@ workflows:
           filters:
             branches:
               only: main
+  benchmarking:
+    jobs:
+      - benchmark:
+          context:
+            - AWS_CIRCLE_CI_BUILD
+            - librato-github-read-access

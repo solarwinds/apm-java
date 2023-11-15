@@ -1,0 +1,11 @@
+{
+  "agent.transactionSettings": [
+    {
+      "regex": "CLIENT",
+      "tracing": "disabled"
+    }
+  ],
+  "profiler": {
+    "enabled": true
+  }
+}
