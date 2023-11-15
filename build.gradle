@@ -50,7 +50,7 @@ subprojects {
             url = uri("https://oss.sonatype.org/content/repositories/snapshots")
         }
         maven {
-            url = uri("https://maven.pkg.github.com/librato/joboe")
+            url = uri("https://maven.pkg.github.com/solarwinds-cloud/maven-releases")
             credentials {
                 username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
                 password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
@@ -76,8 +76,11 @@ subprojects {
 
         testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
         testImplementation("io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}")
+        testImplementation("io.opentelemetry:opentelemetry-sdk-testing:${versions.opentelemetry}")
+
         testImplementation "com.appoptics.agent.java:core:${versions.appopticsCore}"
         testImplementation "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
+
     }
 
     checkstyleMain {

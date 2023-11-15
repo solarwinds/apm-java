@@ -4,7 +4,7 @@ import com.appoptics.opentelemetry.core.AgentState;
 import com.appoptics.opentelemetry.extensions.initialize.AutoConfiguredResourceCustomizer;
 import com.google.auto.service.AutoService;
 import com.tracelytics.joboe.EventImpl;
-import com.tracelytics.joboe.RpcEventReporter;
+import com.tracelytics.joboe.ReporterFactory;
 import com.tracelytics.joboe.config.ConfigGroup;
 import com.tracelytics.joboe.config.ConfigManager;
 import com.tracelytics.joboe.config.ConfigProperty;
@@ -42,6 +42,7 @@ import java.util.concurrent.Executors;
 
 import static com.appoptics.opentelemetry.extensions.initialize.OtelAutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 import static com.appoptics.opentelemetry.extensions.initialize.OtelAutoConfigurationCustomizerProviderImpl.setAgentEnabled;
+import static com.tracelytics.util.HostTypeDetector.isLambda;
 import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_COMMAND_ARGS;
 import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_COMMAND_LINE;
 import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_DESCRIPTION;
@@ -49,7 +50,6 @@ import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_NAME;
 import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_VERSION;
 import static io.opentelemetry.semconv.ResourceAttributes.SERVICE_NAME;
 import static io.opentelemetry.semconv.ResourceAttributes.TELEMETRY_SDK_LANGUAGE;
-import static com.tracelytics.util.HostTypeDetector.isLambda;
 
 /**
  * Executes startup task after it's safe to do so. See <a href="https://github.com/appoptics/opentelemetry-custom-distro/pull/7">...</a>
