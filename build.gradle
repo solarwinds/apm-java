@@ -77,6 +77,8 @@ subprojects {
 
         testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
         testImplementation("io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}")
+        testImplementation("io.opentelemetry:opentelemetry-sdk-testing:${versions.opentelemetry}")
+
         testImplementation "com.solarwinds.joboe:core:${versions.appopticsCore}"
         testImplementation "com.solarwinds.joboe:metrics:${versions.appopticsMetrics}"
         testImplementation 'org.junit-pioneer:junit-pioneer:2.1.0'
