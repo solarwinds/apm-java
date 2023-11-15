@@ -14,7 +14,7 @@ import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.data.SpanData;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import io.opentelemetry.semconv.SemanticAttributes;
 
 import javax.annotation.Nonnull;
 
@@ -61,7 +61,7 @@ public class InboundMeasurementMetricsGenerator implements SpanProcessor {
             final String transactionName = TransactionNameManager.getTransactionName(spanData);
 
             boolean hasError = spanData.getStatus().getStatusCode() == StatusCode.ERROR;
-            final Long status = spanData.getAttributes().get(SemanticAttributes.HTTP_STATUS_CODE);
+            final Long status = spanData.getAttributes().get(SemanticAttributes.HTTP_RESPONSE_STATUS_CODE);
 
 
             final long duration = (spanData.getEndEpochNanos() - spanData.getStartEpochNanos()) / 1_000_000;
@@ -74,16 +74,18 @@ public class InboundMeasurementMetricsGenerator implements SpanProcessor {
             AttributesBuilder responseTimeAttr = Attributes.builder();
 
             if (status != null) {
-                requestCounterAttr.put(SemanticAttributes.HTTP_STATUS_CODE, status);
-                requestErrorCounterAttr.put(SemanticAttributes.HTTP_STATUS_CODE, status);
-                responseTimeAttr.put(SemanticAttributes.HTTP_STATUS_CODE, status);
+                requestCounterAttr.put(SemanticAttributes.HTTP_RESPONSE_STATUS_CODE, status);
+                requestErrorCounterAttr.put(SemanticAttributes.HTTP_RESPONSE_STATUS_CODE, status);
+                responseTimeAttr.put(SemanticAttributes.HTTP_RESPONSE_STATUS_CODE, status);
             }
 
-            final String method = spanData.getAttributes().get(SemanticAttributes.HTTP_METHOD);
+            final String method = spanData.getAttributes().get(SemanticAttributes.HTTP_REQUEST_METHOD);
             if (method != null) {
-                requestCounterAttr.put(SemanticAttributes.HTTP_METHOD, method);
-                requestErrorCounterAttr.put(SemanticAttributes.HTTP_METHOD, method);
-                responseTimeAttr.put(SemanticAttributes.HTTP_METHOD, method);
+                String methodKey = "http.method";
+
+                requestCounterAttr.put(methodKey, method);
+                requestErrorCounterAttr.put(methodKey, method);
+                responseTimeAttr.put(methodKey, method);
             }
 
             if (hasError) {
