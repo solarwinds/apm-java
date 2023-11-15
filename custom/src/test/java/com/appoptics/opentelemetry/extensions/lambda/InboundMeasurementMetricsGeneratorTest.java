@@ -8,7 +8,7 @@ import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.sdk.testing.trace.TestSpanData;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.data.StatusData;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import io.opentelemetry.semconv.SemanticAttributes;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -78,7 +78,7 @@ class InboundMeasurementMetricsGeneratorTest {
                 .setEndEpochNanos(10000)
                 .setHasEnded(true)
                 .setStatus(StatusData.ok())
-                .setAttributes(Attributes.of(SemanticAttributes.HTTP_METHOD, "get"))
+                .setAttributes(Attributes.of(SemanticAttributes.HTTP_REQUEST_METHOD, "get"))
                 .build();
 
         when(readableSpanMock.toSpanData()).thenReturn(testSpanData);
@@ -108,7 +108,7 @@ class InboundMeasurementMetricsGeneratorTest {
                 .setEndEpochNanos(10000)
                 .setHasEnded(true)
                 .setStatus(StatusData.error())
-                .setAttributes(Attributes.of(SemanticAttributes.HTTP_METHOD, "get"))
+                .setAttributes(Attributes.of(SemanticAttributes.HTTP_REQUEST_METHOD, "get"))
                 .build();
 
         when(readableSpanMock.toSpanData()).thenReturn(testSpanData);
@@ -139,7 +139,7 @@ class InboundMeasurementMetricsGeneratorTest {
                 .setEndEpochNanos(10000)
                 .setHasEnded(true)
                 .setStatus(StatusData.error())
-                .setAttributes(Attributes.of(SemanticAttributes.HTTP_METHOD, "get"))
+                .setAttributes(Attributes.of(SemanticAttributes.HTTP_REQUEST_METHOD, "get"))
                 .build();
 
         when(readableSpanMock.toSpanData()).thenReturn(testSpanData);
