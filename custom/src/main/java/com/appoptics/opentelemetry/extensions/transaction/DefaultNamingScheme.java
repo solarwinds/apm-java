@@ -1,5 +1,7 @@
 package com.appoptics.opentelemetry.extensions.transaction;
 
+import com.tracelytics.joboe.config.ConfigManager;
+import com.tracelytics.joboe.config.ConfigProperty;
 import io.opentelemetry.api.common.Attributes;
 
 public class DefaultNamingScheme extends NamingScheme{
@@ -9,6 +11,6 @@ public class DefaultNamingScheme extends NamingScheme{
 
     @Override
     public String createName(Attributes attributes) {
-        return null;
+        return ConfigManager.getConfigOptional(ConfigProperty.AGENT_TRANSACTION_NAME, null);
     }
 }
