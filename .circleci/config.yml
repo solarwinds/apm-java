@@ -293,25 +293,25 @@ workflows:
       - test:
           context:
             - AWS_CIRCLE_CI_BUILD
-            - GH_LIBRATO_CI_PKG_WRITE
+            - solarwinds-cloud-github-read-access
       - release-test:
           context:
             - AWS_CIRCLE_CI_BUILD
-            - GH_LIBRATO_CI_PKG_WRITE
+            - solarwinds-cloud-github-read-access
             - java-apm-smoke-test
           requires:
             - s3-stage-upload
       - os-test-linux:
           context:
             - AWS_CIRCLE_CI_BUILD
-            - GH_LIBRATO_CI_PKG_WRITE
+            - solarwinds-cloud-github-read-access
             - java-apm-smoke-test
           requires:
             - s3-stage-upload
       - os-test-windows:
           context:
             - AWS_CIRCLE_CI_BUILD
-            - GH_LIBRATO_CI_PKG_WRITE
+            - solarwinds-cloud-github-read-access
             - java-apm-smoke-test
           requires:
             - s3-stage-upload
@@ -325,7 +325,8 @@ workflows:
       - github-release:
           context:
             - AWS_CIRCLE_CI_BUILD
-            - GH_LIBRATO_CI_PKG_WRITE
+            - solarwinds-cloud-github-read-access
+            - solarwinds-cloud-github-write-access
             - SLACK_HOOK
           requires:
             - s3-prod-upload
@@ -335,7 +336,8 @@ workflows:
       - maven-release:
           context:
             - AWS_CIRCLE_CI_BUILD
-            - GH_LIBRATO_CI_PKG_WRITE
+            - solarwinds-cloud-github-read-access
+            - solarwinds-cloud-github-write-access
             - sonatype
             - apm-gpg-signing
           requires:
@@ -347,14 +349,14 @@ workflows:
           context:
             - AWS_CIRCLE_CI
             - AWS_CIRCLE_CI_BUILD
-            - GH_LIBRATO_CI_PKG_WRITE
+            - solarwinds-cloud-github-read-access
             - SLACK_HOOK
             - apm-s3-publishing
       - s3-prod-upload:
           context:
             - AWS_CIRCLE_CI
             - AWS_CIRCLE_CI_BUILD
-            - GH_LIBRATO_CI_PKG_WRITE
+            - solarwinds-cloud-github-read-access
             - SLACK_HOOK
             - apm-s3-publishing
           requires:
