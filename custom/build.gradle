@@ -40,5 +40,5 @@ test {
   testLogging {
     events "passed", "skipped", "failed"
   }
-  environment("SW_APM_SERVICE_KEY", "00000")
+  environment("SW_APM_SERVICE_KEY", "token:name")
 }

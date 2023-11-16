@@ -1,21 +1,56 @@
 package com.appoptics.opentelemetry.extensions.initialize;
 
 import com.appoptics.opentelemetry.extensions.TransactionNameManager;
-import com.appoptics.opentelemetry.extensions.initialize.config.*;
+import com.appoptics.opentelemetry.extensions.initialize.config.BuildConfig;
+import com.appoptics.opentelemetry.extensions.initialize.config.ConfigConstants;
+import com.appoptics.opentelemetry.extensions.initialize.config.LogFileStringParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.LogSettingParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.ModeStringToBooleanParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.ProfilerSettingParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.ProxyConfigParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.RangeValidationParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.TracingModeParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.TransactionSettingsConfigParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.UrlSampleRateConfigParser;
 import com.appoptics.opentelemetry.extensions.initialize.config.livereload.ConfigurationFileChangeWatcher;
 import com.appoptics.opentelemetry.extensions.transaction.NamingScheme;
 import com.appoptics.opentelemetry.extensions.transaction.TransactionNamingScheme;
 import com.appoptics.opentelemetry.extensions.transaction.TransactionNamingSchemesParser;
-import com.tracelytics.joboe.config.*;
+import com.tracelytics.joboe.config.ConfigContainer;
+import com.tracelytics.joboe.config.ConfigGroup;
+import com.tracelytics.joboe.config.ConfigManager;
+import com.tracelytics.joboe.config.ConfigProperty;
+import com.tracelytics.joboe.config.ConfigSourceType;
+import com.tracelytics.joboe.config.EnvConfigReader;
+import com.tracelytics.joboe.config.InvalidConfigException;
+import com.tracelytics.joboe.config.InvalidConfigReadSourceException;
+import com.tracelytics.joboe.config.InvalidConfigServiceKeyException;
+import com.tracelytics.joboe.config.JsonConfigReader;
+import com.tracelytics.joboe.config.ProfilerSetting;
+import com.tracelytics.joboe.config.TraceConfigs;
 import com.tracelytics.logging.Logger;
 import com.tracelytics.logging.LoggerFactory;
 import com.tracelytics.util.ServiceKeyUtils;
 import lombok.Getter;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.FileSystems;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.WatchService;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -102,6 +137,35 @@ public class AppOpticsConfigurationLoader {
                 LOGGER.info("failed to follow Otel's log file config." + e.getMessage());
             }
         }
+
+        String serviceName = System.getProperty("otel.service.name");
+        if (serviceName == null){
+            serviceName = System.getenv("OTEL_SERVICE_NAME");
+        }
+
+        String serviceKey = (String) configs.get(ConfigProperty.AGENT_SERVICE_KEY);
+        if (serviceName == null) {
+            if (serviceKey != null) {
+                String name = ServiceKeyUtils.getServiceName(serviceKey);
+                if (name != null) {
+                    System.setProperty("otel.service.name", name);
+                }
+            }
+
+        } else {
+            if (serviceKey != null) {
+                try {
+                    String key = String.format("%s:%s", ServiceKeyUtils.getApiKey(serviceKey), serviceName);
+                    configs.put(ConfigProperty.AGENT_SERVICE_KEY, key, true);
+                } catch (InvalidConfigException e) {
+                    LoggerFactory.getLogger()
+                            .warn(
+                                    String.format("Unable to update service name to %s", serviceName)
+                            );
+                }
+            }
+        }
+
     }
 
     static Map<String, String> mergeEnvWithSysProperties(Map<String, String> env, Properties props) {

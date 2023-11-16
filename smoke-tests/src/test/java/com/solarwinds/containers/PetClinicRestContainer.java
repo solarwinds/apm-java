@@ -65,7 +65,6 @@ public class PetClinicRestContainer implements Container {
             .withEnv("SW_APM_DEBUG_LEVEL", "trace")
             .withEnv("SW_APM_COLLECTOR", System.getenv("SW_APM_COLLECTOR"))
             .withEnv("SW_APM_SERVICE_KEY", String.format("%s:java-apm-smoke-test", System.getenv("SW_APM_SERVICE_KEY")))
-            .withEnv("OTEL_SERVICE_NAME", "java-apm-smoke-test")
             .withStartupTimeout(Duration.ofMinutes(5))
             .withCopyFileToContainer(
                     MountableFile.forHostPath(agentPath),

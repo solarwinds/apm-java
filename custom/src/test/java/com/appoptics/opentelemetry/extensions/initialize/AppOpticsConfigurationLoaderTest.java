@@ -5,10 +5,14 @@ import com.appoptics.opentelemetry.extensions.transaction.DefaultNamingScheme;
 import com.appoptics.opentelemetry.extensions.transaction.NamingScheme;
 import com.appoptics.opentelemetry.extensions.transaction.SpanAttributeNamingScheme;
 import com.tracelytics.joboe.config.ConfigContainer;
+import com.tracelytics.joboe.config.ConfigManager;
 import com.tracelytics.joboe.config.ConfigProperty;
 import com.tracelytics.joboe.config.InvalidConfigException;
+import com.tracelytics.util.ServiceKeyUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junitpioneer.jupiter.ClearSystemProperty;
+import org.junitpioneer.jupiter.SetSystemProperty;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -16,7 +20,10 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @ExtendWith(MockitoExtension.class)
 class AppOpticsConfigurationLoaderTest {
@@ -105,5 +112,23 @@ class AppOpticsConfigurationLoaderTest {
 
         assertNull(AppOpticsConfigurationLoader.getConfigurationFileDir());
         assertNull(AppOpticsConfigurationLoader.getRuntimeConfigFilename());
+    }
+
+
+    @Test
+    @ClearSystemProperty(key = "otel.service.name")
+    void verifyThatOtelServiceNameSystemPropertyIsWhenNotExplicitlySet() throws InvalidConfigException {
+        AppOpticsConfigurationLoader.load();
+        assertEquals("name"/*name is from custom/build.gradle test task*/, System.getProperty("otel.service.name"));
+    }
+
+    @Test
+    @SetSystemProperty(key = "otel.service.name", value ="test")
+    void verifyThatServiceKeyIsUpdatedWithOtelServiceNameWhenSystemPropertyIsSet() throws InvalidConfigException {
+        AppOpticsConfigurationLoader.load();
+        String serviceKeyAfter = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
+
+        assertEquals("test", ServiceKeyUtils.getServiceName(serviceKeyAfter));
+        assertEquals("token:test", serviceKeyAfter);
     }
 }
