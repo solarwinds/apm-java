@@ -145,11 +145,10 @@ jobs:
       - checkout
       - run:
           name: Build agent
-          command: ./gradlew clean build -x smoke-test:build -x test -x smoke-tests:spring-boot-webmvc:build
-      - cache-it
+          command: ./gradlew clean build -x test -x smoke-test:build -x smoke-tests:spring-boot-webmvc:build
       - run:
           name: Execute tests
-          command: ./gradlew clean test -x smoke-test:test -x smoke-tests:spring-boot-webmvc:test
+          command: ./gradlew test -x smoke-test:test -x smoke-tests:spring-boot-webmvc:test
       - run:
           name: Check shading
           command: |

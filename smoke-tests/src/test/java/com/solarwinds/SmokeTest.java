@@ -40,7 +40,8 @@ public class SmokeTest {
             List.of("Transformed (com.appoptics.ext.*|com.tracelytics.joboe.*)","hostId:.*i-[0-9a-z]+",
                     "Completed operation \\[post init message\\] with Result code \\[OK\\] arg",
                     "hostId:.*[0-9a-z-]+", "Extension attached!","Created collector client  : collector.appoptics.com:443",
-                    "trace_id=[a-z0-9]+\\s+span_id=[a-z0-9]+\\s+trace_flags=(01|00)")
+                    "trace_id=[a-z0-9]+\\s+span_id=[a-z0-9]+\\s+trace_flags=(01|00)",
+                    "This log line is used for validation only: service.name: java-apm-smoke-test")
             , new Slf4jLogConsumer(LoggerFactory.getLogger("k6")));
 
 
@@ -201,6 +202,12 @@ public class SmokeTest {
     void assertAgentAzureMetadata() {
         Boolean actual = logStreamAnalyzer.getAnswer().get("hostId:.*[0-9a-z-]+");
         assertTrue(actual, "Azure metadata is not retrieved");
+    }
+
+    @Test
+    void assertServiceNameIsSameAsOneInServiceKey() {
+        Boolean actual = logStreamAnalyzer.getAnswer().get("This log line is used for validation only: service.name: java-apm-smoke-test");
+        assertTrue(actual, "service.name is not updated with name in service key");
     }
 
 }

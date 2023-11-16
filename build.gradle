@@ -78,6 +78,8 @@ subprojects {
         testImplementation("io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}")
         testImplementation "com.appoptics.agent.java:core:${versions.appopticsCore}"
         testImplementation "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
+        testImplementation 'org.junit-pioneer:junit-pioneer:2.1.0'
+
     }
 
     checkstyleMain {

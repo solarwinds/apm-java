@@ -1,5 +1,6 @@
 package com.appoptics.opentelemetry.extensions.initialize;
 
+import com.tracelytics.logging.LoggerFactory;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.resources.ResourceBuilder;
@@ -30,6 +31,7 @@ public class AutoConfiguredResourceCustomizer implements BiFunction<Resource, Co
         }
 
         AutoConfiguredResourceCustomizer.resource = resourceBuilder.build();
+        LoggerFactory.getLogger().debug(String.format("This log line is used for validation only: service.name: %s", resource.getAttribute(ResourceAttributes.SERVICE_NAME)));
         return AutoConfiguredResourceCustomizer.resource;
     }
 
