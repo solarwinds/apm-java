@@ -27,7 +27,7 @@ subprojects {
                 opentelemetryJavaagent: "1.31.0",
                 bytebuddy             : "1.12.10",
                 guava                 : "30.1-jre",
-                appopticsCore         : "7.9.0",
+                appopticsCore         : "8.0.1",
                 agent                 : "0.17.5-alpha", // the custom distro agent version
                 autoservice           : "1.0.1",
         ]
@@ -50,7 +50,7 @@ subprojects {
             url = uri("https://oss.sonatype.org/content/repositories/snapshots")
         }
         maven {
-            url = uri("https://maven.pkg.github.com/librato/joboe")
+            url = uri("https://maven.pkg.github.com/solarwinds-cloud/maven-releases")
             credentials {
                 username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
                 password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
