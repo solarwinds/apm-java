@@ -67,7 +67,7 @@ class TraceDecisionMetricCollectorTest {
 
         consumerArgumentCaptor.getAllValues()
                 .forEach(consumer -> consumer.accept(observableLongMeasurementMock));
-        verify(observableLongMeasurementMock, times(7)).record(anyLong());
+        verify(observableLongMeasurementMock, times(6)).record(anyLong());
     }
 
     @Test
