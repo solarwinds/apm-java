@@ -53,6 +53,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import lombok.Getter;
 
+import static com.solarwinds.joboe.core.util.HostTypeDetector.isLambda;
+
 public class AppOpticsConfigurationLoader {
   private static final Logger logger = LoggerFactory.getLogger();
   private static final String CONFIG_FILE = "solarwinds-apm-config.json";
