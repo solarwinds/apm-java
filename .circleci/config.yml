@@ -340,11 +340,11 @@ workflows:
             - solarwinds-cloud-github-write-access
             - sonatype
             - apm-gpg-signing
-          requires:
-            - s3-prod-upload
-          filters:
-            branches:
-              only: main
+#          requires:
+#            - s3-prod-upload
+#          filters:
+#            branches:
+#              only: main
       - s3-stage-upload:
           context:
             - AWS_CIRCLE_CI
