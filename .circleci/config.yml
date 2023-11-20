@@ -55,7 +55,7 @@ commands:
           command: apt-get update && apt-get install -y --no-install-recommends jq && rm -rf /var/lib/apt/lists/*
       - run:
           name: Build
-          command: ./gradlew clean build -x test -x smoke-test:build
+          command: ./gradlew clean build -x test
   install-jdk-17:
     steps:
       - run:
@@ -100,12 +100,15 @@ jobs:
       - checkout
       - run:
           name: Build smoke-test
-          command: ./gradlew smoke-test:build -x test
+          command: |
+            cd smoke-tests
+            ./gradlew build -x test
       - docker-login
       - run:
           name: Build webmvc jar
           command: |
-            ./gradlew smoke-tests:spring-boot-webmvc:build
+            cd smoke-tests
+            ./gradlew :spring-boot-webmvc:build
       - run:
           name: Build webmvc image
           command: |
@@ -113,7 +116,9 @@ jobs:
             docker image build --tag smt:webmvc .
       - run:
           name: Execute smoke tests
-          command: ./gradlew smoke-test:test
+          command: |
+            cd smoke-tests
+            ./gradlew test
       - store_artifacts:
           path: smoke-tests/build/reports/tests/test
       - docker-logout
@@ -126,7 +131,9 @@ jobs:
       - checkout
       - run:
           name: Execute Netty app
-          command: ./gradlew smoke-test:netty-test:run
+          command: |
+            cd smoke-tests
+            ./gradlew :netty-test:run
   os-test-windows:
     executor: win/server-2022
     environment:
@@ -138,17 +145,19 @@ jobs:
       - run:
           name: Execute Netty app
           shell: bash.exe
-          command: ./gradlew smoke-test:netty-test:run
+          command:  |
+            cd smoke-tests
+            ./gradlew :netty-test:run
   test: # this job executes tests
     executor: java
     steps:
       - checkout
       - run:
           name: Build agent
-          command: ./gradlew clean build -x test -x smoke-test:build -x smoke-tests:spring-boot-webmvc:build
+          command: ./gradlew clean build -x test
       - run:
           name: Execute tests
-          command: ./gradlew test -x smoke-test:test -x smoke-tests:spring-boot-webmvc:test
+          command: ./gradlew test
       - run:
           name: Check shading
           command: |
@@ -184,7 +193,7 @@ jobs:
             git config --global url."https://${GITHUB_TOKEN}:@github.com/".insteadOf git@github.com:
       - run:
           name: Build
-          command: ./gradlew clean build -x test -x smoke-test:build -x smoke-tests:spring-boot-webmvc:build
+          command: ./gradlew clean build -x test
       - run:
           name: Perform release
           command: |
