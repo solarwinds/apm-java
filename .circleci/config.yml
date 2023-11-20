@@ -318,6 +318,7 @@ workflows:
           type: approval
           requires:
             - test
+            - release-test
           filters:
             branches:
               only: main
