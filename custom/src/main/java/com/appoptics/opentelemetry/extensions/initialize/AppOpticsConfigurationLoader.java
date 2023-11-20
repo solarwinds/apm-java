@@ -1,23 +1,60 @@
 package com.appoptics.opentelemetry.extensions.initialize;
 
 import com.appoptics.opentelemetry.extensions.TransactionNameManager;
-import com.appoptics.opentelemetry.extensions.initialize.config.*;
+import com.appoptics.opentelemetry.extensions.initialize.config.BuildConfig;
+import com.appoptics.opentelemetry.extensions.initialize.config.ConfigConstants;
+import com.appoptics.opentelemetry.extensions.initialize.config.LogFileStringParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.LogSettingParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.ModeStringToBooleanParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.ProfilerSettingParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.ProxyConfigParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.RangeValidationParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.TracingModeParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.TransactionSettingsConfigParser;
+import com.appoptics.opentelemetry.extensions.initialize.config.UrlSampleRateConfigParser;
 import com.appoptics.opentelemetry.extensions.initialize.config.livereload.ConfigurationFileChangeWatcher;
 import com.appoptics.opentelemetry.extensions.transaction.NamingScheme;
 import com.appoptics.opentelemetry.extensions.transaction.TransactionNamingScheme;
 import com.appoptics.opentelemetry.extensions.transaction.TransactionNamingSchemesParser;
-import com.tracelytics.joboe.config.*;
+import com.tracelytics.joboe.config.ConfigContainer;
+import com.tracelytics.joboe.config.ConfigGroup;
+import com.tracelytics.joboe.config.ConfigManager;
+import com.tracelytics.joboe.config.ConfigProperty;
+import com.tracelytics.joboe.config.ConfigSourceType;
+import com.tracelytics.joboe.config.EnvConfigReader;
+import com.tracelytics.joboe.config.InvalidConfigException;
+import com.tracelytics.joboe.config.InvalidConfigReadSourceException;
+import com.tracelytics.joboe.config.InvalidConfigServiceKeyException;
+import com.tracelytics.joboe.config.JsonConfigReader;
+import com.tracelytics.joboe.config.ProfilerSetting;
+import com.tracelytics.joboe.config.TraceConfigs;
 import com.tracelytics.logging.Logger;
 import com.tracelytics.logging.LoggerFactory;
 import com.tracelytics.util.ServiceKeyUtils;
 import lombok.Getter;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.FileSystems;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.WatchService;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+
+import static com.tracelytics.util.HostTypeDetector.isLambda;
 
 public class AppOpticsConfigurationLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger();
@@ -297,24 +334,26 @@ public class AppOpticsConfigurationLoader {
             }
         }
 
-        if (configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY) && !"".equals(configs.get(ConfigProperty.AGENT_SERVICE_KEY))) {
-            // Customer access key (UUID)
-            String rawServiceKey = (String) configs.get(ConfigProperty.AGENT_SERVICE_KEY);
-            String serviceKey = ServiceKeyUtils.transformServiceKey(rawServiceKey);
+        if (!isLambda()) {
+            if (configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY) && !"".equals(configs.get(ConfigProperty.AGENT_SERVICE_KEY))) {
+                // Customer access key (UUID)
+                String rawServiceKey = (String) configs.get(ConfigProperty.AGENT_SERVICE_KEY);
+                String serviceKey = ServiceKeyUtils.transformServiceKey(rawServiceKey);
 
-            if (!serviceKey.equalsIgnoreCase(rawServiceKey)) {
-                LOGGER.warn("Invalid service name detected in service key, the service key is transformed to " + ServiceKeyUtils.maskServiceKey(serviceKey));
-                configs.put(ConfigProperty.AGENT_SERVICE_KEY, serviceKey, true);
-            }
-            LOGGER.debug("Service key (masked) is [" + ServiceKeyUtils.maskServiceKey(serviceKey) + "]");
+                if (!serviceKey.equalsIgnoreCase(rawServiceKey)) {
+                    LOGGER.warn("Invalid service name detected in service key, the service key is transformed to " + ServiceKeyUtils.maskServiceKey(serviceKey));
+                    configs.put(ConfigProperty.AGENT_SERVICE_KEY, serviceKey, true);
+                }
+                LOGGER.debug("Service key (masked) is [" + ServiceKeyUtils.maskServiceKey(serviceKey) + "]");
 
-        } else {
-            if (!configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)) {
-                LOGGER.warn("Could not find the service key! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in " + CONFIG_FILE + " or via env variable.");
-                throw new InvalidConfigServiceKeyException("Service key not found");
             } else {
-                LOGGER.warn("Service key is empty! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in " + CONFIG_FILE + " or via env variable.");
-                throw new InvalidConfigServiceKeyException("Service key is empty");
+                if (!configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)) {
+                    LOGGER.warn("Could not find the service key! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in " + CONFIG_FILE + " or via env variable.");
+                    throw new InvalidConfigServiceKeyException("Service key not found");
+                } else {
+                    LOGGER.warn("Service key is empty! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in " + CONFIG_FILE + " or via env variable.");
+                    throw new InvalidConfigServiceKeyException("Service key is empty");
+                }
             }
         }
 

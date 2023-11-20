@@ -146,7 +146,6 @@ jobs:
       - run:
           name: Build agent
           command: ./gradlew clean build -x smoke-test:build -x test -x smoke-tests:spring-boot-webmvc:build
-      - cache-it
       - run:
           name: Execute tests
           command: ./gradlew clean test -x smoke-test:test -x smoke-tests:spring-boot-webmvc:test
