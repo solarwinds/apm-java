@@ -8,6 +8,3 @@ dependencies {
     compileOnly project(":custom")
     compileOnly project(":bootstrap")
 }
-
-
-
