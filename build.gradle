@@ -18,8 +18,9 @@ buildscript {
 }
 
 subprojects {
-    apply plugin: "java"
-    apply plugin: "checkstyle"
+  apply plugin: "java"
+  apply plugin: "checkstyle"
+  apply plugin: "com.diffplug.spotless"
 
     ext {
         versions = [
@@ -105,4 +106,19 @@ subprojects {
     javadoc {
         source = sourceSets.main.allJava
     }
+
+  spotless {
+    format "misc", {
+      target ".gitattributes", ".gitignore"
+      trimTrailingWhitespace()
+      endWithNewline()
+    }
+
+    java {
+      target "src/*/java/**/*.java"
+      removeUnusedImports()
+      googleJavaFormat()
+      formatAnnotations()
+    }
+  }
 }

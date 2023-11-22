@@ -5,24 +5,21 @@
 
 package com.appoptics.opentelemetry.instrumentation;
 
+import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
+import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
+import static net.bytebuddy.matcher.ElementMatchers.*;
+
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
-import io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge;
+import javax.servlet.http.HttpServletRequest;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
-import javax.servlet.http.HttpServletRequest;
-
-import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
-import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
-import static net.bytebuddy.matcher.ElementMatchers.*;
-
-/**
- * Experimental instrumentation to set `TransactionName` KV to OT Trace root span for Spring MVC
- */
+/** Experimental instrumentation to set `TransactionName` KV to OT Trace root span for Spring MVC */
 public class AoHandlerAdapterInstrumentation implements TypeInstrumentation {
 
   @Override
@@ -49,10 +46,10 @@ public class AoHandlerAdapterInstrumentation implements TypeInstrumentation {
   public static class ControllerAdvice {
     @Advice.OnMethodEnter
     public static void setTransactionNameToServerSpan(
-            @Advice.Argument(0) HttpServletRequest request,
-            @Advice.Argument(2) Object handler) {
-//        @Advice.Local("otelContext") Context context, //with Local it seem to have issue when there's no same definition for OnMethodExit
-//        @Advice.Local("otelScope") Scope scope) {
+        @Advice.Argument(0) HttpServletRequest request, @Advice.Argument(2) Object handler) {
+      //        @Advice.Local("otelContext") Context context, //with Local it seem to have issue
+      // when there's no same definition for OnMethodExit
+      //        @Advice.Local("otelScope") Scope scope) {
       Context parentContext = Java8BytecodeBridge.currentContext();
       Span serverSpan = Java8BytecodeBridge.spanFromContext(parentContext);
       if (serverSpan != null) {

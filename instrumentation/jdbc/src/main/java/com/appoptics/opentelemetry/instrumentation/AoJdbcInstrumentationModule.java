@@ -8,7 +8,6 @@ package com.appoptics.opentelemetry.instrumentation;
 import com.google.auto.service.AutoService;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
-
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,12 +1,11 @@
 package com.appoptics.opentelemetry.extensions.transaction;
 
-import lombok.Value;
-
 import java.util.List;
+import lombok.Value;
 
 @Value
 public class TransactionNamingScheme {
-    String scheme;
-    String delimiter;
-    List<String> attributes;
+  String scheme;
+  String delimiter;
+  List<String> attributes;
 }

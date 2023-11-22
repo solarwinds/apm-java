@@ -6,15 +6,13 @@
 package com.appoptics.opentelemetry.instrumentation;
 
 import io.opentelemetry.instrumentation.api.instrumenter.util.SpanNames;
+import java.lang.reflect.Method;
+import javax.servlet.Servlet;
 import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.Controller;
 
-import javax.servlet.Servlet;
-import java.lang.reflect.Method;
-
 public class AoSpringWebMvcTracer {
-
 
   public static String spanNameOnHandle(Object handler) {
     Class<?> clazz;
@@ -48,9 +46,9 @@ public class AoSpringWebMvcTracer {
 
     return SpanNames.fromMethod(clazz, methodName);
   }
-//
-//  @Override
-//  protected String getInstrumentationName() {
-//    return "io.opentelemetry.javaagent.spring-webmvc-3.1";
-//  }
+  //
+  //  @Override
+  //  protected String getInstrumentationName() {
+  //    return "io.opentelemetry.javaagent.spring-webmvc-3.1";
+  //  }
 }

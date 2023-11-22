@@ -9,54 +9,58 @@ import com.tracelytics.logging.LoggerFactory;
 import com.tracelytics.util.JavaRuntimeVersionChecker;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
-
 import javax.annotation.Nonnull;
 
 @AutoService({AutoConfigurationCustomizerProvider.class})
-public class OtelAutoConfigurationCustomizerProviderImpl implements AutoConfigurationCustomizerProvider {
-    private static final Logger logger = LoggerFactory.getLogger();
+public class OtelAutoConfigurationCustomizerProviderImpl
+    implements AutoConfigurationCustomizerProvider {
+  private static final Logger logger = LoggerFactory.getLogger();
 
-    private static boolean agentEnabled;
+  private static boolean agentEnabled;
 
-    static {
-        try {
-            agentEnabled = JavaRuntimeVersionChecker.isJdkVersionSupported();
-            if (agentEnabled) {
-                AppOpticsConfigurationLoader.load();
-            } else {
-                logger.warn(String.format("Unsupported Java runtime version: %s", System.getProperty("java.version")));
-            }
+  static {
+    try {
+      agentEnabled = JavaRuntimeVersionChecker.isJdkVersionSupported();
+      if (agentEnabled) {
+        AppOpticsConfigurationLoader.load();
+      } else {
+        logger.warn(
+            String.format(
+                "Unsupported Java runtime version: %s", System.getProperty("java.version")));
+      }
 
-        } catch (InvalidConfigException invalidConfigException) {
-            logger.warn("Error loading agent config", invalidConfigException);
-            agentEnabled = false;
-        }
-
-        if (!agentEnabled) {
-            logger.warn("Solarwinds' extension is disabled");
-        }
+    } catch (InvalidConfigException invalidConfigException) {
+      logger.warn("Error loading agent config", invalidConfigException);
+      agentEnabled = false;
     }
 
-    public static boolean isAgentEnabled() {
-        return agentEnabled;
+    if (!agentEnabled) {
+      logger.warn("Solarwinds' extension is disabled");
     }
+  }
 
-    public static void setAgentEnabled(boolean agentEnabled) {
-        OtelAutoConfigurationCustomizerProviderImpl.agentEnabled =
-                OtelAutoConfigurationCustomizerProviderImpl.agentEnabled && agentEnabled;
-    }
+  public static boolean isAgentEnabled() {
+    return agentEnabled;
+  }
 
-    @Override
-    public void customize(@Nonnull AutoConfigurationCustomizer autoConfiguration) {
-        autoConfiguration.addPropertiesSupplier(new AppOpticsPropertiesSupplier())
-                .addTracerProviderCustomizer(new AppOpticsTracerProviderCustomizer())
-                .addResourceCustomizer(new AutoConfiguredResourceCustomizer());
-    }
+  public static void setAgentEnabled(boolean agentEnabled) {
+    OtelAutoConfigurationCustomizerProviderImpl.agentEnabled =
+        OtelAutoConfigurationCustomizerProviderImpl.agentEnabled && agentEnabled;
+  }
 
-    @Override
-    public int order() {
-        // Here, we return Integer.MAX_VALUE to force our extension customization to execute last.
-        // See https://github.com/appoptics/solarwinds-apm-java/pull/93#discussion_r1165987329 for more context
-        return Integer.MAX_VALUE;
-    }
+  @Override
+  public void customize(@Nonnull AutoConfigurationCustomizer autoConfiguration) {
+    autoConfiguration
+        .addPropertiesSupplier(new AppOpticsPropertiesSupplier())
+        .addTracerProviderCustomizer(new AppOpticsTracerProviderCustomizer())
+        .addResourceCustomizer(new AutoConfiguredResourceCustomizer());
+  }
+
+  @Override
+  public int order() {
+    // Here, we return Integer.MAX_VALUE to force our extension customization to execute last.
+    // See https://github.com/appoptics/solarwinds-apm-java/pull/93#discussion_r1165987329 for more
+    // context
+    return Integer.MAX_VALUE;
+  }
 }
