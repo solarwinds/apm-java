@@ -16,7 +16,7 @@ public class PropertiesSupplier implements Supplier<Map<String, String>> {
   @Override
   public Map<String, String> get() {
     if (isLambda()) {
-      return Collections.emptyMap();
+      return Collections.singletonMap("otel.instrumentation.runtime-telemetry.enabled", "false");
     }
     return delegate.get();
   }
