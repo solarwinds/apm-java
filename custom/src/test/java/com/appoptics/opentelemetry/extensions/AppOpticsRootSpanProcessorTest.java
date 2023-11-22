@@ -1,5 +1,12 @@
 package com.appoptics.opentelemetry.extensions;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.appoptics.opentelemetry.core.RootSpan;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanKind;
@@ -17,45 +24,38 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class AppOpticsRootSpanProcessorTest {
 
-    @InjectMocks
-    private AppOpticsRootSpanProcessor tested;
+  @InjectMocks private AppOpticsRootSpanProcessor tested;
 
-    @Mock
-    private ReadWriteSpan readWriteSpanMock;
+  @Mock private ReadWriteSpan readWriteSpanMock;
 
-    @Captor
-    private ArgumentCaptor<String> stringArgumentCaptor;
+  @Captor private ArgumentCaptor<String> stringArgumentCaptor;
 
-    @Test
-    void verifyTransactionNameIsSetOnRootSpan() {
-        TestSpanData testSpanData = TestSpanData.builder()
-                .setName("test")
-                .setKind(SpanKind.SERVER)
-                .setStartEpochNanos(0)
-                .setEndEpochNanos(10000)
-                .setHasEnded(true)
-                .setStatus(StatusData.ok())
-                .setAttributes(Attributes.of(SemanticAttributes.HTTP_REQUEST_METHOD, "get"))
-                .build();
+  @Test
+  void verifyTransactionNameIsSetOnRootSpan() {
+    TestSpanData testSpanData =
+        TestSpanData.builder()
+            .setName("test")
+            .setKind(SpanKind.SERVER)
+            .setStartEpochNanos(0)
+            .setEndEpochNanos(10000)
+            .setHasEnded(true)
+            .setStatus(StatusData.ok())
+            .setAttributes(Attributes.of(SemanticAttributes.HTTP_REQUEST_METHOD, "get"))
+            .build();
 
-        MockedStatic<RootSpan> rootSpanMock = mockStatic(RootSpan.class);
-        rootSpanMock.when(() -> RootSpan.setRootSpan(eq(readWriteSpanMock))).thenAnswer(invocation -> null);
-        when(readWriteSpanMock.toSpanData()).thenReturn(testSpanData);
+    MockedStatic<RootSpan> rootSpanMock = mockStatic(RootSpan.class);
+    rootSpanMock
+        .when(() -> RootSpan.setRootSpan(eq(readWriteSpanMock)))
+        .thenAnswer(invocation -> null);
+    when(readWriteSpanMock.toSpanData()).thenReturn(testSpanData);
 
-        tested.onStart(Context.root(), readWriteSpanMock);
-        verify(readWriteSpanMock).setAttribute(stringArgumentCaptor.capture(), anyString());
+    tested.onStart(Context.root(), readWriteSpanMock);
+    verify(readWriteSpanMock).setAttribute(stringArgumentCaptor.capture(), anyString());
 
-        assertEquals("sw.transaction", stringArgumentCaptor.getValue());
-        rootSpanMock.close();
-    }
+    assertEquals("sw.transaction", stringArgumentCaptor.getValue());
+    rootSpanMock.close();
+  }
 }
