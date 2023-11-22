@@ -17,17 +17,19 @@ public class AppOpticsRootSpanProcessor implements SpanProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger();
 
-    @Override
-    public void onStart(@Nonnull Context parentContext, @Nonnull ReadWriteSpan span) {
-        SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
-        if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) { //then a root span of this service
-            RootSpan.setRootSpan(span);
-            String transactionName = TransactionNameManager.getTransactionName(span.toSpanData());
+  @Override
+  public void onStart(@Nonnull Context parentContext, @Nonnull ReadWriteSpan span) {
+    SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
+    if (!parentSpanContext.isValid()
+        || parentSpanContext.isRemote()) { // then a root span of this service
+      RootSpan.setRootSpan(span);
+      String transactionName = TransactionNameManager.getTransactionName(span.toSpanData());
 
-            span.setAttribute("sw.transaction", transactionName);
-            logger.debug(String.format("Transaction name derived on root span start: %s", transactionName));
-        }
+      span.setAttribute("sw.transaction", transactionName);
+      logger.debug(
+          String.format("Transaction name derived on root span start: %s", transactionName));
     }
+  }
 
   @Override
   public boolean isStartRequired() {

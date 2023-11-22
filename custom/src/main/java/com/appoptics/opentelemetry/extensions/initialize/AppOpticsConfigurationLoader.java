@@ -1,5 +1,7 @@
 package com.appoptics.opentelemetry.extensions.initialize;
 
+import static com.solarwinds.joboe.core.util.HostTypeDetector.isLambda;
+
 import com.appoptics.opentelemetry.extensions.TransactionNameManager;
 import com.appoptics.opentelemetry.extensions.initialize.config.BuildConfig;
 import com.appoptics.opentelemetry.extensions.initialize.config.ConfigConstants;
@@ -400,37 +402,40 @@ public class AppOpticsConfigurationLoader {
       }
     }
 
-    if (configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)
-        && !((String) configs.get(ConfigProperty.AGENT_SERVICE_KEY)).isEmpty()) {
-      // Customer access key (UUID)
-      String rawServiceKey = (String) configs.get(ConfigProperty.AGENT_SERVICE_KEY);
-      String serviceKey = ServiceKeyUtils.transformServiceKey(rawServiceKey);
+    if (!isLambda()) {
+      if (configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)
+          && !((String) configs.get(ConfigProperty.AGENT_SERVICE_KEY)).isEmpty()) {
+        // Customer access key (UUID)
+        String rawServiceKey = (String) configs.get(ConfigProperty.AGENT_SERVICE_KEY);
+        String serviceKey = ServiceKeyUtils.transformServiceKey(rawServiceKey);
 
-      if (!serviceKey.equalsIgnoreCase(rawServiceKey)) {
-        logger.warn(
-            "Invalid service name detected in service key, the service key is transformed to "
-                + ServiceKeyUtils.maskServiceKey(serviceKey));
-        configs.put(ConfigProperty.AGENT_SERVICE_KEY, serviceKey, true);
-      }
-      logger.debug("Service key (masked) is [" + ServiceKeyUtils.maskServiceKey(serviceKey) + "]");
+        if (!serviceKey.equalsIgnoreCase(rawServiceKey)) {
+          logger.warn(
+              "Invalid service name detected in service key, the service key is transformed to "
+                  + ServiceKeyUtils.maskServiceKey(serviceKey));
+          configs.put(ConfigProperty.AGENT_SERVICE_KEY, serviceKey, true);
+        }
+        logger.debug(
+            "Service key (masked) is [" + ServiceKeyUtils.maskServiceKey(serviceKey) + "]");
 
-    } else {
-      if (!configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)) {
-        logger.warn(
-            "Could not find the service key! Please specify "
-                + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey()
-                + " in "
-                + CONFIG_FILE
-                + " or via env variable.");
-        throw new InvalidConfigServiceKeyException("Service key not found");
       } else {
-        logger.warn(
-            "Service key is empty! Please specify "
-                + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey()
-                + " in "
-                + CONFIG_FILE
-                + " or via env variable.");
-        throw new InvalidConfigServiceKeyException("Service key is empty");
+        if (!configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)) {
+          logger.warn(
+              "Could not find the service key! Please specify "
+                  + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey()
+                  + " in "
+                  + CONFIG_FILE
+                  + " or via env variable.");
+          throw new InvalidConfigServiceKeyException("Service key not found");
+        } else {
+          logger.warn(
+              "Service key is empty! Please specify "
+                  + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey()
+                  + " in "
+                  + CONFIG_FILE
+                  + " or via env variable.");
+          throw new InvalidConfigServiceKeyException("Service key is empty");
+        }
       }
     }
 
