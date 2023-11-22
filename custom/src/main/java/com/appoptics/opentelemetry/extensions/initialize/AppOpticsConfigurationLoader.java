@@ -1,5 +1,7 @@
 package com.appoptics.opentelemetry.extensions.initialize;
 
+import static com.tracelytics.util.HostTypeDetector.isLambda;
+
 import com.appoptics.opentelemetry.extensions.TransactionNameManager;
 import com.appoptics.opentelemetry.extensions.initialize.config.BuildConfig;
 import com.appoptics.opentelemetry.extensions.initialize.config.ConfigConstants;
@@ -52,8 +54,6 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import lombok.Getter;
-
-import static com.tracelytics.util.HostTypeDetector.isLambda;
 
 public class AppOpticsConfigurationLoader {
   private static final Logger logger = LoggerFactory.getLogger();
@@ -401,27 +401,41 @@ public class AppOpticsConfigurationLoader {
     }
 
     if (!isLambda()) {
-            if (configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY) && !"".equals(configs.get(ConfigProperty.AGENT_SERVICE_KEY))) {
-                // Customer access key (UUID)
-                String rawServiceKey = (String) configs.get(ConfigProperty.AGENT_SERVICE_KEY);
-                String serviceKey = ServiceKeyUtils.transformServiceKey(rawServiceKey);
+      if (configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)
+          && !"".equals(configs.get(ConfigProperty.AGENT_SERVICE_KEY))) {
+        // Customer access key (UUID)
+        String rawServiceKey = (String) configs.get(ConfigProperty.AGENT_SERVICE_KEY);
+        String serviceKey = ServiceKeyUtils.transformServiceKey(rawServiceKey);
 
-                if (!serviceKey.equalsIgnoreCase(rawServiceKey)) {
-                    logger.warn("Invalid service name detected in service key, the service key is transformed to " + ServiceKeyUtils.maskServiceKey(serviceKey));
-                    configs.put(ConfigProperty.AGENT_SERVICE_KEY, serviceKey, true);
-                }
-                logger.debug("Service key (masked) is [" + ServiceKeyUtils.maskServiceKey(serviceKey) + "]");
-
-            } else {
-                if (!configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)) {
-                    logger.warn("Could not find the service key! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in " + CONFIG_FILE + " or via env variable.");
-                    throw new InvalidConfigServiceKeyException("Service key not found");
-                } else {
-                    logger.warn("Service key is empty! Please specify " + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey() + " in " + CONFIG_FILE + " or via env variable.");
-                    throw new InvalidConfigServiceKeyException("Service key is empty");
-                }
-            }
+        if (!serviceKey.equalsIgnoreCase(rawServiceKey)) {
+          logger.warn(
+              "Invalid service name detected in service key, the service key is transformed to "
+                  + ServiceKeyUtils.maskServiceKey(serviceKey));
+          configs.put(ConfigProperty.AGENT_SERVICE_KEY, serviceKey, true);
         }
+        logger.debug(
+            "Service key (masked) is [" + ServiceKeyUtils.maskServiceKey(serviceKey) + "]");
+
+      } else {
+        if (!configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)) {
+          logger.warn(
+              "Could not find the service key! Please specify "
+                  + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey()
+                  + " in "
+                  + CONFIG_FILE
+                  + " or via env variable.");
+          throw new InvalidConfigServiceKeyException("Service key not found");
+        } else {
+          logger.warn(
+              "Service key is empty! Please specify "
+                  + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey()
+                  + " in "
+                  + CONFIG_FILE
+                  + " or via env variable.");
+          throw new InvalidConfigServiceKeyException("Service key is empty");
+        }
+      }
+    }
 
     TraceConfigs traceConfigs = null;
     if (configs.containsProperty(ConfigProperty.AGENT_TRANSACTION_SETTINGS)) {
