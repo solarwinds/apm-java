@@ -1,0 +1,7 @@
+#!/bin/bash
+export JAVA_TOOL_OPTIONS="-javaagent:/opt/solarwinds-apm-agent.jar ${JAVA_TOOL_OPTIONS}"
+
+export OTEL_INSTRUMENTATION_AWS_LAMBDA_FLUSH_TIMEOUT=10000
+
+CMD="$(echo "$@" | sed 's/-Xshare:on/-Xshare:auto/g')"
+exec $CMD
