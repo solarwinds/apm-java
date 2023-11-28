@@ -124,6 +124,16 @@ tasks {
   }
 }
 
+tasks.register("lambda-layer", Zip) {
+  archiveFileName.set("layer.zip")
+  destinationDirectory.set(file("$buildDir/lambda-layer"))
+
+  from("$buildDir/libs") {
+    include("solarwinds-apm-agent.jar")
+  }
+  from("lambda")
+}
+
 tasks.register('sourcesJar', Jar) {
   from('.') {
     include 'SOURCES_DOC_README'
