@@ -2,6 +2,7 @@ version: 2.1 # use CircleCI 2.1
 orbs:
   aws-util: solarwindscloud/aws@0
   win: circleci/windows@5.0
+  aws-cli: circleci/aws-cli@4.1.2
   ghas: solarwinds-cloud/ghas@0.1.1
 
 envs: &default-envs
@@ -78,6 +79,62 @@ commands:
           name: Docker logout
           command: docker logout
 jobs:
+  lambda-publish-stage:
+    executor: linux
+    steps:
+      - checkout
+      - aws-cli/install
+      - run:
+          name: Build agent
+          command: ./gradlew clean build -x test
+      - run:
+          name: Create zip
+          command: ./gradlew :agent:lambda-layer
+      - run:
+          # this step adds the script stored in .circleci/version.sh to the BASH startup script so the agent version is available
+          # for subsequent steps
+          name: Store version
+          command: |
+            cat .circleci/version.sh >> $BASH_ENV
+      - run:
+          name: Create lambda layer
+          command: |
+            regions=(
+            "us-east-1" 
+            "ap-northeast-1"
+            "ap-northeast-2"
+            "ap-south-1"
+            "ap-southeast-1"
+            "ap-southeast-2"
+            "ca-central-1"
+            "eu-central-1"
+            "eu-north-1"
+            "eu-west-1"
+            "eu-west-2"
+            "eu-west-3"
+            "sa-east-1"
+            "us-east-1"
+            "us-east-2"
+            "us-west-1"
+            "us-west-2")
+            
+            VERSION=$(echo "$AGENTVERSION" | sed 's/[.]/_/g')
+            LAYER_NAME="solarwinds-apm-java-$VERSION"
+            touch arns.txt
+            
+            for region in "${regions[@]}"; do
+              aws lambda publish-layer-version \
+                          --layer-name $LAYER_NAME \
+                          --compatible-runtimes "java17" "java11" "java8.al2" "java8" \
+                          --compatible-architectures "x86_64" "arm64"
+                          --description "Solarwinds' apm java lambda instrumentation layer, version: $AGENTVERSION" \
+                          --region "$region"\
+                          --zip-file fileb://agent/build/lambda-layer/layer.zip \
+                          --query 'LayerVersionArn' \
+                          --output text >> arns.txt
+            done
+      - store_artifacts:
+          path: arns.txt
   benchmark:
     executor: linux
     environment:
@@ -164,7 +221,7 @@ jobs:
           name: Check shading
           command: |
             code=0
-            for path in $(jar -tf agent/build/libs/solarwinds-apm-agent.jar | grep -E -v '^((com/solarwinds|com/appoptics|com/solarwinds|inst|io/open|META))')
+            for path in $(jar -tf agent/build/libs/solarwinds-apm-agent.jar | grep -E -v '^((com/solarwinds|com/appoptics|inst|io/open|META))')
             do
               PACKAGE=$(echo "$path" | awk -F/ '{print $2}')
               if [ -n "$PACKAGE" ] && [ "$PACKAGE" != "annotation" ]; then
@@ -396,6 +453,22 @@ workflows:
   benchmarking:
     jobs:
       - benchmark:
+          context:
+            - AWS_CIRCLE_CI_BUILD
+            - solarwinds-cloud-github-read-access
+  lambda-build:
+    jobs:
+      - lambda-publish-stage:
+          context:
+            - AWS_CIRCLE_CI_BUILD
+            - solarwinds-cloud-github-read-access
+            - aws-apm-lambda-agent-publish
+          requires:
+            - test
+          filters:
+            branches:
+              only: cc/lambda-pr
+      - test:
           context:
             - AWS_CIRCLE_CI_BUILD
             - solarwinds-cloud-github-read-access

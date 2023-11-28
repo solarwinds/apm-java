@@ -1,0 +1,15 @@
+{
+  "agent.logging": "info",
+  "monitor.jmx.enable": false,
+  "profiler": {
+    "enabled": false,
+    "excludePackages": [
+      "java",
+      "javax",
+      "com.sun",
+      "sun",
+      "sunw"
+    ],
+    "interval": 20
+  }
+}
