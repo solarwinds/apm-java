@@ -68,9 +68,10 @@ public class InboundMeasurementMetricsGenerator implements SpanProcessor {
       AttributesBuilder responseTimeAttr = Attributes.builder();
 
       if (status != null) {
-        requestCounterAttr.put(SemanticAttributes.HTTP_RESPONSE_STATUS_CODE, status);
-        requestErrorCounterAttr.put(SemanticAttributes.HTTP_RESPONSE_STATUS_CODE, status);
-        responseTimeAttr.put(SemanticAttributes.HTTP_RESPONSE_STATUS_CODE, status);
+        String key = "http.status_code";
+        requestCounterAttr.put(key, status);
+        requestErrorCounterAttr.put(key, status);
+        responseTimeAttr.put(key, status);
       }
 
       final String method = spanData.getAttributes().get(SemanticAttributes.HTTP_REQUEST_METHOD);
@@ -82,23 +83,24 @@ public class InboundMeasurementMetricsGenerator implements SpanProcessor {
         responseTimeAttr.put(methodKey, method);
       }
 
+      String errorKey = "sw.is_error";
+      String transactionKey = "sw.transaction";
       if (hasError) {
-        requestCounterAttr.put("sw.is_error", "true");
-        requestErrorCounterAttr.put("sw.is_error", "true");
-        responseTimeAttr.put("sw.is_error", "true");
+        requestCounterAttr.put(errorKey, "true");
+        requestErrorCounterAttr.put(errorKey, "true");
+        responseTimeAttr.put(errorKey, "true");
 
         requestErrorCounter.add(
-            1, requestErrorCounterAttr.put("sw.transaction", transactionName).build());
+            1, requestErrorCounterAttr.put(transactionKey, transactionName).build());
 
       } else {
-        requestCounterAttr.put("sw.is_error", "false");
-        requestErrorCounterAttr.put("sw.is_error", "false");
-        responseTimeAttr.put("sw.is_error", "false");
+        requestCounterAttr.put(errorKey, "false");
+        requestErrorCounterAttr.put(errorKey, "false");
+        responseTimeAttr.put(errorKey, "false");
       }
 
-      requestCounter.add(1, requestCounterAttr.put("sw.transaction", transactionName).build());
-      responseTime.record(
-          duration, responseTimeAttr.put("sw.transaction", transactionName).build());
+      requestCounter.add(1, requestCounterAttr.put(transactionKey, transactionName).build());
+      responseTime.record(duration, responseTimeAttr.put(transactionKey, transactionName).build());
     }
   }
 
