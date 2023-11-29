@@ -61,7 +61,7 @@ public class AppOpticsAgentListener implements AgentListener {
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk openTelemetrySdk) {
-    if (isLambda()) {
+    if (isLambda() && isAgentEnabled()) {
       try {
         SettingsManager.initialize();
       } catch (ClientException clientException) {
