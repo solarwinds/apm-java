@@ -123,6 +123,7 @@ jobs:
             for region in "${regions[@]}"; do
               aws lambda publish-layer-version \
                           --layer-name $LAYER_NAME \
+                          --principal '*' \
                           --compatible-runtimes "java17" "java11" "java8.al2" "java8" \
                           --compatible-architectures "x86_64" "arm64" \
                           --description "Solarwinds' apm java lambda instrumentation layer, version: $AGENTVERSION" \
