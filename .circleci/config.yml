@@ -124,9 +124,9 @@ jobs:
               aws lambda publish-layer-version \
                           --layer-name $LAYER_NAME \
                           --compatible-runtimes "java17" "java11" "java8.al2" "java8" \
-                          --compatible-architectures "x86_64" "arm64"
+                          --compatible-architectures "x86_64" "arm64" \
                           --description "Solarwinds' apm java lambda instrumentation layer, version: $AGENTVERSION" \
-                          --region "$region"\
+                          --region "$region" \
                           --zip-file fileb://agent/build/lambda-layer/layer.zip \
                           --query 'LayerVersionArn' \
                           --output text >> arns.txt
