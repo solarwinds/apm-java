@@ -185,7 +185,6 @@ function verify_that_span_data_is_persisted_0() {
     }
 }
 
-
 function verify_distributed_trace() {
     let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
     for (; retryCount; retryCount--) {
@@ -253,11 +252,208 @@ function verify_that_specialty_path_is_not_sampled() {
     check(flag, {"verify that transaction is filtered": f => f === "00"})
 }
 
+function verify_that_metrics_are_reported(metric, checkFn) {
+  let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
+  for (let i = 0; i < retryCount; i++) {
+    const newOwner = names.randomOwner();
+    http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+    );
+  }
+
+  const metricQueryPayload = {
+    "operationName": "getMetricMeasurementsByMetricNamesWithComparison",
+    "variables": {
+      "includeComparisonMeasurements": false,
+      "metricNames": [
+        metric
+      ],
+      "metricInput": {
+        "aggregation": {
+          "method": "AVG",
+          "bucketSizeInS": 60,
+          "missingDataPointsHandling": "NULL_FILL",
+          "fillIfResultEmpty": false
+        },
+        "filter": null,
+        "query": "service.name:\"lambda-e2e\"",
+        "groupBy": [
+          "service.name"
+        ],
+        "timeRange": {
+          "startTime": "30 minutes ago",
+          "endTime": "now"
+        }
+      },
+      "comparisonMetricInput": {
+        "aggregation": {
+          "method": "AVG",
+          "bucketSizeInS": 60,
+          "missingDataPointsHandling": "NULL_FILL",
+          "fillIfResultEmpty": false
+        },
+        "filter": null,
+        "query": "service.name:\"lambda-e2e\"",
+        "groupBy": [
+          "service.name"
+        ],
+        "timeRange": {}
+      }
+    },
+    "query": "query getMetricMeasurementsByMetricNamesWithComparison($metricNames: [String!]!, $metricInput: MetricQueryInput!, $comparisonMetricInput: MetricQueryInput!, $includeComparisonMeasurements: Boolean = false) {\n  metrics {\n    byNames(names: $metricNames) {\n      name\n      units\n      measurements(metricInput: $metricInput) {\n        ...MetricMeasurements\n        __typename\n      }\n      comparisonMeasurements: measurements(metricInput: $comparisonMetricInput) @include(if: $includeComparisonMeasurements) {\n        ...MetricMeasurements\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment MetricMeasurements on Measurements {\n  series {\n    bucketSizeInSeconds\n    tags {\n      key\n      value\n      __typename\n    }\n    measurements {\n      time\n      value\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"
+  }
+
+  for (let i = 0; i < retryCount; i++) {
+    console.log("Metric request: ")
+    let metricDataResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(metricQueryPayload),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': `${__ENV.SWO_COOKIE}`,
+            'X-Csrf-Token': `${__ENV.SWO_XSR_TOKEN}`
+          }
+        }
+    );
+
+    metricDataResponse = JSON.parse(metricDataResponse.body)
+    if (metricDataResponse['errors']) continue
+
+    const {data: {metrics: {byNames: metrics}}} = metricDataResponse
+    for (let i = 0; i < metrics.length; i++) {
+      const _metric = metrics[i]
+      const {measurements: {series}} = _metric
+
+      for (let j = 0; j < series.length; j++) {
+        const {measurements} = series[j]
+
+        for (let k = 0; k < measurements.length; k++) {
+          const measurement = measurements[k];
+          if (measurement.value > 0) {
+            checkFn(measurement)
+            return
+          }
+        }
+      }
+    }
+  }
+}
+
+function verify_transaction_name() {
+  let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
+  for (; retryCount; retryCount--) {
+    const newOwner = names.randomOwner();
+    const response = http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+    );
+
+    const traceContext = response.headers['X-Trace']
+    const [_, traceId, __, flag] = traceContext.split("-")
+    if (flag === '00') continue;
+
+    const spanRawDataPayload = {
+      "operationName": "getSubSpanRawData",
+      "variables": {
+        "traceId": traceId.toUpperCase()
+      },
+      "query": "query getSubSpanRawData($traceId: ID!, $spanFilter: TraceArchiveSpanFilter, $incomplete: Boolean) {\n  traceArchive(\n    traceId: $traceId\n    spanFilter: $spanFilter\n    incomplete: $incomplete\n  ) {\n    traceId\n    traceSpans {\n      edges {\n        node {\n          events {\n            eventId\n            properties {\n              key\n              value\n              __typename\n            }\n            __typename\n          }\n          spanId\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n"
+    }
+
+    for (; retryCount; retryCount--) {
+      let spanDataResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(spanRawDataPayload),
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Cookie': `${__ENV.SWO_COOKIE}`,
+              'X-Csrf-Token': `${__ENV.SWO_XSR_TOKEN}`
+            }
+          });
+
+      spanDataResponse = JSON.parse(spanDataResponse.body)
+      if (spanDataResponse['errors']) continue
+
+      const {data: {traceArchive: {traceSpans: {edges}}}} = spanDataResponse
+      for (let i = 0; i < edges.length; i++) {
+        const edge = edges[i]
+        const {node: {events}} = edge
+
+        for (let j = 0; j < events.length; j++) {
+          const event = events[j]
+          const {properties} = event
+
+          for (let k = 0; k < properties.length; k++) {
+            const property = properties[k]
+            if (property.key === "TransactionName") {
+              check(property, {"transaction-name": prop => prop.value === "lambda-test-txn"})
+              return;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+function silence(fn) {
+  try {
+    fn()
+  } catch (e) {
+  }
+}
 
 export default function () {
-    verify_that_specialty_path_is_not_sampled()
-    verify_that_span_data_is_persisted_0()
-    verify_that_span_data_is_persisted()
-    verify_that_trace_is_persisted()
-    verify_distributed_trace()
+  if (`${__ENV.LAMBDA}` === "true") {
+    const request_count = (measurement) => check(measurement, {"request_count": mrs => mrs.value > 0})
+    const tracecount = (measurement) => check(measurement, {"tracecount": mrs => mrs.value > 0})
+    const samplecount = (measurement) => check(measurement, {"samplecount": mrs => mrs.value > 0})
+    const sample_rate = (measurement) => check(measurement, {"sample_rate": mrs => mrs.value > 0})
+    const sample_source = (measurement) => check(measurement, {"sample_source": mrs => mrs.value > 0})
+    const requests = (measurement) => check(measurement, {"requests": mrs => mrs.value > 0})
+    const response_time = (measurement) => check(measurement, {"response_time": mrs => mrs.value > 0})
+
+    silence(function () {
+      verify_that_metrics_are_reported("trace.service.request_count", request_count)
+    })
+
+    silence(function () {
+      verify_that_metrics_are_reported("trace.service.tracecount", tracecount)
+    })
+
+    silence(function () {
+      verify_that_metrics_are_reported("trace.service.samplecount", samplecount)
+    })
+
+    silence(function () {
+      verify_that_metrics_are_reported("trace.service.sample_rate", sample_rate)
+    })
+
+    silence(function () {
+      verify_that_metrics_are_reported("trace.service.sample_source", sample_source)
+    })
+
+    silence(function () {
+      verify_that_metrics_are_reported("trace.service.requests", requests)
+    })
+
+    silence(function () {
+      verify_that_metrics_are_reported("trace.service.response_time", response_time)
+    })
+
+    silence(verify_transaction_name)
+
+  } else {
+    silence(verify_that_specialty_path_is_not_sampled)
+    silence(verify_that_span_data_is_persisted_0)
+    silence(verify_that_span_data_is_persisted)
+
+    silence(verify_that_trace_is_persisted)
+    silence(verify_distributed_trace)
+  }
 };

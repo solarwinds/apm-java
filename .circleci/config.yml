@@ -79,6 +79,27 @@ commands:
           name: Docker logout
           command: docker logout
 jobs:
+  lambda-release-test:
+    executor: linux
+    environment:
+      LAMBDA: "true"
+    steps:
+      - install-jdk-17
+      - checkout
+      - run:
+          name: Build smoke-test
+          command: |
+            cd smoke-tests
+            ./gradlew build -x test
+      - docker-login
+      - run:
+          name: Execute smoke tests
+          command: |
+            cd smoke-tests
+            ./gradlew test
+      - store_artifacts:
+          path: smoke-tests/build/reports/tests/test
+      - docker-logout
   lambda-publish-stage:
     executor: linux
     steps:
@@ -154,6 +175,8 @@ jobs:
       - docker-logout
   release-test:
     executor: linux
+    environment:
+      LAMBDA: "false"
     steps:
       - install-jdk-17
       - checkout
@@ -465,6 +488,7 @@ workflows:
             - aws-apm-lambda-agent-publish
           requires:
             - test
+            - lambda-release-test
           filters:
             branches:
               only: cc/lambda-pr
@@ -472,6 +496,23 @@ workflows:
           context:
             - AWS_CIRCLE_CI_BUILD
             - solarwinds-cloud-github-read-access
+      - s3-stage-upload:
+          context:
+            - AWS_CIRCLE_CI
+            - AWS_CIRCLE_CI_BUILD
+            - solarwinds-cloud-github-read-access
+            - SLACK_HOOK
+            - apm-s3-publishing
+          filters:
+            branches:
+              only: cc/lambda-pr
+      - lambda-release-test:
+          context:
+            - AWS_CIRCLE_CI_BUILD
+            - solarwinds-cloud-github-read-access
+            - java-apm-smoke-test
+          requires:
+            - s3-stage-upload
   code-scanning:
     jobs:
       - ghas/codeql:
