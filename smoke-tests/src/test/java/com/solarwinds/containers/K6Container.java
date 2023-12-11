@@ -47,6 +47,7 @@ public class K6Container {
             .withEnv("SWO_HOST_URL", System.getenv("SWO_HOST_URL"))
             .withEnv("SWO_COOKIE", System.getenv("SWO_COOKIE"))
             .withEnv("SWO_XSR_TOKEN", System.getenv("SWO_XSR_TOKEN"))
+            .withEnv("LAMBDA", System.getenv("LAMBDA"))
         .withCommand(
             "run",
             "-u",
