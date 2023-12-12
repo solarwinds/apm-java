@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: AWS SAM Template for Lambda Layer
+Parameters:
+  LayerName:
+    Type: String
+    Description: Lambda layer name to be published
+    Default: solarwinds-apm-java
+Resources:
+  SolarwindsJava:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Ref LayerName
+      Description: Solarwinds' apm java lambda instrumentation layer
+      ContentUri: ../build/lambda-layer/layer.zip
+      CompatibleRuntimes:
+        - java17
+        - java11 
+        - java8.al2
+        - java8
+
+Outputs:
+  LayerArn:
+    Value: !Ref SolarwindsJava
