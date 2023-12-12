@@ -3,6 +3,7 @@ orbs:
   aws-util: solarwindscloud/aws@0
   win: circleci/windows@5.0
   aws-cli: circleci/aws-cli@4.1.2
+  sam: circleci/aws-sam-serverless@5.0
 
 envs: &default-envs
   PROJECT_NAME: solarwinds-apm-java
@@ -104,6 +105,7 @@ jobs:
       - checkout
       - aws-cli/setup:
           role_arn: ${AWS_LAMBDA_ROLE}
+      - sam/install
       - run:
           name: Build agent
           command: ./gradlew clean build -x test
@@ -142,15 +144,15 @@ jobs:
             touch arns.txt
             
             for region in "${regions[@]}"; do
-              aws lambda publish-layer-version \
-                          --layer-name $LAYER_NAME \
-                          --compatible-runtimes "java17" "java11" "java8.al2" "java8" \
-                          --compatible-architectures "x86_64" "arm64" \
-                          --description "Solarwinds' apm java lambda instrumentation layer, version: $AGENTVERSION" \
-                          --region "$region" \
-                          --zip-file fileb://agent/build/lambda-layer/layer.zip \
-                          --query 'LayerVersionArn' \
-                          --output text >> arns.txt
+              sam deploy --resolve-s3 \
+                  --stack-name "solarwinds-java-lambda-layer-stack" \
+                  --region "$region" \
+                  --capabilities CAPABILITY_NAMED_IAM \
+                  --parameter-overrides LayerName="$LAYER_NAME" \
+                  --template agent/lambda/sam-template.yml
+            
+              arn=$(aws lambda list-layer-versions --layer-name "$LAYER_NAME" --region "$region" --query 'max_by(LayerVersions, &Version).LayerVersionArn')
+              echo "${arn//\"/}"  >> arns.txt
             done
       - store_artifacts:
           path: arns.txt
