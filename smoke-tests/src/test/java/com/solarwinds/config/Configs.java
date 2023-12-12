@@ -7,7 +7,6 @@ package com.solarwinds.config;
 
 
 import com.solarwinds.agents.Agent;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Stream;
@@ -17,14 +16,23 @@ import java.util.stream.Stream;
  */
 public enum Configs {
   E2E(
-          TestConfig.builder()
-                  .name("E2E")
-                  .description("Smoke tests java apm agent end-to-end with the backend")
-                  .agents(Collections.singletonList(Agent.SWO_JAVA_AGENT))
-                  .concurrentConnections(2)
-                  .totalIterations(100)
-                  .warmupSeconds(60)
-                  .build());
+      TestConfig.builder()
+          .name("E2E")
+          .description("Smoke tests java apm agent end-to-end with the backend")
+          .agents(Collections.singletonList(Agent.SWO_JAVA_AGENT))
+          .concurrentConnections(2)
+          .totalIterations(100)
+          .warmupSeconds(60)
+          .build()),
+  LAMBDA_E2E(
+      TestConfig.builder()
+          .name("LAMBDA_E2E")
+          .description("Smoke tests java apm agent end-to-end with the backend")
+          .agents(Collections.singletonList(Agent.SWO_JAVA_AGENT))
+          .concurrentConnections(1)
+          .totalIterations(5)
+          .warmupSeconds(60)
+          .build());
 
   public final TestConfig config;
 

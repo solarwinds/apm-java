@@ -1,37 +1,25 @@
 package com.solarwinds.agents;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Objects;
 import java.util.Optional;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
-public class SwoAgentResolver implements AgentResolver {
+public class SwoLambdaAgentResolver implements AgentResolver {
     private static final String NH_URL = "https://agent-binaries.global.st-ssp.solarwinds.com/apm/java/latest/solarwinds-apm-agent.jar";
     private static final String NH_AGENT_JAR_NAME = "solarwinds-apm-agent.jar";
 
-  private final AgentResolver delegate;
-
-  public SwoAgentResolver() {
-    this(null);
-  }
-
-  public SwoAgentResolver(AgentResolver delegate) {this.delegate = delegate;}
-
-  public Optional<Path> resolve(Agent agent) {
-    if (Objects.equals(System.getenv("LAMBDA"), "true")) {
-      return delegate.resolve(agent);
+    public Optional<Path> resolve(Agent agent) {
+        return Optional.ofNullable(downloadAgent());
     }
 
-    return Optional.ofNullable(downloadAgent());
-  }
-
-  private Path downloadAgent() {
+    private Path downloadAgent() {
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder().url(NH_URL)
                 .header("Accept", "application/octet-stream").build();
@@ -51,5 +39,5 @@ public class SwoAgentResolver implements AgentResolver {
             return null;
         }
         return path;
-  }
+    }
 }
