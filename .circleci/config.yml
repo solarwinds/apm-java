@@ -243,6 +243,15 @@ jobs:
             aws s3 cp s3://ssp-stage-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-config.json \
             s3://ssp-stage-global-agent-binaries/apm/java/latest/solarwinds-apm-config.json \
             --acl public-read
+            
+            touch VERSION
+            echo "version: $AGENTVERSION" >> VERSION
+            SHA256=$(sha256sum agent/build/libs/solarwinds-apm-agent.jar)
+            echo "sha256: $SHA256" >> VERSION
+            
+            aws s3 cp VERSION \
+            s3://ssp-stage-global-agent-binaries/apm/java/latest/VERSION \
+            --acl public-read
       - run:
           name: Send to slack
           command: |
@@ -288,6 +297,15 @@ jobs:
 
             aws s3 cp s3://ssp-prod-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-config.json \
             s3://ssp-prod-global-agent-binaries/apm/java/latest/solarwinds-apm-config.json \
+            --acl public-read
+            
+            touch VERSION
+            echo "version: $AGENTVERSION" >> VERSION
+            SHA256=$(sha256sum agent/build/libs/solarwinds-apm-agent.jar)
+            echo "sha256: $SHA256" >> VERSION
+            
+            aws s3 cp VERSION \
+            s3://ssp-stage-global-agent-binaries/apm/java/latest/VERSION \
             --acl public-read
       - run:
           name: Send to slack
