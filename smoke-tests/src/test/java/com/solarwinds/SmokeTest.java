@@ -41,7 +41,8 @@ public class SmokeTest {
                     "Completed operation \\[post init message\\] with Result code \\[OK\\] arg",
                     "hostId:.*[0-9a-z-]+", "Extension attached!","Created collector client  : collector.appoptics.com:443",
                     "trace_id=[a-z0-9]+\\s+span_id=[a-z0-9]+\\s+trace_flags=(01|00)",
-                    "This log line is used for validation only: service.name: java-apm-smoke-test")
+                    "This log line is used for validation only: service.name: java-apm-smoke-test",
+                    "Clearing transaction name buffer. Unique transaction count: \\d+")
             , new Slf4jLogConsumer(LoggerFactory.getLogger("k6")));
 
 
@@ -208,6 +209,12 @@ public class SmokeTest {
     void assertServiceNameIsSameAsOneInServiceKey() {
         Boolean actual = logStreamAnalyzer.getAnswer().get("This log line is used for validation only: service.name: java-apm-smoke-test");
         assertTrue(actual, "service.name is not updated with name in service key");
+    }
+
+    @Test
+    void assertThatTransactionNameBufferIsCleared() {
+        Boolean actual = logStreamAnalyzer.getAnswer().get("Clearing transaction name buffer. Unique transaction count: \\d+");
+        assertTrue(actual, "Transaction name buffer is not getting cleared on metric flush");
     }
 
 }

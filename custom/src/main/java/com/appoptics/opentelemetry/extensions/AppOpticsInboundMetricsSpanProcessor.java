@@ -51,7 +51,10 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
   }
 
   public static SpanMetricsCollector buildSpanMetricsCollector() {
-    return new SpanMetricsCollector(MEASUREMENT_REPORTER, HISTOGRAM_REPORTER);
+    SpanMetricsCollector spanMetricsCollector =
+        new SpanMetricsCollector(MEASUREMENT_REPORTER, HISTOGRAM_REPORTER);
+    spanMetricsCollector.setMetricFlushListener(TransactionNameManager::clearTransactionNames);
+    return spanMetricsCollector;
   }
 
   @Override

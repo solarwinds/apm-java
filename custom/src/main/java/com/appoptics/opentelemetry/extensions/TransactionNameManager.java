@@ -343,6 +343,10 @@ public class TransactionNameManager {
   }
 
   public static void clearTransactionNames() {
+    logger.trace(
+        String.format(
+            "Clearing transaction name buffer. Unique transaction count: %d. Note: This log line is used for validation",
+            EXISTING_TRANSACTION_NAMES.size()));
     synchronized (EXISTING_TRANSACTION_NAMES) {
       EXISTING_TRANSACTION_NAMES.clear();
 
