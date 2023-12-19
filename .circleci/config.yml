@@ -2,6 +2,7 @@ version: 2.1 # use CircleCI 2.1
 orbs:
   aws-util: solarwindscloud/aws@0
   win: circleci/windows@5.0
+  ghas: solarwinds-cloud/ghas@0.1.1
 
 envs: &default-envs
   PROJECT_NAME: solarwinds-apm-java
@@ -11,6 +12,7 @@ envs: &default-envs
 
 executors:
   java:
+    resource_class: xlarge
     parameters:
       tag:
         type: string
@@ -397,3 +399,19 @@ workflows:
           context:
             - AWS_CIRCLE_CI_BUILD
             - librato-github-read-access
+  code-scanning:
+    jobs:
+      - ghas/codeql:
+          executor: java
+          checkout: true
+          category: solarwinds-apm-java-scan
+          build_steps:
+            - run:
+                name: Build project
+                command:  ./gradlew clean build -x test
+          language: java
+          suite: security-extended
+          context:
+            - ghas-code-scanning
+            - AWS_CIRCLE_CI_BUILD
+            - solarwinds-cloud-github-write-access
