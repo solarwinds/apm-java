@@ -410,7 +410,7 @@ workflows:
                 name: Build project
                 command:  ./gradlew clean build -x test
           language: java
-          suite: security-extended
+          suite: security-and-quality
           context:
             - ghas-code-scanning
             - AWS_CIRCLE_CI_BUILD
