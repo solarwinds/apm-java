@@ -11,7 +11,7 @@ apply from: "$rootDir/gradle/instrumentation.gradle"
 
 dependencies {
   compileOnly project(":bootstrap")
-  compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
+  compileOnly "com.solarwinds.joboe:core:${versions.appopticsCore}"
   compileOnly "io.opentelemetry:opentelemetry-sdk-trace:${versions.opentelemetry}"
   compileOnly "io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}"
 

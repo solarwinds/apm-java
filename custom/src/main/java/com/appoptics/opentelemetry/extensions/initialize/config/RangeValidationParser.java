@@ -1,7 +1,7 @@
 package com.appoptics.opentelemetry.extensions.initialize.config;
 
-import com.tracelytics.joboe.config.ConfigParser;
-import com.tracelytics.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.config.ConfigParser;
+import com.solarwinds.joboe.config.InvalidConfigException;
 
 public class RangeValidationParser<T extends Comparable> implements ConfigParser<T, T> {
   private final T min;

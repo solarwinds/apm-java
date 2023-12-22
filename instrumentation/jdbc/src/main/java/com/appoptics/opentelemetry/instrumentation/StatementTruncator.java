@@ -1,9 +1,9 @@
 package com.appoptics.opentelemetry.instrumentation;
 
-import com.tracelytics.joboe.config.ConfigManager;
-import com.tracelytics.joboe.config.ConfigProperty;
-import com.tracelytics.logging.Logger;
-import com.tracelytics.logging.LoggerFactory;
+import com.solarwinds.joboe.config.ConfigManager;
+import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.logging.Logger;
+import com.solarwinds.logging.LoggerFactory;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;

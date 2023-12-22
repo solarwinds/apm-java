@@ -1,7 +1,7 @@
 package com.appoptics.opentelemetry.extensions.initialize.config;
 
-import com.tracelytics.joboe.config.ConfigParser;
-import com.tracelytics.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.config.ConfigParser;
+import com.solarwinds.joboe.config.InvalidConfigException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;

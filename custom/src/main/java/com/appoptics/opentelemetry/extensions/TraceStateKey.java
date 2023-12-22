@@ -1,7 +1,7 @@
 package com.appoptics.opentelemetry.extensions;
 
+import com.solarwinds.shaded.google.errorprone.annotations.Immutable;
 import io.opentelemetry.context.ContextKey;
-import javax.annotation.concurrent.Immutable;
 
 @Immutable
 public class TraceStateKey {

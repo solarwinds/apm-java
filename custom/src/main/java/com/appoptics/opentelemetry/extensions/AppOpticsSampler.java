@@ -3,15 +3,16 @@ package com.appoptics.opentelemetry.extensions;
 import static com.appoptics.opentelemetry.extensions.AppOpticsSpanExporter.LAYER_FORMAT;
 import static com.appoptics.opentelemetry.extensions.SamplingUtil.SW_TRACESTATE_KEY;
 import static com.appoptics.opentelemetry.extensions.SamplingUtil.addXtraceOptionsToAttribute;
-import static com.tracelytics.joboe.TraceDecisionUtil.shouldTraceRequest;
+import static com.solarwinds.joboe.TraceDecisionUtil.shouldTraceRequest;
 
 import com.appoptics.opentelemetry.core.Constants;
 import com.appoptics.opentelemetry.core.Util;
-import com.tracelytics.joboe.TraceDecision;
-import com.tracelytics.joboe.XTraceOptions;
-import com.tracelytics.joboe.XTraceOptionsResponse;
-import com.tracelytics.logging.Logger;
-import com.tracelytics.logging.LoggerFactory;
+import com.solarwinds.joboe.TraceDecision;
+import com.solarwinds.joboe.XTraceOptions;
+import com.solarwinds.joboe.XTraceOptionsResponse;
+import com.solarwinds.logging.Logger;
+import com.solarwinds.logging.LoggerFactory;
+import com.solarwinds.shaded.javax.annotation.Nonnull;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
@@ -28,7 +29,6 @@ import io.opentelemetry.sdk.trace.samplers.SamplingResult;
 import io.opentelemetry.semconv.SemanticAttributes;
 import java.util.Arrays;
 import java.util.List;
-import javax.annotation.Nonnull;
 
 /**
  * Sampler that uses trace decision logic from our joboe core (consult local and remote settings)

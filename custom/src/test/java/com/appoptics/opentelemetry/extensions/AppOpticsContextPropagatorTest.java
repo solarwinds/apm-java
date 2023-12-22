@@ -14,7 +14,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.appoptics.opentelemetry.extensions.stubs.TextMapGetterStub;
-import com.tracelytics.joboe.XTraceOptions;
+import com.solarwinds.joboe.XTraceOptions;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;

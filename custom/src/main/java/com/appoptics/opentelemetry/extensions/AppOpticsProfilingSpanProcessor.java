@@ -3,22 +3,22 @@ package com.appoptics.opentelemetry.extensions;
 import static com.appoptics.opentelemetry.core.Constants.SW_KEY_PREFIX;
 
 import com.appoptics.opentelemetry.core.Util;
-import com.tracelytics.joboe.Metadata;
-import com.tracelytics.joboe.RpcEventReporter;
-import com.tracelytics.joboe.config.ConfigManager;
-import com.tracelytics.joboe.config.ConfigProperty;
-import com.tracelytics.joboe.config.ProfilerSetting;
-import com.tracelytics.joboe.rpc.RpcClientManager;
-import com.tracelytics.logging.Logger;
-import com.tracelytics.logging.LoggerFactory;
-import com.tracelytics.profiler.Profiler;
+import com.solarwinds.joboe.Metadata;
+import com.solarwinds.joboe.RpcEventReporter;
+import com.solarwinds.joboe.config.ConfigManager;
+import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.config.ProfilerSetting;
+import com.solarwinds.joboe.rpc.RpcClientManager;
+import com.solarwinds.logging.Logger;
+import com.solarwinds.logging.LoggerFactory;
+import com.solarwinds.profiler.Profiler;
+import com.solarwinds.shaded.javax.annotation.Nonnull;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
-import javax.annotation.Nonnull;
 
 /** Span process to perform code profiling */
 public class AppOpticsProfilingSpanProcessor implements SpanProcessor {

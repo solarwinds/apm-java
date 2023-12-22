@@ -4,7 +4,7 @@ archivesBaseName = "servlet5"
 
 dependencies {
     compileOnly("jakarta.servlet:jakarta.servlet-api:5.0.0")
-    compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
+    compileOnly "com.solarwinds.joboe:core:${versions.appopticsCore}"
     compileOnly project(":custom")
     compileOnly project(":bootstrap")
 }

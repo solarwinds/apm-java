@@ -30,7 +30,7 @@ dependencies {
   compileOnly "org.springframework:spring-webmvc:3.1.0.RELEASE"
   compileOnly "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetry}"
   compileOnly "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv:${versions.opentelemetryAlpha}"
-  compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
+  compileOnly "com.solarwinds.joboe:core:${versions.appopticsCore}"
   compileOnly "javax.servlet:javax.servlet-api:3.1.0"
 }
 

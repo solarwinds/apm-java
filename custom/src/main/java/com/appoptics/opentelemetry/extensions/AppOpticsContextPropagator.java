@@ -2,7 +2,9 @@ package com.appoptics.opentelemetry.extensions;
 
 import static com.appoptics.opentelemetry.extensions.SamplingUtil.SW_XTRACE_OPTIONS_RESP_KEY;
 
-import com.tracelytics.joboe.XTraceOptions;
+import com.solarwinds.joboe.XTraceOptions;
+import com.solarwinds.shaded.javax.annotation.Nonnull;
+import com.solarwinds.shaded.javax.annotation.Nullable;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceState;
@@ -16,8 +18,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public class AppOpticsContextPropagator implements TextMapPropagator {
   private static final String TRACE_STATE_APPOPTICS_KEY = "sw";

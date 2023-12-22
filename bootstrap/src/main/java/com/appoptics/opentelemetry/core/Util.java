@@ -2,10 +2,10 @@ package com.appoptics.opentelemetry.core;
 
 import static com.appoptics.opentelemetry.core.Constants.SW_KEY_PREFIX;
 
-import com.tracelytics.joboe.Metadata;
-import com.tracelytics.joboe.OboeException;
-import com.tracelytics.logging.Logger;
-import com.tracelytics.logging.LoggerFactory;
+import com.solarwinds.joboe.Metadata;
+import com.solarwinds.joboe.OboeException;
+import com.solarwinds.logging.Logger;
+import com.solarwinds.logging.LoggerFactory;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.SpanContext;

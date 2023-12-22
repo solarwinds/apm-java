@@ -1,9 +1,9 @@
 package com.appoptics.opentelemetry.extensions;
 
-import com.tracelytics.joboe.TraceDecision;
-import com.tracelytics.joboe.TraceDecisionUtil;
-import com.tracelytics.joboe.XTraceOption;
-import com.tracelytics.joboe.XTraceOptions;
+import com.solarwinds.joboe.TraceDecision;
+import com.solarwinds.joboe.TraceDecisionUtil;
+import com.solarwinds.joboe.XTraceOption;
+import com.solarwinds.joboe.XTraceOptions;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.TraceState;
 

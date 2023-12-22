@@ -1,13 +1,13 @@
 package com.appoptics.opentelemetry.extensions.initialize.config;
 
-import com.tracelytics.ext.json.JSONArray;
-import com.tracelytics.ext.json.JSONException;
-import com.tracelytics.ext.json.JSONObject;
-import com.tracelytics.joboe.config.ConfigParser;
-import com.tracelytics.joboe.config.InvalidConfigException;
-import com.tracelytics.joboe.config.ProfilerSetting;
-import com.tracelytics.logging.Logger;
-import com.tracelytics.logging.LoggerFactory;
+import com.solarwinds.joboe.config.ConfigParser;
+import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.config.ProfilerSetting;
+import com.solarwinds.logging.Logger;
+import com.solarwinds.logging.LoggerFactory;
+import com.solarwinds.shaded.org.json.JSONArray;
+import com.solarwinds.shaded.org.json.JSONException;
+import com.solarwinds.shaded.org.json.JSONObject;
 import java.util.HashSet;
 import java.util.Set;
 

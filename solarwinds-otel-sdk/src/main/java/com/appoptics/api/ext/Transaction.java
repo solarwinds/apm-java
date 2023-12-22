@@ -1,7 +1,6 @@
 package com.appoptics.api.ext;
 
 import com.appoptics.opentelemetry.core.CustomTransactionNameDict;
-import com.tracelytics.ext.google.common.base.Strings;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
@@ -25,7 +24,7 @@ class Transaction {
     Span span = Span.fromContext(context);
     SpanContext spanContext = span.getSpanContext();
 
-    if (!spanContext.isValid() || Strings.isNullOrEmpty(name)) {
+    if (!spanContext.isValid() || name == null || name.isEmpty()) {
       return false;
     }
     CustomTransactionNameDict.set(spanContext.getTraceId(), name);

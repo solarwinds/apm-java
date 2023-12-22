@@ -1,6 +1,6 @@
 package com.appoptics.opentelemetry.extensions.initialize.config;
 
-import com.tracelytics.joboe.config.ResourceMatcher;
+import com.solarwinds.joboe.config.ResourceMatcher;
 import java.util.regex.Pattern;
 
 class StringPatternMatcher implements ResourceMatcher {
