@@ -15,7 +15,7 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
 /** Span processor to keep track of the root span of a trace */
 public class AppOpticsRootSpanProcessor implements SpanProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger();
+  private static final Logger logger = LoggerFactory.getLogger();
 
   @Override
   public void onStart(@Nonnull Context parentContext, @Nonnull ReadWriteSpan span) {
