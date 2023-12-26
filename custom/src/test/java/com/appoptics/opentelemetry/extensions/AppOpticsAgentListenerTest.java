@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-import com.tracelytics.joboe.settings.SettingsManager;
-import com.tracelytics.util.HostTypeDetector;
+import com.solarwinds.joboe.settings.SettingsManager;
+import com.solarwinds.util.HostTypeDetector;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;

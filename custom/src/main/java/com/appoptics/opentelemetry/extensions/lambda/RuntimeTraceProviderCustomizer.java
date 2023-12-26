@@ -1,7 +1,7 @@
 package com.appoptics.opentelemetry.extensions.lambda;
 
 import static com.appoptics.opentelemetry.extensions.initialize.OtelAutoConfigurationCustomizerProviderImpl.isAgentEnabled;
-import static com.tracelytics.util.HostTypeDetector.isLambda;
+import static com.solarwinds.util.HostTypeDetector.isLambda;
 
 import com.appoptics.opentelemetry.extensions.AppOpticsRootSpanProcessor;
 import com.appoptics.opentelemetry.extensions.AppOpticsSampler;

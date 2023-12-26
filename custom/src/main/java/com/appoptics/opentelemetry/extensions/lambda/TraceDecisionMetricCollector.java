@@ -1,11 +1,11 @@
 package com.appoptics.opentelemetry.extensions.lambda;
 
-import static com.tracelytics.util.HostTypeDetector.isLambda;
+import static com.solarwinds.util.HostTypeDetector.isLambda;
 
 import com.google.auto.service.AutoService;
-import com.tracelytics.joboe.TraceConfig;
-import com.tracelytics.joboe.TraceDecisionUtil;
-import com.tracelytics.metrics.measurement.SimpleMeasurementMetricsEntry;
+import com.solarwinds.joboe.TraceConfig;
+import com.solarwinds.joboe.TraceDecisionUtil;
+import com.solarwinds.metrics.measurement.SimpleMeasurementMetricsEntry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.metrics.Meter;
