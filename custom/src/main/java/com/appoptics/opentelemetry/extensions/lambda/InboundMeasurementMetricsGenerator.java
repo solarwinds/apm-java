@@ -1,7 +1,8 @@
 package com.appoptics.opentelemetry.extensions.lambda;
 
 import com.appoptics.opentelemetry.extensions.TransactionNameManager;
-import com.tracelytics.util.HttpUtils;
+import com.solarwinds.shaded.javax.annotation.Nonnull;
+import com.solarwinds.util.HttpUtils;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.metrics.LongCounter;
@@ -15,7 +16,6 @@ import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.semconv.SemanticAttributes;
-import javax.annotation.Nonnull;
 
 public class InboundMeasurementMetricsGenerator implements SpanProcessor {
   private LongCounter requestCounter;
