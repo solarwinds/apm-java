@@ -1,21 +1,22 @@
 package com.appoptics.opentelemetry.extensions;
 
 import com.appoptics.opentelemetry.core.Constants;
-import com.tracelytics.joboe.config.ConfigManager;
-import com.tracelytics.joboe.config.ConfigProperty;
-import com.tracelytics.joboe.span.impl.MetricSpanReporter;
-import com.tracelytics.joboe.span.impl.Span;
-import com.tracelytics.metrics.MetricKey;
-import com.tracelytics.metrics.MetricsEntry;
-import com.tracelytics.metrics.histogram.Histogram;
-import com.tracelytics.metrics.histogram.HistogramException;
-import com.tracelytics.metrics.histogram.HistogramFactory;
-import com.tracelytics.metrics.histogram.HistogramMetricsEntry;
-import com.tracelytics.metrics.measurement.SummaryLongMeasurement;
-import com.tracelytics.metrics.measurement.SummaryMeasurementMetricsEntry;
-import com.tracelytics.monitor.metrics.SpanMetricsCollector;
-import com.tracelytics.util.HttpUtils;
-import com.tracelytics.util.ServiceKeyUtils;
+import com.solarwinds.joboe.config.ConfigManager;
+import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.span.impl.MetricSpanReporter;
+import com.solarwinds.joboe.span.impl.Span;
+import com.solarwinds.metrics.MetricKey;
+import com.solarwinds.metrics.MetricsEntry;
+import com.solarwinds.metrics.histogram.Histogram;
+import com.solarwinds.metrics.histogram.HistogramException;
+import com.solarwinds.metrics.histogram.HistogramFactory;
+import com.solarwinds.metrics.histogram.HistogramMetricsEntry;
+import com.solarwinds.metrics.measurement.SummaryLongMeasurement;
+import com.solarwinds.metrics.measurement.SummaryMeasurementMetricsEntry;
+import com.solarwinds.monitor.SpanMetricsCollector;
+import com.solarwinds.shaded.javax.annotation.Nonnull;
+import com.solarwinds.util.HttpUtils;
+import com.solarwinds.util.ServiceKeyUtils;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.StatusCode;
@@ -31,7 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.Nonnull;
 
 /** Span processor to record inbound metrics */
 public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
@@ -120,7 +120,7 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
     }
 
     @Override
-    protected void reportMetrics(com.tracelytics.joboe.span.impl.Span span, long l) {
+    protected void reportMetrics(com.solarwinds.joboe.span.impl.Span span, long l) {
       // not using the signature that takes OpenTracing span
     }
 

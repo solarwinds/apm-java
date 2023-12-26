@@ -3,7 +3,7 @@ package com.appoptics.opentelemetry.extensions.initialize.config.livereload;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
-import com.tracelytics.logging.LoggerFactory;
+import com.solarwinds.logging.LoggerFactory;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;

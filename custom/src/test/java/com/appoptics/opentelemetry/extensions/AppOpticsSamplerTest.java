@@ -10,10 +10,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.appoptics.opentelemetry.core.Util;
-import com.tracelytics.joboe.TraceConfig;
-import com.tracelytics.joboe.TraceDecision;
-import com.tracelytics.joboe.TraceDecisionUtil;
-import com.tracelytics.joboe.XTraceOptions;
+import com.solarwinds.joboe.TraceConfig;
+import com.solarwinds.joboe.TraceDecision;
+import com.solarwinds.joboe.TraceDecisionUtil;
+import com.solarwinds.joboe.XTraceOptions;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;

@@ -164,7 +164,7 @@ jobs:
           name: Check shading
           command: |
             code=0
-            for path in $(jar -tf agent/build/libs/solarwinds-apm-agent.jar | grep -E -v '^((com/tracelytics|com/appoptics|inst|io/open|META))')
+            for path in $(jar -tf agent/build/libs/solarwinds-apm-agent.jar | grep -E -v '^((com/solarwinds|com/appoptics|com/solarwinds|inst|io/open|META))')
             do
               PACKAGE=$(echo "$path" | awk -F/ '{print $2}')
               if [ -n "$PACKAGE" ] && [ "$PACKAGE" != "annotation" ]; then

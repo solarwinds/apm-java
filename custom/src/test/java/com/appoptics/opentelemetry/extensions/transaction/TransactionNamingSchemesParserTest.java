@@ -2,7 +2,7 @@ package com.appoptics.opentelemetry.extensions.transaction;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.tracelytics.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.config.InvalidConfigException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

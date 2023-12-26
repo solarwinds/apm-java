@@ -1,13 +1,13 @@
 package com.appoptics.opentelemetry.extensions;
 
 import com.appoptics.opentelemetry.core.RootSpan;
+import com.solarwinds.shaded.javax.annotation.Nonnull;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
-import javax.annotation.Nonnull;
 
 /** Span processor to keep track of the root span of a trace */
 public class AppOpticsRootSpanProcessor implements SpanProcessor {

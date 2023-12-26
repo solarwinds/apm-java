@@ -3,13 +3,14 @@ package com.appoptics.opentelemetry.extensions;
 import static com.appoptics.opentelemetry.extensions.initialize.OtelAutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 
 import com.appoptics.opentelemetry.core.Util;
-import com.tracelytics.joboe.Context;
-import com.tracelytics.joboe.Event;
-import com.tracelytics.joboe.EventImpl;
-import com.tracelytics.joboe.Metadata;
-import com.tracelytics.joboe.OboeException;
-import com.tracelytics.logging.Logger;
-import com.tracelytics.logging.LoggerFactory;
+import com.solarwinds.joboe.Context;
+import com.solarwinds.joboe.Event;
+import com.solarwinds.joboe.EventImpl;
+import com.solarwinds.joboe.Metadata;
+import com.solarwinds.joboe.OboeException;
+import com.solarwinds.logging.Logger;
+import com.solarwinds.logging.LoggerFactory;
+import com.solarwinds.shaded.javax.annotation.Nonnull;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.common.CompletableResultCode;
@@ -23,7 +24,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nonnull;
 
 /** Span exporter to be used with the OpenTelemetry auto agent */
 public class AppOpticsSpanExporter implements SpanExporter {

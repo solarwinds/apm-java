@@ -1,8 +1,8 @@
 package com.appoptics.opentelemetry.extensions.initialize.config;
 
-import com.tracelytics.joboe.config.ConfigParser;
-import com.tracelytics.joboe.config.InvalidConfigException;
-import com.tracelytics.joboe.config.ProxyConfig;
+import com.solarwinds.joboe.config.ConfigParser;
+import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.config.ProxyConfig;
 import java.net.MalformedURLException;
 import java.net.URL;
 

@@ -18,8 +18,8 @@ dependencies {
   compileOnly("io.opentelemetry:opentelemetry-context:${versions.opentelemetry}")
 
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:${versions.opentelemetryJavaagentAlpha}")
-  compileOnly "com.appoptics.agent.java:core:${versions.appopticsCore}"
-  compileOnly "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
+  compileOnly "com.solarwinds.joboe:core:${versions.appopticsCore}"
+  compileOnly "com.solarwinds.joboe:metrics:${versions.appopticsMetrics}"
 
   testImplementation project(path: ":bootstrap")
   testImplementation 'org.mockito:mockito-core:5.3.0'

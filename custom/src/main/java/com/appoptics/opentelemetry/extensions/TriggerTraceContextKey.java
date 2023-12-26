@@ -1,8 +1,8 @@
 package com.appoptics.opentelemetry.extensions;
 
-import com.tracelytics.joboe.XTraceOptions;
+import com.solarwinds.joboe.XTraceOptions;
+import com.solarwinds.shaded.javax.annotation.concurrent.Immutable;
 import io.opentelemetry.context.ContextKey;
-import javax.annotation.concurrent.Immutable;
 
 @Immutable
 final class TriggerTraceContextKey {

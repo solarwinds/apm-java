@@ -35,8 +35,8 @@ dependencies {
   javaagentLibs project(path: ":instrumentation")
 
   bootstrapLibs project(path: ":bootstrap")
-  bootstrapLibs "com.appoptics.agent.java:core:${versions.appopticsCore}"
-  bootstrapLibs "com.appoptics.agent.java:metrics:${versions.appopticsMetrics}"
+  bootstrapLibs "com.solarwinds.joboe:core:${versions.appopticsCore}"
+  bootstrapLibs "com.solarwinds.joboe:metrics:${versions.appopticsMetrics}"
 
   upstreamAgent "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}"
 }

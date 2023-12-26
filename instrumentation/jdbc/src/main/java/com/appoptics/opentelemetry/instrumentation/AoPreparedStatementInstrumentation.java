@@ -9,8 +9,8 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.none;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
-import com.tracelytics.joboe.config.ConfigManager;
-import com.tracelytics.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.config.ConfigManager;
+import com.solarwinds.joboe.config.ConfigProperty;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
