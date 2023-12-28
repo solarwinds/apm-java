@@ -41,6 +41,7 @@ public class LogSettingParser implements ConfigParser<String, LogSetting> {
 
   private LogSettingParser() {}
 
+  @Override
   public LogSetting convert(String javaValue) throws InvalidConfigException {
     String stringValue = javaValue.trim();
     if (javaValue.startsWith("{")) {

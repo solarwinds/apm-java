@@ -14,7 +14,6 @@ import com.solarwinds.joboe.config.ConfigProperty;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
-import java.sql.PreparedStatement;
 import java.util.List;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
@@ -40,27 +39,8 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
   @Override
   public void transform(TypeTransformer transformer) {
     transformer.applyAdviceToMethod(
-        nameStartsWith("set").and(takesArguments(2)).and(isPublic()),
-        AoPreparedStatementInstrumentation.class.getName() + "$PreparedStatementSetAdvice");
-
-    transformer.applyAdviceToMethod(
         nameStartsWith("execute").and(takesArguments(0)).and(isPublic()),
         AoPreparedStatementInstrumentation.class.getName() + "$PreparedStatementExecuteAdvice");
-  }
-
-  @SuppressWarnings("unused")
-  public static class PreparedStatementSetAdvice {
-    @Advice.OnMethodEnter(suppress = Throwable.class)
-    public static void onEnter(
-        @Advice.This PreparedStatement statement,
-        @Advice.Argument(value = 0, readOnly = true) int index,
-        @Advice.Argument(value = 1, readOnly = true) Object value) {}
-
-    @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
-    public static void onExit(@Advice.Thrown Throwable throwable) {
-      // we have to have this empty exit advice as otherwise local parameters in the enter method
-      // are not supported.
-    }
   }
 
   public static class QueryArgsAttributeKey {
@@ -70,11 +50,10 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
   @SuppressWarnings("unused")
   public static class PreparedStatementExecuteAdvice {
     @Advice.OnMethodEnter(suppress = Throwable.class)
-    public static void onEnter(@Advice.This PreparedStatement statement) {}
+    public static void onEnter() {}
 
     @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
-    public static void onExit(
-        @Advice.This PreparedStatement statement, @Advice.Thrown Throwable throwable) {
+    public static void onExit() {
       StatementTruncator.maybeTruncateStatement(currentContext());
     }
   }

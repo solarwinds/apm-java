@@ -157,7 +157,7 @@ public class TransactionNameManager {
           transactionName.substring(
                   0, MAX_TRANSACTION_NAME_LENGTH - TRANSACTION_NAME_ELLIPSIS.length())
               + TRANSACTION_NAME_ELLIPSIS;
-    } else if ("".equals(transactionName)) {
+    } else if (transactionName.isEmpty()) {
       transactionName = " "; // ensure that it at least has 1 character
     }
 
@@ -294,7 +294,7 @@ public class TransactionNameManager {
     Map<String, String> urlTokenMap = new HashMap<>();
     int counter = 1;
     for (String token : url.split("/")) {
-      if (!"".equals(token)) {
+      if (!token.isEmpty()) {
         String tokenName = "p" + counter++;
         urlTokenMap.put(tokenName, token);
       }
