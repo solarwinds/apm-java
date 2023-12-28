@@ -399,7 +399,7 @@ public class AppOpticsConfigurationLoader {
     }
 
     if (configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)
-        && !"".equals(configs.get(ConfigProperty.AGENT_SERVICE_KEY))) {
+        && !((String) configs.get(ConfigProperty.AGENT_SERVICE_KEY)).isEmpty()) {
       // Customer access key (UUID)
       String rawServiceKey = (String) configs.get(ConfigProperty.AGENT_SERVICE_KEY);
       String serviceKey = ServiceKeyUtils.transformServiceKey(rawServiceKey);

@@ -14,7 +14,6 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
-import javax.servlet.http.HttpServletRequest;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -45,11 +44,7 @@ public class AoHandlerAdapterInstrumentation implements TypeInstrumentation {
 
   public static class ControllerAdvice {
     @Advice.OnMethodEnter
-    public static void setTransactionNameToServerSpan(
-        @Advice.Argument(0) HttpServletRequest request, @Advice.Argument(2) Object handler) {
-      //        @Advice.Local("otelContext") Context context, //with Local it seem to have issue
-      // when there's no same definition for OnMethodExit
-      //        @Advice.Local("otelScope") Scope scope) {
+    public static void setTransactionNameToServerSpan(@Advice.Argument(2) Object handler) {
       Context parentContext = Java8BytecodeBridge.currentContext();
       Span serverSpan = Java8BytecodeBridge.spanFromContext(parentContext);
       if (serverSpan != null) {

@@ -23,6 +23,7 @@ public class ProfilerSettingParser implements ConfigParser<String, ProfilerSetti
 
   private ProfilerSettingParser() {}
 
+  @Override
   public ProfilerSetting convert(String javaValue) throws InvalidConfigException {
     try {
       JSONObject jsonObject = new JSONObject(javaValue);

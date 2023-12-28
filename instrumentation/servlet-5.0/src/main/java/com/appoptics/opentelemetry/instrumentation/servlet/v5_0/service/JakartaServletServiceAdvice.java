@@ -8,12 +8,9 @@ package com.appoptics.opentelemetry.instrumentation.servlet.v5_0.service;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
-import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import net.bytebuddy.asm.Advice;
-import net.bytebuddy.implementation.bytecode.assign.Assigner;
 
 @SuppressWarnings("unused")
 public class JakartaServletServiceAdvice {
@@ -25,10 +22,8 @@ public class JakartaServletServiceAdvice {
 
   @Advice.OnMethodEnter(suppress = Throwable.class)
   public static void onEnter(
-      @Advice.This(typing = Assigner.Typing.DYNAMIC) Object servletOrFilter,
-      @Advice.Argument(value = 0, readOnly = false) ServletRequest request,
       @Advice.Argument(value = 1, readOnly = false) ServletResponse response) {
-    if (request instanceof HttpServletRequest && response instanceof HttpServletResponse) {
+    if (response instanceof HttpServletResponse) {
       HttpServletResponse httpServletResponse = (HttpServletResponse) response;
       if (!httpServletResponse.containsHeader(XTRACE_HEADER)) {
         injectXtraceHeader(httpServletResponse);

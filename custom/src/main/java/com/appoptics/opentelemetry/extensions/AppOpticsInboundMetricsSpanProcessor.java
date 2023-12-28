@@ -221,6 +221,7 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
      *
      * @return a list of metric entries collected so since previous call to this method
      */
+    @Override
     public List<MetricsEntry<?>> consumeMetricEntries() {
       final Map<MetricKey, Histogram> reportingHistograms = consumeHistograms();
 
@@ -240,6 +241,7 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
     }
 
     /** Records the span duration as a histogram and a measurement */
+    @Override
     protected void reportMetrics(Span span, long duration) {
       // not used
     }
