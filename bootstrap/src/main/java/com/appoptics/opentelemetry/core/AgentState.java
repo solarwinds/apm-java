@@ -1,6 +1,6 @@
 package com.appoptics.opentelemetry.core;
 
-import com.solarwinds.logging.LoggerFactory;
+import com.solarwinds.joboe.core.logging.LoggerFactory;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;

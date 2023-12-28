@@ -398,7 +398,7 @@ workflows:
       - benchmark:
           context:
             - AWS_CIRCLE_CI_BUILD
-            - librato-github-read-access
+            - solarwinds-cloud-github-read-access
   code-scanning:
     jobs:
       - ghas/codeql:

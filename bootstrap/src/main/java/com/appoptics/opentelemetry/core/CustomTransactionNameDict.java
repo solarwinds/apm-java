@@ -1,7 +1,7 @@
 package com.appoptics.opentelemetry.core;
 
-import com.solarwinds.shaded.google.common.cache.Cache;
-import com.solarwinds.shaded.google.common.cache.CacheBuilder;
+import com.solarwinds.joboe.shaded.google.common.cache.Cache;
+import com.solarwinds.joboe.shaded.google.common.cache.CacheBuilder;
 import java.util.concurrent.TimeUnit;
 
 public class CustomTransactionNameDict {

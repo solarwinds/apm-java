@@ -5,9 +5,9 @@ import static io.opentelemetry.api.common.AttributeKey.stringKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-import com.solarwinds.joboe.TraceDecision;
-import com.solarwinds.joboe.TraceDecisionUtil;
-import com.solarwinds.joboe.XTraceOptions;
+import com.solarwinds.joboe.core.TraceDecision;
+import com.solarwinds.joboe.core.TraceDecisionUtil;
+import com.solarwinds.joboe.core.XTraceOptions;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import org.junit.jupiter.api.Test;

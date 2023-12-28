@@ -1,6 +1,6 @@
 package com.appoptics.opentelemetry.instrumentation;
 
-import com.solarwinds.joboe.EventValueConverter;
+import com.solarwinds.joboe.core.EventValueConverter;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Ref;

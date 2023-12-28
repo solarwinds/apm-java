@@ -1,7 +1,7 @@
 package com.appoptics.opentelemetry.extensions;
 
-import com.solarwinds.joboe.XTraceOptions;
-import com.solarwinds.shaded.javax.annotation.concurrent.Immutable;
+import com.solarwinds.joboe.core.XTraceOptions;
+import com.solarwinds.joboe.shaded.javax.annotation.concurrent.Immutable;
 import io.opentelemetry.context.ContextKey;
 
 @Immutable

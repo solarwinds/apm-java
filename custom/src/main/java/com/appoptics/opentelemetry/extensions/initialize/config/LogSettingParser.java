@@ -1,13 +1,13 @@
 package com.appoptics.opentelemetry.extensions.initialize.config;
 
-import com.solarwinds.joboe.config.ConfigParser;
-import com.solarwinds.joboe.config.ConfigProperty;
-import com.solarwinds.joboe.config.InvalidConfigException;
-import com.solarwinds.logging.Logger;
-import com.solarwinds.logging.LoggerFactory;
-import com.solarwinds.logging.setting.LogSetting;
-import com.solarwinds.shaded.org.json.JSONException;
-import com.solarwinds.shaded.org.json.JSONObject;
+import com.solarwinds.joboe.core.config.ConfigParser;
+import com.solarwinds.joboe.core.config.ConfigProperty;
+import com.solarwinds.joboe.core.config.InvalidConfigException;
+import com.solarwinds.joboe.core.logging.Logger;
+import com.solarwinds.joboe.core.logging.LoggerFactory;
+import com.solarwinds.joboe.core.logging.setting.LogSetting;
+import com.solarwinds.joboe.shaded.org.json.JSONException;
+import com.solarwinds.joboe.shaded.org.json.JSONObject;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;

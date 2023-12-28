@@ -1,7 +1,7 @@
 package com.appoptics.opentelemetry.extensions;
 
 import com.appoptics.opentelemetry.core.RootSpan;
-import com.solarwinds.shaded.javax.annotation.Nonnull;
+import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
