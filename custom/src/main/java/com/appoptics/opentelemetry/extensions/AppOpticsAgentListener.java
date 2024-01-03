@@ -1,10 +1,21 @@
 package com.appoptics.opentelemetry.extensions;
 
+import static com.appoptics.opentelemetry.extensions.initialize.OtelAutoConfigurationCustomizerProviderImpl.isAgentEnabled;
+import static com.appoptics.opentelemetry.extensions.initialize.OtelAutoConfigurationCustomizerProviderImpl.setAgentEnabled;
+import static com.solarwinds.joboe.core.util.HostTypeDetector.isLambda;
+import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_COMMAND_ARGS;
+import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_COMMAND_LINE;
+import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_DESCRIPTION;
+import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_NAME;
+import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_VERSION;
+import static io.opentelemetry.semconv.ResourceAttributes.SERVICE_NAME;
+import static io.opentelemetry.semconv.ResourceAttributes.TELEMETRY_SDK_LANGUAGE;
+
 import com.appoptics.opentelemetry.core.AgentState;
 import com.appoptics.opentelemetry.extensions.initialize.AutoConfiguredResourceCustomizer;
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.core.EventImpl;
-import com.solarwinds.joboe.core.RpcEventReporter;
+import com.solarwinds.joboe.core.ReporterFactory;
 import com.solarwinds.joboe.core.config.ConfigGroup;
 import com.solarwinds.joboe.core.config.ConfigManager;
 import com.solarwinds.joboe.core.config.ConfigProperty;
@@ -21,7 +32,7 @@ import com.solarwinds.joboe.core.rpc.RpcClientManager;
 import com.solarwinds.joboe.core.settings.SettingsManager;
 import com.solarwinds.joboe.core.util.DaemonThreadFactory;
 import com.solarwinds.joboe.core.util.HostInfoUtils;
-import com.solarwinds.joboe.core.util.ServerHostInfoReader;
+import com.solarwinds.joboe.core.util.HostTypeDetector;
 import com.solarwinds.joboe.metrics.MetricsCollector;
 import com.solarwinds.joboe.metrics.MetricsMonitor;
 import com.solarwinds.joboe.metrics.SystemMonitorController;
@@ -31,7 +42,6 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -39,17 +49,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import static com.appoptics.opentelemetry.extensions.initialize.OtelAutoConfigurationCustomizerProviderImpl.isAgentEnabled;
-import static com.appoptics.opentelemetry.extensions.initialize.OtelAutoConfigurationCustomizerProviderImpl.setAgentEnabled;
-import static com.solarwinds.util.HostTypeDetector.isLambda;
-import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_COMMAND_ARGS;
-import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_COMMAND_LINE;
-import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_DESCRIPTION;
-import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_NAME;
-import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_VERSION;
-import static io.opentelemetry.semconv.ResourceAttributes.SERVICE_NAME;
-import static io.opentelemetry.semconv.ResourceAttributes.TELEMETRY_SDK_LANGUAGE;
 
 /**
  * Executes startup task after it's safe to do so. See <a
