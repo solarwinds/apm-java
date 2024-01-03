@@ -1,7 +1,7 @@
 package com.appoptics.opentelemetry.extensions.transaction;
 
-import com.solarwinds.joboe.config.ConfigManager;
-import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.core.config.ConfigManager;
+import com.solarwinds.joboe.core.config.ConfigProperty;
 import io.opentelemetry.api.common.Attributes;
 
 public class DefaultNamingScheme extends NamingScheme {

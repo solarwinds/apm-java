@@ -1,8 +1,8 @@
 package com.appoptics.opentelemetry.extensions.lambda;
 
 import com.appoptics.opentelemetry.extensions.TransactionNameManager;
-import com.solarwinds.shaded.javax.annotation.Nonnull;
-import com.solarwinds.util.HttpUtils;
+import com.solarwinds.joboe.core.util.HttpUtils;
+import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.metrics.LongCounter;

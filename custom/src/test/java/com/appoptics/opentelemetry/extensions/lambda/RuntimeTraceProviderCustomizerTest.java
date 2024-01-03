@@ -5,7 +5,7 @@ import static org.mockito.Mockito.*;
 
 import com.appoptics.opentelemetry.extensions.AppOpticsSampler;
 import com.appoptics.opentelemetry.extensions.initialize.OtelAutoConfigurationCustomizerProviderImpl;
-import com.solarwinds.util.HostTypeDetector;
+import com.solarwinds.joboe.core.util.HostTypeDetector;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
