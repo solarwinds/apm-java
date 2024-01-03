@@ -1,6 +1,6 @@
 package com.appoptics.opentelemetry.extensions;
 
-import com.solarwinds.shaded.google.errorprone.annotations.Immutable;
+import com.solarwinds.joboe.shaded.google.errorprone.annotations.Immutable;
 import io.opentelemetry.context.ContextKey;
 
 @Immutable

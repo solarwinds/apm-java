@@ -8,8 +8,8 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 
-import com.solarwinds.logging.Logger;
-import com.solarwinds.logging.LoggerFactory;
+import com.solarwinds.joboe.core.logging.Logger;
+import com.solarwinds.joboe.core.logging.LoggerFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

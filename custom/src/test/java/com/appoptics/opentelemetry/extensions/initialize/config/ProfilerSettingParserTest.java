@@ -2,8 +2,8 @@ package com.appoptics.opentelemetry.extensions.initialize.config;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.solarwinds.joboe.config.InvalidConfigException;
-import com.solarwinds.joboe.config.ProfilerSetting;
+import com.solarwinds.joboe.core.config.InvalidConfigException;
+import com.solarwinds.joboe.core.config.ProfilerSetting;
 import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.Test;

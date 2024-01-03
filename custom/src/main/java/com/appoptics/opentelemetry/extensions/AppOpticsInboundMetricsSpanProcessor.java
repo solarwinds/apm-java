@@ -1,22 +1,22 @@
 package com.appoptics.opentelemetry.extensions;
 
 import com.appoptics.opentelemetry.core.Constants;
-import com.solarwinds.joboe.config.ConfigManager;
-import com.solarwinds.joboe.config.ConfigProperty;
-import com.solarwinds.joboe.span.impl.MetricSpanReporter;
-import com.solarwinds.joboe.span.impl.Span;
-import com.solarwinds.metrics.MetricKey;
-import com.solarwinds.metrics.MetricsEntry;
-import com.solarwinds.metrics.histogram.Histogram;
-import com.solarwinds.metrics.histogram.HistogramException;
-import com.solarwinds.metrics.histogram.HistogramFactory;
-import com.solarwinds.metrics.histogram.HistogramMetricsEntry;
-import com.solarwinds.metrics.measurement.SummaryLongMeasurement;
-import com.solarwinds.metrics.measurement.SummaryMeasurementMetricsEntry;
-import com.solarwinds.monitor.SpanMetricsCollector;
-import com.solarwinds.shaded.javax.annotation.Nonnull;
-import com.solarwinds.util.HttpUtils;
-import com.solarwinds.util.ServiceKeyUtils;
+import com.solarwinds.joboe.core.config.ConfigManager;
+import com.solarwinds.joboe.core.config.ConfigProperty;
+import com.solarwinds.joboe.core.metrics.MetricKey;
+import com.solarwinds.joboe.core.metrics.MetricsEntry;
+import com.solarwinds.joboe.core.metrics.histogram.Histogram;
+import com.solarwinds.joboe.core.metrics.histogram.HistogramException;
+import com.solarwinds.joboe.core.metrics.histogram.HistogramFactory;
+import com.solarwinds.joboe.core.metrics.histogram.HistogramMetricsEntry;
+import com.solarwinds.joboe.core.metrics.measurement.SummaryLongMeasurement;
+import com.solarwinds.joboe.core.metrics.measurement.SummaryMeasurementMetricsEntry;
+import com.solarwinds.joboe.core.span.impl.MetricSpanReporter;
+import com.solarwinds.joboe.core.span.impl.Span;
+import com.solarwinds.joboe.core.util.HttpUtils;
+import com.solarwinds.joboe.core.util.ServiceKeyUtils;
+import com.solarwinds.joboe.metrics.SpanMetricsCollector;
+import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.StatusCode;
@@ -120,7 +120,7 @@ public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
     }
 
     @Override
-    protected void reportMetrics(com.solarwinds.joboe.span.impl.Span span, long l) {
+    protected void reportMetrics(com.solarwinds.joboe.core.span.impl.Span span, long l) {
       // not using the signature that takes OpenTracing span
     }
 

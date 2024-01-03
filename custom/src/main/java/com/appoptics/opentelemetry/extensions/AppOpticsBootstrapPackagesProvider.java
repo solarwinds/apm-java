@@ -15,6 +15,6 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 public class AppOpticsBootstrapPackagesProvider implements BootstrapPackagesConfigurer {
   @Override
   public void configure(BootstrapPackagesBuilder builder, ConfigProperties config) {
-    builder.add("com.tracelytics");
+    builder.add("com.solarwinds.joboe");
   }
 }

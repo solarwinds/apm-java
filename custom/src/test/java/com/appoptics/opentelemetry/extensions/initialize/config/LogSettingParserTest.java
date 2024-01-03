@@ -3,9 +3,9 @@ package com.appoptics.opentelemetry.extensions.initialize.config;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.solarwinds.joboe.config.InvalidConfigException;
-import com.solarwinds.logging.Logger;
-import com.solarwinds.logging.setting.LogSetting;
+import com.solarwinds.joboe.core.config.InvalidConfigException;
+import com.solarwinds.joboe.core.logging.Logger;
+import com.solarwinds.joboe.core.logging.setting.LogSetting;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

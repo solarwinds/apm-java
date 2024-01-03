@@ -37,7 +37,7 @@ public class SmokeTest {
     private static final NamingConventions namingConventions = new NamingConventions();
 
     private static final LogStreamAnalyzer<Slf4jLogConsumer> logStreamAnalyzer = new LogStreamAnalyzer<>(
-            List.of("Transformed (com.appoptics.ext.*|com.tracelytics.joboe.*)","hostId:.*i-[0-9a-z]+",
+            List.of("Transformed (com.appoptics.ext.*|com.solarwinds.joboe.*)","hostId:.*i-[0-9a-z]+",
                     "Completed operation \\[post init message\\] with Result code \\[OK\\] arg",
                     "hostId:.*[0-9a-z-]+", "Extension attached!","Created collector client  : collector.appoptics.com:443",
                     "trace_id=[a-z0-9]+\\s+span_id=[a-z0-9]+\\s+trace_flags=(01|00)",
@@ -168,7 +168,7 @@ public class SmokeTest {
 
     @Test
     void assertAgentClassesAreNotInstrumented() {
-        Boolean actual = logStreamAnalyzer.getAnswer().get("Transformed (com.appoptics.ext.*|com.tracelytics.joboe.*)");
+        Boolean actual = logStreamAnalyzer.getAnswer().get("Transformed (com.appoptics.ext.*|com.solarwinds.joboe.*)");
         assertFalse(actual, "agent classes are instrumented");
     }
 

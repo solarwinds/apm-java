@@ -6,7 +6,7 @@
 package com.appoptics.opentelemetry.instrumentation;
 
 import com.appoptics.opentelemetry.core.Constants;
-import com.solarwinds.util.BackTraceUtil;
+import com.solarwinds.joboe.core.util.BackTraceUtil;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 import java.util.LinkedHashMap;

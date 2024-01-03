@@ -3,11 +3,11 @@ package com.appoptics.opentelemetry.extensions.initialize;
 import com.appoptics.opentelemetry.extensions.AppOpticsPropertiesSupplier;
 import com.appoptics.opentelemetry.extensions.AppOpticsTracerProviderCustomizer;
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.config.InvalidConfigException;
-import com.solarwinds.logging.Logger;
-import com.solarwinds.logging.LoggerFactory;
-import com.solarwinds.shaded.javax.annotation.Nonnull;
-import com.solarwinds.util.JavaRuntimeVersionChecker;
+import com.solarwinds.joboe.core.config.InvalidConfigException;
+import com.solarwinds.joboe.core.logging.Logger;
+import com.solarwinds.joboe.core.logging.LoggerFactory;
+import com.solarwinds.joboe.core.util.JavaRuntimeVersionChecker;
+import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 

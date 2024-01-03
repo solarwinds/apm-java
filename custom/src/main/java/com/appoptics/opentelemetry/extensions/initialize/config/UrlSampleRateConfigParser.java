@@ -1,15 +1,15 @@
 package com.appoptics.opentelemetry.extensions.initialize.config;
 
-import com.solarwinds.joboe.SampleRateSource;
-import com.solarwinds.joboe.TraceConfig;
-import com.solarwinds.joboe.TracingMode;
-import com.solarwinds.joboe.config.ConfigParser;
-import com.solarwinds.joboe.config.InvalidConfigException;
-import com.solarwinds.joboe.config.ResourceMatcher;
-import com.solarwinds.joboe.config.TraceConfigs;
-import com.solarwinds.shaded.org.json.JSONArray;
-import com.solarwinds.shaded.org.json.JSONException;
-import com.solarwinds.shaded.org.json.JSONObject;
+import com.solarwinds.joboe.core.SampleRateSource;
+import com.solarwinds.joboe.core.TraceConfig;
+import com.solarwinds.joboe.core.TracingMode;
+import com.solarwinds.joboe.core.config.ConfigParser;
+import com.solarwinds.joboe.core.config.InvalidConfigException;
+import com.solarwinds.joboe.core.config.ResourceMatcher;
+import com.solarwinds.joboe.core.config.TraceConfigs;
+import com.solarwinds.joboe.shaded.org.json.JSONArray;
+import com.solarwinds.joboe.shaded.org.json.JSONException;
+import com.solarwinds.joboe.shaded.org.json.JSONObject;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;

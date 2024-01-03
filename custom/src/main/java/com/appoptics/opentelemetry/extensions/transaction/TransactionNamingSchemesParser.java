@@ -1,11 +1,11 @@
 package com.appoptics.opentelemetry.extensions.transaction;
 
-import com.solarwinds.joboe.config.ConfigParser;
-import com.solarwinds.joboe.config.InvalidConfigException;
-import com.solarwinds.shaded.google.gson.Gson;
-import com.solarwinds.shaded.google.gson.GsonBuilder;
-import com.solarwinds.shaded.google.gson.JsonSyntaxException;
-import com.solarwinds.shaded.google.gson.reflect.TypeToken;
+import com.solarwinds.joboe.core.config.ConfigParser;
+import com.solarwinds.joboe.core.config.InvalidConfigException;
+import com.solarwinds.joboe.shaded.google.gson.Gson;
+import com.solarwinds.joboe.shaded.google.gson.GsonBuilder;
+import com.solarwinds.joboe.shaded.google.gson.JsonSyntaxException;
+import com.solarwinds.joboe.shaded.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.List;
 
