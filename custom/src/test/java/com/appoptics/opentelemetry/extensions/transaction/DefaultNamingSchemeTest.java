@@ -6,9 +6,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.solarwinds.joboe.config.ConfigManager;
-import com.solarwinds.joboe.config.ConfigProperty;
-import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.core.config.ConfigManager;
+import com.solarwinds.joboe.core.config.ConfigProperty;
+import com.solarwinds.joboe.core.config.InvalidConfigException;
 import io.opentelemetry.api.common.Attributes;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

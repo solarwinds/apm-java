@@ -5,11 +5,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
-import com.solarwinds.joboe.SampleRateSource;
-import com.solarwinds.joboe.TraceConfig;
-import com.solarwinds.joboe.TraceDecisionUtil;
-import com.solarwinds.metrics.measurement.SimpleMeasurementMetricsEntry;
-import com.solarwinds.util.HostTypeDetector;
+import com.solarwinds.joboe.core.SampleRateSource;
+import com.solarwinds.joboe.core.TraceConfig;
+import com.solarwinds.joboe.core.TraceDecisionUtil;
+import com.solarwinds.joboe.core.metrics.measurement.SimpleMeasurementMetricsEntry;
+import com.solarwinds.joboe.core.util.HostTypeDetector;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.DoubleGaugeBuilder;
