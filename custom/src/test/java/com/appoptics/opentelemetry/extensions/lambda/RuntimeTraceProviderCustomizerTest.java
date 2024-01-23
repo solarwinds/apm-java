@@ -3,7 +3,7 @@ package com.appoptics.opentelemetry.extensions.lambda;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.appoptics.opentelemetry.extensions.AppOpticsSampler;
+import com.appoptics.opentelemetry.extensions.SolarwindsSampler;
 import com.appoptics.opentelemetry.extensions.initialize.OtelAutoConfigurationCustomizerProviderImpl;
 import com.solarwinds.joboe.core.util.HostTypeDetector;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -63,7 +63,7 @@ class RuntimeTraceProviderCustomizerTest {
       verify(sdkTracerProviderBuilderMock).setSampler(samplerArgumentCaptor.capture());
       verify(sdkTracerProviderBuilderMock, atMost(2)).addSpanProcessor(any());
 
-      assertTrue(samplerArgumentCaptor.getValue() instanceof AppOpticsSampler);
+      assertTrue(samplerArgumentCaptor.getValue() instanceof SolarwindsSampler);
     }
   }
 

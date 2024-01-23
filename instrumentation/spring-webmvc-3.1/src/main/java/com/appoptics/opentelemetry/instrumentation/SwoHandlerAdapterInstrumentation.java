@@ -19,7 +19,7 @@ import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
 /** Experimental instrumentation to set `TransactionName` KV to OT Trace root span for Spring MVC */
-public class AoHandlerAdapterInstrumentation implements TypeInstrumentation {
+public class SwoHandlerAdapterInstrumentation implements TypeInstrumentation {
 
   @Override
   public ElementMatcher<ClassLoader> classLoaderOptimization() {
@@ -39,7 +39,7 @@ public class AoHandlerAdapterInstrumentation implements TypeInstrumentation {
             .and(nameStartsWith("handle"))
             .and(takesArgument(0, named("javax.servlet.http.HttpServletRequest")))
             .and(takesArguments(3)),
-        AoHandlerAdapterInstrumentation.class.getName() + "$ControllerAdvice");
+        SwoHandlerAdapterInstrumentation.class.getName() + "$ControllerAdvice");
   }
 
   public static class ControllerAdvice {
@@ -48,7 +48,7 @@ public class AoHandlerAdapterInstrumentation implements TypeInstrumentation {
       Context parentContext = Java8BytecodeBridge.currentContext();
       Span serverSpan = Java8BytecodeBridge.spanFromContext(parentContext);
       if (serverSpan != null) {
-        String transactionName = AoSpringWebMvcTracer.spanNameOnHandle(handler);
+        String transactionName = SwoSpringWebMvcTracer.spanNameOnHandle(handler);
         serverSpan.setAttribute("HandlerName", transactionName);
       }
     }

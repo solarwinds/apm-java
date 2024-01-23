@@ -39,7 +39,7 @@ public class QueryArgsCollector {
     SortedMap<String, String> argsMap = instrumentationStore.get(statement);
     if (argsMap != null && !argsMap.isEmpty()) {
       List<String> queryArgs = new ArrayList<>(argsMap.values());
-      span.setAttribute(AoPreparedStatementInstrumentation.QueryArgsAttributeKey.KEY, queryArgs);
+      span.setAttribute(SwoPreparedStatementInstrumentation.QueryArgsAttributeKey.KEY, queryArgs);
       argsMap.clear();
     }
     instrumentationStore.computeIfPresent(statement, (stmt, sortedMap) -> null);

@@ -4,10 +4,10 @@ import com.appoptics.opentelemetry.core.AgentState;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-public class SolarWindsAgent {
-  private SolarWindsAgent() {}
+public class SolarwindsAgent {
+  private SolarwindsAgent() {}
 
-  private static final Logger logger = Logger.getLogger(SolarWindsAgent.class.getName());
+  private static final Logger logger = Logger.getLogger(SolarwindsAgent.class.getName());
 
   private static boolean agentAttached = false;
 
@@ -60,6 +60,6 @@ public class SolarWindsAgent {
 
   // Visible for testing
   static void setAgentAttachedToFalse() {
-    SolarWindsAgent.agentAttached = false;
+    SolarwindsAgent.agentAttached = false;
   }
 }

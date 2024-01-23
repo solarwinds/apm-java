@@ -35,9 +35,9 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class AppOpticsContextPropagatorTest {
+class SolarwindsContextPropagatorTest {
 
-  @InjectMocks private AppOpticsContextPropagator appOpticsContextPropagator;
+  @InjectMocks private SolarwindsContextPropagator solarwindsContextPropagator;
 
   @Mock private TextMapSetter<Map<?, ?>> textMapSetterMock;
 
@@ -59,13 +59,13 @@ class AppOpticsContextPropagatorTest {
 
   @Test
   void verifyThatInjectReturnsSuccessfullyWhenCarrierIsNull() {
-    appOpticsContextPropagator.inject(Context.current(), null, textMapSetterMock);
+    solarwindsContextPropagator.inject(Context.current(), null, textMapSetterMock);
     verify(textMapSetterMock, never()).set(any(), anyString(), anyString());
   }
 
   @Test
   void verifyThatInjectReturnsSuccessfullyWhenSpanIsInvalid() {
-    appOpticsContextPropagator.inject(Context.current(), new HashMap<>(), textMapSetterMock);
+    solarwindsContextPropagator.inject(Context.current(), new HashMap<>(), textMapSetterMock);
     verify(textMapSetterMock, never()).set(any(), anyString(), anyString());
   }
 
@@ -75,7 +75,7 @@ class AppOpticsContextPropagatorTest {
       spanMockedStatic.when(() -> Span.fromContext(any())).thenReturn(spanMock);
       when(spanMock.getSpanContext()).thenReturn(spanContext);
 
-      appOpticsContextPropagator.inject(Context.current(), new HashMap<>(), textMapSetterMock);
+      solarwindsContextPropagator.inject(Context.current(), new HashMap<>(), textMapSetterMock);
       verify(textMapSetterMock, atMostOnce())
           .set(any(), anyString(), stringArgumentCaptor.capture());
       assertEquals(
@@ -103,7 +103,7 @@ class AppOpticsContextPropagatorTest {
       spanMockedStatic.when(() -> Span.fromContext(any())).thenReturn(spanMock);
       when(spanMock.getSpanContext()).thenReturn(spanContext);
 
-      appOpticsContextPropagator.inject(Context.current(), new HashMap<>(), textMapSetterMock);
+      solarwindsContextPropagator.inject(Context.current(), new HashMap<>(), textMapSetterMock);
       verify(textMapSetterMock, atMostOnce())
           .set(any(), anyString(), stringArgumentCaptor.capture());
       assertEquals(
@@ -121,7 +121,7 @@ class AppOpticsContextPropagatorTest {
       spanMockedStatic.when(() -> Span.fromContext(context)).thenReturn(spanMock);
       when(spanMock.getSpanContext()).thenReturn(spanContext);
 
-      appOpticsContextPropagator.inject(context, new HashMap<>(), textMapSetterMock);
+      solarwindsContextPropagator.inject(context, new HashMap<>(), textMapSetterMock);
       verify(textMapSetterMock, times(2)).set(any(), anyString(), stringArgumentCaptor.capture());
       assertEquals(xtraceOptions, stringArgumentCaptor.getAllValues().get(1));
     }
@@ -136,7 +136,7 @@ class AppOpticsContextPropagatorTest {
       spanMockedStatic.when(() -> Span.fromContext(context)).thenReturn(spanMock);
       when(spanMock.getSpanContext()).thenReturn(spanContext);
 
-      appOpticsContextPropagator.inject(context, new HashMap<>(), textMapSetterMock);
+      solarwindsContextPropagator.inject(context, new HashMap<>(), textMapSetterMock);
       verify(textMapSetterMock, times(2)).set(any(), anyString(), stringArgumentCaptor.capture());
       assertEquals(xtraceOptions, stringArgumentCaptor.getAllValues().get(1));
     }
@@ -154,7 +154,7 @@ class AppOpticsContextPropagatorTest {
         };
 
     Context newContext =
-        appOpticsContextPropagator.extract(Context.current(), carrier, textMapGetterStub);
+        solarwindsContextPropagator.extract(Context.current(), carrier, textMapGetterStub);
     XTraceOptions xTraceOptions = newContext.get(TriggerTraceContextKey.KEY);
 
     assertEquals(String.format("%s=%s;", key, value), newContext.get(XTRACE_OPTIONS));
@@ -181,7 +181,7 @@ class AppOpticsContextPropagatorTest {
         };
 
     Context newContext =
-        appOpticsContextPropagator.extract(Context.current(), carrier, textMapGetterStub);
+        solarwindsContextPropagator.extract(Context.current(), carrier, textMapGetterStub);
     assertEquals("test-sig", newContext.get(XTRACE_OPTIONS_SIGNATURE));
   }
 
@@ -195,7 +195,7 @@ class AppOpticsContextPropagatorTest {
         };
 
     Context newContext =
-        appOpticsContextPropagator.extract(Context.current(), carrier, textMapGetterStub);
+        solarwindsContextPropagator.extract(Context.current(), carrier, textMapGetterStub);
     assertEquals("trigger-trace=ok", newContext.get(TraceStateKey.KEY));
   }
 }

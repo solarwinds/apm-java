@@ -6,7 +6,7 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import java.util.function.BiFunction;
 
-public class AppOpticsTracerProviderCustomizer
+public class SolarwindsTracerProviderCustomizer
     implements BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder> {
 
   @Override
@@ -14,10 +14,10 @@ public class AppOpticsTracerProviderCustomizer
       SdkTracerProviderBuilder tracerProvider, ConfigProperties config) {
     if (isAgentEnabled()) {
       tracerProvider
-          .setSampler(new AppOpticsSampler())
-          .addSpanProcessor(new AppOpticsRootSpanProcessor())
-          .addSpanProcessor(new AppOpticsProfilingSpanProcessor())
-          .addSpanProcessor(new AppOpticsInboundMetricsSpanProcessor());
+          .setSampler(new SolarwindsSampler())
+          .addSpanProcessor(new SolarwindsRootSpanProcessor())
+          .addSpanProcessor(new SolarwindsProfilingSpanProcessor())
+          .addSpanProcessor(new SolarwindsInboundMetricsSpanProcessor());
     }
 
     return tracerProvider;

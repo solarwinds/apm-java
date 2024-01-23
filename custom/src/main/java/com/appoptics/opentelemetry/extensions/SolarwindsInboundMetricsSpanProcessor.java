@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /** Span processor to record inbound metrics */
-public class AppOpticsInboundMetricsSpanProcessor implements SpanProcessor {
+public class SolarwindsInboundMetricsSpanProcessor implements SpanProcessor {
   private static final AttributeKey<Boolean> AO_METRICS_KEY =
       AttributeKey.booleanKey(Constants.SW_METRICS);
   public static final OpenTelemetryInboundMeasurementReporter MEASUREMENT_REPORTER =

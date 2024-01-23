@@ -12,7 +12,7 @@ import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 
 /** Span processor to keep track of the root span of a trace */
-public class AppOpticsRootSpanProcessor implements SpanProcessor {
+public class SolarwindsRootSpanProcessor implements SpanProcessor {
 
   private static final Logger logger = LoggerFactory.getLogger();
 

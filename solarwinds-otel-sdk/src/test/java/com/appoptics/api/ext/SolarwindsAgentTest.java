@@ -7,20 +7,20 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-class SolarWindsAgentTest {
+class SolarwindsAgentTest {
 
   @BeforeAll
   static void setup() {
-    SolarWindsAgent.setAgentAttachedToFalse();
+    SolarwindsAgent.setAgentAttachedToFalse();
   }
 
   @Test
   void verifyThatSetTransactionNameReturnsTrueWhenNoop() {
-    assertTrue(SolarWindsAgent.setTransactionName("hello world!"));
+    assertTrue(SolarwindsAgent.setTransactionName("hello world!"));
   }
 
   @Test
   void verifyThatWaitUntilReadyReturnsFalseWhenNoop() {
-    assertFalse(SolarWindsAgent.waitUntilReady(0, TimeUnit.MILLISECONDS));
+    assertFalse(SolarwindsAgent.waitUntilReady(0, TimeUnit.MILLISECONDS));
   }
 }

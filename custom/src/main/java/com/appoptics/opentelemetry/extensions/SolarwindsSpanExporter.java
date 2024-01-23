@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 /** Span exporter to be used with the OpenTelemetry auto agent */
-public class AppOpticsSpanExporter implements SpanExporter {
+public class SolarwindsSpanExporter implements SpanExporter {
   private final Logger logger = LoggerFactory.getLogger();
 
   // This format is visible to customer via span layer and can be used to configure transaction
