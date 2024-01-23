@@ -25,9 +25,9 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class AppOpticsRootSpanProcessorTest {
+class SolarwindsRootSpanProcessorTest {
 
-  @InjectMocks private AppOpticsRootSpanProcessor tested;
+  @InjectMocks private SolarwindsRootSpanProcessor tested;
 
   @Mock private ReadWriteSpan readWriteSpanMock;
 

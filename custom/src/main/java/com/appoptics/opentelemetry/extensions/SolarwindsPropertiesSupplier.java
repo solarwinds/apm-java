@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /** Provide various default properties when running OT agent with AO SPI implementations */
-public class AppOpticsPropertiesSupplier implements Supplier<Map<String, String>> {
+public class SolarwindsPropertiesSupplier implements Supplier<Map<String, String>> {
   private static final Map<String, String> PROPERTIES = new HashMap<>();
 
   static {

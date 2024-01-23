@@ -21,7 +21,7 @@ import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 
 /** Span process to perform code profiling */
-public class AppOpticsProfilingSpanProcessor implements SpanProcessor {
+public class SolarwindsProfilingSpanProcessor implements SpanProcessor {
   private static final Logger logger = LoggerFactory.getLogger();
   private static final ProfilerSetting profilerSetting =
       (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);

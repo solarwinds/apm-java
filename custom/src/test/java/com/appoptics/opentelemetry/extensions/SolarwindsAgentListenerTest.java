@@ -18,8 +18,8 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class AppOpticsAgentListenerTest {
-  @InjectMocks private AppOpticsAgentListener tested;
+class SolarwindsAgentListenerTest {
+  @InjectMocks private SolarwindsAgentListener tested;
 
   @Mock private AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdkMock;
 
@@ -40,7 +40,7 @@ class AppOpticsAgentListenerTest {
     when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk()).thenReturn(openTelemetrySdkMock);
 
     when(openTelemetrySdkMock.getSdkTracerProvider()).thenReturn(sdkTracerProviderMock);
-    when(sdkTracerProviderMock.getSampler()).thenReturn(new AppOpticsSampler());
+    when(sdkTracerProviderMock.getSampler()).thenReturn(new SolarwindsSampler());
 
     assertTrue(tested.isUsingAppOpticsSampler(autoConfiguredOpenTelemetrySdkMock));
   }

@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class AppOpticsContextPropagator implements TextMapPropagator {
+public class SolarwindsContextPropagator implements TextMapPropagator {
   private static final String TRACE_STATE_APPOPTICS_KEY = "sw";
   static final String TRACE_PARENT = "traceparent";
   static final String TRACE_STATE = "tracestate";

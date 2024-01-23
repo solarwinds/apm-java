@@ -12,7 +12,7 @@ import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.Controller;
 
-public class AoSpringWebMvcTracer {
+public class SwoSpringWebMvcTracer {
 
   public static String spanNameOnHandle(Object handler) {
     Class<?> clazz;

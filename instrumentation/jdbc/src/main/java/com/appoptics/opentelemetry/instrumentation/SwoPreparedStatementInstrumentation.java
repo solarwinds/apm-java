@@ -19,7 +19,7 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
-public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
+public class SwoPreparedStatementInstrumentation implements TypeInstrumentation {
 
   @Override
   public ElementMatcher<ClassLoader> classLoaderOptimization() {
@@ -40,7 +40,7 @@ public class AoPreparedStatementInstrumentation implements TypeInstrumentation {
   public void transform(TypeTransformer transformer) {
     transformer.applyAdviceToMethod(
         nameStartsWith("execute").and(takesArguments(0)).and(isPublic()),
-        AoPreparedStatementInstrumentation.class.getName() + "$PreparedStatementExecuteAdvice");
+        SwoPreparedStatementInstrumentation.class.getName() + "$PreparedStatementExecuteAdvice");
   }
 
   public static class QueryArgsAttributeKey {

@@ -1,12 +1,17 @@
+/*
+ * Copyright The OpenTelemetry Authors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.appoptics.opentelemetry.instrumentation;
 
 import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
+import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.none;
-import static net.bytebuddy.matcher.ElementMatchers.returns;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 import com.solarwinds.joboe.core.config.ConfigManager;
@@ -17,20 +22,23 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
-public class AoConnectionInstrumentation implements TypeInstrumentation {
+/**
+ * Experimental instrumentation to add back traces to existing OT spans.
+ *
+ * <p>This only works for `Statement` at this moment (ie no `PreparedStatement`)
+ */
+public class SwoStatementInstrumentation implements TypeInstrumentation {
 
   @Override
   public ElementMatcher<ClassLoader> classLoaderOptimization() {
-    return hasClassesNamed("java.sql.Connection");
+    return hasClassesNamed("java.sql.Statement");
   }
 
   @Override
   public ElementMatcher<TypeDescription> typeMatcher() {
-    Boolean sqlTagPrepared =
-        ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_TAG_PREPARED, false);
-    if (sqlTagPrepared) {
-      return named("com.mysql.cj.jdbc.ConnectionImpl") // only inject MySQL JDBC driver
-          .and(implementsInterface(named("java.sql.Connection")));
+    Boolean sqlTag = ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_TAG, false);
+    if (sqlTag) {
+      return implementsInterface(named("java.sql.Statement"));
     }
 
     return none();
@@ -39,20 +47,17 @@ public class AoConnectionInstrumentation implements TypeInstrumentation {
   @Override
   public void transform(TypeTransformer transformer) {
     transformer.applyAdviceToMethod(
-        nameStartsWith("prepare")
-            .and(takesArgument(0, String.class))
-            // Also include CallableStatement, which is a subtype of PreparedStatement
-            .and(returns(implementsInterface(named("java.sql.PreparedStatement")))),
-        AoConnectionInstrumentation.class.getName() + "$PrepareAdvice");
+        nameStartsWith("execute").and(takesArgument(0, String.class)).and(isPublic()),
+        SwoStatementInstrumentation.class.getName() + "$StatementAdvice");
   }
 
   @SuppressWarnings("unused")
-  public static class PrepareAdvice {
-
-    @Advice.OnMethodEnter(suppress = Throwable.class)
-    public static void injectComment(@Advice.Argument(value = 0, readOnly = false) String sql) {
+  public static class StatementAdvice {
+    @Advice.OnMethodEnter
+    public static void onEnter(@Advice.Argument(value = 0, readOnly = false) String sql) {
       sql = TraceContextInjector.inject(currentContext(), sql);
-      AoStatementTracer.writeStackTraceSpec(currentContext());
+      SwoStatementTracer.writeStackTraceSpec(currentContext());
+      StatementTruncator.maybeTruncateStatement(currentContext());
     }
   }
 }

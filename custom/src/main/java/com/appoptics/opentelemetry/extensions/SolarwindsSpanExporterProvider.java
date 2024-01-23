@@ -9,10 +9,10 @@ import io.opentelemetry.sdk.autoconfigure.spi.traces.ConfigurableSpanExporterPro
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 
 @AutoService(ConfigurableSpanExporterProvider.class)
-public class AppOpticsSpanExporterProvider implements ConfigurableSpanExporterProvider {
+public class SolarwindsSpanExporterProvider implements ConfigurableSpanExporterProvider {
   @Override
   public SpanExporter createExporter(@Nonnull ConfigProperties config) {
-    return new AppOpticsSpanExporter();
+    return new SolarwindsSpanExporter();
   }
 
   @Override

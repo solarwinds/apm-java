@@ -55,7 +55,7 @@ import java.util.concurrent.Executors;
  * href="https://github.com/appoptics/opentelemetry-custom-distro/pull/7">...</a>
  */
 @AutoService(AgentListener.class)
-public class AppOpticsAgentListener implements AgentListener {
+public class SolarwindsAgentListener implements AgentListener {
   private static final Logger logger = LoggerFactory.getLogger();
 
   @Override
@@ -80,7 +80,7 @@ public class AppOpticsAgentListener implements AgentListener {
   boolean isUsingAppOpticsSampler(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     Sampler sampler =
         autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk().getSdkTracerProvider().getSampler();
-    boolean verdict = sampler instanceof AppOpticsSampler;
+    boolean verdict = sampler instanceof SolarwindsSampler;
     setAgentEnabled(verdict);
 
     if (!verdict) {
@@ -145,7 +145,7 @@ public class AppOpticsAgentListener implements AgentListener {
                               MetricsCollector metricsCollector =
                                   new MetricsCollector(
                                       configs,
-                                      AppOpticsInboundMetricsSpanProcessor
+                                      SolarwindsInboundMetricsSpanProcessor
                                           .buildSpanMetricsCollector());
                               return MetricsMonitor.buildInstance(configs, metricsCollector);
                             } catch (InvalidConfigException | ClientException e) {
@@ -219,7 +219,7 @@ public class AppOpticsAgentListener implements AgentListener {
     Map<String, Object> initMessage = new HashMap<>();
     initMessage.put("__Init", true);
 
-    String version = AppOpticsAgentListener.class.getPackage().getImplementationVersion();
+    String version = SolarwindsAgentListener.class.getPackage().getImplementationVersion();
     if (version != null) {
       initMessage.put("APM.Version", version);
     }

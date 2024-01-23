@@ -12,7 +12,7 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
  * classloader if the class mateches any of the prefix in the list above.
  */
 @AutoService(BootstrapPackagesConfigurer.class)
-public class AppOpticsBootstrapPackagesProvider implements BootstrapPackagesConfigurer {
+public class SolarwindsBootstrapPackagesProvider implements BootstrapPackagesConfigurer {
   @Override
   public void configure(BootstrapPackagesBuilder builder, ConfigProperties config) {
     builder.add("com.solarwinds.joboe");

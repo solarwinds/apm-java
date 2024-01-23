@@ -12,7 +12,7 @@ import io.opentelemetry.context.Context;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class AoStatementTracer {
+public class SwoStatementTracer {
   private static final Map<String, String> LRUCache =
       new LinkedHashMap<String, String>() {
         @Override

@@ -8,11 +8,11 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigurablePropagatorProvider;
 
 @AutoService(ConfigurablePropagatorProvider.class)
-public class AppOpticsContextPropagatorProvider implements ConfigurablePropagatorProvider {
+public class SolarwindsContextPropagatorProvider implements ConfigurablePropagatorProvider {
 
   @Override
   public TextMapPropagator getPropagator(ConfigProperties config) {
-    return new AppOpticsContextPropagator();
+    return new SolarwindsContextPropagator();
   }
 
   @Override

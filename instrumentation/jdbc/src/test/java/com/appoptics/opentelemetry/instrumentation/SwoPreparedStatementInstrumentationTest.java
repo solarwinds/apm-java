@@ -16,8 +16,8 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class AoConnectionInstrumentationTest {
-  @InjectMocks private AoConnectionInstrumentation tested;
+class SwoPreparedStatementInstrumentationTest {
+  @InjectMocks private SwoPreparedStatementInstrumentation tested;
 
   @Test
   void returnNoneMatcherWhenSqlTagPreparedIsNotEnabled() {

@@ -13,14 +13,14 @@ import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import java.util.List;
 
 @AutoService(InstrumentationModule.class)
-public class AoSpringWebMvcInstrumentationModule extends InstrumentationModule {
-  public AoSpringWebMvcInstrumentationModule() {
+public class SwoSpringWebMvcInstrumentationModule extends InstrumentationModule {
+  public SwoSpringWebMvcInstrumentationModule() {
     super("ao-spring-webmvc", "ao-spring-webmvc-3.1");
   }
 
   @Override
   public List<TypeInstrumentation> typeInstrumentations() {
-    return asList(new AoHandlerAdapterInstrumentation());
+    return asList(new SwoHandlerAdapterInstrumentation());
   }
 
   @Override

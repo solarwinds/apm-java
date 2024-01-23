@@ -1,7 +1,8 @@
 package com.appoptics.opentelemetry.instrumentation;
 
 import static net.bytebuddy.matcher.ElementMatchers.none;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 
@@ -16,23 +17,20 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class AoPreparedStatementInstrumentationTest {
-  @InjectMocks private AoPreparedStatementInstrumentation tested;
+class SwoStatementInstrumentationTest {
+  @InjectMocks private SwoStatementInstrumentation tested;
 
   @Test
-  void returnNoneMatcherWhenSqlTagPreparedIsNotEnabled() {
+  void returnNoneMatcherWhenSqlTagIsNotEnabled() {
     ElementMatcher<TypeDescription> actual = tested.typeMatcher();
     assertEquals(none(), actual);
   }
 
   @Test
-  void returnNonNoneMatcherWhenSqlTagPreparedIsEnabled() {
+  void returnNonNoneMatcherWhenSqlTagIsEnabled() {
     try (MockedStatic<ConfigManager> configManagerMock = mockStatic(ConfigManager.class)) {
       configManagerMock
-          .when(
-              () ->
-                  ConfigManager.getConfigOptional(
-                      eq(ConfigProperty.AGENT_SQL_TAG_PREPARED), eq(false)))
+          .when(() -> ConfigManager.getConfigOptional(eq(ConfigProperty.AGENT_SQL_TAG), eq(false)))
           .thenReturn(true);
       ElementMatcher<TypeDescription> actual = tested.typeMatcher();
       assertNotEquals(none(), actual);

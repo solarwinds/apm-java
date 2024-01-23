@@ -34,9 +34,9 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class AppOpticsSamplerTest {
+class SolarwindsSamplerTest {
 
-  @InjectMocks private AppOpticsSampler tested;
+  @InjectMocks private SolarwindsSampler tested;
 
   @Mock private TraceDecision traceDecisionMock;
 
@@ -79,7 +79,7 @@ class AppOpticsSamplerTest {
     when(traceDecisionMock.isReportMetrics()).thenReturn(true);
 
     SamplingResult actual = tested.toOtSamplingResult(traceDecisionMock, xTraceOptionsMock, false);
-    assertEquals(AppOpticsSampler.METRICS_ONLY, actual);
+    assertEquals(SolarwindsSampler.METRICS_ONLY, actual);
   }
 
   @Test
@@ -88,7 +88,7 @@ class AppOpticsSamplerTest {
     when(traceDecisionMock.isReportMetrics()).thenReturn(false);
 
     SamplingResult actual = tested.toOtSamplingResult(traceDecisionMock, xTraceOptionsMock, false);
-    assertEquals(AppOpticsSampler.NOT_TRACED, actual);
+    assertEquals(SolarwindsSampler.NOT_TRACED, actual);
   }
 
   @Test

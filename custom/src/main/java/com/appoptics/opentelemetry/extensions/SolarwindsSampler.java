@@ -1,6 +1,6 @@
 package com.appoptics.opentelemetry.extensions;
 
-import static com.appoptics.opentelemetry.extensions.AppOpticsSpanExporter.LAYER_FORMAT;
+import static com.appoptics.opentelemetry.extensions.SolarwindsSpanExporter.LAYER_FORMAT;
 import static com.appoptics.opentelemetry.extensions.SamplingUtil.SW_TRACESTATE_KEY;
 import static com.appoptics.opentelemetry.extensions.SamplingUtil.addXtraceOptionsToAttribute;
 import static com.solarwinds.joboe.core.TraceDecisionUtil.shouldTraceRequest;
@@ -35,7 +35,7 @@ import java.util.List;
  *
  * <p>Also inject various AppOptics specific sampling KVs into the `SampleResult`
  */
-public class AppOpticsSampler implements Sampler {
+public class SolarwindsSampler implements Sampler {
   private static final SamplingResult PARENT_SAMPLED =
       SamplingResult.create(
           SamplingDecision.RECORD_AND_SAMPLE,
@@ -69,7 +69,7 @@ public class AppOpticsSampler implements Sampler {
 
   private static final Logger logger = LoggerFactory.getLogger();
 
-  public AppOpticsSampler() {
+  public SolarwindsSampler() {
     logger.info("Attached Solarwinds' Sampler");
   }
 
