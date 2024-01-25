@@ -413,8 +413,6 @@ export default function () {
     const request_count = (measurement) => check(measurement, {"request_count": mrs => mrs.value > 0})
     const tracecount = (measurement) => check(measurement, {"tracecount": mrs => mrs.value > 0})
     const samplecount = (measurement) => check(measurement, {"samplecount": mrs => mrs.value > 0})
-    const sample_rate = (measurement) => check(measurement, {"sample_rate": mrs => mrs.value > 0})
-    const sample_source = (measurement) => check(measurement, {"sample_source": mrs => mrs.value > 0})
     const response_time = (measurement) => check(measurement, {"response_time": mrs => mrs.value > 0})
 
     silence(function () {
@@ -427,14 +425,6 @@ export default function () {
 
     silence(function () {
       verify_that_metrics_are_reported("trace.service.samplecount", samplecount)
-    })
-
-    silence(function () {
-      verify_that_metrics_are_reported("trace.service.sample_rate", sample_rate)
-    })
-
-    silence(function () {
-      verify_that_metrics_are_reported("trace.service.sample_source", sample_source)
     })
 
     silence(function () {

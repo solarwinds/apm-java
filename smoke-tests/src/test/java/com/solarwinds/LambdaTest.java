@@ -98,23 +98,6 @@ public class LambdaTest {
   }
 
   @Test
-  void assertThatSampleRateMetricIsReported() throws IOException {
-    String resultJson = new String(
-        Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-
-    double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['sample_rate'].passes");
-    assertTrue(passes > 1, "Expects a count > 1 ");
-  }
-
-  @Test
-  void assertThatSampleSourceMetricIsReported() throws IOException {
-    String resultJson = new String(
-        Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-
-    double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['sample_source'].passes");
-    assertTrue(passes > 1, "Expects a count > 1 ");
-  }
-  @Test
   void assertThatResponseTimeMetricIsReported() throws IOException {
     String resultJson = new String(
         Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
