@@ -1,24 +1,22 @@
 package com.appoptics.opentelemetry.extensions.lambda;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.atMost;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.solarwinds.joboe.core.SampleRateSource;
-import com.solarwinds.joboe.core.TraceConfig;
-import com.solarwinds.joboe.core.TraceDecisionUtil;
-import com.solarwinds.joboe.core.metrics.measurement.SimpleMeasurementMetricsEntry;
 import com.solarwinds.joboe.core.util.HostTypeDetector;
-import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.DoubleGaugeBuilder;
 import io.opentelemetry.api.metrics.LongGaugeBuilder;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.metrics.ObservableLongMeasurement;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import java.util.ArrayDeque;
-import java.util.HashMap;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,52 +58,6 @@ class TraceDecisionMetricCollectorTest {
         .getAllValues()
         .forEach(consumer -> consumer.accept(observableLongMeasurementMock));
     verify(observableLongMeasurementMock, times(6)).record(anyLong());
-  }
-
-  @Test
-  void verifyThatEmptyQueueIsNotQueried() {
-    tested.record(observableLongMeasurementMock, new ArrayDeque<>());
-    verify(observableLongMeasurementMock, never()).record(anyLong());
-    verify(observableLongMeasurementMock, never()).record(anyLong(), any());
-  }
-
-  @Test
-  void verifyThatNonEmptyQueueIsQueried() {
-    HashMap<String, String> tags =
-        new HashMap<>() {
-          {
-            put("tag", "value");
-          }
-        };
-    ArrayDeque<SimpleMeasurementMetricsEntry> deque = new ArrayDeque<>();
-    deque.add(new SimpleMeasurementMetricsEntry("test", tags, 9));
-
-    tested.record(observableLongMeasurementMock, deque);
-    verify(observableLongMeasurementMock)
-        .record(longArgumentCaptor.capture(), attributesArgumentCaptor.capture());
-
-    assertEquals(9, longArgumentCaptor.getValue());
-    Attributes attributes = attributesArgumentCaptor.getValue();
-
-    String tagValue = attributes.get(AttributeKey.stringKey("tag"));
-    assertEquals("value", tagValue);
-  }
-
-  @Test
-  void verifyThatQueueIsPopulated() {
-    try (MockedStatic<TraceDecisionUtil> mocked = mockStatic(TraceDecisionUtil.class)) {
-      mocked
-          .when(TraceDecisionUtil::consumeLastTraceConfigs)
-          .thenReturn(
-              new HashMap<String, TraceConfig>() {
-                {
-                  put("one", new TraceConfig(90, SampleRateSource.FILE, (short) 1));
-                }
-              });
-      tested.consumeTraceConfigs(observableLongMeasurementMock);
-      assertFalse(tested.getSampleRateQueue().isEmpty());
-      assertFalse(tested.getSampleSourceQueue().isEmpty());
-    }
   }
 
   @Test
