@@ -2,6 +2,7 @@ package com.appoptics.opentelemetry.extensions.initialize;
 
 import com.appoptics.opentelemetry.extensions.AppOpticsPropertiesSupplier;
 import com.appoptics.opentelemetry.extensions.AppOpticsTracerProviderCustomizer;
+import com.appoptics.opentelemetry.extensions.lambda.MetricExporterCustomizer;
 import com.appoptics.opentelemetry.extensions.lambda.PropertiesSupplier;
 import com.appoptics.opentelemetry.extensions.lambda.RuntimeTraceProviderCustomizer;
 import com.google.auto.service.AutoService;
@@ -56,7 +57,8 @@ public class OtelAutoConfigurationCustomizerProviderImpl
         .addPropertiesSupplier(new PropertiesSupplier(new AppOpticsPropertiesSupplier()))
         .addTracerProviderCustomizer(
             new RuntimeTraceProviderCustomizer(new AppOpticsTracerProviderCustomizer()))
-        .addResourceCustomizer(new AutoConfiguredResourceCustomizer());
+        .addResourceCustomizer(new AutoConfiguredResourceCustomizer())
+        .addMetricExporterCustomizer(new MetricExporterCustomizer());
   }
 
   @Override
