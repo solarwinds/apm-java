@@ -11,7 +11,6 @@ import static org.mockito.Mockito.when;
 import com.appoptics.opentelemetry.extensions.TransactionNameManager;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.LongHistogram;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.sdk.testing.trace.TestSpanData;
@@ -32,11 +31,7 @@ class InboundMeasurementMetricsGeneratorTest {
 
   @InjectMocks private InboundMeasurementMetricsGenerator tested;
 
-  @Mock private LongCounter requestCounter;
-
   @Mock private LongHistogram responseTime;
-
-  @Mock private LongCounter requestErrorCounter;
 
   @Mock private ReadableSpan readableSpanMock;
 
@@ -93,7 +88,6 @@ class InboundMeasurementMetricsGeneratorTest {
     when(readableSpanMock.toSpanData()).thenReturn(testSpanData);
     tested.onEnd(readableSpanMock);
 
-    verify(requestCounter).add(anyLong(), attributesArgumentCaptor.capture());
     verify(responseTime).record(anyLong(), attributesArgumentCaptor.capture());
 
     boolean allMatch =
@@ -131,8 +125,6 @@ class InboundMeasurementMetricsGeneratorTest {
     when(readableSpanMock.toSpanData()).thenReturn(testSpanData);
     tested.onEnd(readableSpanMock);
 
-    verify(requestCounter).add(anyLong(), attributesArgumentCaptor.capture());
-    verify(requestErrorCounter).add(anyLong(), attributesArgumentCaptor.capture());
     verify(responseTime).record(anyLong(), attributesArgumentCaptor.capture());
 
     boolean allMatch =
@@ -146,29 +138,6 @@ class InboundMeasurementMetricsGeneratorTest {
                         && TransactionNameManager.getTransactionName(testSpanData)
                             .equals(attributes.get(AttributeKey.stringKey("sw.transaction"))));
 
-    assertTrue(allMatch);
-  }
-
-  @Test
-  void ensureCountersAreOnlyIncrementedByOne() {
-    TestSpanData testSpanData =
-        TestSpanData.builder()
-            .setName("test")
-            .setKind(SpanKind.SERVER)
-            .setStartEpochNanos(0)
-            .setEndEpochNanos(10000)
-            .setHasEnded(true)
-            .setStatus(StatusData.error())
-            .setAttributes(Attributes.of(SemanticAttributes.HTTP_REQUEST_METHOD, "get"))
-            .build();
-
-    when(readableSpanMock.toSpanData()).thenReturn(testSpanData);
-    tested.onEnd(readableSpanMock);
-
-    verify(requestCounter).add(longArgumentCaptor.capture(), any());
-    verify(requestErrorCounter).add(longArgumentCaptor.capture(), any());
-
-    boolean allMatch = longArgumentCaptor.getAllValues().stream().allMatch(value -> value == 1);
     assertTrue(allMatch);
   }
 }
