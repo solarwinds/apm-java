@@ -29,7 +29,7 @@ subprojects {
                 bytebuddy             : "1.12.10",
                 guava                 : "30.1-jre",
                 appopticsCore         : "9.1.0",
-                agent                 : "1.0.1-alpha", // the custom distro agent version
+                agent                 : "1.2.0", // the custom distro agent version
                 autoservice           : "1.0.1",
         ]
         versions.appopticsMetrics = "${versions.appopticsCore}" // they share the same version now
