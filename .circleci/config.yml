@@ -307,7 +307,7 @@ jobs:
             echo "sha256: $SHA256" >> VERSION
             
             aws s3 cp VERSION \
-            s3://ssp-stage-global-agent-binaries/apm/java/latest/VERSION \
+            s3://ssp-prod-global-agent-binaries/apm/java/latest/VERSION \
             --acl public-read
       - run:
           name: Send to slack
