@@ -273,6 +273,14 @@ jobs:
           command: |
             cat .circleci/version.sh >> $BASH_ENV
       - run:
+          name: Check version doesn't exist
+          command: |
+            # make sure this version hasn't been pushed to prod yet
+            if curl -f -s "https://agent-binaries.cloud.solarwinds.com/apm/java/$AGENTVERSION/solarwinds-apm-config.json" > /dev/null; then
+                echo "This version has been deployed to production already!"
+                exit 1
+            fi
+      - run:
           name: Copy to S3
           command: |
             aws s3 cp agent/build/libs/solarwinds-apm-agent.jar \
