@@ -19,7 +19,6 @@ import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.data.LinkData;
@@ -105,52 +104,45 @@ public class AppOpticsSampler implements Sampler {
         xtraceOptionsResponseStr = xtraceOptionsResponse.toString();
       }
 
-    } else {
-      final String swVal = traceState.get(SW_TRACESTATE_KEY);
-      String parentId = null;
-      if (!SamplingUtil.isValidSwTraceState(
-          swVal)) { // broken or non-exist sw tracestate, treat it as a new trace
+    } else if (parentSpanContext.isRemote()) {
+      final String swTraceState = traceState.get(SW_TRACESTATE_KEY);
+
+      if (SamplingUtil.isValidSwTraceState(swTraceState)) { // pass through for request counting
+        additionalAttributesBuilder.put(Constants.SW_PARENT_ID, swTraceState.split("-")[0]);
+        final String xTraceId = Util.w3cContextToHexString(parentSpanContext);
+        final TraceDecision traceDecision =
+            shouldTraceRequest(name, xTraceId, xTraceOptions, signals);
+
+        samplingResult = toOtSamplingResult(traceDecision, xTraceOptions, false);
+        final XTraceOptionsResponse xTraceOptionsResponse =
+            XTraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, false);
+
+        if (xTraceOptionsResponse != null) {
+          xtraceOptionsResponseStr = xTraceOptionsResponse.toString();
+        }
+
+      } else { // no swTraceState, treat it as a new trace
         final TraceDecision traceDecision = shouldTraceRequest(name, null, xTraceOptions, signals);
         samplingResult = toOtSamplingResult(traceDecision, xTraceOptions, true);
+
         final XTraceOptionsResponse xTraceOptionsResponse =
             XTraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, true);
         if (xTraceOptionsResponse != null) {
           xtraceOptionsResponseStr = xTraceOptionsResponse.toString();
         }
-      } else { // follow the upstream sw trace decision
-        final TraceFlags traceFlags = TraceFlags.fromByte(swVal.split("-")[1].getBytes()[1]);
-        if (parentSpanContext.isRemote()) { // root span needs to roll the dice
-          final String xTraceId = Util.w3cContextToHexString(parentSpanContext);
-          final TraceDecision traceDecision =
-              shouldTraceRequest(name, xTraceId, xTraceOptions, signals);
-          samplingResult = toOtSamplingResult(traceDecision, xTraceOptions, false);
-
-          final XTraceOptionsResponse xTraceOptionsResponse =
-              XTraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, false);
-          if (xTraceOptionsResponse != null) {
-            xtraceOptionsResponseStr = xTraceOptionsResponse.toString();
-          }
-        } else {
-          // non-root span just follows the parent span's decision. this works because local
-          // tracestate is
-          // propagated as sw="SWSpanIdPlaceHolder-(00|01)"
-          samplingResult =
-              (traceFlags.isSampled() ? Sampler.alwaysOn() : Sampler.alwaysOff())
-                  .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks);
-        }
-        parentId = swVal.split("-")[0];
       }
-      if (parentSpanContext.isRemote() && parentId != null) {
-        additionalAttributesBuilder.put(Constants.SW_PARENT_ID, parentId);
-      }
-    }
 
-    if (parentSpanContext.isRemote() && !traceState.isEmpty()) {
       final String traceStateValue = parentContext.get(TraceStateKey.KEY);
       if (traceStateValue != null) {
         additionalAttributesBuilder.put(Constants.SW_UPSTREAM_TRACESTATE, traceStateValue);
       }
+
+    } else { // local span, continue with parent based sampling
+      samplingResult =
+          Sampler.parentBased(Sampler.alwaysOff())
+              .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks);
     }
+
     SamplingResult result =
         TraceStateSamplingResult.wrap(
             samplingResult, additionalAttributesBuilder.build(), xtraceOptionsResponseStr);

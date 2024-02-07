@@ -1,6 +1,5 @@
 package com.appoptics.opentelemetry.extensions;
 
-import static com.appoptics.opentelemetry.extensions.SamplingUtil.SW_TRACESTATE_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -124,7 +123,7 @@ class AppOpticsSamplerTest {
   }
 
   @Test
-  void verifyThatLocalTraceDecisionMachineryIsUsedWhenSpanIsNotRootAndSwTraceStateIsInvalid() {
+  void verifyThatTraceDecisionMachineryIsUsedWhenSpanParentIsRemoteAndSwTraceStateIsInvalid() {
     try (MockedStatic<Span> spanMockedStatic = mockStatic(Span.class);
         MockedStatic<TraceDecisionUtil> traceDecisionUtilMockedStatic =
             mockStatic(TraceDecisionUtil.class)) {
@@ -141,6 +140,7 @@ class AppOpticsSamplerTest {
       when(spanContextMock.getTraceState()).thenReturn(traceStateMock);
       when(traceStateMock.get(any())).thenReturn("this is illegal");
 
+      when(spanContextMock.isRemote()).thenReturn(true);
       tested.shouldSample(
           Context.current(),
           idGenerator.generateTraceId(),
@@ -149,16 +149,13 @@ class AppOpticsSamplerTest {
           Attributes.empty(),
           List.of());
 
-      verify(traceStateMock).get(stringArgumentCaptor.capture());
       traceDecisionUtilMockedStatic.verify(
           () -> TraceDecisionUtil.shouldTraceRequest(any(), any(), any(), any()));
-
-      assertEquals(SW_TRACESTATE_KEY, stringArgumentCaptor.getValue());
     }
   }
 
   @Test
-  void verifyThatLocalTraceDecisionMachineryIsUsedWhenSpanIsRemoteAndSwTraceStateIsValid() {
+  void verifyThatTraceDecisionMachineryIsUsedWhenSpanParentIsRemoteAndSwTraceStateIsValid() {
     try (MockedStatic<Span> spanMockedStatic = mockStatic(Span.class);
         MockedStatic<TraceDecisionUtil> traceDecisionUtilMockedStatic =
             mockStatic(TraceDecisionUtil.class);
@@ -202,20 +199,16 @@ class AppOpticsSamplerTest {
   }
 
   @Test
-  void
-      returnRecordAndSampleDecisionWhenLocalTraceDecisionMachineryIsNotUsedAndSpanIsLocalAndSwTraceStateIsSample() {
+  void returnRecordAndSampleDecisionWhenSpanIsLocalAndParentIsSample() {
     try (MockedStatic<Span> spanMockedStatic = mockStatic(Span.class); ) {
       spanMockedStatic.when(() -> Span.fromContext(any())).thenReturn(spanMock);
-
-      String spanId = idGenerator.generateSpanId();
-      String swVal = String.format("%s-%s", spanId, "01");
+      when(spanMock.getSpanContext()).thenReturn(spanContextMock);
       when(spanContextMock.isRemote()).thenReturn(false);
 
       when(spanContextMock.isValid()).thenReturn(true);
-      when(spanMock.getSpanContext()).thenReturn(spanContextMock);
+      when(spanContextMock.isSampled()).thenReturn(true);
       when(spanContextMock.getTraceState()).thenReturn(traceStateMock);
 
-      when(traceStateMock.get(any())).thenReturn(swVal);
       SamplingResult actual =
           tested.shouldSample(
               Context.current(),
@@ -230,20 +223,15 @@ class AppOpticsSamplerTest {
   }
 
   @Test
-  void
-      returnDropDecisionWhenLocalTraceDecisionMachineryIsNotUsedAndSpanIsLocalAndSwTraceStateIsNotSample() {
+  void returnDropDecisionWhenLocalSpanAndParentIsNotSampled() {
     try (MockedStatic<Span> spanMockedStatic = mockStatic(Span.class); ) {
       spanMockedStatic.when(() -> Span.fromContext(any())).thenReturn(spanMock);
-
-      String spanId = idGenerator.generateSpanId();
-      String swVal = String.format("%s-%s", spanId, "00");
-      when(spanContextMock.isRemote()).thenReturn(false);
-
-      when(spanContextMock.isValid()).thenReturn(true);
       when(spanMock.getSpanContext()).thenReturn(spanContextMock);
+
+      when(spanContextMock.isRemote()).thenReturn(false);
+      when(spanContextMock.isValid()).thenReturn(true);
       when(spanContextMock.getTraceState()).thenReturn(traceStateMock);
 
-      when(traceStateMock.get(any())).thenReturn(swVal);
       SamplingResult actual =
           tested.shouldSample(
               Context.current(),

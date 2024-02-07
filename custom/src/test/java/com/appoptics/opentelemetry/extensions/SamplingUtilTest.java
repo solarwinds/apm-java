@@ -3,6 +3,8 @@ package com.appoptics.opentelemetry.extensions;
 import static io.opentelemetry.api.common.AttributeKey.booleanKey;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.solarwinds.joboe.core.TraceDecision;
@@ -63,5 +65,35 @@ class SamplingUtilTest {
 
     SamplingUtil.addXtraceOptionsToAttribute(traceDecisionMock, xTraceOptions, builder);
     assertEquals("lo:se,check-id:123", builder.build().get(stringKey("SWKeys")));
+  }
+
+  @Test
+  void returnTrueGivenValidSwTraceState() {
+    String swTraceState = "4025843a0f1f35f3-01";
+    assertTrue(SamplingUtil.isValidSwTraceState(swTraceState));
+  }
+
+  @Test
+  void returnFalseGivenSwTraceStateWithInvalidFlag() {
+    String swTraceState = "4025843a0f1f35f3-11";
+    assertFalse(SamplingUtil.isValidSwTraceState(swTraceState));
+  }
+
+  @Test
+  void returnFalseGivenSwTraceStateWithSpanIdLengthLessThan16() {
+    String swTraceState = "4025843a0f1f35f-01";
+    assertFalse(SamplingUtil.isValidSwTraceState(swTraceState));
+  }
+
+  @Test
+  void returnFalseGivenSwTraceStateWithSpanIdLengthGreaterThan16() {
+    String swTraceState = "4025843a0f1f35f33-01";
+    assertFalse(SamplingUtil.isValidSwTraceState(swTraceState));
+  }
+
+  @Test
+  void returnFalseGivenSwTraceStateWithInvalidFormat() {
+    String swTraceState = "4025843a0f1f3-5f-01";
+    assertFalse(SamplingUtil.isValidSwTraceState(swTraceState));
   }
 }

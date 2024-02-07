@@ -1,8 +1,5 @@
 package com.appoptics.opentelemetry.extensions;
 
-import static com.appoptics.opentelemetry.extensions.SamplingUtil.SW_SPAN_PLACEHOLDER_NOT_SAMPLED;
-import static com.appoptics.opentelemetry.extensions.SamplingUtil.SW_SPAN_PLACEHOLDER_SAMPLED;
-import static com.appoptics.opentelemetry.extensions.SamplingUtil.SW_TRACESTATE_KEY;
 import static com.appoptics.opentelemetry.extensions.SamplingUtil.SW_XTRACE_OPTIONS_RESP_KEY;
 
 import io.opentelemetry.api.common.Attributes;
@@ -16,17 +13,12 @@ import io.opentelemetry.sdk.trace.samplers.SamplingResult;
  */
 public class TraceStateSamplingResult implements SamplingResult {
   private final SamplingResult delegated;
-  private final String swTraceState;
   private final Attributes additionalAttributes;
   private final String sanitizedXtraceOptionsResponse;
 
   private TraceStateSamplingResult(
       SamplingResult delegated, Attributes additionalAttributes, String xtraceOptionsResponse) {
     this.delegated = delegated;
-    this.swTraceState =
-        (delegated.getDecision() == SamplingDecision.RECORD_AND_SAMPLE
-            ? SW_SPAN_PLACEHOLDER_SAMPLED
-            : SW_SPAN_PLACEHOLDER_NOT_SAMPLED);
     this.additionalAttributes = additionalAttributes;
     this.sanitizedXtraceOptionsResponse = sanitize(xtraceOptionsResponse);
   }
@@ -48,8 +40,13 @@ public class TraceStateSamplingResult implements SamplingResult {
 
   @Override
   public TraceState getUpdatedTraceState(TraceState parentTraceState) {
-    TraceStateBuilder builder = parentTraceState.toBuilder().put(SW_TRACESTATE_KEY, swTraceState);
+    TraceStateBuilder builder = parentTraceState.toBuilder();
     if (sanitizedXtraceOptionsResponse != null) {
+      /*
+        This is used to store xtrace options response to make it available for injecting as HTTP
+        headers for servlet instrumentations. It's not expected to happen in GRPC context. When
+        it does, it will cause `tracestate` key to have two values with the other coming from {@link AppOpticsContextPropagator#inject}
+      */
       builder.put(SW_XTRACE_OPTIONS_RESP_KEY, sanitizedXtraceOptionsResponse);
     }
     return builder.build();
