@@ -6,8 +6,6 @@ import static org.mockito.Mockito.*;
 
 import com.solarwinds.joboe.core.settings.SettingsManager;
 import com.solarwinds.joboe.core.util.HostTypeDetector;
-import com.solarwinds.opentelemetry.extensions.SolarwindsAgentListener;
-import com.solarwinds.opentelemetry.extensions.SolarwindsSampler;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
@@ -34,7 +32,7 @@ class SolarwindsAgentListenerTest {
     when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk())
         .thenReturn(OpenTelemetrySdk.builder().build());
 
-    assertFalse(tested.isUsingAppOpticsSampler(autoConfiguredOpenTelemetrySdkMock));
+    assertFalse(tested.isUsingSolarwindsSampler(autoConfiguredOpenTelemetrySdkMock));
   }
 
   @Test
@@ -44,7 +42,7 @@ class SolarwindsAgentListenerTest {
     when(openTelemetrySdkMock.getSdkTracerProvider()).thenReturn(sdkTracerProviderMock);
     when(sdkTracerProviderMock.getSampler()).thenReturn(new SolarwindsSampler());
 
-    assertTrue(tested.isUsingAppOpticsSampler(autoConfiguredOpenTelemetrySdkMock));
+    assertTrue(tested.isUsingSolarwindsSampler(autoConfiguredOpenTelemetrySdkMock));
   }
 
   @Test

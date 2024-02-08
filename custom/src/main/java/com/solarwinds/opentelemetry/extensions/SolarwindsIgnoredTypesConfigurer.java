@@ -9,7 +9,7 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 public class SolarwindsIgnoredTypesConfigurer implements IgnoredTypesConfigurer {
   @Override
   public void configure(IgnoredTypesBuilder builder, ConfigProperties config) {
-    builder.ignoreClass("com.appoptics.ext.");
+    builder.ignoreClass("com.solarwinds.ext.");
     builder.ignoreClass("com.solarwinds.joboe.");
   }
 }

@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Sampler that uses trace decision logic from our joboe core (consult local and remote settings)
  *
- * <p>Also inject various AppOptics specific sampling KVs into the `SampleResult`
+ * <p>Also inject various Solarwinds specific sampling KVs into the `SampleResult`
  */
 public class SolarwindsSampler implements Sampler {
   private static final SamplingResult PARENT_SAMPLED =
