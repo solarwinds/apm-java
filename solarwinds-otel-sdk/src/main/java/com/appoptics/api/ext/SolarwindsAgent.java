@@ -1,6 +1,6 @@
 package com.appoptics.api.ext;
 
-import com.appoptics.opentelemetry.core.AgentState;
+import com.solarwinds.opentelemetry.core.AgentState;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -13,7 +13,7 @@ public class SolarwindsAgent {
 
   static {
     try {
-      Class.forName("com.appoptics.opentelemetry.core.CustomTransactionNameDict");
+      Class.forName("com.solarwinds.opentelemetry.core.CustomTransactionNameDict");
       logger.info("The SolarWinds APM agent is available.");
       agentAttached = true;
 
