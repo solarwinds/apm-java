@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class SolarwindsContextPropagator implements TextMapPropagator {
-  private static final String TRACE_STATE_APPOPTICS_KEY = "sw";
+  private static final String SWI_TRACE_STATE_KEY = "sw";
   static final String TRACE_PARENT = "traceparent";
   static final String TRACE_STATE = "tracestate";
   static final String W3C_TRACE_CONTEXT_HEADER = "sw.trace_context";
@@ -41,7 +41,7 @@ public class SolarwindsContextPropagator implements TextMapPropagator {
   }
 
   /**
-   * Injects the both the AppOptics x-trace ID and the updated w3c `tracestate` with our x-trace ID
+   * Injects the both the Solarwinds x-trace ID and the updated w3c `tracestate` with our x-trace ID
    * prepended into the carrier with values provided by current context
    *
    * @param context trace context
@@ -84,7 +84,7 @@ public class SolarwindsContextPropagator implements TextMapPropagator {
   private String updateTraceState(TraceState traceState, String swTraceStateValue) {
     final StringBuilder traceStateBuilder = new StringBuilder(TRACESTATE_MAX_SIZE);
     traceStateBuilder
-        .append(TRACE_STATE_APPOPTICS_KEY)
+        .append(SWI_TRACE_STATE_KEY)
         .append(TRACESTATE_KEY_VALUE_DELIMITER)
         .append(swTraceStateValue);
 
@@ -95,7 +95,7 @@ public class SolarwindsContextPropagator implements TextMapPropagator {
     for (Map.Entry<String, String> entry : tracestateEntries) {
       String key = entry.getKey();
       boolean verdict =
-          (TRACE_STATE_APPOPTICS_KEY.equals(key) || SW_XTRACE_OPTIONS_RESP_KEY.equals(key));
+          (SWI_TRACE_STATE_KEY.equals(key) || SW_XTRACE_OPTIONS_RESP_KEY.equals(key));
       if (!verdict) {
         traceStateLength += (key.length());
         traceStateLength += (TRACESTATE_KEY_VALUE_DELIMITER.length());
@@ -110,7 +110,7 @@ public class SolarwindsContextPropagator implements TextMapPropagator {
       String key = entry.getKey();
       String value = entry.getValue();
       boolean verdict =
-          (TRACE_STATE_APPOPTICS_KEY.equals(key) || SW_XTRACE_OPTIONS_RESP_KEY.equals(key));
+          (SWI_TRACE_STATE_KEY.equals(key) || SW_XTRACE_OPTIONS_RESP_KEY.equals(key));
 
       final int length =
           traceStateBuilder.length()

@@ -1,4 +1,4 @@
-import com.appoptics.opentelemetry.instrumentation.TraceContextInjector
+import com.solarwinds.opentelemetry.instrumentation.TraceContextInjector
 import io.opentelemetry.context.Context
 import io.opentelemetry.sdk.OpenTelemetrySdk
 import spock.lang.Specification

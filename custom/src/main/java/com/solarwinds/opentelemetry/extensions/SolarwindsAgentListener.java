@@ -69,7 +69,7 @@ public class SolarwindsAgentListener implements AgentListener {
       return;
     }
 
-    if (isAgentEnabled() && isUsingAppOpticsSampler(openTelemetrySdk)) {
+    if (isAgentEnabled() && isUsingSolarwindsSampler(openTelemetrySdk)) {
       executeStartupTasks();
       registerShutdownTasks();
       logger.info(
@@ -77,7 +77,7 @@ public class SolarwindsAgentListener implements AgentListener {
     }
   }
 
-  boolean isUsingAppOpticsSampler(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
+  boolean isUsingSolarwindsSampler(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     Sampler sampler =
         autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk().getSdkTracerProvider().getSampler();
     boolean verdict = sampler instanceof SolarwindsSampler;
@@ -85,7 +85,7 @@ public class SolarwindsAgentListener implements AgentListener {
 
     if (!verdict) {
       logger.warn(
-          "Not using AppOptics sampler. Configured sampler is: " + sampler.getDescription());
+          "Not using Solarwinds sampler. Configured sampler is: " + sampler.getDescription());
     }
     return verdict;
   }
