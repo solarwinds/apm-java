@@ -1,6 +1,6 @@
 package com.appoptics.api.ext;
 
-import com.appoptics.opentelemetry.core.CustomTransactionNameDict;
+import com.solarwinds.opentelemetry.core.CustomTransactionNameDict;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
