@@ -1,8 +1,8 @@
 package com.solarwinds.opentelemetry.extensions;
 
+import static com.solarwinds.joboe.core.util.HostTypeDetector.isLambda;
 import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.setAgentEnabled;
-import static com.solarwinds.joboe.core.util.HostTypeDetector.isLambda;
 import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_COMMAND_ARGS;
 import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_COMMAND_LINE;
 import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_DESCRIPTION;
@@ -11,8 +11,6 @@ import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_VERSIO
 import static io.opentelemetry.semconv.ResourceAttributes.SERVICE_NAME;
 import static io.opentelemetry.semconv.ResourceAttributes.TELEMETRY_SDK_LANGUAGE;
 
-import com.solarwinds.opentelemetry.core.AgentState;
-import com.solarwinds.opentelemetry.extensions.initialize.AutoConfiguredResourceCustomizer;
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.core.EventImpl;
 import com.solarwinds.joboe.core.ReporterFactory;
@@ -37,6 +35,8 @@ import com.solarwinds.joboe.metrics.MetricsCollector;
 import com.solarwinds.joboe.metrics.MetricsMonitor;
 import com.solarwinds.joboe.metrics.SystemMonitorController;
 import com.solarwinds.joboe.metrics.SystemMonitorFactoryImpl;
+import com.solarwinds.opentelemetry.core.AgentState;
+import com.solarwinds.opentelemetry.extensions.initialize.AutoConfiguredResourceCustomizer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.javaagent.extension.AgentListener;

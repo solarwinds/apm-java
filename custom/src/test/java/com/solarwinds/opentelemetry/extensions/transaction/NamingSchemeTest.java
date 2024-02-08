@@ -13,10 +13,6 @@ import com.solarwinds.joboe.core.logging.LoggerFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import com.solarwinds.opentelemetry.extensions.transaction.NamingScheme;
-import com.solarwinds.opentelemetry.extensions.transaction.SpanAttributeNamingScheme;
-import com.solarwinds.opentelemetry.extensions.transaction.TransactionNamingScheme;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

@@ -3,10 +3,9 @@ package com.solarwinds.opentelemetry.extensions.lambda;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.solarwinds.joboe.core.util.HostTypeDetector;
 import com.solarwinds.opentelemetry.extensions.SolarwindsSampler;
 import com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl;
-import com.solarwinds.joboe.core.util.HostTypeDetector;
-import com.solarwinds.opentelemetry.extensions.lambda.RuntimeTraceProviderCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
@@ -49,7 +48,7 @@ class RuntimeTraceProviderCustomizerTest {
   void verifyThatSdkTracerProviderBuilderIsCustomizedWhenAgentIsEnabledAndInLambda() {
     try (MockedStatic<AutoConfigurationCustomizerProviderImpl> otelCustomizerMock =
             mockStatic(AutoConfigurationCustomizerProviderImpl.class);
-         MockedStatic<HostTypeDetector> hostTypeDetectorMock = mockStatic(HostTypeDetector.class)) {
+        MockedStatic<HostTypeDetector> hostTypeDetectorMock = mockStatic(HostTypeDetector.class)) {
       otelCustomizerMock
           .when(AutoConfigurationCustomizerProviderImpl::isAgentEnabled)
           .thenReturn(true);

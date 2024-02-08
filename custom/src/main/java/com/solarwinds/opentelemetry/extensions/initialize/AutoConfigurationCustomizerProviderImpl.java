@@ -1,16 +1,16 @@
 package com.solarwinds.opentelemetry.extensions.initialize;
 
-import com.solarwinds.opentelemetry.extensions.SolarwindsPropertiesSupplier;
-import com.solarwinds.opentelemetry.extensions.SolarwindsTracerProviderCustomizer;
-import com.appoptics.opentelemetry.extensions.lambda.MetricExporterCustomizer;
-import com.solarwinds.opentelemetry.extensions.lambda.PropertiesSupplier;
-import com.solarwinds.opentelemetry.extensions.lambda.RuntimeTraceProviderCustomizer;
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.core.config.InvalidConfigException;
 import com.solarwinds.joboe.core.logging.Logger;
 import com.solarwinds.joboe.core.logging.LoggerFactory;
 import com.solarwinds.joboe.core.util.JavaRuntimeVersionChecker;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
+import com.solarwinds.opentelemetry.extensions.SolarwindsPropertiesSupplier;
+import com.solarwinds.opentelemetry.extensions.SolarwindsTracerProviderCustomizer;
+import com.solarwinds.opentelemetry.extensions.lambda.MetricExporterCustomizer;
+import com.solarwinds.opentelemetry.extensions.lambda.PropertiesSupplier;
+import com.solarwinds.opentelemetry.extensions.lambda.RuntimeTraceProviderCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 

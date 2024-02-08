@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.solarwinds.joboe.core.config.InvalidConfigException;
 import java.nio.file.Path;
-
-import com.solarwinds.opentelemetry.extensions.initialize.config.LogFileStringParser;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

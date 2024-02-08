@@ -9,7 +9,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.solarwinds.opentelemetry.extensions.TransactionNameManager;
-import com.solarwinds.opentelemetry.extensions.lambda.InboundMeasurementMetricsGenerator;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongHistogram;

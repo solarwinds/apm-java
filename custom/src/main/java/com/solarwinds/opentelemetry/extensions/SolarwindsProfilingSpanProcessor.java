@@ -2,7 +2,6 @@ package com.solarwinds.opentelemetry.extensions;
 
 import static com.solarwinds.opentelemetry.core.Constants.SW_KEY_PREFIX;
 
-import com.solarwinds.opentelemetry.core.Util;
 import com.solarwinds.joboe.core.Metadata;
 import com.solarwinds.joboe.core.RpcEventReporter;
 import com.solarwinds.joboe.core.config.ConfigManager;
@@ -13,6 +12,7 @@ import com.solarwinds.joboe.core.logging.LoggerFactory;
 import com.solarwinds.joboe.core.profiler.Profiler;
 import com.solarwinds.joboe.core.rpc.RpcClientManager;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
+import com.solarwinds.opentelemetry.core.Util;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;

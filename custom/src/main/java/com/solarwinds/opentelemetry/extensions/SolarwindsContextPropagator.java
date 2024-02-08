@@ -94,8 +94,7 @@ public class SolarwindsContextPropagator implements TextMapPropagator {
     int traceStateLength = 0;
     for (Map.Entry<String, String> entry : tracestateEntries) {
       String key = entry.getKey();
-      boolean verdict =
-          (SWI_TRACE_STATE_KEY.equals(key) || SW_XTRACE_OPTIONS_RESP_KEY.equals(key));
+      boolean verdict = (SWI_TRACE_STATE_KEY.equals(key) || SW_XTRACE_OPTIONS_RESP_KEY.equals(key));
       if (!verdict) {
         traceStateLength += (key.length());
         traceStateLength += (TRACESTATE_KEY_VALUE_DELIMITER.length());
@@ -109,8 +108,7 @@ public class SolarwindsContextPropagator implements TextMapPropagator {
     for (Map.Entry<String, String> entry : tracestateEntries) {
       String key = entry.getKey();
       String value = entry.getValue();
-      boolean verdict =
-          (SWI_TRACE_STATE_KEY.equals(key) || SW_XTRACE_OPTIONS_RESP_KEY.equals(key));
+      boolean verdict = (SWI_TRACE_STATE_KEY.equals(key) || SW_XTRACE_OPTIONS_RESP_KEY.equals(key));
 
       final int length =
           traceStateBuilder.length()

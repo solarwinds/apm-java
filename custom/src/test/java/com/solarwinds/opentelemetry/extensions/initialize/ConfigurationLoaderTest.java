@@ -5,16 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import com.solarwinds.opentelemetry.extensions.TransactionNameManager;
-import com.solarwinds.opentelemetry.extensions.initialize.ConfigurationLoader;
-import com.solarwinds.opentelemetry.extensions.transaction.DefaultNamingScheme;
-import com.solarwinds.opentelemetry.extensions.transaction.NamingScheme;
-import com.solarwinds.opentelemetry.extensions.transaction.SpanAttributeNamingScheme;
 import com.solarwinds.joboe.core.config.ConfigContainer;
 import com.solarwinds.joboe.core.config.ConfigManager;
 import com.solarwinds.joboe.core.config.ConfigProperty;
 import com.solarwinds.joboe.core.config.InvalidConfigException;
 import com.solarwinds.joboe.core.util.ServiceKeyUtils;
+import com.solarwinds.opentelemetry.extensions.TransactionNameManager;
+import com.solarwinds.opentelemetry.extensions.transaction.DefaultNamingScheme;
+import com.solarwinds.opentelemetry.extensions.transaction.NamingScheme;
+import com.solarwinds.opentelemetry.extensions.transaction.SpanAttributeNamingScheme;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
@@ -82,8 +81,7 @@ class ConfigurationLoaderTest {
     assertNotNull(ConfigurationLoader.getRuntimeConfigFilename());
 
     assertEquals(
-        "C:\\Program Files\\SolarWinds\\APM\\java",
-        ConfigurationLoader.getConfigurationFileDir());
+        "C:\\Program Files\\SolarWinds\\APM\\java", ConfigurationLoader.getConfigurationFileDir());
     assertEquals("config.json", ConfigurationLoader.getRuntimeConfigFilename());
   }
 
@@ -91,8 +89,7 @@ class ConfigurationLoaderTest {
   void testFilenameAsPath() {
     String path = "config.json";
     ConfigurationLoader.resetWatchedPaths();
-    assertDoesNotThrow(
-        () -> ConfigurationLoader.setWatchedPaths(path, File.separatorChar));
+    assertDoesNotThrow(() -> ConfigurationLoader.setWatchedPaths(path, File.separatorChar));
 
     assertNull(ConfigurationLoader.getConfigurationFileDir());
     assertNull(ConfigurationLoader.getRuntimeConfigFilename());
@@ -102,8 +99,7 @@ class ConfigurationLoaderTest {
   void testUnixRootPath() {
     String path = "/";
     ConfigurationLoader.resetWatchedPaths();
-    assertDoesNotThrow(
-        () -> ConfigurationLoader.setWatchedPaths(path, File.separatorChar));
+    assertDoesNotThrow(() -> ConfigurationLoader.setWatchedPaths(path, File.separatorChar));
 
     assertNull(ConfigurationLoader.getConfigurationFileDir());
     assertNull(ConfigurationLoader.getRuntimeConfigFilename());
@@ -113,8 +109,7 @@ class ConfigurationLoaderTest {
   void testWindowsRootPath() {
     String path = "C:";
     ConfigurationLoader.resetWatchedPaths();
-    assertDoesNotThrow(
-        () -> ConfigurationLoader.setWatchedPaths(path, File.separatorChar));
+    assertDoesNotThrow(() -> ConfigurationLoader.setWatchedPaths(path, File.separatorChar));
 
     assertNull(ConfigurationLoader.getConfigurationFileDir());
     assertNull(ConfigurationLoader.getRuntimeConfigFilename());

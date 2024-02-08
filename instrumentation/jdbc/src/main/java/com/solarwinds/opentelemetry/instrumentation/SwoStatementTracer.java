@@ -5,8 +5,8 @@
 
 package com.solarwinds.opentelemetry.instrumentation;
 
-import com.solarwinds.opentelemetry.core.Constants;
 import com.solarwinds.joboe.core.util.BackTraceUtil;
+import com.solarwinds.opentelemetry.core.Constants;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 import java.util.LinkedHashMap;

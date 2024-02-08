@@ -1,4 +1,4 @@
-package com.appoptics.opentelemetry.extensions.lambda;
+package com.solarwinds.opentelemetry.extensions.lambda;
 
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.metrics.InstrumentType;

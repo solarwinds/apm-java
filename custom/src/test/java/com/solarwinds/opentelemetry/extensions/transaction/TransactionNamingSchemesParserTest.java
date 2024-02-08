@@ -6,9 +6,6 @@ import com.solarwinds.joboe.core.config.InvalidConfigException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import com.solarwinds.opentelemetry.extensions.transaction.TransactionNamingScheme;
-import com.solarwinds.opentelemetry.extensions.transaction.TransactionNamingSchemesParser;
 import org.junit.jupiter.api.Test;
 
 class TransactionNamingSchemesParserTest {

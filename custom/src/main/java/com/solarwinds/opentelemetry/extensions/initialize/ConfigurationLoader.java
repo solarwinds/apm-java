@@ -2,6 +2,21 @@ package com.solarwinds.opentelemetry.extensions.initialize;
 
 import static com.solarwinds.joboe.core.util.HostTypeDetector.isLambda;
 
+import com.solarwinds.joboe.core.config.ConfigContainer;
+import com.solarwinds.joboe.core.config.ConfigGroup;
+import com.solarwinds.joboe.core.config.ConfigManager;
+import com.solarwinds.joboe.core.config.ConfigProperty;
+import com.solarwinds.joboe.core.config.ConfigSourceType;
+import com.solarwinds.joboe.core.config.EnvConfigReader;
+import com.solarwinds.joboe.core.config.InvalidConfigException;
+import com.solarwinds.joboe.core.config.InvalidConfigReadSourceException;
+import com.solarwinds.joboe.core.config.InvalidConfigServiceKeyException;
+import com.solarwinds.joboe.core.config.JsonConfigReader;
+import com.solarwinds.joboe.core.config.ProfilerSetting;
+import com.solarwinds.joboe.core.config.TraceConfigs;
+import com.solarwinds.joboe.core.logging.Logger;
+import com.solarwinds.joboe.core.logging.LoggerFactory;
+import com.solarwinds.joboe.core.util.ServiceKeyUtils;
 import com.solarwinds.opentelemetry.extensions.TransactionNameManager;
 import com.solarwinds.opentelemetry.extensions.initialize.config.BuildConfig;
 import com.solarwinds.opentelemetry.extensions.initialize.config.ConfigConstants;
@@ -18,21 +33,6 @@ import com.solarwinds.opentelemetry.extensions.initialize.config.livereload.Conf
 import com.solarwinds.opentelemetry.extensions.transaction.NamingScheme;
 import com.solarwinds.opentelemetry.extensions.transaction.TransactionNamingScheme;
 import com.solarwinds.opentelemetry.extensions.transaction.TransactionNamingSchemesParser;
-import com.solarwinds.joboe.core.config.ConfigContainer;
-import com.solarwinds.joboe.core.config.ConfigGroup;
-import com.solarwinds.joboe.core.config.ConfigManager;
-import com.solarwinds.joboe.core.config.ConfigProperty;
-import com.solarwinds.joboe.core.config.ConfigSourceType;
-import com.solarwinds.joboe.core.config.EnvConfigReader;
-import com.solarwinds.joboe.core.config.InvalidConfigException;
-import com.solarwinds.joboe.core.config.InvalidConfigReadSourceException;
-import com.solarwinds.joboe.core.config.InvalidConfigServiceKeyException;
-import com.solarwinds.joboe.core.config.JsonConfigReader;
-import com.solarwinds.joboe.core.config.ProfilerSetting;
-import com.solarwinds.joboe.core.config.TraceConfigs;
-import com.solarwinds.joboe.core.logging.Logger;
-import com.solarwinds.joboe.core.logging.LoggerFactory;
-import com.solarwinds.joboe.core.util.ServiceKeyUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -298,8 +298,7 @@ public class ConfigurationLoader {
         logger.info("Finished reading configs from config file: " + location);
       }
 
-      new JsonConfigReader(
-              ConfigurationLoader.class.getResourceAsStream("/" + CONFIG_FILE))
+      new JsonConfigReader(ConfigurationLoader.class.getResourceAsStream("/" + CONFIG_FILE))
           .read(container);
       logger.debug("Finished reading built-in default settings.");
 

@@ -2,7 +2,6 @@ package com.solarwinds.opentelemetry.extensions;
 
 import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 
-import com.solarwinds.opentelemetry.core.Util;
 import com.solarwinds.joboe.core.Context;
 import com.solarwinds.joboe.core.Event;
 import com.solarwinds.joboe.core.EventImpl;
@@ -12,6 +11,7 @@ import com.solarwinds.joboe.core.logging.Logger;
 import com.solarwinds.joboe.core.logging.LoggerFactory;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.opentelemetry.core.Constants;
+import com.solarwinds.opentelemetry.core.Util;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.common.CompletableResultCode;
@@ -192,8 +192,7 @@ public class SolarwindsSpanExporter implements SpanExporter {
     final Map<AttributeKey<?>, Object> result = new HashMap<>();
     for (Map.Entry<AttributeKey<?>, Object> keyValue : inputAttributes.asMap().entrySet()) {
       AttributeKey<?> key = keyValue.getKey();
-      if (!key.getKey()
-          .startsWith(Constants.SW_INTERNAL_ATTRIBUTE_PREFIX)) {
+      if (!key.getKey().startsWith(Constants.SW_INTERNAL_ATTRIBUTE_PREFIX)) {
         result.put(key, keyValue.getValue());
       }
     }

@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.solarwinds.opentelemetry.core.RootSpan;
-import com.solarwinds.opentelemetry.extensions.SolarwindsRootSpanProcessor;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;

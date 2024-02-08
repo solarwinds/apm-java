@@ -9,8 +9,6 @@ import static org.mockito.Mockito.verify;
 import com.solarwinds.joboe.core.config.ConfigManager;
 import com.solarwinds.joboe.core.config.ConfigProperty;
 import com.solarwinds.joboe.core.config.InvalidConfigException;
-import com.solarwinds.opentelemetry.extensions.transaction.DefaultNamingScheme;
-import com.solarwinds.opentelemetry.extensions.transaction.NamingScheme;
 import io.opentelemetry.api.common.Attributes;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
