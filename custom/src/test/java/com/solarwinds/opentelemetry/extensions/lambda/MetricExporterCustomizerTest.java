@@ -1,4 +1,4 @@
-package com.appoptics.opentelemetry.extensions.lambda;
+package com.solarwinds.opentelemetry.extensions.lambda;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mockStatic;

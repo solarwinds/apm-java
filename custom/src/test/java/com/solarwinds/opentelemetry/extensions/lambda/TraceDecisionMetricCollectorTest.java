@@ -11,9 +11,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.solarwinds.joboe.core.util.HostTypeDetector;
-import com.solarwinds.opentelemetry.extensions.lambda.MeterProvider;
-import com.solarwinds.opentelemetry.extensions.lambda.TraceDecisionMetricCollector;
-import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.DoubleGaugeBuilder;
 import io.opentelemetry.api.metrics.LongGaugeBuilder;

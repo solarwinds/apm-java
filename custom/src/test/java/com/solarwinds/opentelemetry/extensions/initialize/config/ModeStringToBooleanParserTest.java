@@ -3,7 +3,6 @@ package com.solarwinds.opentelemetry.extensions.initialize.config;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.solarwinds.joboe.core.config.InvalidConfigException;
-import com.solarwinds.opentelemetry.extensions.initialize.config.ModeStringToBooleanParser;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.solarwinds.opentelemetry.extensions.transaction.NamingScheme;
-import com.solarwinds.opentelemetry.extensions.transaction.SpanAttributeNamingScheme;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.trace.data.SpanData;

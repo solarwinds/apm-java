@@ -1,6 +1,5 @@
 package com.solarwinds.opentelemetry.extensions;
 
-import com.solarwinds.opentelemetry.core.Constants;
 import com.solarwinds.joboe.core.config.ConfigManager;
 import com.solarwinds.joboe.core.config.ConfigProperty;
 import com.solarwinds.joboe.core.metrics.MetricKey;
@@ -17,6 +16,7 @@ import com.solarwinds.joboe.core.util.HttpUtils;
 import com.solarwinds.joboe.core.util.ServiceKeyUtils;
 import com.solarwinds.joboe.metrics.SpanMetricsCollector;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
+import com.solarwinds.opentelemetry.core.Constants;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.StatusCode;

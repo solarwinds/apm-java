@@ -5,8 +5,8 @@
 
 package com.solarwinds.opentelemetry.instrumentation.servlet.v5_0;
 
-import com.solarwinds.opentelemetry.instrumentation.servlet.v5_0.service.ServletAndFilterInstrumentation;
 import com.google.auto.service.AutoService;
+import com.solarwinds.opentelemetry.instrumentation.servlet.v5_0.service.ServletAndFilterInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import java.util.Arrays;

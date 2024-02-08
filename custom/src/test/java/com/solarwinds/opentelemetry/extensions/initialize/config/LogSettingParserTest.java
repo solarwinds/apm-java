@@ -7,8 +7,6 @@ import com.solarwinds.joboe.core.config.InvalidConfigException;
 import com.solarwinds.joboe.core.logging.Logger;
 import com.solarwinds.joboe.core.logging.setting.LogSetting;
 import java.nio.file.Paths;
-
-import com.solarwinds.opentelemetry.extensions.initialize.config.LogSettingParser;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

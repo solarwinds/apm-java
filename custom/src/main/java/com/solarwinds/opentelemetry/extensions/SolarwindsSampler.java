@@ -1,17 +1,17 @@
 package com.solarwinds.opentelemetry.extensions;
 
+import static com.solarwinds.joboe.core.TraceDecisionUtil.shouldTraceRequest;
 import static com.solarwinds.opentelemetry.extensions.SamplingUtil.SW_TRACESTATE_KEY;
 import static com.solarwinds.opentelemetry.extensions.SamplingUtil.addXtraceOptionsToAttribute;
-import static com.solarwinds.joboe.core.TraceDecisionUtil.shouldTraceRequest;
 
-import com.solarwinds.opentelemetry.core.Constants;
-import com.solarwinds.opentelemetry.core.Util;
 import com.solarwinds.joboe.core.TraceDecision;
 import com.solarwinds.joboe.core.XTraceOptions;
 import com.solarwinds.joboe.core.XTraceOptionsResponse;
 import com.solarwinds.joboe.core.logging.Logger;
 import com.solarwinds.joboe.core.logging.LoggerFactory;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
+import com.solarwinds.opentelemetry.core.Constants;
+import com.solarwinds.opentelemetry.core.Util;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
@@ -92,7 +92,9 @@ public class SolarwindsSampler implements Sampler {
 
     String xtraceOptionsResponseStr = null;
     List<String> signals =
-        Arrays.asList(constructUrl(attributes), String.format(SolarwindsSpanExporter.LAYER_FORMAT, spanKind, name.trim()));
+        Arrays.asList(
+            constructUrl(attributes),
+            String.format(SolarwindsSpanExporter.LAYER_FORMAT, spanKind, name.trim()));
 
     if (!parentSpanContext.isValid()) { // no valid traceparent, it is a new trace
       TraceDecision traceDecision = shouldTraceRequest(name, null, xTraceOptions, signals);

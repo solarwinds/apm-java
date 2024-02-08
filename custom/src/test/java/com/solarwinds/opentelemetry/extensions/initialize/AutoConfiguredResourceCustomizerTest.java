@@ -2,7 +2,6 @@ package com.solarwinds.opentelemetry.extensions.initialize;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.solarwinds.opentelemetry.extensions.initialize.AutoConfiguredResourceCustomizer;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;

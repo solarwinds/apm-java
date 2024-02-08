@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 import com.solarwinds.joboe.core.TraceDecision;
 import com.solarwinds.joboe.core.TraceDecisionUtil;
 import com.solarwinds.joboe.core.XTraceOptions;
-import com.solarwinds.opentelemetry.extensions.SamplingUtil;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import org.junit.jupiter.api.Test;

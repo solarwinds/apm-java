@@ -1,7 +1,7 @@
 package com.solarwinds.opentelemetry.extensions.lambda;
 
-import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 import static com.solarwinds.joboe.core.util.HostTypeDetector.isLambda;
+import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 
 import com.solarwinds.opentelemetry.extensions.SolarwindsRootSpanProcessor;
 import com.solarwinds.opentelemetry.extensions.SolarwindsSampler;

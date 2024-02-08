@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.solarwinds.opentelemetry.extensions.lambda.MeterProvider;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.metrics.MeterBuilder;
 import java.util.HashSet;

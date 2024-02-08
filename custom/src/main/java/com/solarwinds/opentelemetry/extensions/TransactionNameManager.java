@@ -1,8 +1,5 @@
 package com.solarwinds.opentelemetry.extensions;
 
-import com.solarwinds.opentelemetry.core.CustomTransactionNameDict;
-import com.solarwinds.opentelemetry.extensions.transaction.DefaultNamingScheme;
-import com.solarwinds.opentelemetry.extensions.transaction.NamingScheme;
 import com.solarwinds.joboe.core.config.ConfigManager;
 import com.solarwinds.joboe.core.config.ConfigProperty;
 import com.solarwinds.joboe.core.logging.Logger;
@@ -12,6 +9,9 @@ import com.solarwinds.joboe.core.settings.SettingsArgChangeListener;
 import com.solarwinds.joboe.core.settings.SettingsManager;
 import com.solarwinds.joboe.shaded.google.common.cache.Cache;
 import com.solarwinds.joboe.shaded.google.common.cache.CacheBuilder;
+import com.solarwinds.opentelemetry.core.CustomTransactionNameDict;
+import com.solarwinds.opentelemetry.extensions.transaction.DefaultNamingScheme;
+import com.solarwinds.opentelemetry.extensions.transaction.NamingScheme;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.trace.data.SpanData;

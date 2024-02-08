@@ -1,4 +1,4 @@
-package com.appoptics.opentelemetry.extensions.lambda;
+package com.solarwinds.opentelemetry.extensions.lambda;
 
 import static com.solarwinds.joboe.core.util.HostTypeDetector.isLambda;
 

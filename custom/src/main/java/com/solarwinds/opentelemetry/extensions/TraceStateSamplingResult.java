@@ -43,7 +43,8 @@ public class TraceStateSamplingResult implements SamplingResult {
 
   @Override
   public TraceState getUpdatedTraceState(TraceState parentTraceState) {
-    TraceStateBuilder builder = parentTraceState.toBuilder().put(SamplingUtil.SW_TRACESTATE_KEY, swTraceState);
+    TraceStateBuilder builder =
+        parentTraceState.toBuilder().put(SamplingUtil.SW_TRACESTATE_KEY, swTraceState);
     if (sanitizedXtraceOptionsResponse != null) {
       builder.put(SamplingUtil.SW_XTRACE_OPTIONS_RESP_KEY, sanitizedXtraceOptionsResponse);
     }

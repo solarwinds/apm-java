@@ -6,8 +6,6 @@ import com.solarwinds.joboe.core.config.InvalidConfigException;
 import com.solarwinds.joboe.core.config.ProfilerSetting;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.solarwinds.opentelemetry.extensions.initialize.config.ProfilerSettingParser;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
