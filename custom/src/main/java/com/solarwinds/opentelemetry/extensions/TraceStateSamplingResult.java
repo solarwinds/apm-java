@@ -1,12 +1,12 @@
 package com.solarwinds.opentelemetry.extensions;
 
+import static com.solarwinds.opentelemetry.extensions.SamplingUtil.SW_XTRACE_OPTIONS_RESP_KEY;
+
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.api.trace.TraceStateBuilder;
 import io.opentelemetry.sdk.trace.samplers.SamplingDecision;
 import io.opentelemetry.sdk.trace.samplers.SamplingResult;
-
-import static com.solarwinds.opentelemetry.extensions.SamplingUtil.SW_XTRACE_OPTIONS_RESP_KEY;
 
 /**
  * A SamplingResult wrapper offering the `sw=spanIdPlaceHolder` tracestate and additional attributes
