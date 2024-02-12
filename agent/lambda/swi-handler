@@ -1,0 +1,24 @@
+#!/bin/bash
+export JAVA_TOOL_OPTIONS="-javaagent:/opt/solarwinds-apm-agent.jar ${JAVA_TOOL_OPTIONS}"
+
+if [ -z "${OTEL_SERVICE_NAME}" ]; then
+    export OTEL_SERVICE_NAME=$AWS_LAMBDA_FUNCTION_NAME;
+fi
+
+if [ -z "${OTEL_INSTRUMENTATION_AWS_LAMBDA_CORE_ENABLED}" ]; then
+    export OTEL_INSTRUMENTATION_AWS_LAMBDA_CORE_ENABLED=true
+fi
+
+if [ -z "${OTEL_INSTRUMENTATION_COMMON_DEFAULT_ENABLED}" ]; then
+    export OTEL_INSTRUMENTATION_COMMON_DEFAULT_ENABLED=false
+fi
+
+if [ -z "${OTEL_INSTRUMENTATION_AWS_SDK_ENABLED}" ]; then
+    export OTEL_INSTRUMENTATION_AWS_SDK_ENABLED=true
+fi
+
+export OTEL_INSTRUMENTATION_AWS_LAMBDA_FLUSH_TIMEOUT=10000
+export OTEL_METRIC_EXPORT_INTERVAL=1000000000
+
+CMD="$(echo "$@" | sed 's/-Xshare:on/-Xshare:auto/g')"
+exec $CMD

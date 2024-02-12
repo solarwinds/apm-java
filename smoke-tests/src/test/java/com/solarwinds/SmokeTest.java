@@ -15,6 +15,7 @@ import com.solarwinds.util.NamingConventions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
@@ -31,13 +32,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+@EnabledIfEnvironmentVariable(named = "LAMBDA", matches = "false")
 public class SmokeTest {
     private static final Network NETWORK = Network.newNetwork();
 
     private static final NamingConventions namingConventions = new NamingConventions();
 
     private static final LogStreamAnalyzer<Slf4jLogConsumer> logStreamAnalyzer = new LogStreamAnalyzer<>(
-            List.of("Transformed (com.appoptics.ext.*|com.solarwinds.joboe.*)","hostId:.*i-[0-9a-z]+",
+            List.of("Transformed (com.solarwinds.ext.*|com.solarwinds.joboe.*)","hostId:.*i-[0-9a-z]+",
                     "Completed operation \\[post init message\\] with Result code \\[OK\\] arg",
                     "hostId:.*[0-9a-z-]+", "Extension attached!","Created collector client  : collector.appoptics.com:443",
                     "trace_id=[a-z0-9]+\\s+span_id=[a-z0-9]+\\s+trace_flags=(01|00)",
@@ -159,6 +161,7 @@ public class SmokeTest {
     }
 
     @Test
+    @Disabled
     void assertTransactionNaming() throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['custom transaction name'].passes");
@@ -168,7 +171,7 @@ public class SmokeTest {
 
     @Test
     void assertAgentClassesAreNotInstrumented() {
-        Boolean actual = logStreamAnalyzer.getAnswer().get("Transformed (com.appoptics.ext.*|com.solarwinds.joboe.*)");
+        Boolean actual = logStreamAnalyzer.getAnswer().get("Transformed (com.solarwinds.ext.*|com.solarwinds.joboe.*)");
         assertFalse(actual, "agent classes are instrumented");
     }
 

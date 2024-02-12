@@ -30,7 +30,7 @@ The service key can also be defined via the environment variable `SW_APM_SERVICE
 
 Upon successful initialization, the log should print such as:
 ```
-[otel.javaagent 2021-06-30 13:04:07:759 -0700] [main] INFO com.appoptics.opentelemetry.extensions.AppOpticsTracerProviderCustomizer - Successfully initialized Solarwinds APM OpenTelemetry extensions with service key ec3d********************************************************5468:ot
+[otel.javaagent 2021-06-30 13:04:07:759 -0700] [main] INFO com.solarwinds.opentelemetry.extensions.SolarwindsTracerProviderCustomizer - Successfully initialized Solarwinds APM OpenTelemetry extensions with service key ec3d********************************************************5468:ot
 ```
 
 #### SDK
@@ -84,7 +84,7 @@ We follow the practice of exiting OT auto agent instrumentation which contains:
 ```
 @Override
 public boolean isHelperClass(String className) {
-  return className.startsWith("com.appoptics.opentelemetry.");
+  return className.startsWith("com.solarwinds.opentelemetry.");
 }
 ``` 
 so the muzzle plugin will inject our `Tracer` to the application classloader

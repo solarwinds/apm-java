@@ -8,6 +8,11 @@ package com.solarwinds.containers;
 import com.solarwinds.agents.Agent;
 import com.solarwinds.agents.AgentResolver;
 import com.solarwinds.util.NamingConventions;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,11 +22,6 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
-
-import java.nio.file.Path;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 
 public class PetClinicRestContainer implements Container {
 
@@ -43,6 +43,43 @@ public class PetClinicRestContainer implements Container {
 
   public GenericContainer<?> build() {
     Path agentPath = agentResolver.resolve(this.agent).orElseThrow();
+    if (Objects.equals(System.getenv("LAMBDA"), "true")) {
+      return new GenericContainer<>(
+          DockerImageName.parse(
+              "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/petclinic-rest-base:20230601125442"))
+          .withNetwork(network)
+          .withNetworkAliases("petclinic")
+          .withLogConsumer(new Slf4jLogConsumer(logger))
+          .withExposedPorts(PETCLINIC_PORT)
+          .withFileSystemBind(namingConventions.localResults(),
+              namingConventions.containerResults())
+          .withFileSystemBind("./solarwinds-apm-settings-raw", "/tmp/solarwinds-apm-settings-raw")
+          .waitingFor(
+              Wait.forHttp("/petclinic/actuator/health").withReadTimeout(Duration.ofMinutes(5))
+                  .forPort(PETCLINIC_PORT))
+          .withEnv("spring_profiles_active", "postgresql,spring-data-jpa")
+          .withEnv(
+              "spring_datasource_url",
+              "jdbc:postgresql://postgres:5432/" + PostgresContainer.DATABASE_NAME)
+          .withEnv("spring_datasource_username", PostgresContainer.USERNAME)
+          .withEnv("spring_datasource_password", PostgresContainer.PASSWORD)
+          .withEnv("spring_jpa_hibernate_ddl-auto", "none")
+          .withEnv("SW_APM_DEBUG_LEVEL", "trace")
+          .withEnv("OTEL_EXPORTER_OTLP_ENDPOINT", System.getenv("OTEL_EXPORTER_OTLP_ENDPOINT"))
+          .withEnv("OTEL_EXPORTER_OTLP_HEADERS",
+              String.format("authorization=Bearer %s", System.getenv("SW_APM_SERVICE_KEY")))
+          .withEnv("AWS_LAMBDA_FUNCTION_NAME", "SIM")
+          .withEnv("LAMBDA_TASK_ROOT", "/")
+          .withEnv("OTEL_SERVICE_NAME", "lambda-e2e")
+          .withEnv("OTEL_BSP_SCHEDULE_DELAY", "0")
+          .withEnv("SW_APM_TRANSACTION_NAME", "lambda-test-txn")
+          .withStartupTimeout(Duration.ofMinutes(5))
+          .withCopyFileToContainer(
+              MountableFile.forHostPath(agentPath),
+              "/app/" + agentPath.getFileName())
+          .withCommand(buildCommandline(agentPath));
+    }
+
     return new GenericContainer<>(
             DockerImageName.parse(
                     "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/petclinic-rest-base:20230601125442"))

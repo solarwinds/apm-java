@@ -2,6 +2,7 @@ version: 2.1 # use CircleCI 2.1
 orbs:
   aws-util: solarwindscloud/aws@0
   win: circleci/windows@5.0
+  aws-cli: circleci/aws-cli@4.1.2
   ghas: solarwinds-cloud/ghas@0.1.1
 
 envs: &default-envs
@@ -78,6 +79,118 @@ commands:
           name: Docker logout
           command: docker logout
 jobs:
+  lambda-release-test:
+    executor: linux
+    environment:
+      LAMBDA: "true"
+    steps:
+      - install-jdk-17
+      - checkout
+      - run:
+          name: Build smoke-test
+          command: |
+            cd smoke-tests
+            ./gradlew build -x test
+      - docker-login
+      - run:
+          name: Execute smoke tests
+          command: |
+            cd smoke-tests
+            ./gradlew test
+      - store_artifacts:
+          path: smoke-tests/build/reports/tests/test
+      - docker-logout
+  lambda-publish-stage:
+    executor: linux
+    steps:
+      - checkout
+      - aws-cli/setup:
+          role_arn: ${AWS_LAMBDA_ROLE}
+      - run:
+          name: Build agent
+          command: ./gradlew clean build -x test
+      - run:
+          name: Create zip
+          command: ./gradlew :agent:lambda-layer
+      - run:
+          # this step adds the script stored in .circleci/version.sh to the BASH startup script so the agent version is available
+          # for subsequent steps
+          name: Store version
+          command: |
+            cat .circleci/version.sh >> $BASH_ENV
+      - run:
+          name: Create lambda layer
+          command: |
+            regions=(
+            "ap-northeast-1"
+            "ap-northeast-2"
+            "ap-south-1"
+            "ap-southeast-1"
+            "ap-southeast-2"
+            "ca-central-1"
+            "eu-central-1"
+            "eu-north-1"
+            "eu-west-1"
+            "eu-west-2"
+            "eu-west-3"
+            "sa-east-1"
+            "us-east-1"
+            "us-east-2"
+            "us-west-1"
+            "us-west-2")
+            
+            VERSION=$(echo "$AGENTVERSION" | sed 's/[.]/_/g')
+            LAYER_NAME="solarwinds-apm-java-$VERSION"
+            touch arns.txt
+            layer_size=$(stat --printf=%s agent/build/lambda-layer/layer.zip)
+            
+            set +e
+            for region in "${regions[@]}"; do
+              status=0
+              aws lambda publish-layer-version \
+                          --layer-name $LAYER_NAME \
+                          --compatible-runtimes "java17" "java11" "java8.al2" "java8" \
+                          --compatible-architectures "x86_64" "arm64" \
+                          --description "Solarwinds' apm java lambda instrumentation layer, version: $AGENTVERSION" \
+                          --region "$region" \
+                          --zip-file fileb://agent/build/lambda-layer/layer.zip \
+                          --output json > output.json
+            
+              status=$?
+              if [ "$status" != 0 ]; then
+                echo "FAILED: publish $region"
+                continue
+              fi
+            
+              pub_versionarn=$(jq -r '.LayerVersionArn' output.json)
+              pub_arn=$(jq -r '.LayerArn' output.json)
+              pub_version=$(jq -r '.Version' output.json)
+              pub_size=$(jq -r '.Content.CodeSize' output.json)
+            
+              echo '-- verifying published layer --'
+              if [ "$pub_size" != "$layer_size" ]; then
+                echo "FAILED: Region = $region, versonArn = $pub_versionarn published size = $pub_size, expected size = $layer_size"
+                continue
+              fi
+            
+              aws lambda add-layer-version-permission \
+                --region "$region" \
+                --layer-name "$pub_arn" \
+                --version-number "$pub_version" \
+                --principal '*' \
+                --action lambda:GetLayerVersion \
+                --statement-id global-GetLayerVersion
+            
+              status=$?
+              if [ "$status" != 0 ]; then
+                echo "FAILED: add permission region = $region, versionArn = $pub_versionarn"
+                continue
+              fi
+            
+              echo "$pub_versionarn" >> arns.txt
+            done
+      - store_artifacts:
+          path: arns.txt
   benchmark:
     executor: linux
     environment:
@@ -97,6 +210,8 @@ jobs:
       - docker-logout
   release-test:
     executor: linux
+    environment:
+      LAMBDA: "false"
     steps:
       - install-jdk-17
       - checkout
@@ -164,7 +279,7 @@ jobs:
           name: Check shading
           command: |
             code=0
-            for path in $(jar -tf agent/build/libs/solarwinds-apm-agent.jar | grep -E -v '^((com/solarwinds|com/appoptics|com/solarwinds|inst|io/open|META))')
+            for path in $(jar -tf agent/build/libs/solarwinds-apm-agent.jar | grep -E -v '^((com/solarwinds|inst|io/open|META))')
             do
               PACKAGE=$(echo "$path" | awk -F/ '{print $2}')
               if [ -n "$PACKAGE" ] && [ "$PACKAGE" != "annotation" ]; then
@@ -399,6 +514,44 @@ workflows:
           context:
             - AWS_CIRCLE_CI_BUILD
             - solarwinds-cloud-github-read-access
+  lambda-build:
+    jobs:
+      - approve_me:
+          type: approval
+          requires:
+            - test
+            - lambda-release-test
+          filters:
+            branches:
+              only: main
+      - lambda-publish-stage:
+          context:
+            - AWS_CIRCLE_CI_BUILD
+            - solarwinds-cloud-github-read-access
+            - aws-apm-lambda-agent-publish
+          requires:
+            - approve_me
+          filters:
+            branches:
+              only: main
+      - test:
+          context:
+            - AWS_CIRCLE_CI_BUILD
+            - solarwinds-cloud-github-read-access
+      - s3-stage-upload:
+          context:
+            - AWS_CIRCLE_CI
+            - AWS_CIRCLE_CI_BUILD
+            - solarwinds-cloud-github-read-access
+            - SLACK_HOOK
+            - apm-s3-publishing
+      - lambda-release-test:
+          context:
+            - AWS_CIRCLE_CI_BUILD
+            - solarwinds-cloud-github-read-access
+            - java-apm-smoke-test
+          requires:
+            - s3-stage-upload
   code-scanning:
     jobs:
       - ghas/codeql:

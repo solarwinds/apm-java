@@ -35,8 +35,8 @@ dependencies {
   javaagentLibs project(path: ":instrumentation")
 
   bootstrapLibs project(path: ":bootstrap")
-  bootstrapLibs "com.solarwinds.joboe:core:${versions.appopticsCore}"
-  bootstrapLibs "com.solarwinds.joboe:metrics:${versions.appopticsMetrics}"
+  bootstrapLibs "com.solarwinds.joboe:core:${versions.joboe}"
+  bootstrapLibs "com.solarwinds.joboe:metrics:${versions.joboe}"
 
   upstreamAgent "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}"
 }
@@ -105,7 +105,7 @@ tasks {
       include("inst/META-INF/services/*")
     }
     exclude("**/module-info.class")
-    exclude("inst/com/appoptics/opentelemetry/core/**")
+    exclude("inst/com/solarwinds/opentelemetry/core/**")
     relocatePackages(it)
 
     manifest {
@@ -122,6 +122,16 @@ tasks {
   assemble {
     dependsOn(shadowJar)
   }
+}
+
+tasks.register("lambda-layer", Zip) {
+  archiveFileName.set("layer.zip")
+  destinationDirectory.set(file("$buildDir/lambda-layer"))
+
+  from("$buildDir/libs") {
+    include("solarwinds-apm-agent.jar")
+  }
+  from("lambda")
 }
 
 tasks.register('sourcesJar', Jar) {
@@ -159,7 +169,7 @@ publishing {
             name = 'Librato Open License'
           }
         }
-        groupId = 'io.github.appoptics'
+        groupId = 'com.solarwinds'
         artifactId = "${archivesBaseName}"
         version = "${versions.agent}"
         from components.java
