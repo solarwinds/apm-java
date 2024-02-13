@@ -70,7 +70,7 @@ publishing {
             name = 'Librato Open License'
           }
         }
-        groupId = 'com.solarwinds'
+        groupId = 'io.github.appoptics'
         artifactId = "${archivesBaseName}"
         version = "${versions.agent}"
         from components.java
