@@ -1,6 +1,6 @@
 package com.solarwinds.webmvc
 
-import com.appoptics.api.ext.SolarWindsAgent
+import com.solarwinds.api.ext.SolarwindsAgent
 import mu.KotlinLogging
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -18,7 +18,7 @@ class Controller {
 
     @GetMapping("greet/{name}")
     fun greet(@PathVariable name: String): String{
-        SolarWindsAgent.setTransactionName(name)
+        SolarwindsAgent.setTransactionName(name)
         return  "Hello $name\n===================================\n\n"
     }
 
