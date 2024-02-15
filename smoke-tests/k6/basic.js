@@ -6,7 +6,7 @@ const baseUri = `http://petclinic:9966/petclinic/api`;
 const webMvcUri = `http://webmvc:8080`;
 
 function verify_that_trace_is_persisted() {
-    let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
+    let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
     for (; retryCount; retryCount--) {
         const petTypesResponse = http.get(`${baseUri}/pettypes`);
         check(petTypesResponse.headers, {
@@ -38,7 +38,11 @@ function verify_that_trace_is_persisted() {
                 });
 
             traceDetailResponse = JSON.parse(traceDetailResponse.body)
-            if (traceDetailResponse['errors']) continue
+            if (traceDetailResponse['errors']) {
+              console.log("Trace detail response:", JSON.stringify(traceDetailResponse))
+              continue
+            }
+
             check(traceDetailResponse, {
                 "trace is returned": tdr => tdr.data.traceDetails.traceId.toLowerCase() === traceId.toLowerCase()
             });
@@ -55,7 +59,7 @@ function verify_that_trace_is_persisted() {
 
 function verify_that_span_data_is_persisted() {
     const newOwner = names.randomOwner();
-    let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
+    let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
     for (; retryCount; retryCount--) {
         const newOwnerResponse = http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
             {
@@ -88,7 +92,10 @@ function verify_that_span_data_is_persisted() {
                 });
 
             spanDataResponse = JSON.parse(spanDataResponse.body)
-            if (spanDataResponse['errors']) continue
+            if (spanDataResponse['errors']) {
+              console.log("Error -> Persisted trace response:", JSON.stringify(spanDataResponse))
+              continue
+            }
 
             const {data: {traceArchive: {traceSpans: {edges}}}} = spanDataResponse
             for (let i = 0; i < edges.length; i++) {
@@ -125,7 +132,7 @@ function verify_that_span_data_is_persisted() {
 }
 
 function verify_that_span_data_is_persisted_0() {
-    let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
+    let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
     for (; retryCount; retryCount--) {
         const transactionName = "int-test"
         const response = http.get(`${webMvcUri}/greet/${transactionName}`, {
@@ -158,7 +165,10 @@ function verify_that_span_data_is_persisted_0() {
                 });
 
             spanDataResponse = JSON.parse(spanDataResponse.body)
-            if (spanDataResponse['errors']) continue
+            if (spanDataResponse['errors']) {
+              console.log("Error -> Persisted trace response:", JSON.stringify(spanDataResponse))
+              continue
+            }
 
             const {data: {traceArchive: {traceSpans: {edges}}}} = spanDataResponse
             for (let i = 0; i < edges.length; i++) {
@@ -186,7 +196,7 @@ function verify_that_span_data_is_persisted_0() {
 }
 
 function verify_distributed_trace() {
-    let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
+    let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
     for (; retryCount; retryCount--) {
         const response = http.get(`${webMvcUri}/distributed`, {
             headers: {
@@ -217,7 +227,10 @@ function verify_distributed_trace() {
                 });
 
             spanDataResponse = JSON.parse(spanDataResponse.body)
-            if (spanDataResponse['errors']) continue
+            if (spanDataResponse['errors']) {
+              console.log("Error -> Distributed trace response:", JSON.stringify(spanDataResponse))
+              continue
+            }
 
             const {data: {traceArchive: {traceSpans: {edges}}}} = spanDataResponse
             console.log("Edges: ", edges)
@@ -253,7 +266,7 @@ function verify_that_specialty_path_is_not_sampled() {
 }
 
 function verify_that_metrics_are_reported(metric, checkFn) {
-  let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
+  let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
   for (let i = 0; i < retryCount; i++) {
     const newOwner = names.randomOwner();
     http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
@@ -308,7 +321,6 @@ function verify_that_metrics_are_reported(metric, checkFn) {
   }
 
   for (let i = 0; i < retryCount; i++) {
-    console.log("Metric request: ")
     let metricDataResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(metricQueryPayload),
         {
           headers: {
@@ -320,7 +332,10 @@ function verify_that_metrics_are_reported(metric, checkFn) {
     );
 
     metricDataResponse = JSON.parse(metricDataResponse.body)
-    if (metricDataResponse['errors']) continue
+    if (metricDataResponse['errors']) {
+      console.log("Error -> Metric response:", JSON.stringify(metricDataResponse))
+      continue
+    }
 
     const {data: {metrics: {byNames: metrics}}} = metricDataResponse
     for (let i = 0; i < metrics.length; i++) {
@@ -343,7 +358,7 @@ function verify_that_metrics_are_reported(metric, checkFn) {
 }
 
 function verify_transaction_name() {
-  let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 10;
+  let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
   for (; retryCount; retryCount--) {
     const newOwner = names.randomOwner();
     const response = http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
@@ -377,7 +392,10 @@ function verify_transaction_name() {
           });
 
       spanDataResponse = JSON.parse(spanDataResponse.body)
-      if (spanDataResponse['errors']) continue
+      if (spanDataResponse['errors']) {
+        console.log("Error -> Transaction name response:", JSON.stringify(spanDataResponse))
+        continue
+      }
 
       const {data: {traceArchive: {traceSpans: {edges}}}} = spanDataResponse
       for (let i = 0; i < edges.length; i++) {
@@ -405,6 +423,7 @@ function silence(fn) {
   try {
     fn()
   } catch (e) {
+    console.log("Error -> Exception running function: ", fn)
   }
 }
 
