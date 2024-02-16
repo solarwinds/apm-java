@@ -50,12 +50,6 @@ public class K6Container {
             .withEnv("LAMBDA", System.getenv("LAMBDA"))
         .withCommand(
             "run",
-            "-u",
-            String.valueOf(config.concurrentConnections()),
-            "-i",
-            String.valueOf(config.totalIterations()),
-            "--rps",
-            String.valueOf(config.maxRequestRate()),
             "--summary-export",
             k6OutputFile.toString(),
             "/app/basic.js")

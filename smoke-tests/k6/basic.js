@@ -4,6 +4,12 @@ import names from "./names.js";
 
 const baseUri = `http://petclinic:9966/petclinic/api`;
 const webMvcUri = `http://webmvc:8080`;
+export const options = {
+  duration: "10m",
+  minIterationDuration: "3m",
+  vus: 10,
+  iterations: 200,
+};
 
 function verify_that_trace_is_persisted() {
     let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
@@ -15,6 +21,7 @@ function verify_that_trace_is_persisted() {
 
         const traceContext = petTypesResponse.headers['X-Trace']
         const [_, traceId, spanId, flag] = traceContext.split("-")
+        console.log("Trace context -> ", traceContext)
         if (flag === '00') continue;
 
         const traceDetailPayload = {
@@ -39,7 +46,7 @@ function verify_that_trace_is_persisted() {
 
             traceDetailResponse = JSON.parse(traceDetailResponse.body)
             if (traceDetailResponse['errors']) {
-              console.log("Trace detail response:", JSON.stringify(traceDetailResponse))
+              console.log("Error -> Trace detail response:", JSON.stringify(traceDetailResponse))
               continue
             }
 
@@ -71,6 +78,7 @@ function verify_that_span_data_is_persisted() {
 
         const traceContext = newOwnerResponse.headers['X-Trace']
         const [_, traceId, __, flag] = traceContext.split("-")
+        console.log("Trace context -> ", traceContext)
         if (flag === '00') continue;
 
         const spanRawDataPayload = {
@@ -144,6 +152,7 @@ function verify_that_span_data_is_persisted_0() {
 
         const traceContext = response.headers['X-Trace']
         const [_, traceId, __, flag] = traceContext.split("-")
+        console.log("Trace context -> ", traceContext)
         if (flag === '00') continue;
 
         const spanRawDataPayload = {
@@ -184,7 +193,7 @@ function verify_that_span_data_is_persisted_0() {
 
                         check(property, {"trigger trace": prop => prop.key === "TriggeredTrace"})
                         check(property, {"code profiling": prop => prop.key === "NewFrames"})
-                        if (property.key === "TransactionName") {
+                        if (property.key === "sw.transaction") {
                             check(property, {"custom transaction name": prop => prop.value === transactionName})
                             return;
                         }
@@ -206,6 +215,7 @@ function verify_distributed_trace() {
 
         const traceContext = response.headers['X-Trace']
         const [_, traceId, __, flag] = traceContext.split("-")
+        console.log("Trace context -> ", traceContext)
         if (flag === '00') continue;
 
         const spanRawDataPayload = {
@@ -371,6 +381,7 @@ function verify_transaction_name() {
 
     const traceContext = response.headers['X-Trace']
     const [_, traceId, __, flag] = traceContext.split("-")
+    console.log("Trace context -> ", traceContext)
     if (flag === '00') continue;
 
     const spanRawDataPayload = {
@@ -408,7 +419,7 @@ function verify_transaction_name() {
 
           for (let k = 0; k < properties.length; k++) {
             const property = properties[k]
-            if (property.key === "TransactionName") {
+            if (property.key === "sw.transaction") {
               check(property, {"transaction-name": prop => prop.value === "lambda-test-txn"})
               return;
             }
