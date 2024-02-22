@@ -132,6 +132,7 @@ tasks.register("lambda-layer", Zip) {
     include("solarwinds-apm-agent.jar")
   }
   from("lambda")
+  into("solarwinds-apm")
 }
 
 tasks.register('sourcesJar', Jar) {
