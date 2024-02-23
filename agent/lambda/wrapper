@@ -1,5 +1,5 @@
 #!/bin/bash
-export JAVA_TOOL_OPTIONS="-javaagent:/opt/solarwinds-apm-agent.jar ${JAVA_TOOL_OPTIONS}"
+export JAVA_TOOL_OPTIONS="-javaagent:/opt/solarwinds-apm/solarwinds-apm-agent.jar ${JAVA_TOOL_OPTIONS}"
 
 if [ -z "${OTEL_SERVICE_NAME}" ]; then
     export OTEL_SERVICE_NAME=$AWS_LAMBDA_FUNCTION_NAME;
