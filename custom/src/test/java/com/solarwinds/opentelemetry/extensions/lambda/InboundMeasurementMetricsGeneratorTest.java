@@ -26,6 +26,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+@SuppressWarnings("all")
 @ExtendWith(MockitoExtension.class)
 class InboundMeasurementMetricsGeneratorTest {
 
@@ -97,7 +98,7 @@ class InboundMeasurementMetricsGeneratorTest {
                     "get".equals(attributes.get(AttributeKey.stringKey("http.method")))
                         && Objects.equals(
                             200L, attributes.get(AttributeKey.longKey("http.status_code")))
-                        && "false".equals(attributes.get(AttributeKey.stringKey("sw.is_error")))
+                        && !attributes.get(AttributeKey.booleanKey("sw.is_error"))
                         && TransactionNameManager.getTransactionName(testSpanData)
                             .equals(attributes.get(AttributeKey.stringKey("sw.transaction"))));
 
@@ -134,7 +135,7 @@ class InboundMeasurementMetricsGeneratorTest {
                     "get".equals(attributes.get(AttributeKey.stringKey("http.method")))
                         && Objects.equals(
                             500L, attributes.get(AttributeKey.longKey("http.status_code")))
-                        && "true".equals(attributes.get(AttributeKey.stringKey("sw.is_error")))
+                        && attributes.get(AttributeKey.booleanKey("sw.is_error"))
                         && TransactionNameManager.getTransactionName(testSpanData)
                             .equals(attributes.get(AttributeKey.stringKey("sw.transaction"))));
 

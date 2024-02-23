@@ -69,11 +69,7 @@ public class InboundMeasurementMetricsGenerator implements SpanProcessor {
 
       String errorKey = "sw.is_error";
       String transactionKey = "sw.transaction";
-      if (hasError) {
-        responseTimeAttr.put(errorKey, "true");
-      } else {
-        responseTimeAttr.put(errorKey, "false");
-      }
+      responseTimeAttr.put(errorKey, hasError);
 
       responseTime.record(duration, responseTimeAttr.put(transactionKey, transactionName).build());
     }
