@@ -1,6 +1,7 @@
 package com.solarwinds.opentelemetry.extensions.initialize;
 
 import com.solarwinds.joboe.core.logging.LoggerFactory;
+import com.solarwinds.opentelemetry.extensions.initialize.config.BuildConfig;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.resources.ResourceBuilder;
@@ -15,7 +16,10 @@ public class AutoConfiguredResourceCustomizer
 
   @Override
   public Resource apply(Resource resource, ConfigProperties configProperties) {
-    ResourceBuilder resourceBuilder = resource.toBuilder().put("sw.data.module", "apm");
+    ResourceBuilder resourceBuilder =
+        resource.toBuilder()
+            .put("sw.data.module", "apm")
+            .put("sw.apm.version", BuildConfig.SOLARWINDS_AGENT_VERSION);
     String resourceAttribute = resource.getAttribute(ResourceAttributes.PROCESS_COMMAND_LINE);
     List<String> processArgs = resource.getAttribute(ResourceAttributes.PROCESS_COMMAND_ARGS);
 
