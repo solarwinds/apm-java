@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: benchmark-db
+  name: benchmark-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: benchmark-db
+  template:
+    metadata:
+      labels:
+        app: benchmark-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:9.6.22
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "petclinic"
+            - name: POSTGRES_USER
+              value: "petclinic"
+            - name: POSTGRES_PASSWORD
+              value: "petclinic"
+          volumeMounts:
+            - mountPath: /docker-entrypoint-initdb.d
+              name: db
+      volumes:
+        - name: db
+          configMap:
+            name: db
+            items:
+              - key: initDB.sql
+                path: initDB.sql
+              - key: populateDB.sql
+                path: populateDB.sql
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: benchmark-db-rc
+  name: benchmark-db-rc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: benchmark-db-rc
+  template:
+    metadata:
+      labels:
+        app: benchmark-db-rc
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:9.6.22
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "petclinic"
+            - name: POSTGRES_USER
+              value: "petclinic"
+            - name: POSTGRES_PASSWORD
+              value: "petclinic"
+          volumeMounts:
+            - mountPath: /docker-entrypoint-initdb.d
+              name: db
+      volumes:
+        - name: db
+          configMap:
+            name: db
+            items:
+              - key: initDB.sql
+                path: initDB.sql
+              - key: populateDB.sql
+                path: populateDB.sql
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: benchmark-db-un
+  name: benchmark-db-un
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: benchmark-db-un
+  template:
+    metadata:
+      labels:
+        app: benchmark-db-un
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:9.6.22
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "petclinic"
+            - name: POSTGRES_USER
+              value: "petclinic"
+            - name: POSTGRES_PASSWORD
+              value: "petclinic"
+          volumeMounts:
+            - mountPath: /docker-entrypoint-initdb.d
+              name: db
+      volumes:
+        - name: db
+          configMap:
+            name: db
+            items:
+              - key: initDB.sql
+                path: initDB.sql
+              - key: populateDB.sql
+                path: populateDB.sql

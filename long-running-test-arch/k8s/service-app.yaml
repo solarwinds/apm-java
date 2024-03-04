@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: instrumented-service
+spec:
+  type: ClusterIP
+  selector:
+    app: benchmark-instrumented
+  ports:
+    - protocol: TCP
+      name: petclinic-ins
+      port: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: instrumented-rc-service
+spec:
+  type: ClusterIP
+  selector:
+    app: benchmark-instrumented-rc
+  ports:
+    - protocol: TCP
+      name: petclinic-ins-rc
+      port: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: uninstrumented-service
+spec:
+  type: ClusterIP
+  selector:
+    app: benchmark-uninstrumented
+  ports:
+    - protocol: TCP
+      name: petclinic-un
+      port: 8080

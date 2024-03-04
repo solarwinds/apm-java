@@ -1,0 +1,11 @@
+# syntax=docker/dockerfile:1
+FROM openjdk:17 AS agent
+WORKDIR /app
+RUN curl -sSO https://agent-binaries.cloud.solarwinds.com/apm/java/latest/solarwinds-apm-agent.jar
+
+FROM --platform=linux/amd64 ghcr.io/open-telemetry/opentelemetry-java-instrumentation/petclinic-rest-base:latest
+WORKDIR /app
+COPY --from=agent /app/solarwinds-apm-agent.jar .
+
+ENV SERVER_PORT 8080
+CMD java -javaagent:solarwinds-apm-agent.jar -jar spring-petclinic-rest.jar
