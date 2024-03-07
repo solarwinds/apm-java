@@ -90,10 +90,12 @@ jobs:
             cd long-running-test-arch
             IMAGE_ID_RC=$(echo "ghcr.io/$CIRCLE_PROJECT_USERNAME/petclinic:agent-rc" | tr '[:upper:]' '[:lower:]')
             IMAGE_ID_ST=$(echo "ghcr.io/$CIRCLE_PROJECT_USERNAME/petclinic:agent-latest" | tr '[:upper:]' '[:lower:]')
+            IMAGE_ID_XK6=$(echo "ghcr.io/$CIRCLE_PROJECT_USERNAME/xk6:latest" | tr '[:upper:]' '[:lower:]')
 
             docker buildx create --use --name multiarch
             docker buildx build --tag $IMAGE_ID_RC --push -f Dockerfile-rc .
             docker buildx build --tag $IMAGE_ID_ST --push -f Dockerfile .
+            docker buildx build --tag $IMAGE_ID_XK6 --push xk6/
       - docker-logout
   lambda-release-test:
     executor: linux
