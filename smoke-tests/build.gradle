@@ -1,6 +1,10 @@
+import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
+
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.util.regex.Pattern
 
 plugins {
     id 'java'
@@ -47,7 +51,6 @@ static Boolean aws() {
 
         def res = HttpClient.newHttpClient()
                 .send(req, HttpResponse.BodyHandlers.ofString())
-        print("Status aws: ${res.statusCode()}")
         return res.statusCode() == 200
 
     } catch (Exception ignored) {
@@ -72,19 +75,70 @@ static Boolean azure() {
     }
 }
 
+static Map<String, Object> addAuth(Map<String, Object> envs) {
+  try {
+    def cookieStore = new InMemoryCookieStore()
+    def httpClient = HttpClient.newBuilder().cookieHandler(new CookieManager(cookieStore, CookiePolicy.ACCEPT_ALL))
+        .followRedirects(HttpClient.Redirect.ALWAYS)
+        .build()
+
+    def httpRequest = HttpRequest.newBuilder()
+        .uri(URI.create(envs.get("SWO_HOST_URL")))
+        .GET().build()
+
+    def httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())
+    def loginParams = httpResponse.uri().toString().split('\\?')[1]
+    def login_data = [
+        "email"           : envs.get("SWO_EMAIL"),
+        "password"        : envs.get("SWO_PWORD"),
+        "loginQueryParams": loginParams,
+    ]
+
+    def loginRequest = HttpRequest.newBuilder().uri(URI.create(envs.get("SWO_LOGIN_URL"))).POST(
+        HttpRequest.BodyPublishers.ofString(new JsonBuilder(login_data).toPrettyString())
+    ).header("Content-Type", "application/json").build()
+
+    def loginResponse = httpClient.send(loginRequest, HttpResponse.BodyHandlers.ofString())
+    def signBody = new JsonSlurper().parseText(loginResponse.body()) as Map<String, String>
+
+    def redirectLoginReq = HttpRequest.newBuilder().GET()
+        .uri(URI.create(signBody.get("redirectUrl")))
+        .build()
+
+    httpClient.send(redirectLoginReq, HttpResponse.BodyHandlers.ofString())
+    def finalLoginResp = httpClient.send(HttpRequest.newBuilder(URI.create(envs.get("SWO_HOST_URL")))
+        .GET()
+        .build(), HttpResponse.BodyHandlers.ofString())
+
+    def regex = Pattern.compile("\"csrf-token\" content=\"([^\"]+)\"")
+    def csrfToken = regex.matcher(finalLoginResp.body())
+    if (csrfToken.find()) {
+      envs.put("SWO_XSR_TOKEN", csrfToken.group(1))
+    }
+
+    envs.put("SWO_COOKIE", cookieStore.getCookies().join(";"))
+    return envs
+
+  } catch (Exception exception) {
+    System.out.println("Error -> ${exception}")
+    return envs
+  }
+}
+
 test {
-    String cloud = "NONE"
-    if (aws()) {
-        cloud = "AWS"
-    }
-    if (azure()) {
-        cloud = "AZURE"
-    }
+  String cloud = "NONE"
+  if (aws()) {
+    cloud = "AWS"
+  }
+  if (azure()) {
+    cloud = "AZURE"
+  }
 
-    useJUnitPlatform()
-    testLogging {
-        events("passed", "skipped", "failed")
-    }
+  useJUnitPlatform()
+  testLogging {
+    events("passed", "skipped", "failed")
+  }
 
-    setSystemProperties(["test.cloud": cloud])
+  setSystemProperties(["test.cloud": cloud])
+  setEnvironment(addAuth(getEnvironment()))
 }
