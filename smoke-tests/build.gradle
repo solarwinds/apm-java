@@ -83,7 +83,7 @@ static Map<String, Object> addAuth(Map<String, Object> envs) {
         .build()
 
     def httpRequest = HttpRequest.newBuilder()
-        .uri(URI.create(envs.get("SWO_HOST_URL")))
+        .uri(URI.create(envs.get("SWO_HOST_URL").toString()))
         .GET().build()
 
     def httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())
@@ -94,7 +94,7 @@ static Map<String, Object> addAuth(Map<String, Object> envs) {
         "loginQueryParams": loginParams,
     ]
 
-    def loginRequest = HttpRequest.newBuilder().uri(URI.create(envs.get("SWO_LOGIN_URL"))).POST(
+    def loginRequest = HttpRequest.newBuilder().uri(URI.create(envs.get("SWO_LOGIN_URL").toString())).POST(
         HttpRequest.BodyPublishers.ofString(new JsonBuilder(login_data).toPrettyString())
     ).header("Content-Type", "application/json").build()
 
@@ -106,7 +106,7 @@ static Map<String, Object> addAuth(Map<String, Object> envs) {
         .build()
 
     httpClient.send(redirectLoginReq, HttpResponse.BodyHandlers.ofString())
-    def finalLoginResp = httpClient.send(HttpRequest.newBuilder(URI.create(envs.get("SWO_HOST_URL")))
+    def finalLoginResp = httpClient.send(HttpRequest.newBuilder(URI.create(envs.get("SWO_HOST_URL").toString()))
         .GET()
         .build(), HttpResponse.BodyHandlers.ofString())
 
