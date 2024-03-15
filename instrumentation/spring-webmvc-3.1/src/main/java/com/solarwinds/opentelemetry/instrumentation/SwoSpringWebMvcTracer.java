@@ -5,7 +5,7 @@
 
 package com.solarwinds.opentelemetry.instrumentation;
 
-import io.opentelemetry.instrumentation.api.instrumenter.util.SpanNames;
+import io.opentelemetry.instrumentation.api.incubator.semconv.util.SpanNames;
 import java.lang.reflect.Method;
 import javax.servlet.Servlet;
 import org.springframework.web.HttpRequestHandler;
@@ -46,9 +46,4 @@ public class SwoSpringWebMvcTracer {
 
     return SpanNames.fromMethod(clazz, methodName);
   }
-  //
-  //  @Override
-  //  protected String getInstrumentationName() {
-  //    return "io.opentelemetry.javaagent.spring-webmvc-3.1";
-  //  }
 }

@@ -7,6 +7,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.solarwinds.joboe.core.util.HostTypeDetector;
 import com.solarwinds.opentelemetry.core.RootSpan;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanKind;
@@ -52,10 +53,14 @@ class SolarwindsRootSpanProcessorTest {
         .thenAnswer(invocation -> null);
     when(readWriteSpanMock.toSpanData()).thenReturn(testSpanData);
 
+    MockedStatic<HostTypeDetector> hostTypeDetectorMock = mockStatic(HostTypeDetector.class);
+    hostTypeDetectorMock.when(HostTypeDetector::isLambda).thenReturn(true);
+
     tested.onStart(Context.root(), readWriteSpanMock);
     verify(readWriteSpanMock).setAttribute(stringArgumentCaptor.capture(), anyString());
 
     assertEquals("sw.transaction", stringArgumentCaptor.getValue());
     rootSpanMock.close();
+    hostTypeDetectorMock.close();
   }
 }

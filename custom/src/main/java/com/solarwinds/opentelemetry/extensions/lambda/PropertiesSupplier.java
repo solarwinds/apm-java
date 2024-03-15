@@ -17,6 +17,7 @@ public class PropertiesSupplier implements Supplier<Map<String, String>> {
     defaultProperties.put(
         "otel.propagators", String.format("tracecontext,baggage,%s,xray", COMPONENT_NAME));
     defaultProperties.put("otel.instrumentation.runtime-telemetry.enabled", "false");
+    defaultProperties.put("otel.exporter.otlp.protocol", "grpc");
   }
 
   @Override

@@ -3,7 +3,7 @@ package com.solarwinds.opentelemetry.extensions.initialize.config;
 import com.solarwinds.joboe.core.config.ConfigParser;
 import com.solarwinds.joboe.core.config.InvalidConfigException;
 
-public class RangeValidationParser<T extends Comparable> implements ConfigParser<T, T> {
+public class RangeValidationParser<T extends Comparable<T>> implements ConfigParser<T, T> {
   private final T min;
   private final T max;
   private final boolean minInclusive;
@@ -32,15 +32,10 @@ public class RangeValidationParser<T extends Comparable> implements ConfigParser
     }
 
     if (maxInclusive) {
-      if (value.compareTo(max) > 0) {
-        return false;
-      }
+      return value.compareTo(max) <= 0;
     } else {
-      if (value.compareTo(max) >= 0) {
-        return false;
-      }
+      return value.compareTo(max) < 0;
     }
-    return true;
   }
 
   @Override

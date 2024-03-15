@@ -200,7 +200,7 @@ class SolarwindsSamplerTest {
 
   @Test
   void returnRecordAndSampleDecisionWhenSpanIsLocalAndParentIsSample() {
-    try (MockedStatic<Span> spanMockedStatic = mockStatic(Span.class); ) {
+    try (MockedStatic<Span> spanMockedStatic = mockStatic(Span.class)) {
       spanMockedStatic.when(() -> Span.fromContext(any())).thenReturn(spanMock);
       when(spanMock.getSpanContext()).thenReturn(spanContextMock);
       when(spanContextMock.isRemote()).thenReturn(false);
@@ -224,7 +224,7 @@ class SolarwindsSamplerTest {
 
   @Test
   void returnDropDecisionWhenLocalSpanAndParentIsNotSampled() {
-    try (MockedStatic<Span> spanMockedStatic = mockStatic(Span.class); ) {
+    try (MockedStatic<Span> spanMockedStatic = mockStatic(Span.class)) {
       spanMockedStatic.when(() -> Span.fromContext(any())).thenReturn(spanMock);
       when(spanMock.getSpanContext()).thenReturn(spanContextMock);
 

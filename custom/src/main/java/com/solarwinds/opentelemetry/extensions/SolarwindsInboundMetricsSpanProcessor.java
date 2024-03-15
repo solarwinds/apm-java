@@ -212,7 +212,7 @@ public class SolarwindsInboundMetricsSpanProcessor implements SpanProcessor {
     private static final HistogramFactory.HistogramType HISTOGRAM_TYPE =
         HistogramFactory.HistogramType.HDR;
 
-    private Map<MetricKey, Histogram> histograms = new ConcurrentHashMap<>();
+    private final Map<MetricKey, Histogram> histograms = new ConcurrentHashMap<>();
 
     private OpenTelemetryInboundHistogramReporter() {}
 
