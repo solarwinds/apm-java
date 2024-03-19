@@ -1,5 +1,7 @@
 package com.solarwinds.opentelemetry.extensions;
 
+import static com.solarwinds.joboe.core.util.HostTypeDetector.isLambda;
+
 import com.solarwinds.joboe.core.logging.Logger;
 import com.solarwinds.joboe.core.logging.LoggerFactory;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
@@ -22,11 +24,13 @@ public class SolarwindsRootSpanProcessor implements SpanProcessor {
     if (!parentSpanContext.isValid()
         || parentSpanContext.isRemote()) { // then a root span of this service
       RootSpan.setRootSpan(span);
-      String transactionName = TransactionNameManager.getTransactionName(span.toSpanData());
+      if (isLambda()) {
+        String transactionName = TransactionNameManager.getTransactionName(span.toSpanData());
 
-      span.setAttribute("sw.transaction", transactionName);
-      logger.debug(
-          String.format("Transaction name derived on root span start: %s", transactionName));
+        span.setAttribute("sw.transaction", transactionName);
+        logger.debug(
+            String.format("Transaction name derived on root span start: %s", transactionName));
+      }
     }
   }
 

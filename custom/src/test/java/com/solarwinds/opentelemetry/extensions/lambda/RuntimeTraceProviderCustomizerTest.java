@@ -70,7 +70,7 @@ class RuntimeTraceProviderCustomizerTest {
   @Test
   void verifyThatCustomizationIsDelegatedWhenAgentIsEnabledAndNotInLambda() {
     try (MockedStatic<AutoConfigurationCustomizerProviderImpl> otelCustomizerMock =
-        mockStatic(AutoConfigurationCustomizerProviderImpl.class); ) {
+        mockStatic(AutoConfigurationCustomizerProviderImpl.class)) {
       otelCustomizerMock
           .when(AutoConfigurationCustomizerProviderImpl::isAgentEnabled)
           .thenReturn(true);

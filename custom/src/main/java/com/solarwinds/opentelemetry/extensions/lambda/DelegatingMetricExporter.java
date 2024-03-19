@@ -32,7 +32,9 @@ public class DelegatingMetricExporter implements MetricExporter {
 
   @Override
   public AggregationTemporality getAggregationTemporality(@NonNull InstrumentType instrumentType) {
-    if (instrumentType == InstrumentType.HISTOGRAM) return AggregationTemporality.DELTA;
+    if (instrumentType == InstrumentType.HISTOGRAM) {
+      return AggregationTemporality.DELTA;
+    }
     return delegate.getAggregationTemporality(instrumentType);
   }
 }

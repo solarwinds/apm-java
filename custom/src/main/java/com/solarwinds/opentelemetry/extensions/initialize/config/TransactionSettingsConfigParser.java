@@ -72,7 +72,7 @@ public class TransactionSettingsConfigParser implements ConfigParser<String, Tra
           "Multiple matchers found for \""
               + ConfigProperty.AGENT_TRANSACTION_SETTINGS.getConfigFileKey()
               + "\" entry "
-              + transactionSettingEntry.toString());
+              + transactionSettingEntry);
     } else if (transactionSettingEntry.has(REGEX_KEY)) {
       String regexString = transactionSettingEntry.getString(REGEX_KEY);
       Pattern pattern;
@@ -104,7 +104,7 @@ public class TransactionSettingsConfigParser implements ConfigParser<String, Tra
           "Cannot find proper matcher for \""
               + ConfigProperty.AGENT_TRANSACTION_SETTINGS.getConfigFileKey()
               + "\" entry "
-              + transactionSettingEntry.toString()
+              + transactionSettingEntry
               + ". Neither "
               + REGEX_KEY
               + " nor "
@@ -115,7 +115,7 @@ public class TransactionSettingsConfigParser implements ConfigParser<String, Tra
 
   private void checkKeys(Set<?> jsonKeys) throws InvalidConfigException {
     Set<Object> keys = new HashSet<Object>(jsonKeys);
-    keys.removeAll(KEYS);
+    KEYS.forEach(keys::remove);
 
     if (!keys.isEmpty()) {
       throw new InvalidConfigException(
