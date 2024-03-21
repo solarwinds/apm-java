@@ -1,7 +1,7 @@
 package com.solarwinds.opentelemetry.extensions.transaction;
 
-import com.solarwinds.joboe.core.logging.Logger;
-import com.solarwinds.joboe.core.logging.LoggerFactory;
+import com.solarwinds.joboe.logging.Logger;
+import com.solarwinds.joboe.logging.LoggerFactory;
 import io.opentelemetry.api.common.Attributes;
 import java.util.List;
 

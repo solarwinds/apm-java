@@ -1,6 +1,6 @@
 package com.solarwinds.opentelemetry.extensions;
 
-import com.solarwinds.joboe.core.XTraceOptions;
+import com.solarwinds.joboe.sampling.XTraceOptions;
 import com.solarwinds.joboe.shaded.javax.annotation.concurrent.Immutable;
 import io.opentelemetry.context.ContextKey;
 

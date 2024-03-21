@@ -2,7 +2,7 @@ package com.solarwinds.opentelemetry.extensions;
 
 import static com.solarwinds.opentelemetry.extensions.SamplingUtil.SW_XTRACE_OPTIONS_RESP_KEY;
 
-import com.solarwinds.joboe.core.XTraceOptions;
+import com.solarwinds.joboe.sampling.XTraceOptions;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.joboe.shaded.javax.annotation.Nullable;
 import io.opentelemetry.api.trace.Span;

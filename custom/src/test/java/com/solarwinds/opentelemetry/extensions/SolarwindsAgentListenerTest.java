@@ -2,10 +2,16 @@ package com.solarwinds.opentelemetry.extensions;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.solarwinds.joboe.core.settings.SettingsManager;
 import com.solarwinds.joboe.core.util.HostTypeDetector;
+import com.solarwinds.joboe.sampling.SamplingConfiguration;
+import com.solarwinds.joboe.sampling.SettingsFetcher;
+import com.solarwinds.joboe.sampling.SettingsManager;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
@@ -63,12 +69,18 @@ class SolarwindsAgentListenerTest {
             mockStatic(SettingsManager.class)) {
 
       settingsManagerMockedStatic
-          .when(SettingsManager::initialize)
+          .when(
+              () ->
+                  SettingsManager.initialize(
+                      any(SettingsFetcher.class), any(SamplingConfiguration.class)))
           .thenReturn(new CountDownLatch(0));
       hostTypeDetectorMockedStatic.when(HostTypeDetector::isLambda).thenReturn(true);
 
       tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
-      settingsManagerMockedStatic.verify(SettingsManager::initialize);
+      settingsManagerMockedStatic.verify(
+          () ->
+              SettingsManager.initialize(
+                  any(SettingsFetcher.class), any(SamplingConfiguration.class)));
     }
   }
 }

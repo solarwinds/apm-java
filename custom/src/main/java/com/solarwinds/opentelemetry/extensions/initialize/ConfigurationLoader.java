@@ -2,21 +2,19 @@ package com.solarwinds.opentelemetry.extensions.initialize;
 
 import static com.solarwinds.joboe.core.util.HostTypeDetector.isLambda;
 
-import com.solarwinds.joboe.core.config.ConfigContainer;
-import com.solarwinds.joboe.core.config.ConfigGroup;
-import com.solarwinds.joboe.core.config.ConfigManager;
-import com.solarwinds.joboe.core.config.ConfigProperty;
-import com.solarwinds.joboe.core.config.ConfigSourceType;
-import com.solarwinds.joboe.core.config.EnvConfigReader;
-import com.solarwinds.joboe.core.config.InvalidConfigException;
-import com.solarwinds.joboe.core.config.InvalidConfigReadSourceException;
-import com.solarwinds.joboe.core.config.InvalidConfigServiceKeyException;
-import com.solarwinds.joboe.core.config.JsonConfigReader;
-import com.solarwinds.joboe.core.config.ProfilerSetting;
-import com.solarwinds.joboe.core.config.TraceConfigs;
-import com.solarwinds.joboe.core.logging.Logger;
-import com.solarwinds.joboe.core.logging.LoggerFactory;
-import com.solarwinds.joboe.core.util.ServiceKeyUtils;
+import com.solarwinds.joboe.config.ConfigContainer;
+import com.solarwinds.joboe.config.ConfigGroup;
+import com.solarwinds.joboe.config.ConfigManager;
+import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.config.EnvConfigReader;
+import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.config.InvalidConfigReadSourceException;
+import com.solarwinds.joboe.config.ServiceKeyUtils;
+import com.solarwinds.joboe.core.profiler.ProfilerSetting;
+import com.solarwinds.joboe.logging.Logger;
+import com.solarwinds.joboe.logging.LoggerFactory;
+import com.solarwinds.joboe.sampling.TraceConfigs;
+import com.solarwinds.opentelemetry.extensions.LoggingConfigProvider;
 import com.solarwinds.opentelemetry.extensions.TransactionNameManager;
 import com.solarwinds.opentelemetry.extensions.initialize.config.BuildConfig;
 import com.solarwinds.opentelemetry.extensions.initialize.config.ConfigConstants;
@@ -220,10 +218,10 @@ public class ConfigurationLoader {
     } finally {
       if (configs != null) {
         maybeFollowOtelConfigProperties(configs);
+        ConfigContainer config = configs.subset(ConfigGroup.AGENT);
         LoggerFactory.init(
-            configs.subset(
-                ConfigGroup
-                    .AGENT)); // initialize the logger factory as soon as the config is available
+            LoggingConfigProvider.getLoggerConfiguration(
+                config)); // initialize the logger factory as soon as the config is available
         try {
           processConfigs(configs);
         } catch (InvalidConfigException e) {

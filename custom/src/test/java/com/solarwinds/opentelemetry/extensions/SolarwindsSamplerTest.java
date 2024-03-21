@@ -8,10 +8,10 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.solarwinds.joboe.core.TraceConfig;
-import com.solarwinds.joboe.core.TraceDecision;
-import com.solarwinds.joboe.core.TraceDecisionUtil;
-import com.solarwinds.joboe.core.XTraceOptions;
+import com.solarwinds.joboe.sampling.TraceConfig;
+import com.solarwinds.joboe.sampling.TraceDecision;
+import com.solarwinds.joboe.sampling.TraceDecisionUtil;
+import com.solarwinds.joboe.sampling.XTraceOptions;
 import com.solarwinds.opentelemetry.core.Util;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;

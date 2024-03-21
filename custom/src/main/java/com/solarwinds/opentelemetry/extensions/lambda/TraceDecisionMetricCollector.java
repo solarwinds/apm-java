@@ -3,7 +3,7 @@ package com.solarwinds.opentelemetry.extensions.lambda;
 import static com.solarwinds.joboe.core.util.HostTypeDetector.isLambda;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.core.TraceDecisionUtil;
+import com.solarwinds.joboe.sampling.TraceDecisionUtil;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.metrics.ObservableLongGauge;
 import io.opentelemetry.javaagent.extension.AgentListener;

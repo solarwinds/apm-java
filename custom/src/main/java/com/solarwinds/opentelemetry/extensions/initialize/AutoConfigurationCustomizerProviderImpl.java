@@ -1,10 +1,10 @@
 package com.solarwinds.opentelemetry.extensions.initialize;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.core.config.InvalidConfigException;
-import com.solarwinds.joboe.core.logging.Logger;
-import com.solarwinds.joboe.core.logging.LoggerFactory;
+import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.core.util.JavaRuntimeVersionChecker;
+import com.solarwinds.joboe.logging.Logger;
+import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.opentelemetry.extensions.SolarwindsPropertiesSupplier;
 import com.solarwinds.opentelemetry.extensions.SolarwindsTracerProviderCustomizer;

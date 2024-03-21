@@ -1,8 +1,8 @@
 package com.solarwinds.opentelemetry.extensions.initialize.config;
 
-import com.solarwinds.joboe.core.config.ConfigParser;
-import com.solarwinds.joboe.core.config.InvalidConfigException;
-import com.solarwinds.joboe.core.config.ProxyConfig;
+import com.solarwinds.joboe.config.ConfigParser;
+import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.config.ProxyConfig;
 import java.net.MalformedURLException;
 import java.net.URL;
 

@@ -1,7 +1,7 @@
 package com.solarwinds.opentelemetry.extensions.transaction;
 
-import com.solarwinds.joboe.core.config.ConfigParser;
-import com.solarwinds.joboe.core.config.InvalidConfigException;
+import com.solarwinds.joboe.config.ConfigParser;
+import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.shaded.google.gson.Gson;
 import com.solarwinds.joboe.shaded.google.gson.GsonBuilder;
 import com.solarwinds.joboe.shaded.google.gson.JsonSyntaxException;

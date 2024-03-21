@@ -1,6 +1,6 @@
 package com.solarwinds.opentelemetry.extensions.initialize.config;
 
-import com.solarwinds.joboe.core.config.ResourceMatcher;
+import com.solarwinds.joboe.sampling.ResourceMatcher;
 import java.util.regex.Pattern;
 
 class StringPatternMatcher implements ResourceMatcher {

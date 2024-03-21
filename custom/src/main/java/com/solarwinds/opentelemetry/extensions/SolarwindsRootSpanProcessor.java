@@ -2,8 +2,8 @@ package com.solarwinds.opentelemetry.extensions;
 
 import static com.solarwinds.joboe.core.util.HostTypeDetector.isLambda;
 
-import com.solarwinds.joboe.core.logging.Logger;
-import com.solarwinds.joboe.core.logging.LoggerFactory;
+import com.solarwinds.joboe.logging.Logger;
+import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.opentelemetry.core.RootSpan;
 import io.opentelemetry.api.trace.Span;

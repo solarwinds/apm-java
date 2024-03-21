@@ -1,9 +1,9 @@
 package com.solarwinds.opentelemetry.extensions;
 
-import com.solarwinds.joboe.core.TraceDecision;
-import com.solarwinds.joboe.core.TraceDecisionUtil;
-import com.solarwinds.joboe.core.XTraceOption;
-import com.solarwinds.joboe.core.XTraceOptions;
+import com.solarwinds.joboe.sampling.TraceDecision;
+import com.solarwinds.joboe.sampling.TraceDecisionUtil;
+import com.solarwinds.joboe.sampling.XTraceOption;
+import com.solarwinds.joboe.sampling.XTraceOptions;
 import io.opentelemetry.api.common.AttributesBuilder;
 import java.util.regex.Pattern;
 

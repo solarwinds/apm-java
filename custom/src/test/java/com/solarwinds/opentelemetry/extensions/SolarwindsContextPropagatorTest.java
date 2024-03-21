@@ -13,7 +13,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.solarwinds.joboe.core.XTraceOptions;
+import com.solarwinds.joboe.sampling.XTraceOptions;
 import com.solarwinds.opentelemetry.extensions.stubs.TextMapGetterStub;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;

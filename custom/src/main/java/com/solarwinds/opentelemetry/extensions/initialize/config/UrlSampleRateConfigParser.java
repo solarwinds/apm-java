@@ -1,12 +1,12 @@
 package com.solarwinds.opentelemetry.extensions.initialize.config;
 
-import com.solarwinds.joboe.core.SampleRateSource;
-import com.solarwinds.joboe.core.TraceConfig;
-import com.solarwinds.joboe.core.TracingMode;
-import com.solarwinds.joboe.core.config.ConfigParser;
-import com.solarwinds.joboe.core.config.InvalidConfigException;
-import com.solarwinds.joboe.core.config.ResourceMatcher;
-import com.solarwinds.joboe.core.config.TraceConfigs;
+import com.solarwinds.joboe.config.ConfigParser;
+import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.sampling.ResourceMatcher;
+import com.solarwinds.joboe.sampling.SampleRateSource;
+import com.solarwinds.joboe.sampling.TraceConfig;
+import com.solarwinds.joboe.sampling.TraceConfigs;
+import com.solarwinds.joboe.sampling.TracingMode;
 import com.solarwinds.joboe.shaded.org.json.JSONArray;
 import com.solarwinds.joboe.shaded.org.json.JSONException;
 import com.solarwinds.joboe.shaded.org.json.JSONObject;

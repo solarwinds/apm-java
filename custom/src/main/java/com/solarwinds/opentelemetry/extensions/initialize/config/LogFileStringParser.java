@@ -1,7 +1,7 @@
 package com.solarwinds.opentelemetry.extensions.initialize.config;
 
-import com.solarwinds.joboe.core.config.ConfigParser;
-import com.solarwinds.joboe.core.config.InvalidConfigException;
+import com.solarwinds.joboe.config.ConfigParser;
+import com.solarwinds.joboe.config.InvalidConfigException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;

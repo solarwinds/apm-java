@@ -1,14 +1,14 @@
 package com.solarwinds.opentelemetry.extensions;
 
-import static com.solarwinds.joboe.core.TraceDecisionUtil.shouldTraceRequest;
+import static com.solarwinds.joboe.sampling.TraceDecisionUtil.shouldTraceRequest;
 import static com.solarwinds.opentelemetry.extensions.SamplingUtil.SW_TRACESTATE_KEY;
 import static com.solarwinds.opentelemetry.extensions.SamplingUtil.addXtraceOptionsToAttribute;
 
-import com.solarwinds.joboe.core.TraceDecision;
-import com.solarwinds.joboe.core.XTraceOptions;
-import com.solarwinds.joboe.core.XTraceOptionsResponse;
-import com.solarwinds.joboe.core.logging.Logger;
-import com.solarwinds.joboe.core.logging.LoggerFactory;
+import com.solarwinds.joboe.logging.Logger;
+import com.solarwinds.joboe.logging.LoggerFactory;
+import com.solarwinds.joboe.sampling.TraceDecision;
+import com.solarwinds.joboe.sampling.XTraceOptions;
+import com.solarwinds.joboe.sampling.XTraceOptionsResponse;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.opentelemetry.core.Constants;
 import com.solarwinds.opentelemetry.core.Util;
