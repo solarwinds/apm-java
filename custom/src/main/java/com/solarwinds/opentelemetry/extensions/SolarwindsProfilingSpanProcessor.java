@@ -4,9 +4,10 @@ import static com.solarwinds.opentelemetry.core.Constants.SW_KEY_PREFIX;
 
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
-import com.solarwinds.joboe.core.RpcEventReporter;
+import com.solarwinds.joboe.core.ReporterFactory;
 import com.solarwinds.joboe.core.profiler.Profiler;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;
+import com.solarwinds.joboe.core.rpc.ClientException;
 import com.solarwinds.joboe.core.rpc.RpcClientManager;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
@@ -30,9 +31,16 @@ public class SolarwindsProfilingSpanProcessor implements SpanProcessor {
 
   static {
     if (PROFILER_ENABLED) {
-      Profiler.initialize(
-          profilerSetting,
-          RpcEventReporter.buildReporter(RpcClientManager.OperationType.PROFILING));
+      try {
+        Profiler.initialize(
+            profilerSetting,
+            ReporterFactory.getInstance()
+                .createQueuingEventReporter(
+                    RpcClientManager.getClient(RpcClientManager.OperationType.PROFILING)));
+      } catch (ClientException e) {
+        logger.error("Error creating profiling report", e);
+        throw new RuntimeException(e);
+      }
     } else {
       logger.info("Profiler is disabled.");
     }

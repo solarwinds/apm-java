@@ -1,13 +1,11 @@
 package com.solarwinds.opentelemetry.extensions;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.solarwinds.joboe.core.util.HostTypeDetector;
 import com.solarwinds.opentelemetry.core.RootSpan;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanKind;
@@ -18,8 +16,6 @@ import io.opentelemetry.sdk.trace.data.StatusData;
 import io.opentelemetry.semconv.SemanticAttributes;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -32,10 +28,20 @@ class SolarwindsRootSpanProcessorTest {
 
   @Mock private ReadWriteSpan readWriteSpanMock;
 
-  @Captor private ArgumentCaptor<String> stringArgumentCaptor;
+  @Test
+  void verifySetIsCalledOnRootSpan() {
+    MockedStatic<RootSpan> rootSpanMock = mockStatic(RootSpan.class);
+    rootSpanMock
+        .when(() -> RootSpan.setRootSpan(eq(readWriteSpanMock)))
+        .thenAnswer(invocation -> null);
+
+    tested.onStart(Context.root(), readWriteSpanMock);
+    rootSpanMock.verify(() -> RootSpan.setRootSpan(any()));
+    rootSpanMock.close();
+  }
 
   @Test
-  void verifyTransactionNameIsSetOnRootSpan() {
+  void verifyClearIsCalledOnRootSpan() {
     TestSpanData testSpanData =
         TestSpanData.builder()
             .setName("test")
@@ -48,19 +54,13 @@ class SolarwindsRootSpanProcessorTest {
             .build();
 
     MockedStatic<RootSpan> rootSpanMock = mockStatic(RootSpan.class);
-    rootSpanMock
-        .when(() -> RootSpan.setRootSpan(eq(readWriteSpanMock)))
-        .thenAnswer(invocation -> null);
+    rootSpanMock.when(() -> RootSpan.clearRootSpan(anyString())).thenAnswer(invocation -> null);
+
     when(readWriteSpanMock.toSpanData()).thenReturn(testSpanData);
+    when(readWriteSpanMock.getSpanContext()).thenReturn(testSpanData.getParentSpanContext());
 
-    MockedStatic<HostTypeDetector> hostTypeDetectorMock = mockStatic(HostTypeDetector.class);
-    hostTypeDetectorMock.when(HostTypeDetector::isLambda).thenReturn(true);
-
-    tested.onStart(Context.root(), readWriteSpanMock);
-    verify(readWriteSpanMock).setAttribute(stringArgumentCaptor.capture(), anyString());
-
-    assertEquals("sw.transaction", stringArgumentCaptor.getValue());
+    tested.onEnd(readWriteSpanMock);
+    rootSpanMock.verify(() -> RootSpan.clearRootSpan(any()));
     rootSpanMock.close();
-    hostTypeDetectorMock.close();
   }
 }

@@ -1,0 +1,30 @@
+dependencies {
+  compileOnly project(path: ":custom:shared")
+  compileOnly "com.google.code.gson:gson:2.10.1"
+  compileOnly 'org.projectlombok:lombok:1.18.28'
+
+  annotationProcessor 'org.projectlombok:lombok:1.18.28'
+  compileOnly "com.solarwinds.joboe:config:${versions.joboe}"
+  compileOnly "com.solarwinds.joboe:sampling:${versions.joboe}"
+
+  annotationProcessor 'com.google.auto.service:auto-service:1.0.1'
+  compileOnly "com.google.auto.service:auto-service-annotations:1.0.1"
+  compileOnly("io.opentelemetry:opentelemetry-api:${versions.opentelemetry}")
+
+  compileOnly("io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}")
+  compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetry}")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}")
+
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
+
+  testImplementation project(path: ":custom:shared")
+  testImplementation("org.json:json:20231013")
+}
+
+test {
+  useJUnitPlatform()
+  testLogging {
+    events "passed", "skipped", "failed"
+  }
+}

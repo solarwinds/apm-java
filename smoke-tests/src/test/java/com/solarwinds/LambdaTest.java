@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import com.solarwinds.agents.Agent;
 import com.solarwinds.agents.SwoAgentResolver;
+import com.solarwinds.agents.SwoLambdaAgentResolver;
 import com.solarwinds.config.Configs;
 import com.solarwinds.config.TestConfig;
 import com.solarwinds.containers.K6Container;
@@ -55,7 +56,7 @@ public class LambdaTest {
     GenericContainer<?> postgres = new PostgresContainer(NETWORK).build();
     postgres.start();
 
-    GenericContainer<?> petClinic = new PetClinicRestContainer(new SwoAgentResolver(), NETWORK,
+    GenericContainer<?> petClinic = new PetClinicRestContainer(new SwoLambdaAgentResolver(), NETWORK,
         agent, namingConventions).build();
     petClinic.start();
     petClinic.followOutput(logStreamAnalyzer, OutputFrame.OutputType.STDOUT);

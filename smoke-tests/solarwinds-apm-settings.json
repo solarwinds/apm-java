@@ -1,0 +1,19 @@
+[
+    {
+        "arguments": {
+            "BucketCapacity": 2,
+            "BucketRate": 1,
+            "MetricsFlushInterval": 60,
+            "TriggerRelaxedBucketCapacity": 20,
+            "TriggerRelaxedBucketRate": 1,
+            "TriggerStrictBucketCapacity": 6,
+            "TriggerStrictBucketRate": 0.1
+        },
+        "flags": "SAMPLE_START,SAMPLE_THROUGH_ALWAYS,SAMPLE_BUCKET_ENABLED,TRIGGER_TRACE",
+        "layer": "",
+        "timestamp": 1698176407,
+        "ttl": 120,
+        "type": 0,
+        "value": 1000000
+    }
+]

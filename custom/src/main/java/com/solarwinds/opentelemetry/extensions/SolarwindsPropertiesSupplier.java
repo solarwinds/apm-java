@@ -1,7 +1,7 @@
 package com.solarwinds.opentelemetry.extensions;
 
+import static com.solarwinds.opentelemetry.extensions.SharedNames.COMPONENT_NAME;
 import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
-import static com.solarwinds.opentelemetry.extensions.initialize.config.ConfigConstants.COMPONENT_NAME;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -21,4 +21,9 @@ ext.relocatePackages = { shadowJar ->
   // by the instrumentation modules that use them
   shadowJar.relocate "io.opentelemetry.extension.aws", "io.opentelemetry.javaagent.shaded.io.opentelemetry.extension.aws"
   shadowJar.relocate "io.opentelemetry.extension.kotlin", "io.opentelemetry.javaagent.shaded.io.opentelemetry.extension.kotlin"
+
+  shadowJar.relocate("com.google", "com.solarwinds.joboe.shaded.google")
+  shadowJar.relocate("com.github", "com.solarwinds.joboe.shaded.caffeine")
+  shadowJar.relocate("org.checkerframework", "com.solarwinds.joboe.shaded.checkerframework")
+  shadowJar.relocate("org.json", "com.solarwinds.joboe.shaded.org.json")
 }

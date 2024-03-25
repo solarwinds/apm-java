@@ -1,6 +1,5 @@
 package com.solarwinds.opentelemetry.extensions;
 
-import static com.solarwinds.joboe.core.util.HostTypeDetector.isLambda;
 import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.setAgentEnabled;
 import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_COMMAND_ARGS;
@@ -24,8 +23,6 @@ import com.solarwinds.joboe.core.rpc.ClientException;
 import com.solarwinds.joboe.core.rpc.ClientLoggingCallback;
 import com.solarwinds.joboe.core.rpc.ClientManagerProvider;
 import com.solarwinds.joboe.core.rpc.RpcClientManager;
-import com.solarwinds.joboe.core.settings.AwsLambdaSettingsFetcher;
-import com.solarwinds.joboe.core.settings.FileSettingsReader;
 import com.solarwinds.joboe.core.settings.PollingSettingsFetcher;
 import com.solarwinds.joboe.core.settings.RpcSettingsReader;
 import com.solarwinds.joboe.core.util.DaemonThreadFactory;
@@ -38,10 +35,8 @@ import com.solarwinds.joboe.metrics.MetricsMonitor;
 import com.solarwinds.joboe.metrics.SystemMonitorController;
 import com.solarwinds.joboe.metrics.SystemMonitorFactoryImpl;
 import com.solarwinds.joboe.metrics.TracingReporterMetricsCollector;
-import com.solarwinds.joboe.sampling.SamplingConfiguration;
 import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.opentelemetry.core.AgentState;
-import com.solarwinds.opentelemetry.extensions.initialize.AutoConfiguredResourceCustomizer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.javaagent.extension.AgentListener;
@@ -65,13 +60,6 @@ public class SolarwindsAgentListener implements AgentListener {
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk openTelemetrySdk) {
-    if (isLambda() && isAgentEnabled()) {
-      SettingsManager.initialize(
-          new AwsLambdaSettingsFetcher(new FileSettingsReader("/tmp/solarwinds-apm-settings-raw")),
-          SamplingConfiguration.builder().build());
-      return;
-    }
-
     if (isAgentEnabled() && isUsingSolarwindsSampler(openTelemetrySdk)) {
       executeStartupTasks();
       registerShutdownTasks();
@@ -168,7 +156,7 @@ public class SolarwindsAgentListener implements AgentListener {
                   Profiler.initialize(
                       profilerSetting,
                       ReporterFactory.getInstance()
-                          .createRpcReporter(
+                          .createQueuingEventReporter(
                               RpcClientManager.getClient(
                                   RpcClientManager.OperationType.PROFILING)));
                 } else {
@@ -230,7 +218,7 @@ public class SolarwindsAgentListener implements AgentListener {
     }
 
     // Capture OTel Resource attributes
-    Attributes attributes = AutoConfiguredResourceCustomizer.getResource().getAttributes();
+    Attributes attributes = ResourceCustomizer.getResource().getAttributes();
     logger.debug(
         "Resource attributes "
             + attributes.toString().replaceAll("(sw.apm.service.key=)\\S+", "$1****"));

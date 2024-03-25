@@ -1,5 +1,6 @@
 package com.solarwinds.opentelemetry.extensions;
 
+import static com.solarwinds.opentelemetry.extensions.SharedNames.LAYER_NAME_PLACEHOLDER;
 import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 
 import com.solarwinds.joboe.core.Context;
@@ -31,10 +32,6 @@ import java.util.Map;
 public class SolarwindsSpanExporter implements SpanExporter {
   private final Logger logger = LoggerFactory.getLogger();
 
-  // This format is visible to customer via span layer and can be used to configure transaction
-  // filtering setting.
-  static final String LAYER_FORMAT = "%s:%s";
-
   @Override
   public CompletableResultCode export(@Nonnull Collection<SpanData> collection) {
     if (!isAgentEnabled()) {
@@ -52,7 +49,7 @@ public class SolarwindsSpanExporter implements SpanExporter {
 
           final String w3cContext = Util.w3cContextToHexString(spanData.getSpanContext());
           final String spanName =
-              String.format(LAYER_FORMAT, spanData.getKind(), spanData.getName().trim());
+              String.format(LAYER_NAME_PLACEHOLDER, spanData.getKind(), spanData.getName().trim());
 
           final Metadata spanMetadata = new Metadata(w3cContext);
           spanMetadata.randomizeOpID(); // get around the metadata logic, this op id is not used
