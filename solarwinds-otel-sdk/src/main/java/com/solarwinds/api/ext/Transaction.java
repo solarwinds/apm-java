@@ -1,9 +1,9 @@
 package com.solarwinds.api.ext;
 
-import com.solarwinds.opentelemetry.core.CustomTransactionNameDict;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.instrumentation.api.instrumenter.LocalRootSpan;
 
 /**
  * The API to set the custom transaction name for the current trace. It returns false if the current
@@ -27,7 +27,7 @@ class Transaction {
     if (!spanContext.isValid() || name == null || name.isEmpty()) {
       return false;
     }
-    CustomTransactionNameDict.set(spanContext.getTraceId(), name);
+    LocalRootSpan.fromContext(Context.current()).setAttribute("sw.transaction", name);
 
     return true;
   }

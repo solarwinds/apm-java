@@ -1,7 +1,6 @@
 package com.solarwinds.opentelemetry.extensions;
 
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
-import com.solarwinds.opentelemetry.core.RootSpan;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
@@ -27,16 +26,10 @@ public class SolarwindsRootSpanProcessor implements SpanProcessor {
   }
 
   @Override
-  public void onEnd(ReadableSpan span) {
-    SpanContext parentSpanContext = span.toSpanData().getParentSpanContext();
-    if (!parentSpanContext.isValid()
-        || parentSpanContext.isRemote()) { // then a root span of this service
-      RootSpan.clearRootSpan(span.getSpanContext().getTraceId());
-    }
-  }
+  public void onEnd(ReadableSpan span) {}
 
   @Override
   public boolean isEndRequired() {
-    return true;
+    return false;
   }
 }
