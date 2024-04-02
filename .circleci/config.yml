@@ -118,7 +118,7 @@ jobs:
       - store_artifacts:
           path: smoke-tests/build/reports/tests/test
       - docker-logout
-  lambda-publish-stage:
+  lambda-publish:
     executor: linux
     steps:
       - checkout
@@ -167,7 +167,7 @@ jobs:
               status=0
               aws lambda publish-layer-version \
                           --layer-name $LAYER_NAME \
-                          --compatible-runtimes "java17" "java11" "java8.al2" "java8" \
+                          --compatible-runtimes "java21" "java17" "java11" "java8.al2" "java8" \
                           --compatible-architectures "x86_64" "arm64" \
                           --description "Solarwinds' apm java lambda instrumentation layer, version: $AGENTVERSION" \
                           --region "$region" \
@@ -548,7 +548,7 @@ workflows:
             - s3-stage-upload
   lambda-build:
     jobs:
-      - approve_me:
+      - approve_me-stage:
           type: approval
           requires:
             - test
@@ -556,13 +556,20 @@ workflows:
           filters:
             branches:
               only: main
-      - lambda-publish-stage:
+      - approve_me-prod:
+          type: approval
+          requires:
+            - approve_me-stage
+          filters:
+            branches:
+              only: main
+      - lambda-publish:
           context:
             - AWS_CIRCLE_CI_BUILD
             - solarwinds-cloud-github-read-access
-            - aws-apm-lambda-agent-publish
+            - apm-lambda-publishing-stage
           requires:
-            - approve_me
+            - approve_me-stage
           filters:
             branches:
               only: main
@@ -584,6 +591,17 @@ workflows:
             - java-apm-smoke-test
           requires:
             - s3-stage-upload
+      - lambda-publish:
+          context:
+            - AWS_CIRCLE_CI_BUILD
+            - solarwinds-cloud-github-read-access
+            - apm-lambda-publishing-prod
+          requires:
+            - approve_me-prod
+          filters:
+            branches:
+              only: main
+
   code-scanning:
     jobs:
       - ghas/codeql:
