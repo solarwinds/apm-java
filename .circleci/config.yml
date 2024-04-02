@@ -79,6 +79,24 @@ commands:
           name: Docker logout
           command: docker logout
 jobs:
+  build-test-images:
+    executor: linux
+    steps:
+      - checkout
+      - docker-login
+      - run:
+          name: Docker push
+          command: |
+            cd long-running-test-arch
+            IMAGE_ID_RC=$(echo "ghcr.io/$CIRCLE_PROJECT_USERNAME/petclinic:agent-rc" | tr '[:upper:]' '[:lower:]')
+            IMAGE_ID_ST=$(echo "ghcr.io/$CIRCLE_PROJECT_USERNAME/petclinic:agent-latest" | tr '[:upper:]' '[:lower:]')
+            IMAGE_ID_XK6=$(echo "ghcr.io/$CIRCLE_PROJECT_USERNAME/xk6:latest" | tr '[:upper:]' '[:lower:]')
+
+            docker buildx create --use --name multiarch
+            docker buildx build --tag $IMAGE_ID_RC --push -f Dockerfile-rc .
+            docker buildx build --tag $IMAGE_ID_ST --push -f Dockerfile .
+            docker buildx build --tag $IMAGE_ID_XK6 --push xk6/
+      - docker-logout
   lambda-release-test:
     executor: linux
     environment:
@@ -510,10 +528,24 @@ workflows:
               only: main
   benchmarking:
     jobs:
+      - s3-stage-upload:
+          context:
+            - AWS_CIRCLE_CI
+            - AWS_CIRCLE_CI_BUILD
+            - solarwinds-cloud-github-read-access
+            - SLACK_HOOK
+            - apm-s3-publishing
       - benchmark:
           context:
             - AWS_CIRCLE_CI_BUILD
             - solarwinds-cloud-github-read-access
+      - build-test-images:
+          context:
+            - AWS_CIRCLE_CI_BUILD
+            - solarwinds-cloud-github-read-access
+            - solarwinds-cloud-github-write-access
+          requires:
+            - s3-stage-upload
   lambda-build:
     jobs:
       - approve_me:

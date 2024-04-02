@@ -1,0 +1,150 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k6-bench-inst
+spec:
+  schedule: "*/15 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          imagePullSecrets:
+            - name: docker-cred
+          containers:
+            - name: k6-inst
+              image: ghcr.io/solarwinds-cloud/xk6:latest
+              imagePullPolicy: Always
+              args:
+                - "--out"
+                - "otelout"
+              command:
+                - k6
+                - run
+                - /etc/k6/basic.js
+              volumeMounts:
+                - name: k6
+                  mountPath: /etc/k6
+              env:
+                - name: HOST_ENDPOINT
+                  value: "http://instrumented-service:8080"
+                - name: OTEL_LOGS_EXPORTER
+                  value: otlp
+                - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                  value: https://otel-collector.dc-01.dev-ssp.solarwinds.com:443
+                - name: OTEL_EXPORTER_OTLP_HEADERS
+                  valueFrom:
+                    secretKeyRef:
+                      name: swo-tokens
+                      key: otel-header
+                - name: OTEL_SERVICE_NAME
+                  value: java-k8s-instrumented-k6
+          volumes:
+            - name: k6
+              configMap:
+                name: k6
+                items:
+                  - key: basic.js
+                    path: basic.js
+                  - key: names.js
+                    path: names.js
+          restartPolicy: OnFailure
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k6-bench-inst-rc
+spec:
+  schedule: "*/15 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          imagePullSecrets:
+            - name: docker-cred
+          containers:
+            - name: k6-inst-rc
+              image: ghcr.io/solarwinds-cloud/xk6:latest
+              imagePullPolicy: Always
+              args:
+                - "--out"
+                - "otelout"
+              command:
+                - k6
+                - run
+                - /etc/k6/basic.js
+              volumeMounts:
+                - name: k6
+                  mountPath: /etc/k6
+              env:
+                - name: HOST_ENDPOINT
+                  value: "http://instrumented-rc-service:8080"
+                - name: OTEL_LOGS_EXPORTER
+                  value: otlp
+                - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                  value: https://otel-collector.dc-01.dev-ssp.solarwinds.com:443
+                - name: OTEL_EXPORTER_OTLP_HEADERS
+                  valueFrom:
+                    secretKeyRef:
+                      name: swo-tokens
+                      key: otel-header
+                - name: OTEL_SERVICE_NAME
+                  value: java-k8s-instrumented-rc-k6
+          volumes:
+            - name: k6
+              configMap:
+                name: k6
+                items:
+                  - key: basic.js
+                    path: basic.js
+                  - key: names.js
+                    path: names.js
+          restartPolicy: OnFailure
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k6-bench-uninst
+spec:
+  schedule: "*/15 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          imagePullSecrets:
+            - name: docker-cred
+          containers:
+            - name: k6-uninst
+              image: ghcr.io/solarwinds-cloud/xk6:latest
+              imagePullPolicy: Always
+              args:
+                - "--out"
+                - "otelout"
+              command:
+                - k6
+                - run
+                - /etc/k6/basic.js
+              volumeMounts:
+                - name: k6
+                  mountPath: /etc/k6
+              env:
+                - name: HOST_ENDPOINT
+                  value: "http://uninstrumented-service:8080"
+                - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                  value: https://otel-collector.dc-01.dev-ssp.solarwinds.com:443
+                - name: OTEL_EXPORTER_OTLP_HEADERS
+                  valueFrom:
+                    secretKeyRef:
+                      name: swo-tokens
+                      key: otel-header
+                - name: OTEL_SERVICE_NAME
+                  value: java-k8s-uninstrumented-k6
+          volumes:
+            - name: k6
+              configMap:
+                name: k6
+                items:
+                  - key: basic.js
+                    path: basic.js
+                  - key: names.js
+                    path: names.js
+          restartPolicy: OnFailure

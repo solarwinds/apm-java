@@ -1,0 +1,142 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: benchmark-instrumented
+  name: benchmark-instrumented
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: benchmark-instrumented
+  template:
+    metadata:
+      labels:
+        app: benchmark-instrumented
+    spec:
+      imagePullSecrets:
+        - name: docker-cred
+      containers:
+        - name: petclinic-ins
+          image: ghcr.io/solarwinds-cloud/petclinic:agent-latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SW_APM_SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: swo-tokens
+                  key: service-key
+            - name: SW_APM_COLLECTOR
+              value: apm.collector.na-01.dev-ssp.solarwinds.com
+            - name: OTEL_LOGS_EXPORTER
+              value: otlp
+            - name: OTEL_EXPORTER_OTLP_LOGS_ENDPOINT
+              value: https://otel-collector.dc-01.dev-ssp.solarwinds.com
+            - name: OTEL_EXPORTER_OTLP_LOGS_HEADERS
+              valueFrom:
+                secretKeyRef:
+                  name: swo-tokens
+                  key: otel-header
+            - name: OTEL_SERVICE_NAME
+              value: java-k8s-instrumented
+            - name: spring_profiles_active
+              value: "postgresql,spring-data-jpa"
+            - name: spring_datasource_url
+              value: "jdbc:postgresql://db-service:5432/petclinic"
+            - name: spring_datasource_username
+              value: "petclinic"
+            - name: spring_datasource_password
+              value: "petclinic"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: benchmark-instrumented-rc
+  name: benchmark-instrumented-rc
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: benchmark-instrumented-rc
+  template:
+    metadata:
+      labels:
+        app: benchmark-instrumented-rc
+    spec:
+      imagePullSecrets:
+        - name: docker-cred
+      containers:
+        - name: petclinic-ins-rc
+          image: ghcr.io/solarwinds-cloud/petclinic:agent-rc
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SW_APM_SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: swo-tokens
+                  key: service-key
+            - name: SW_APM_COLLECTOR
+              value: apm.collector.na-01.dev-ssp.solarwinds.com
+            - name: OTEL_LOGS_EXPORTER
+              value: otlp
+            - name: OTEL_EXPORTER_OTLP_LOGS_ENDPOINT
+              value: https://otel-collector.dc-01.dev-ssp.solarwinds.com
+            - name: OTEL_EXPORTER_OTLP_LOGS_HEADERS
+              valueFrom:
+                secretKeyRef:
+                  name: swo-tokens
+                  key: otel-header
+            - name: OTEL_SERVICE_NAME
+              value: java-k8s-instrumented-rc
+            - name: spring_profiles_active
+              value: "postgresql,spring-data-jpa"
+            - name: spring_datasource_url
+              value: "jdbc:postgresql://db-service-rc:5432/petclinic"
+            - name: spring_datasource_username
+              value: "petclinic"
+            - name: spring_datasource_password
+              value: "petclinic"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: benchmark-uninstrumented
+  name: benchmark-uninstrumented
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: benchmark-uninstrumented
+  template:
+    metadata:
+      labels:
+        app: benchmark-uninstrumented
+    spec:
+      containers:
+        - name: petclinic-un
+          image: ghcr.io/open-telemetry/opentelemetry-java-instrumentation/petclinic-rest-base:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SERVER_PORT
+              value: "8080"
+            - name: spring_profiles_active
+              value: "postgresql,spring-data-jpa"
+            - name: spring_datasource_url
+              value: "jdbc:postgresql://db-un-service:5432/petclinic"
+            - name: spring_datasource_username
+              value: "petclinic"
+            - name: spring_datasource_password
+              value: "petclinic"
