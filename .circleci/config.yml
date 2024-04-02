@@ -535,7 +535,7 @@ workflows:
           context:
             - AWS_CIRCLE_CI_BUILD
             - solarwinds-cloud-github-read-access
-            - aws-apm-lambda-agent-publish
+            - apm-lambda-publishing-stage
           requires:
             - approve_me-stage
           filters:
