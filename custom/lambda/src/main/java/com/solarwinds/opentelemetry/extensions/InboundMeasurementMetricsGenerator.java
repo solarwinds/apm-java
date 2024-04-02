@@ -40,7 +40,7 @@ public class InboundMeasurementMetricsGenerator implements SpanProcessor {
     if (!parentSpanContext.isValid()
         || parentSpanContext.isRemote()) { // then a root span of this service
       String transactionName = TransactionNameManager.getTransactionName(span.toSpanData());
-      span.setAttribute("sw.transaction", transactionName);
+      span.setAttribute(TRANSACTION_NAME_KEY, transactionName);
       logger.debug(
           String.format("Transaction name derived on root span start: %s", transactionName));
     }

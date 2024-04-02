@@ -1,15 +1,19 @@
 package com.solarwinds.api.ext;
 
+import com.solarwinds.opentelemetry.core.CustomTransactionNameDict;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.instrumenter.LocalRootSpan;
+import java.util.regex.Pattern;
 
 /**
  * The API to set the custom transaction name for the current trace. It returns false if the current
  * trace is not valid or not sampled.
  */
 class Transaction {
+
+  private static final Pattern REPLACE_PATTERN = Pattern.compile("[^-.:_\\\\/\\w? ]");
 
   /**
    * Set the transaction name of the current trace.
@@ -27,8 +31,24 @@ class Transaction {
     if (!spanContext.isValid() || name == null || name.isEmpty()) {
       return false;
     }
-    LocalRootSpan.fromContext(Context.current()).setAttribute("sw.transaction", name);
+
+    CustomTransactionNameDict.set(spanContext.getTraceId(), transformTransactionName(name));
+    LocalRootSpan.fromContext(Context.current())
+        .setAttribute("sw.transaction", transformTransactionName(name));
 
     return true;
+  }
+
+  private static String transformTransactionName(String transactionName) {
+
+    if (transactionName.length() > 255) {
+      transactionName = transactionName.substring(0, 252) + "...";
+    } else if (transactionName.isEmpty()) {
+      transactionName = " "; // ensure that it at least has 1 character
+    }
+
+    transactionName = REPLACE_PATTERN.matcher(transactionName).replaceAll("_");
+    transactionName = transactionName.toLowerCase();
+    return transactionName;
   }
 }
