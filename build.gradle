@@ -29,7 +29,7 @@ subprojects {
                 bytebuddy             : "1.12.10",
                 guava                 : "30.1-jre",
                 joboe                 : "9.1.1",
-                agent                 : "2.0.0", // the custom distro agent version
+                agent                 : "2.0.2-res", // the custom distro agent version
                 autoservice           : "1.0.1",
         ]
         versions.opentelemetryAlpha = "${versions.opentelemetry}-alpha"
