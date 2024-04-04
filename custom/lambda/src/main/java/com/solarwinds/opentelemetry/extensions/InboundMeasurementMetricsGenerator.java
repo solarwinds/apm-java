@@ -10,6 +10,7 @@ import io.opentelemetry.api.metrics.LongHistogram;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
@@ -69,13 +70,13 @@ public class InboundMeasurementMetricsGenerator implements SpanProcessor {
       }
 
       AttributesBuilder responseTimeAttr = Attributes.builder();
-      if (status != null) {
+      if (span.getKind() == SpanKind.SERVER && status != null) {
         String key = "http.status_code";
         responseTimeAttr.put(key, status);
       }
 
       final String method = spanData.getAttributes().get(SemanticAttributes.HTTP_REQUEST_METHOD);
-      if (method != null) {
+      if (span.getKind() == SpanKind.SERVER && method != null) {
         String methodKey = "http.method";
         responseTimeAttr.put(methodKey, method);
       }

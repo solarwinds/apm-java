@@ -27,12 +27,16 @@ class DefaultAutoConfigurationCustomizerProviderTest {
 
     when(autoConfigurationCustomizerMock.addResourceCustomizer(any()))
         .thenReturn(autoConfigurationCustomizerMock);
+    when(autoConfigurationCustomizerMock.addMetricExporterCustomizer(any()))
+        .thenReturn(autoConfigurationCustomizerMock);
 
     tested.customize(autoConfigurationCustomizerMock);
 
     verify(autoConfigurationCustomizerMock).addPropertiesSupplier(any());
     verify(autoConfigurationCustomizerMock).addTracerProviderCustomizer(any());
     verify(autoConfigurationCustomizerMock).addResourceCustomizer(any());
+
+    verify(autoConfigurationCustomizerMock).addMetricExporterCustomizer(any());
   }
 
   @Test

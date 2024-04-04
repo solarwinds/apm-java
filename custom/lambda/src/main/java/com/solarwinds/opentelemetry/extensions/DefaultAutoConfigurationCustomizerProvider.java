@@ -50,7 +50,8 @@ public class DefaultAutoConfigurationCustomizerProvider
     autoConfiguration
         .addPropertiesSupplier(new PropertiesSupplier())
         .addTracerProviderCustomizer(new TraceProviderCustomizer())
-        .addResourceCustomizer(new ResourceCustomizer());
+        .addResourceCustomizer(new ResourceCustomizer())
+        .addMetricExporterCustomizer(new MetricExporterCustomizer());
   }
 
   @Override

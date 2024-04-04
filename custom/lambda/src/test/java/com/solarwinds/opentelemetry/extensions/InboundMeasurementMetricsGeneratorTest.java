@@ -92,6 +92,7 @@ class InboundMeasurementMetricsGeneratorTest {
             .build();
 
     when(readableSpanMock.toSpanData()).thenReturn(testSpanData);
+    when(readableSpanMock.getKind()).thenReturn(testSpanData.getKind());
     tested.onEnd(readableSpanMock);
 
     verify(responseTime).record(anyLong(), attributesArgumentCaptor.capture());
@@ -129,6 +130,7 @@ class InboundMeasurementMetricsGeneratorTest {
             .build();
 
     when(readableSpanMock.toSpanData()).thenReturn(testSpanData);
+    when(readableSpanMock.getKind()).thenReturn(testSpanData.getKind());
     tested.onEnd(readableSpanMock);
 
     verify(responseTime).record(anyLong(), attributesArgumentCaptor.capture());
@@ -143,6 +145,39 @@ class InboundMeasurementMetricsGeneratorTest {
                         && attributes.get(AttributeKey.booleanKey("sw.is_error"))
                         && TransactionNameManager.getTransactionName(testSpanData)
                             .equals(attributes.get(AttributeKey.stringKey("sw.transaction"))));
+
+    assertTrue(allMatch);
+  }
+
+  @Test
+  void verifyHttpAttributeIsNotAddedWhenNotServerSpan() {
+    TestSpanData testSpanData =
+        TestSpanData.builder()
+            .setName("test")
+            .setKind(SpanKind.CLIENT)
+            .setStartEpochNanos(0)
+            .setEndEpochNanos(10000)
+            .setHasEnded(true)
+            .setStatus(StatusData.error())
+            .setAttributes(
+                Attributes.of(
+                    SemanticAttributes.HTTP_REQUEST_METHOD,
+                    "get",
+                    SemanticAttributes.HTTP_RESPONSE_STATUS_CODE,
+                    500L))
+            .build();
+
+    when(readableSpanMock.toSpanData()).thenReturn(testSpanData);
+    tested.onEnd(readableSpanMock);
+
+    verify(responseTime).record(anyLong(), attributesArgumentCaptor.capture());
+
+    boolean allMatch =
+        attributesArgumentCaptor.getAllValues().stream()
+            .allMatch(
+                attributes ->
+                    attributes.get(AttributeKey.stringKey("http.method")) == null
+                        && attributes.get(AttributeKey.longKey("http.status_code")) == null);
 
     assertTrue(allMatch);
   }
