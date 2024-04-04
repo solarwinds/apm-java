@@ -53,7 +53,7 @@ public class PetClinicRestContainer implements Container {
           .withExposedPorts(PETCLINIC_PORT)
           .withFileSystemBind(namingConventions.localResults(),
               namingConventions.containerResults())
-          .withFileSystemBind("./solarwinds-apm-settings-raw", "/tmp/solarwinds-apm-settings-raw")
+          .withFileSystemBind("./solarwinds-apm-settings.json", "/tmp/solarwinds-apm-settings.json")
           .waitingFor(
               Wait.forHttp("/petclinic/actuator/health").withReadTimeout(Duration.ofMinutes(5))
                   .forPort(PETCLINIC_PORT))
@@ -68,10 +68,7 @@ public class PetClinicRestContainer implements Container {
           .withEnv("OTEL_EXPORTER_OTLP_ENDPOINT", System.getenv("OTEL_EXPORTER_OTLP_ENDPOINT"))
           .withEnv("OTEL_EXPORTER_OTLP_HEADERS",
               String.format("authorization=Bearer %s", System.getenv("SW_APM_SERVICE_KEY")))
-          .withEnv("AWS_LAMBDA_FUNCTION_NAME", "SIM")
-          .withEnv("LAMBDA_TASK_ROOT", "/")
           .withEnv("OTEL_SERVICE_NAME", "lambda-e2e")
-          .withEnv("OTEL_BSP_SCHEDULE_DELAY", "0")
           .withEnv("SW_APM_TRANSACTION_NAME", "lambda-test-txn")
           .withStartupTimeout(Duration.ofMinutes(5))
           .withCopyFileToContainer(

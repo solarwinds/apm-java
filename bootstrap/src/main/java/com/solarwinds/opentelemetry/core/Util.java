@@ -2,10 +2,10 @@ package com.solarwinds.opentelemetry.core;
 
 import static com.solarwinds.opentelemetry.core.Constants.SW_KEY_PREFIX;
 
-import com.solarwinds.joboe.core.Metadata;
-import com.solarwinds.joboe.core.OboeException;
-import com.solarwinds.joboe.core.logging.Logger;
-import com.solarwinds.joboe.core.logging.LoggerFactory;
+import com.solarwinds.joboe.logging.Logger;
+import com.solarwinds.joboe.logging.LoggerFactory;
+import com.solarwinds.joboe.sampling.Metadata;
+import com.solarwinds.joboe.sampling.SamplingException;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.SpanContext;
@@ -65,7 +65,7 @@ public class Util {
   public static Metadata buildMetadata(SpanContext context) {
     try {
       return new Metadata(w3cContextToHexString(context));
-    } catch (OboeException e) {
+    } catch (SamplingException e) {
       logger.info(
           "Failed to get AO metadata from span context: " + w3cContextToHexString(context), e);
       return new Metadata();
@@ -101,7 +101,7 @@ public class Util {
     Metadata metadata = null;
     try {
       metadata = new Metadata(xtrace);
-    } catch (OboeException e) {
+    } catch (SamplingException e) {
       return SpanContext.getInvalid();
     }
 

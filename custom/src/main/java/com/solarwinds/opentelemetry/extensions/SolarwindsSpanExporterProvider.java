@@ -1,6 +1,6 @@
 package com.solarwinds.opentelemetry.extensions;
 
-import static com.solarwinds.opentelemetry.extensions.initialize.config.ConfigConstants.COMPONENT_NAME;
+import static com.solarwinds.opentelemetry.extensions.SharedNames.COMPONENT_NAME;
 
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;

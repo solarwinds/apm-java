@@ -1,7 +1,8 @@
 package com.solarwinds.opentelemetry.extensions;
 
-import com.solarwinds.joboe.core.config.ConfigManager;
-import com.solarwinds.joboe.core.config.ConfigProperty;
+import com.solarwinds.joboe.config.ConfigManager;
+import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.config.ServiceKeyUtils;
 import com.solarwinds.joboe.core.metrics.MetricKey;
 import com.solarwinds.joboe.core.metrics.MetricsEntry;
 import com.solarwinds.joboe.core.metrics.histogram.Histogram;
@@ -13,7 +14,6 @@ import com.solarwinds.joboe.core.metrics.measurement.SummaryMeasurementMetricsEn
 import com.solarwinds.joboe.core.span.impl.MetricSpanReporter;
 import com.solarwinds.joboe.core.span.impl.Span;
 import com.solarwinds.joboe.core.util.HttpUtils;
-import com.solarwinds.joboe.core.util.ServiceKeyUtils;
 import com.solarwinds.joboe.metrics.SpanMetricsCollector;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.opentelemetry.core.Constants;

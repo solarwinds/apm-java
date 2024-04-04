@@ -17,28 +17,6 @@ public class SwoAgentResolver implements AgentResolver {
 
 
   public Optional<Path> resolve(Agent agent) {
-    return Optional.ofNullable(downloadAgent());
-  }
-
-  private Path downloadAgent() {
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder().url(NH_URL)
-                .header("Accept", "application/octet-stream").build();
-
-        Path path = Paths.get(".", NH_AGENT_JAR_NAME);
-        try (Response response = client.newCall(request).execute()) {
-            assert response.body() != null;
-            byte[] fileRaw = response.body().bytes();
-
-            Files.write(
-                    path,
-                    fileRaw,
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.WRITE,
-                    StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (IOException e) {
-            return null;
-        }
-        return path;
+    return Optional.ofNullable(downloadAgent(NH_URL, NH_AGENT_JAR_NAME));
   }
 }

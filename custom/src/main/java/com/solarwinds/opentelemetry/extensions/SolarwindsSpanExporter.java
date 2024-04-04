@@ -1,14 +1,16 @@
 package com.solarwinds.opentelemetry.extensions;
 
+import static com.solarwinds.opentelemetry.extensions.SharedNames.LAYER_NAME_PLACEHOLDER;
 import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 
 import com.solarwinds.joboe.core.Context;
 import com.solarwinds.joboe.core.Event;
 import com.solarwinds.joboe.core.EventImpl;
-import com.solarwinds.joboe.core.Metadata;
-import com.solarwinds.joboe.core.OboeException;
-import com.solarwinds.joboe.core.logging.Logger;
-import com.solarwinds.joboe.core.logging.LoggerFactory;
+import com.solarwinds.joboe.core.EventReporter;
+import com.solarwinds.joboe.logging.Logger;
+import com.solarwinds.joboe.logging.LoggerFactory;
+import com.solarwinds.joboe.sampling.Metadata;
+import com.solarwinds.joboe.sampling.SamplingException;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.opentelemetry.core.Constants;
 import com.solarwinds.opentelemetry.core.Util;
@@ -30,16 +32,12 @@ import java.util.Map;
 public class SolarwindsSpanExporter implements SpanExporter {
   private final Logger logger = LoggerFactory.getLogger();
 
-  // This format is visible to customer via span layer and can be used to configure transaction
-  // filtering setting.
-  static final String LAYER_FORMAT = "%s:%s";
-
   @Override
   public CompletableResultCode export(@Nonnull Collection<SpanData> collection) {
     if (!isAgentEnabled()) {
       return CompletableResultCode.ofSuccess();
     }
-
+    EventReporter eventReporter = ReporterProvider.getEventReporter();
     logger.debug("Started to export span data to the collector.");
     for (SpanData spanData : collection) {
       if (spanData.hasEnded()) {
@@ -51,7 +49,7 @@ public class SolarwindsSpanExporter implements SpanExporter {
 
           final String w3cContext = Util.w3cContextToHexString(spanData.getSpanContext());
           final String spanName =
-              String.format(LAYER_FORMAT, spanData.getKind(), spanData.getName().trim());
+              String.format(LAYER_NAME_PLACEHOLDER, spanData.getKind(), spanData.getName().trim());
 
           final Metadata spanMetadata = new Metadata(w3cContext);
           spanMetadata.randomizeOpID(); // get around the metadata logic, this op id is not used
@@ -105,7 +103,7 @@ public class SolarwindsSpanExporter implements SpanExporter {
           entryEvent.addInfo("otel.scope.version", scopeInfo.getVersion());
           entryEvent.setTimestamp(spanData.getStartEpochNanos() / 1000);
           entryEvent.addInfo(getEventKvs(spanData.getAttributes()));
-          entryEvent.report();
+          entryEvent.report(eventReporter);
 
           for (EventData event : spanData.getEvents()) {
             if (SemanticAttributes.EXCEPTION_EVENT_NAME.equals(event.getName())) {
@@ -126,8 +124,8 @@ public class SolarwindsSpanExporter implements SpanExporter {
               "sw.span_status_message",
               spanData.getStatus().getDescription());
           exitEvent.setTimestamp(spanData.getEndEpochNanos() / 1000);
-          exitEvent.report();
-        } catch (OboeException oboeException) {
+          exitEvent.report(eventReporter);
+        } catch (SamplingException oboeException) {
           logger.error(
               String.format("Error reporting span: %s", spanData.getSpanId()), oboeException);
         } finally {
@@ -172,7 +170,7 @@ public class SolarwindsSpanExporter implements SpanExporter {
       event.addInfo(keyValue.getKey().getKey(), keyValue.getValue());
     }
     event.setTimestamp(eventData.getEpochNanos() / 1000); // convert to micro second
-    event.report();
+    event.report(ReporterProvider.getEventReporter());
   }
 
   private void reportInfoEvent(EventData eventData) {
@@ -185,7 +183,7 @@ public class SolarwindsSpanExporter implements SpanExporter {
     }
 
     event.setTimestamp(eventData.getEpochNanos() / 1000); // convert to micro second
-    event.report();
+    event.report(ReporterProvider.getEventReporter());
   }
 
   private static Map<AttributeKey<?>, Object> filterAttributes(Attributes inputAttributes) {

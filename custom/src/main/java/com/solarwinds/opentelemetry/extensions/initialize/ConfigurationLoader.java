@@ -1,38 +1,37 @@
 package com.solarwinds.opentelemetry.extensions.initialize;
 
-import static com.solarwinds.joboe.core.util.HostTypeDetector.isLambda;
-
-import com.solarwinds.joboe.core.config.ConfigContainer;
-import com.solarwinds.joboe.core.config.ConfigGroup;
-import com.solarwinds.joboe.core.config.ConfigManager;
-import com.solarwinds.joboe.core.config.ConfigProperty;
-import com.solarwinds.joboe.core.config.ConfigSourceType;
-import com.solarwinds.joboe.core.config.EnvConfigReader;
-import com.solarwinds.joboe.core.config.InvalidConfigException;
-import com.solarwinds.joboe.core.config.InvalidConfigReadSourceException;
-import com.solarwinds.joboe.core.config.InvalidConfigServiceKeyException;
-import com.solarwinds.joboe.core.config.JsonConfigReader;
-import com.solarwinds.joboe.core.config.ProfilerSetting;
-import com.solarwinds.joboe.core.config.TraceConfigs;
-import com.solarwinds.joboe.core.logging.Logger;
-import com.solarwinds.joboe.core.logging.LoggerFactory;
-import com.solarwinds.joboe.core.util.ServiceKeyUtils;
+import com.solarwinds.joboe.config.ConfigContainer;
+import com.solarwinds.joboe.config.ConfigGroup;
+import com.solarwinds.joboe.config.ConfigManager;
+import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.config.ConfigSourceType;
+import com.solarwinds.joboe.config.EnvConfigReader;
+import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.config.InvalidConfigReadSourceException;
+import com.solarwinds.joboe.config.InvalidConfigServiceKeyException;
+import com.solarwinds.joboe.config.JsonConfigReader;
+import com.solarwinds.joboe.config.ServiceKeyUtils;
+import com.solarwinds.joboe.core.profiler.ProfilerSetting;
+import com.solarwinds.joboe.logging.Logger;
+import com.solarwinds.joboe.logging.LoggerFactory;
+import com.solarwinds.joboe.sampling.TraceConfigs;
+import com.solarwinds.opentelemetry.extensions.BuildConfig;
+import com.solarwinds.opentelemetry.extensions.Constants;
+import com.solarwinds.opentelemetry.extensions.LogFileStringParser;
+import com.solarwinds.opentelemetry.extensions.LogSettingParser;
+import com.solarwinds.opentelemetry.extensions.LoggingConfigProvider;
+import com.solarwinds.opentelemetry.extensions.ModeStringToBooleanParser;
+import com.solarwinds.opentelemetry.extensions.NamingScheme;
+import com.solarwinds.opentelemetry.extensions.RangeValidationParser;
+import com.solarwinds.opentelemetry.extensions.TracingModeParser;
 import com.solarwinds.opentelemetry.extensions.TransactionNameManager;
-import com.solarwinds.opentelemetry.extensions.initialize.config.BuildConfig;
-import com.solarwinds.opentelemetry.extensions.initialize.config.ConfigConstants;
-import com.solarwinds.opentelemetry.extensions.initialize.config.LogFileStringParser;
-import com.solarwinds.opentelemetry.extensions.initialize.config.LogSettingParser;
-import com.solarwinds.opentelemetry.extensions.initialize.config.ModeStringToBooleanParser;
+import com.solarwinds.opentelemetry.extensions.TransactionNamingScheme;
+import com.solarwinds.opentelemetry.extensions.TransactionNamingSchemesParser;
+import com.solarwinds.opentelemetry.extensions.TransactionSettingsConfigParser;
+import com.solarwinds.opentelemetry.extensions.UrlSampleRateConfigParser;
 import com.solarwinds.opentelemetry.extensions.initialize.config.ProfilerSettingParser;
 import com.solarwinds.opentelemetry.extensions.initialize.config.ProxyConfigParser;
-import com.solarwinds.opentelemetry.extensions.initialize.config.RangeValidationParser;
-import com.solarwinds.opentelemetry.extensions.initialize.config.TracingModeParser;
-import com.solarwinds.opentelemetry.extensions.initialize.config.TransactionSettingsConfigParser;
-import com.solarwinds.opentelemetry.extensions.initialize.config.UrlSampleRateConfigParser;
 import com.solarwinds.opentelemetry.extensions.initialize.config.livereload.ConfigurationFileWatcher;
-import com.solarwinds.opentelemetry.extensions.transaction.NamingScheme;
-import com.solarwinds.opentelemetry.extensions.transaction.TransactionNamingScheme;
-import com.solarwinds.opentelemetry.extensions.transaction.TransactionNamingSchemesParser;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -74,8 +73,8 @@ public class ConfigurationLoader {
     ConfigProperty.AGENT_TRACING_MODE.setParser(new TracingModeParser());
     ConfigProperty.AGENT_SQL_QUERY_MAX_LENGTH.setParser(
         new RangeValidationParser<Integer>(
-            ConfigConstants.MAX_SQL_QUERY_LENGTH_LOWER_LIMIT,
-            ConfigConstants.MAX_SQL_QUERY_LENGTH_UPPER_LIMIT));
+            Constants.MAX_SQL_QUERY_LENGTH_LOWER_LIMIT,
+            Constants.MAX_SQL_QUERY_LENGTH_UPPER_LIMIT));
     ConfigProperty.AGENT_URL_SAMPLE_RATE.setParser(UrlSampleRateConfigParser.INSTANCE);
     ConfigProperty.AGENT_TRANSACTION_SETTINGS.setParser(TransactionSettingsConfigParser.INSTANCE);
     ConfigProperty.AGENT_TRIGGER_TRACE_ENABLED.setParser(ModeStringToBooleanParser.INSTANCE);
@@ -220,10 +219,10 @@ public class ConfigurationLoader {
     } finally {
       if (configs != null) {
         maybeFollowOtelConfigProperties(configs);
+        ConfigContainer config = configs.subset(ConfigGroup.AGENT);
         LoggerFactory.init(
-            configs.subset(
-                ConfigGroup
-                    .AGENT)); // initialize the logger factory as soon as the config is available
+            LoggingConfigProvider.getLoggerConfiguration(
+                config)); // initialize the logger factory as soon as the config is available
         try {
           processConfigs(configs);
         } catch (InvalidConfigException e) {
@@ -384,13 +383,13 @@ public class ConfigurationLoader {
 
     if (configs.containsProperty(ConfigProperty.AGENT_SAMPLE_RATE)) {
       Integer sampleRateFromConfig = (Integer) configs.get(ConfigProperty.AGENT_SAMPLE_RATE);
-      if (sampleRateFromConfig < 0 || sampleRateFromConfig > ConfigConstants.SAMPLE_RESOLUTION) {
+      if (sampleRateFromConfig < 0 || sampleRateFromConfig > Constants.SAMPLE_RESOLUTION) {
         logger.warn(
             ConfigProperty.AGENT_SAMPLE_RATE
                 + ": Invalid argument value: "
                 + sampleRateFromConfig
                 + ": must be between 0 and "
-                + ConfigConstants.SAMPLE_RESOLUTION);
+                + Constants.SAMPLE_RESOLUTION);
         throw new InvalidConfigException(
             "Invalid "
                 + ConfigProperty.AGENT_SAMPLE_RATE.getConfigFileKey()
@@ -399,40 +398,37 @@ public class ConfigurationLoader {
       }
     }
 
-    if (!isLambda()) {
-      if (configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)
-          && !((String) configs.get(ConfigProperty.AGENT_SERVICE_KEY)).isEmpty()) {
-        // Customer access key (UUID)
-        String rawServiceKey = (String) configs.get(ConfigProperty.AGENT_SERVICE_KEY);
-        String serviceKey = ServiceKeyUtils.transformServiceKey(rawServiceKey);
+    if (configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)
+        && !((String) configs.get(ConfigProperty.AGENT_SERVICE_KEY)).isEmpty()) {
+      // Customer access key (UUID)
+      String rawServiceKey = (String) configs.get(ConfigProperty.AGENT_SERVICE_KEY);
+      String serviceKey = ServiceKeyUtils.transformServiceKey(rawServiceKey);
 
-        if (!serviceKey.equalsIgnoreCase(rawServiceKey)) {
-          logger.warn(
-              "Invalid service name detected in service key, the service key is transformed to "
-                  + ServiceKeyUtils.maskServiceKey(serviceKey));
-          configs.put(ConfigProperty.AGENT_SERVICE_KEY, serviceKey, true);
-        }
-        logger.debug(
-            "Service key (masked) is [" + ServiceKeyUtils.maskServiceKey(serviceKey) + "]");
+      if (!serviceKey.equalsIgnoreCase(rawServiceKey)) {
+        logger.warn(
+            "Invalid service name detected in service key, the service key is transformed to "
+                + ServiceKeyUtils.maskServiceKey(serviceKey));
+        configs.put(ConfigProperty.AGENT_SERVICE_KEY, serviceKey, true);
+      }
+      logger.debug("Service key (masked) is [" + ServiceKeyUtils.maskServiceKey(serviceKey) + "]");
 
+    } else {
+      if (!configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)) {
+        logger.warn(
+            "Could not find the service key! Please specify "
+                + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey()
+                + " in "
+                + CONFIG_FILE
+                + " or via env variable.");
+        throw new InvalidConfigServiceKeyException("Service key not found");
       } else {
-        if (!configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)) {
-          logger.warn(
-              "Could not find the service key! Please specify "
-                  + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey()
-                  + " in "
-                  + CONFIG_FILE
-                  + " or via env variable.");
-          throw new InvalidConfigServiceKeyException("Service key not found");
-        } else {
-          logger.warn(
-              "Service key is empty! Please specify "
-                  + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey()
-                  + " in "
-                  + CONFIG_FILE
-                  + " or via env variable.");
-          throw new InvalidConfigServiceKeyException("Service key is empty");
-        }
+        logger.warn(
+            "Service key is empty! Please specify "
+                + ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey()
+                + " in "
+                + CONFIG_FILE
+                + " or via env variable.");
+        throw new InvalidConfigServiceKeyException("Service key is empty");
       }
     }
 

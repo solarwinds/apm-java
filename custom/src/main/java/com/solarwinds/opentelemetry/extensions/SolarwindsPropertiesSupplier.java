@@ -1,7 +1,7 @@
 package com.solarwinds.opentelemetry.extensions;
 
+import static com.solarwinds.opentelemetry.extensions.SharedNames.COMPONENT_NAME;
 import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
-import static com.solarwinds.opentelemetry.extensions.initialize.config.ConfigConstants.COMPONENT_NAME;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +15,7 @@ public class SolarwindsPropertiesSupplier implements Supplier<Map<String, String
     if (isAgentEnabled()) {
       PROPERTIES.put("otel.traces.exporter", COMPONENT_NAME);
       PROPERTIES.put("otel.metrics.exporter", "none");
+      PROPERTIES.put("otel.logs.exporter", "none");
       PROPERTIES.put("otel.propagators", String.format("tracecontext,baggage,%s", COMPONENT_NAME));
     } else {
       PROPERTIES.put("otel.sdk.disabled", "true");

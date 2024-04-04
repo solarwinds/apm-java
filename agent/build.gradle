@@ -32,6 +32,7 @@ configurations {
 
 dependencies {
   javaagentLibs project(path: ":custom")
+  javaagentLibs project(path: ":custom:shared")
   javaagentLibs project(path: ":instrumentation")
 
   bootstrapLibs project(path: ":bootstrap")

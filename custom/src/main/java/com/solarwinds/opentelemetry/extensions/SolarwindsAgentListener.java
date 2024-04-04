@@ -1,6 +1,5 @@
 package com.solarwinds.opentelemetry.extensions;
 
-import static com.solarwinds.joboe.core.util.HostTypeDetector.isLambda;
 import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.setAgentEnabled;
 import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_COMMAND_ARGS;
@@ -12,31 +11,32 @@ import static io.opentelemetry.semconv.ResourceAttributes.SERVICE_NAME;
 import static io.opentelemetry.semconv.ResourceAttributes.TELEMETRY_SDK_LANGUAGE;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.core.EventImpl;
+import com.solarwinds.joboe.config.ConfigGroup;
+import com.solarwinds.joboe.config.ConfigManager;
+import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.core.ReporterFactory;
-import com.solarwinds.joboe.core.config.ConfigGroup;
-import com.solarwinds.joboe.core.config.ConfigManager;
-import com.solarwinds.joboe.core.config.ConfigProperty;
-import com.solarwinds.joboe.core.config.InvalidConfigException;
-import com.solarwinds.joboe.core.config.ProfilerSetting;
-import com.solarwinds.joboe.core.logging.Logger;
-import com.solarwinds.joboe.core.logging.LoggerFactory;
 import com.solarwinds.joboe.core.profiler.Profiler;
+import com.solarwinds.joboe.core.profiler.ProfilerSetting;
 import com.solarwinds.joboe.core.rpc.Client;
 import com.solarwinds.joboe.core.rpc.ClientException;
 import com.solarwinds.joboe.core.rpc.ClientLoggingCallback;
 import com.solarwinds.joboe.core.rpc.ClientManagerProvider;
 import com.solarwinds.joboe.core.rpc.RpcClientManager;
-import com.solarwinds.joboe.core.settings.SettingsManager;
+import com.solarwinds.joboe.core.settings.PollingSettingsFetcher;
+import com.solarwinds.joboe.core.settings.RpcSettingsReader;
 import com.solarwinds.joboe.core.util.DaemonThreadFactory;
 import com.solarwinds.joboe.core.util.HostInfoUtils;
-import com.solarwinds.joboe.core.util.HostTypeDetector;
+import com.solarwinds.joboe.logging.Logger;
+import com.solarwinds.joboe.logging.LoggerFactory;
+import com.solarwinds.joboe.metrics.MetricsCategory;
 import com.solarwinds.joboe.metrics.MetricsCollector;
 import com.solarwinds.joboe.metrics.MetricsMonitor;
 import com.solarwinds.joboe.metrics.SystemMonitorController;
 import com.solarwinds.joboe.metrics.SystemMonitorFactoryImpl;
+import com.solarwinds.joboe.metrics.TracingReporterMetricsCollector;
+import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.opentelemetry.core.AgentState;
-import com.solarwinds.opentelemetry.extensions.initialize.AutoConfiguredResourceCustomizer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.javaagent.extension.AgentListener;
@@ -60,15 +60,6 @@ public class SolarwindsAgentListener implements AgentListener {
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk openTelemetrySdk) {
-    if (isLambda() && isAgentEnabled()) {
-      try {
-        SettingsManager.initialize();
-      } catch (ClientException clientException) {
-        logger.warn("Failed to initialized settings", clientException);
-      }
-      return;
-    }
-
     if (isAgentEnabled() && isUsingSolarwindsSampler(openTelemetrySdk)) {
       executeStartupTasks();
       registerShutdownTasks();
@@ -117,7 +108,13 @@ public class SolarwindsAgentListener implements AgentListener {
                           + " ip addresses: "
                           + ipAddresses);
 
-                  settingsLatch = SettingsManager.initialize();
+                  settingsLatch =
+                      SettingsManager.initialize(
+                          new PollingSettingsFetcher(
+                              new RpcSettingsReader(
+                                  RpcClientManager.getClient(
+                                      RpcClientManager.OperationType.SETTINGS))),
+                          SamplingConfigProvider.getSamplingConfiguration());
                 } catch (ClientException e) {
                   logger.warn("Failed to initialize RpcSettingsReader : " + e.getMessage());
                 }
@@ -125,14 +122,6 @@ public class SolarwindsAgentListener implements AgentListener {
 
                 logger.debug("Sending init message");
                 reportInit();
-
-                logger.debug("Building reporter");
-                EventImpl.setDefaultReporter(
-                    ReporterFactory.getInstance()
-                        .createHostTypeReporter(
-                            RpcClientManager.getClient(RpcClientManager.OperationType.TRACING),
-                            HostTypeDetector.getHostType()));
-                logger.debug("Built reporter");
 
                 logger.info("Starting System monitor");
                 SystemMonitorController.startWithBuilder(
@@ -147,6 +136,10 @@ public class SolarwindsAgentListener implements AgentListener {
                                       configs,
                                       SolarwindsInboundMetricsSpanProcessor
                                           .buildSpanMetricsCollector());
+                              metricsCollector.addCollector(
+                                  MetricsCategory.TRACING_REPORTER,
+                                  new TracingReporterMetricsCollector(
+                                      ReporterProvider.getEventReporter()));
                               return MetricsMonitor.buildInstance(configs, metricsCollector);
                             } catch (InvalidConfigException | ClientException e) {
                               logger.debug(String.format("Error creating MetricsCollector: %s", e));
@@ -163,7 +156,7 @@ public class SolarwindsAgentListener implements AgentListener {
                   Profiler.initialize(
                       profilerSetting,
                       ReporterFactory.getInstance()
-                          .createRpcReporter(
+                          .createQueuingEventReporter(
                               RpcClientManager.getClient(
                                   RpcClientManager.OperationType.PROFILING)));
                 } else {
@@ -225,7 +218,7 @@ public class SolarwindsAgentListener implements AgentListener {
     }
 
     // Capture OTel Resource attributes
-    Attributes attributes = AutoConfiguredResourceCustomizer.getResource().getAttributes();
+    Attributes attributes = ResourceCustomizer.getResource().getAttributes();
     logger.debug(
         "Resource attributes "
             + attributes.toString().replaceAll("(sw.apm.service.key=)\\S+", "$1****"));
@@ -286,8 +279,8 @@ public class SolarwindsAgentListener implements AgentListener {
           public void run() {
             SystemMonitorController
                 .stop(); // stop system monitors, this might flush extra messages to reporters
-            if (EventImpl.getEventReporter() != null) {
-              EventImpl.getEventReporter()
+            if (ReporterProvider.getEventReporter() != null) {
+              ReporterProvider.getEventReporter()
                   .close(); // close event reporter properly to give it chance to send out pending
               // events in queue
             }

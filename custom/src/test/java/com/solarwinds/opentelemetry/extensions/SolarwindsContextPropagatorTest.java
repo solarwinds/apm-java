@@ -13,7 +13,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.solarwinds.joboe.core.XTraceOptions;
+import com.solarwinds.joboe.sampling.XTraceOptions;
 import com.solarwinds.opentelemetry.extensions.stubs.TextMapGetterStub;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
@@ -147,7 +147,7 @@ class SolarwindsContextPropagatorTest {
     final String key = "custom-senderhost";
     final String value = "chubi";
     final Map<String, String> carrier =
-        new HashMap<>() {
+        new HashMap<String, String>() {
           {
             put("X-Trace-Options", String.format("%s=%s;", key, value));
           }
@@ -173,7 +173,7 @@ class SolarwindsContextPropagatorTest {
   @Test
   void verifyThatXtraceOptionsSignatureIsExtractedAndPutIntoContext() {
     final Map<String, String> carrier =
-        new HashMap<>() {
+        new HashMap<String, String>() {
           {
             put("X-Trace-Options", "trigger-trace;custom-senderhost=chubi;");
             put("X-Trace-Options-Signature", "test-sig");
@@ -188,7 +188,7 @@ class SolarwindsContextPropagatorTest {
   @Test
   void verifyThatTracestateIsExtractedAndPutIntoContext() {
     final Map<String, String> carrier =
-        new HashMap<>() {
+        new HashMap<String, String>() {
           {
             put("tracestate", "trigger-trace=ok");
           }

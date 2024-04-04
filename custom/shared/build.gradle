@@ -1,0 +1,45 @@
+plugins {
+  id "com.github.jarmstrong.buildconfig" version "1.9.0"
+}
+
+dependencies {
+  compileOnly project(path: ":bootstrap")
+  compileOnly 'org.projectlombok:lombok:1.18.28'
+  annotationProcessor 'org.projectlombok:lombok:1.18.28'
+
+  compileOnly "com.solarwinds.joboe:config:${versions.joboe}"
+  compileOnly "com.solarwinds.joboe:logging:${versions.joboe}"
+
+  compileOnly "com.solarwinds.joboe:sampling:${versions.joboe}"
+  annotationProcessor 'com.google.auto.service:auto-service:1.0.1'
+  compileOnly "com.google.auto.service:auto-service-annotations:1.0.1"
+
+  compileOnly("io.opentelemetry:opentelemetry-api:${versions.opentelemetry}")
+  compileOnly("io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}")
+  compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetry}")
+
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
+
+  implementation "com.google.code.gson:gson:2.10.1"
+  implementation "com.github.ben-manes.caffeine:caffeine:${versions.caffeine}"
+  testImplementation("org.json:json:20231013")
+}
+
+test {
+  useJUnitPlatform()
+  testLogging {
+    events "passed", "skipped", "failed"
+  }
+}
+
+spotlessJava {
+  dependsOn("generateBuildConfig")
+}
+
+buildConfig {
+  packageName("com.solarwinds.opentelemetry.extensions")
+  buildConfigField('String', 'OTEL_AGENT_VERSION', "\"${versions.opentelemetryJavaagent}\"")
+  buildConfigField('String', 'SOLARWINDS_AGENT_VERSION', "\"${versions.agent}\"")
+  buildConfigField('String', 'BUILD_DATETIME', "\"${new Date().format('LLL dd, yyyy - HH:mm:ss z')}\"")
+}

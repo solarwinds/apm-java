@@ -129,7 +129,7 @@ jobs:
           command: ./gradlew clean build -x test
       - run:
           name: Create zip
-          command: ./gradlew :agent:lambda-layer
+          command: ./gradlew :agent-lambda:lambda-layer
       - run:
           # this step adds the script stored in .circleci/version.sh to the BASH startup script so the agent version is available
           # for subsequent steps
@@ -160,7 +160,7 @@ jobs:
             VERSION=$(echo "$AGENTVERSION" | sed 's/[.]/_/g')
             LAYER_NAME="solarwinds-apm-java-$VERSION"
             touch arns.txt
-            layer_size=$(stat --printf=%s agent/build/lambda-layer/layer.zip)
+            layer_size=$(stat --printf=%s agent-lambda/build/lambda-layer/layer.zip)
             
             set +e
             for region in "${regions[@]}"; do
@@ -171,7 +171,7 @@ jobs:
                           --compatible-architectures "x86_64" "arm64" \
                           --description "Solarwinds' apm java lambda instrumentation layer, version: $AGENTVERSION" \
                           --region "$region" \
-                          --zip-file fileb://agent/build/lambda-layer/layer.zip \
+                          --zip-file fileb://agent-lambda/build/lambda-layer/layer.zip \
                           --output json > output.json
             
               status=$?
@@ -306,6 +306,17 @@ jobs:
               fi
             done
             exit $code
+            
+            lambda=0
+            for path in $(jar -tf agent-lambda/build/libs/solarwinds-apm-agent-lambda.jar | grep -E -v '^((com/solarwinds|inst|io/open|META))')
+            do
+              PACKAGE=$(echo "$path" | awk -F/ '{print $2}')
+              if [ -n "$PACKAGE" ] && [ "$PACKAGE" != "annotation" ]; then
+                echo "Package ($path) is not shaded"
+                lambda=1
+              fi
+            done
+            exit $lambda
   maven-release: # this job runs the maven release as configured in build.gradle
     executor: java
     steps:
@@ -365,7 +376,11 @@ jobs:
             s3://ssp-stage-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-agent.jar \
             --acl public-read
             
-            aws s3 cp custom/src/main/resources/solarwinds-apm-config.json \
+            aws s3 cp agent-lambda/build/libs/solarwinds-apm-agent-lambda.jar \
+            s3://ssp-stage-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-agent-lambda.jar \
+            --acl public-read
+            
+            aws s3 cp custom/shared/src/main/resources/solarwinds-apm-config.json \
             s3://ssp-stage-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-config.json \
             --acl public-read
       - run:
@@ -373,6 +388,10 @@ jobs:
           command: |
             aws s3 cp s3://ssp-stage-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-agent.jar \
             s3://ssp-stage-global-agent-binaries/apm/java/latest/solarwinds-apm-agent.jar \
+            --acl public-read
+            
+            aws s3 cp s3://ssp-stage-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-agent-lambda.jar \
+            s3://ssp-stage-global-agent-binaries/apm/java/latest/solarwinds-apm-agent-lambda.jar \
             --acl public-read
 
             aws s3 cp s3://ssp-stage-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-config.json \
@@ -420,7 +439,7 @@ jobs:
             s3://ssp-prod-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-agent.jar \
             --acl public-read
 
-            aws s3 cp custom/src/main/resources/solarwinds-apm-config.json \
+            aws s3 cp custom/shared/src/main/resources/solarwinds-apm-config.json \
             s3://ssp-prod-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-config.json \
             --acl public-read
       - run:
