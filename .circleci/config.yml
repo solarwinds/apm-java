@@ -167,7 +167,7 @@ jobs:
               status=0
               aws lambda publish-layer-version \
                           --layer-name $LAYER_NAME \
-                          --compatible-runtimes "java21" "java17" "java11" "java8.al2" "java8" \
+                          --compatible-runtimes "java21" "java17" "java11" "java8.al2" \
                           --compatible-architectures "x86_64" "arm64" \
                           --description "Solarwinds' apm java lambda instrumentation layer, version: $AGENTVERSION" \
                           --region "$region" \
