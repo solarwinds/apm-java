@@ -1,13 +1,13 @@
 [
     {
         "arguments": {
-            "BucketCapacity": 2,
-            "BucketRate": 1,
+            "BucketCapacity": 1000000,
+            "BucketRate": 1.0,
             "MetricsFlushInterval": 60,
-            "TriggerRelaxedBucketCapacity": 20,
-            "TriggerRelaxedBucketRate": 1,
-            "TriggerStrictBucketCapacity": 6,
-            "TriggerStrictBucketRate": 0.1
+            "TriggerRelaxedBucketCapacity": 1000000,
+            "TriggerRelaxedBucketRate": 1.0,
+            "TriggerStrictBucketCapacity": 1000000,
+            "TriggerStrictBucketRate": 1.0
         },
         "flags": "SAMPLE_START,SAMPLE_THROUGH_ALWAYS,SAMPLE_BUCKET_ENABLED,TRIGGER_TRACE",
         "layer": "",
