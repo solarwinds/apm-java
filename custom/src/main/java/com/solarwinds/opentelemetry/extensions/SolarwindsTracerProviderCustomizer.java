@@ -15,7 +15,6 @@ public class SolarwindsTracerProviderCustomizer
     if (isAgentEnabled()) {
       tracerProvider
           .setSampler(new SolarwindsSampler())
-          .addSpanProcessor(new SolarwindsRootSpanProcessor())
           .addSpanProcessor(new SolarwindsProfilingSpanProcessor())
           .addSpanProcessor(new SolarwindsInboundMetricsSpanProcessor());
     }

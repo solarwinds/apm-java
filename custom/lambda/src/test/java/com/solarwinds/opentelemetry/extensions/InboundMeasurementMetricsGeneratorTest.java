@@ -106,7 +106,9 @@ class InboundMeasurementMetricsGeneratorTest {
                             200L, attributes.get(AttributeKey.longKey("http.status_code")))
                         && !attributes.get(AttributeKey.booleanKey("sw.is_error"))
                         && TransactionNameManager.getTransactionName(testSpanData)
-                            .equals(attributes.get(AttributeKey.stringKey("sw.transaction"))));
+                            .equals(
+                                attributes.get(
+                                    AttributeKey.stringKey(SharedNames.TRANSACTION_NAME_KEY))));
 
     assertTrue(allMatch);
   }
@@ -144,7 +146,9 @@ class InboundMeasurementMetricsGeneratorTest {
                             500L, attributes.get(AttributeKey.longKey("http.status_code")))
                         && attributes.get(AttributeKey.booleanKey("sw.is_error"))
                         && TransactionNameManager.getTransactionName(testSpanData)
-                            .equals(attributes.get(AttributeKey.stringKey("sw.transaction"))));
+                            .equals(
+                                attributes.get(
+                                    AttributeKey.stringKey(SharedNames.TRANSACTION_NAME_KEY))));
 
     assertTrue(allMatch);
   }

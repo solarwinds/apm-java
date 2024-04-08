@@ -131,7 +131,7 @@ public class SolarwindsInboundMetricsSpanProcessor implements SpanProcessor {
       final Map<String, String> swoTags =
           new HashMap<String, String>() {
             {
-              put("sw.transaction", transactionName);
+              put(SharedNames.TRANSACTION_NAME_KEY, transactionName);
             }
           };
 
