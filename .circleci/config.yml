@@ -156,7 +156,7 @@ jobs:
             "us-east-2"
             "us-west-1"
             "us-west-2")
-            
+
             VERSION=$(echo "$AGENTVERSION" | sed 's/[.]/_/g')
             LAYER_NAME="solarwinds-apm-java-$VERSION"
             touch arns.txt
@@ -173,24 +173,24 @@ jobs:
                           --region "$region" \
                           --zip-file fileb://agent-lambda/build/lambda-layer/layer.zip \
                           --output json > output.json
-            
+
               status=$?
               if [ "$status" != 0 ]; then
                 echo "FAILED: publish $region"
                 continue
               fi
-            
+
               pub_versionarn=$(jq -r '.LayerVersionArn' output.json)
               pub_arn=$(jq -r '.LayerArn' output.json)
               pub_version=$(jq -r '.Version' output.json)
               pub_size=$(jq -r '.Content.CodeSize' output.json)
-            
+
               echo '-- verifying published layer --'
               if [ "$pub_size" != "$layer_size" ]; then
                 echo "FAILED: Region = $region, versonArn = $pub_versionarn published size = $pub_size, expected size = $layer_size"
                 continue
               fi
-            
+
               aws lambda add-layer-version-permission \
                 --region "$region" \
                 --layer-name "$pub_arn" \
@@ -198,13 +198,13 @@ jobs:
                 --principal '*' \
                 --action lambda:GetLayerVersion \
                 --statement-id global-GetLayerVersion
-            
+
               status=$?
               if [ "$status" != 0 ]; then
                 echo "FAILED: add permission region = $region, versionArn = $pub_versionarn"
                 continue
               fi
-            
+
               echo "$pub_versionarn" >> arns.txt
             done
       - store_artifacts:
@@ -346,23 +346,23 @@ jobs:
             VERSION=$(unzip -p agent/build/libs/solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }')
             VERSION=$(echo $VERSION | sed 's/[^a-z0-9.-]//g') # remove illegal characters
             echo "Current version is $VERSION"
-            
+
             curl -f -L \
               -H "Accept: application/vnd.github+json" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}"\
               -H "X-GitHub-Api-Version: 2022-11-28" \
               https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/releases \
               -d '{"tag_name":"v'"$VERSION"'", "name":"v'"$VERSION"'", "body":"New release: v'"$VERSION"'", "draft":false, "prerelease":false}'
-            
+
             source /ci-scripts/bin/helpers.sh
             send_to_slack "A new release is ready \`$VERSION\`"
   s3-stage-upload:  # this job uploads the jar to stage s3
     executor: java
     steps:
       - initialize-me
-      - aws-util/assume-role:
-          iam-role-arn: $AWS_S3_ROLE_ARN_SSP_STAGE
-          install-cli: true
+      - aws-cli/setup:
+          role_arn: $AWS_S3_ROLE_ARN_SSP_STAGE_OIDC
+          region: "us-east-1"
       - run:
           # this step adds the script stored in .circleci/version.sh to the BASH startup script so the agent version is available
           # for subsequent steps
@@ -397,12 +397,12 @@ jobs:
             aws s3 cp s3://ssp-stage-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-config.json \
             s3://ssp-stage-global-agent-binaries/apm/java/latest/solarwinds-apm-config.json \
             --acl public-read
-            
+
             touch VERSION
             echo "version: $AGENTVERSION" >> VERSION
             SHA256=$(sha256sum agent/build/libs/solarwinds-apm-agent.jar)
             echo "sha256: $SHA256" >> VERSION
-            
+
             aws s3 cp VERSION \
             s3://ssp-stage-global-agent-binaries/apm/java/latest/VERSION \
             --acl public-read
@@ -452,12 +452,12 @@ jobs:
             aws s3 cp s3://ssp-prod-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-config.json \
             s3://ssp-prod-global-agent-binaries/apm/java/latest/solarwinds-apm-config.json \
             --acl public-read
-            
+
             touch VERSION
             echo "version: $AGENTVERSION" >> VERSION
             SHA256=$(sha256sum agent/build/libs/solarwinds-apm-agent.jar)
             echo "sha256: $SHA256" >> VERSION
-            
+
             aws s3 cp VERSION \
             s3://ssp-prod-global-agent-binaries/apm/java/latest/VERSION \
             --acl public-read
@@ -528,7 +528,6 @@ workflows:
               only: main
       - s3-stage-upload:
           context:
-            - AWS_CIRCLE_CI
             - AWS_CIRCLE_CI_BUILD
             - solarwinds-cloud-github-read-access
             - SLACK_HOOK
@@ -549,7 +548,6 @@ workflows:
     jobs:
       - s3-stage-upload:
           context:
-            - AWS_CIRCLE_CI
             - AWS_CIRCLE_CI_BUILD
             - solarwinds-cloud-github-read-access
             - SLACK_HOOK
@@ -598,7 +596,6 @@ workflows:
             - solarwinds-cloud-github-read-access
       - s3-stage-upload:
           context:
-            - AWS_CIRCLE_CI
             - AWS_CIRCLE_CI_BUILD
             - solarwinds-cloud-github-read-access
             - SLACK_HOOK
