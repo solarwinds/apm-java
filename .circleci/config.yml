@@ -548,7 +548,6 @@ workflows:
     jobs:
       - s3-stage-upload:
           context:
-            - AWS_CIRCLE_CI
             - AWS_CIRCLE_CI_BUILD
             - solarwinds-cloud-github-read-access
             - SLACK_HOOK
