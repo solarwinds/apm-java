@@ -160,7 +160,7 @@ public class SolarwindsContextPropagator implements TextMapPropagator {
     final String traceState = getter.get(carrier, TRACE_STATE);
     if (traceState != null) {
       boolean anyMatch =
-          Arrays.stream(traceState.split(",")).anyMatch(info -> !info.startsWith("sw."));
+          Arrays.stream(traceState.split(",")).anyMatch(info -> !info.startsWith("sw="));
       if (anyMatch) {
         context = context.with(TraceStateKey.KEY, traceState);
       }

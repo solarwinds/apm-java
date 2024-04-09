@@ -205,8 +205,7 @@ class SolarwindsContextPropagatorTest {
     final Map<String, String> carrier =
         new HashMap<>() {
           {
-            put("sw.tracestate", "trigger-trace=ok");
-            put("sw.w3.tracestate", "trigger-trace=ok");
+            put("tracestate", "sw=blah");
           }
         };
 
