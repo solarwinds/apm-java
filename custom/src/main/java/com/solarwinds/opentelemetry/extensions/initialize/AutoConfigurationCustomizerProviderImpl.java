@@ -27,7 +27,8 @@ public class AutoConfigurationCustomizerProviderImpl
       } else {
         logger.warn(
             String.format(
-                "Unsupported Java runtime version: %s", System.getProperty("java.version")));
+                "Unsupported Java runtime version: %s. The lowest Java version supported is %s.",
+                System.getProperty("java.version"), JavaRuntimeVersionChecker.minVersionSupported));
       }
 
     } catch (InvalidConfigException invalidConfigException) {
