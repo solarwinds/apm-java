@@ -4,6 +4,7 @@ import static com.solarwinds.opentelemetry.extensions.TriggerTraceContextKey.XTR
 import static com.solarwinds.opentelemetry.extensions.TriggerTraceContextKey.XTRACE_OPTIONS_SIGNATURE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atMostOnce;
@@ -70,7 +71,7 @@ class SolarwindsContextPropagatorTest {
   }
 
   @Test
-  void verifyThatTracestateIsUpdatedAndInjected() {
+  void verifyThatTracestateIsUpdatedAndInjectedMaintainingLeftmostInserts() {
     try (MockedStatic<Span> spanMockedStatic = mockStatic(Span.class)) {
       spanMockedStatic.when(() -> Span.fromContext(any())).thenReturn(spanMock);
       when(spanMock.getSpanContext()).thenReturn(spanContext);
@@ -147,7 +148,7 @@ class SolarwindsContextPropagatorTest {
     final String key = "custom-senderhost";
     final String value = "chubi";
     final Map<String, String> carrier =
-        new HashMap<String, String>() {
+        new HashMap<>() {
           {
             put("X-Trace-Options", String.format("%s=%s;", key, value));
           }
@@ -173,7 +174,7 @@ class SolarwindsContextPropagatorTest {
   @Test
   void verifyThatXtraceOptionsSignatureIsExtractedAndPutIntoContext() {
     final Map<String, String> carrier =
-        new HashMap<String, String>() {
+        new HashMap<>() {
           {
             put("X-Trace-Options", "trigger-trace;custom-senderhost=chubi;");
             put("X-Trace-Options-Signature", "test-sig");
@@ -188,7 +189,7 @@ class SolarwindsContextPropagatorTest {
   @Test
   void verifyThatTracestateIsExtractedAndPutIntoContext() {
     final Map<String, String> carrier =
-        new HashMap<String, String>() {
+        new HashMap<>() {
           {
             put("tracestate", "trigger-trace=ok");
           }
@@ -197,5 +198,20 @@ class SolarwindsContextPropagatorTest {
     Context newContext =
         solarwindsContextPropagator.extract(Context.current(), carrier, textMapGetterStub);
     assertEquals("trigger-trace=ok", newContext.get(TraceStateKey.KEY));
+  }
+
+  @Test
+  void verifyThatTracestateIsNotPutIntoContextWhenNoVendorInfo() {
+    final Map<String, String> carrier =
+        new HashMap<>() {
+          {
+            put("sw.tracestate", "trigger-trace=ok");
+            put("sw.w3.tracestate", "trigger-trace=ok");
+          }
+        };
+
+    Context newContext =
+        solarwindsContextPropagator.extract(Context.current(), carrier, textMapGetterStub);
+    assertNull(newContext.get(TraceStateKey.KEY));
   }
 }
