@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.appoptics:solarwinds-otel-sdk:2.0.0")
+    implementation("io.github.appoptics:solarwinds-otel-sdk:2.2.0")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
