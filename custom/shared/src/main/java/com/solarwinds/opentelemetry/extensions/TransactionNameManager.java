@@ -202,7 +202,6 @@ public class TransactionNameManager {
       return new TransactionNameResult(name, false);
     }
 
-    String path = spanAttributes.get(SemanticAttributes.URL_PATH);
     // use HandlerName which may be injected by some MVC instrumentations (currently only Spring
     // MVC)
     String handlerName = spanAttributes.get(AttributeKey.stringKey("HandlerName"));
@@ -219,6 +218,7 @@ public class TransactionNameManager {
     }
 
     // get transaction name from url
+    String path = spanAttributes.get(SemanticAttributes.URL_PATH);
     if (customTransactionNamePattern
         != null) { // try forming transaction name by the custom configured pattern
       String transactionName =

@@ -3,6 +3,7 @@ package com.solarwinds.opentelemetry.extensions;
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.ServiceKeyUtils;
+import com.solarwinds.joboe.core.MetricSpanReporter;
 import com.solarwinds.joboe.core.metrics.MetricKey;
 import com.solarwinds.joboe.core.metrics.MetricsEntry;
 import com.solarwinds.joboe.core.metrics.histogram.Histogram;
@@ -11,9 +12,9 @@ import com.solarwinds.joboe.core.metrics.histogram.HistogramFactory;
 import com.solarwinds.joboe.core.metrics.histogram.HistogramMetricsEntry;
 import com.solarwinds.joboe.core.metrics.measurement.SummaryLongMeasurement;
 import com.solarwinds.joboe.core.metrics.measurement.SummaryMeasurementMetricsEntry;
-import com.solarwinds.joboe.core.span.impl.MetricSpanReporter;
-import com.solarwinds.joboe.core.span.impl.Span;
 import com.solarwinds.joboe.core.util.HttpUtils;
+import com.solarwinds.joboe.logging.Logger;
+import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.metrics.SpanMetricsCollector;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.opentelemetry.core.Constants;
@@ -35,11 +36,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /** Span processor to record inbound metrics */
 public class SolarwindsInboundMetricsSpanProcessor implements SpanProcessor {
+  public static final long MAX_DURATION = 60L * 60 * 1000 * 1000; // 1hr
+
   private static final AttributeKey<Boolean> AO_METRICS_KEY =
       AttributeKey.booleanKey(Constants.SW_METRICS);
-  public static final OpenTelemetryInboundMeasurementReporter MEASUREMENT_REPORTER =
+  static final OpenTelemetryInboundMeasurementReporter MEASUREMENT_REPORTER =
       new OpenTelemetryInboundMeasurementReporter();
-  public static final OpenTelemetryInboundHistogramReporter HISTOGRAM_REPORTER =
+  static final OpenTelemetryInboundHistogramReporter HISTOGRAM_REPORTER =
       new OpenTelemetryInboundHistogramReporter();
 
   public static final String serviceName;
@@ -50,9 +53,12 @@ public class SolarwindsInboundMetricsSpanProcessor implements SpanProcessor {
             (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
   }
 
+  private static final Logger logger = LoggerFactory.getLogger();
+
   public static SpanMetricsCollector buildSpanMetricsCollector() {
     SpanMetricsCollector spanMetricsCollector =
-        new SpanMetricsCollector(MEASUREMENT_REPORTER, HISTOGRAM_REPORTER);
+        new SpanMetricsCollector(
+            TransactionNameManager::isLimitExceeded, MEASUREMENT_REPORTER, HISTOGRAM_REPORTER);
     spanMetricsCollector.setMetricFlushListener(TransactionNameManager::clearTransactionNames);
     return spanMetricsCollector;
   }
@@ -117,11 +123,6 @@ public class SolarwindsInboundMetricsSpanProcessor implements SpanProcessor {
           new HashMap<>(measurements);
       this.measurements.clear();
       return consumedMeasurements;
-    }
-
-    @Override
-    protected void reportMetrics(com.solarwinds.joboe.core.span.impl.Span span, long l) {
-      // not using the signature that takes OpenTracing span
     }
 
     private void reportMetrics(SpanData spanData) {
@@ -238,12 +239,6 @@ public class SolarwindsInboundMetricsSpanProcessor implements SpanProcessor {
       histograms.clear();
 
       return reportingHistograms;
-    }
-
-    /** Records the span duration as a histogram and a measurement */
-    @Override
-    protected void reportMetrics(Span span, long duration) {
-      // not used
     }
 
     public void reportMetrics(SpanData spanData) {
