@@ -33,7 +33,10 @@ public class LambdaTest {
   private static final NamingConventions namingConventions = new NamingConventions();
 
   private static final LogStreamAnalyzer<Slf4jLogConsumer> logStreamAnalyzer = new LogStreamAnalyzer<>(
-      List.of("Got settings from file:")
+      List.of(
+          "Got settings from file:",
+          "Applying instrumentation: sw-jdbc"
+      )
       , new Slf4jLogConsumer(LoggerFactory.getLogger("k6")));
 
 
@@ -59,12 +62,11 @@ public class LambdaTest {
     GenericContainer<?> petClinic = new PetClinicRestContainer(new SwoLambdaAgentResolver(), NETWORK,
         agent, namingConventions).build();
     petClinic.start();
-    petClinic.followOutput(logStreamAnalyzer, OutputFrame.OutputType.STDOUT);
+    petClinic.followOutput(logStreamAnalyzer);
 
     GenericContainer<?> k6 = new K6Container(NETWORK, agent, config, namingConventions).build();
     k6.start();
-    k6.followOutput(new Slf4jLogConsumer(LoggerFactory.getLogger("k6")),
-        OutputFrame.OutputType.STDOUT);
+    k6.followOutput(new Slf4jLogConsumer(LoggerFactory.getLogger("k6")));
 
     petClinic.execInContainer("kill", "1");
     postgres.stop();
@@ -119,5 +121,11 @@ public class LambdaTest {
   void assertThatSettingsAreReadFromFile() {
     Boolean actual = logStreamAnalyzer.getAnswer().get("Got settings from file:");
     assertTrue(actual, "file based settings is not being used");
+  }
+
+  @Test
+  void assertThatJDBCInstrumentationIsApplied() {
+    Boolean actual = logStreamAnalyzer.getAnswer().get("Applying instrumentation: sw-jdbc");
+    assertTrue(actual, "sw-jdbc instrumentation is not applied");
   }
 }
