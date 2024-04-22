@@ -11,10 +11,8 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
-import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
-import java.util.List;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -41,10 +39,6 @@ public class SwoPreparedStatementInstrumentation implements TypeInstrumentation 
     transformer.applyAdviceToMethod(
         nameStartsWith("execute").and(takesArguments(0)).and(isPublic()),
         SwoPreparedStatementInstrumentation.class.getName() + "$PreparedStatementExecuteAdvice");
-  }
-
-  public static class QueryArgsAttributeKey {
-    public static final AttributeKey<List<String>> KEY = AttributeKey.stringArrayKey("QueryArgs");
   }
 
   @SuppressWarnings("unused")

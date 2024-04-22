@@ -291,6 +291,9 @@ jobs:
           name: Build agent
           command: ./gradlew clean build -x test
       - run:
+          name: Muzzle check
+          command: ./gradlew muzzle
+      - run:
           name: Execute tests
           command: ./gradlew test
       - run:

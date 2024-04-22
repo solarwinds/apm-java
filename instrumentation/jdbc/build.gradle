@@ -1,19 +1,13 @@
 apply plugin: 'groovy'
 apply from: "$rootDir/gradle/instrumentation.gradle"
 
-//apply plugin: "otel.javaagent-instrumentation"
-
-//muzzle {
-//  pass {
-//    coreJdk()
-//  }
-//}
-
 dependencies {
   compileOnly project(":bootstrap")
-  compileOnly "com.solarwinds.joboe:core:${versions.joboe}"
+  compileOnly "com.solarwinds.joboe:config:${versions.joboe}"
   compileOnly "io.opentelemetry:opentelemetry-sdk-trace:${versions.opentelemetry}"
+
   compileOnly "io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}"
+  compileOnly "com.github.ben-manes.caffeine:caffeine:${versions.caffeine}"
 
   testImplementation project(path: ":instrumentation:jdbc")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagentAlpha}") {

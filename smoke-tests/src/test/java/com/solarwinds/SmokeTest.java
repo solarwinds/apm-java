@@ -1,5 +1,10 @@
 package com.solarwinds;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import com.solarwinds.agents.Agent;
 import com.solarwinds.agents.SwoAgentResolver;
 import com.solarwinds.config.Configs;
@@ -12,6 +17,9 @@ import com.solarwinds.containers.SpringBootWebMvcContainer;
 import com.solarwinds.results.ResultsCollector;
 import com.solarwinds.util.LogStreamAnalyzer;
 import com.solarwinds.util.NamingConventions;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -22,15 +30,6 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 @EnabledIfEnvironmentVariable(named = "LAMBDA", matches = "false")
 public class SmokeTest {
@@ -44,6 +43,7 @@ public class SmokeTest {
                     "hostId:.*[0-9a-z-]+", "Extension attached!","Created collector client  : collector.appoptics.com:443",
                     "trace_id=[a-z0-9]+\\s+span_id=[a-z0-9]+\\s+trace_flags=(01|00)",
                     "This log line is used for validation only: service.name: java-apm-smoke-test",
+                    "Applying instrumentation: sw-jdbc",
                     "Clearing transaction name buffer. Unique transaction count: \\d+")
             , new Slf4jLogConsumer(LoggerFactory.getLogger("k6")));
 
@@ -66,18 +66,18 @@ public class SmokeTest {
     static void runAppOnce(TestConfig config, Agent agent) throws Exception {
         GenericContainer<?> webMvc = new SpringBootWebMvcContainer(new SwoAgentResolver(), NETWORK, agent).build();
         webMvc.start();
-        webMvc.followOutput(logStreamAnalyzer, OutputFrame.OutputType.STDOUT);
+        webMvc.followOutput(logStreamAnalyzer);
 
         GenericContainer<?> webMvcAo = new AoContainer(new SwoAgentResolver(), NETWORK, agent).build();
         webMvcAo.start();
-        webMvcAo.followOutput(logStreamAnalyzer, OutputFrame.OutputType.STDOUT);
+        webMvcAo.followOutput(logStreamAnalyzer);
 
         GenericContainer<?> postgres = new PostgresContainer(NETWORK).build();
         postgres.start();
 
         GenericContainer<?> petClinic = new PetClinicRestContainer(new SwoAgentResolver(), NETWORK, agent, namingConventions).build();
         petClinic.start();
-        petClinic.followOutput(logStreamAnalyzer, OutputFrame.OutputType.STDOUT);
+        petClinic.followOutput(logStreamAnalyzer);
 
         GenericContainer<?> k6 = new K6Container(NETWORK, agent, config, namingConventions).build();
         k6.start();
@@ -218,5 +218,11 @@ public class SmokeTest {
         Boolean actual = logStreamAnalyzer.getAnswer().get("Clearing transaction name buffer. Unique transaction count: \\d+");
         assertTrue(actual, "Transaction name buffer is not getting cleared on metric flush");
     }
+
+  @Test
+  void assertThatJDBCInstrumentationIsApplied() {
+    Boolean actual = logStreamAnalyzer.getAnswer().get("Applying instrumentation: sw-jdbc");
+    assertTrue(actual, "sw-jdbc instrumentation is not applied");
+  }
 
 }
