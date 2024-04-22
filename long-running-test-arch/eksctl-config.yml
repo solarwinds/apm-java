@@ -1,0 +1,92 @@
+accessConfig:
+  authenticationMode: API_AND_CONFIG_MAP
+apiVersion: eksctl.io/v1alpha5
+cloudWatch:
+  clusterLogging: {}
+iamIdentityMappings:
+  - arn: <role> # roles to give cluster permission
+    groups:
+      - system:masters
+    username: poweruser
+    noDuplicateARNs: true # prevents shadowing of arns
+
+  - account: <account-id> # account must be configured with no other options
+iam:
+  vpcResourceControllerPolicy: true
+  withOIDC: false
+kind: ClusterConfig
+kubernetesNetworkConfig:
+  ipFamily: IPv4
+managedNodeGroups:
+  - amiFamily: AmazonLinux2
+    desiredCapacity: 2
+    disableIMDSv1: true
+    disablePodIMDS: false
+    iam:
+      withAddonPolicies:
+        albIngress: false
+        appMesh: false
+        appMeshPreview: false
+        autoScaler: false
+        awsLoadBalancerController: false
+        certManager: false
+        cloudWatch: false
+        ebs: false
+        efs: false
+        externalDNS: false
+        fsx: false
+        imageBuilder: false
+        xRay: false
+    instanceSelector: {}
+    instanceTypes:
+      - c5a.large
+    labels:
+      alpha.eksctl.io/cluster-name: java-apm-long-running-benchmark
+      alpha.eksctl.io/nodegroup-name: java-apm-nodegrp
+    maxSize: 2
+    minSize: 2
+    name: java-apm-nodegrp
+    privateNetworking: false
+    releaseVersion: ""
+    securityGroups:
+      withLocal: null
+      withShared: null
+    ssh:
+      allow: false
+      publicKeyPath: ""
+    tags:
+      alpha.eksctl.io/nodegroup-name: java-apm-nodegrp
+      alpha.eksctl.io/nodegroup-type: managed
+    volumeIOPS: 3000
+    volumeSize: 80
+    volumeThroughput: 125
+    volumeType: gp3
+metadata:
+  name: java-apm-long-running-benchmark
+  region: us-east-1
+  version: "1.29"
+privateCluster:
+  enabled: false
+  skipEndpointCreation: false
+vpc:
+  id: "vpc-08e39df91ab09110e"
+  cidr: "10.0.0.0/16"       # (must match CIDR used by the given VPC)
+  subnets:
+    # must provide 'private' and/or 'public' subnets by availability zone as shown
+    private:
+      us-east-1a:
+        id: "subnet-03fff0aa00dd72110"
+        cidr: "10.0.128.0/20" # (must match CIDR used by the given subnet)
+
+      us-east-1b:
+        id: "subnet-085a8f9fa3ebd9646"
+        cidr: "10.0.144.0/20"  # (must match CIDR used by the given subnet)
+
+    public:
+      us-east-1a:
+        id: "subnet-0efc720abc314207c"
+        cidr: "10.0.0.0/20" # (must match CIDR used by the given subnet)
+
+      us-east-1b:
+        id: "subnet-01d82e8b5c1774661"
+        cidr: "10.0.16.0/20"  # (must match CIDR used by the given subnet)
