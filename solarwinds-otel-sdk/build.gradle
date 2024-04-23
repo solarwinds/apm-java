@@ -10,7 +10,6 @@ project.archivesBaseName = 'solarwinds-otel-sdk'
 def relocatePackages = ext.relocatePackages
 
 dependencies {
-  compileOnly project(":custom")
   compileOnly project(":bootstrap")
   compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
 
@@ -19,8 +18,7 @@ dependencies {
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:${versions.opentelemetryJavaagentAlpha}")
 
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
-  compileOnly "com.solarwinds.joboe:core:${versions.joboe}"
-  compileOnly "com.solarwinds.joboe:metrics:${versions.joboe}"
+  implementation "com.solarwinds.joboe:logging:${versions.joboe}"
 
   testImplementation project(path: ":bootstrap")
   testImplementation 'org.mockito:mockito-core:5.3.0'
