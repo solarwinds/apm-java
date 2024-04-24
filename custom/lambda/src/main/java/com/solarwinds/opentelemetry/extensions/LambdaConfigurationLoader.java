@@ -47,6 +47,7 @@ public class LambdaConfigurationLoader {
     ConfigProperty.AGENT_TRANSACTION_SETTINGS.setParser(TransactionSettingsConfigParser.INSTANCE);
     ConfigProperty.AGENT_TRIGGER_TRACE_ENABLED.setParser(ModeStringToBooleanParser.INSTANCE);
     ConfigProperty.AGENT_TRANSACTION_NAMING_SCHEMES.setParser(new TransactionNamingSchemesParser());
+    ConfigProperty.AGENT_SQL_TAG_DATABASES.setParser(new SqlTagDatabasesParser());
   }
 
   public static void load() throws InvalidConfigException {

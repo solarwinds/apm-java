@@ -9,7 +9,7 @@ import com.solarwinds.opentelemetry.core.Constants;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 
-public class SwoStatementTracer {
+public class StatementTracer {
   public static void writeStackTraceSpec(Context context) {
     Span span = Span.fromContext(context);
     if (span.getSpanContext().isSampled()) {

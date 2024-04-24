@@ -1,7 +1,8 @@
 package com.solarwinds.opentelemetry.instrumentation;
 
 import static net.bytebuddy.matcher.ElementMatchers.none;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 
@@ -16,8 +17,8 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SwoConnectionInstrumentationTest {
-  @InjectMocks private SwoConnectionInstrumentation tested;
+class JdbcPreparedStatementInstrumentationTest {
+  @InjectMocks private JdbcPreparedStatementInstrumentation tested;
 
   @Test
   void returnNoneMatcherWhenSqlTagPreparedIsNotEnabled() {

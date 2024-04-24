@@ -12,18 +12,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 @AutoService(InstrumentationModule.class)
-public class SwoJdbcInstrumentationModule extends InstrumentationModule {
-  public SwoJdbcInstrumentationModule() {
+public class JdbcInstrumentationModule extends InstrumentationModule {
+  public JdbcInstrumentationModule() {
     super("sw-jdbc", "solarwinds-jdbc");
   }
 
   @Override
   public List<TypeInstrumentation> typeInstrumentations() {
     List<TypeInstrumentation> typeInstrumentations = new ArrayList<>();
-    typeInstrumentations.add(new SwoStatementInstrumentation());
+    typeInstrumentations.add(new JdbcStatementInstrumentation());
+    typeInstrumentations.add(new JdbcDriverInstrumentation());
 
-    typeInstrumentations.add(new SwoConnectionInstrumentation());
-    typeInstrumentations.add(new SwoPreparedStatementInstrumentation());
+    typeInstrumentations.add(new JdbcConnectionInstrumentation());
+    typeInstrumentations.add(new JdbcPreparedStatementInstrumentation());
     return typeInstrumentations;
   }
 

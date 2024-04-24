@@ -17,7 +17,7 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
-public class SwoPreparedStatementInstrumentation implements TypeInstrumentation {
+public class JdbcPreparedStatementInstrumentation implements TypeInstrumentation {
 
   @Override
   public ElementMatcher<ClassLoader> classLoaderOptimization() {
@@ -38,7 +38,7 @@ public class SwoPreparedStatementInstrumentation implements TypeInstrumentation 
   public void transform(TypeTransformer transformer) {
     transformer.applyAdviceToMethod(
         nameStartsWith("execute").and(takesArguments(0)).and(isPublic()),
-        SwoPreparedStatementInstrumentation.class.getName() + "$PreparedStatementExecuteAdvice");
+        JdbcPreparedStatementInstrumentation.class.getName() + "$PreparedStatementExecuteAdvice");
   }
 
   @SuppressWarnings("unused")

@@ -23,6 +23,7 @@ import com.solarwinds.opentelemetry.extensions.LoggingConfigProvider;
 import com.solarwinds.opentelemetry.extensions.ModeStringToBooleanParser;
 import com.solarwinds.opentelemetry.extensions.NamingScheme;
 import com.solarwinds.opentelemetry.extensions.RangeValidationParser;
+import com.solarwinds.opentelemetry.extensions.SqlTagDatabasesParser;
 import com.solarwinds.opentelemetry.extensions.TracingModeParser;
 import com.solarwinds.opentelemetry.extensions.TransactionNameManager;
 import com.solarwinds.opentelemetry.extensions.TransactionNamingScheme;
@@ -81,6 +82,7 @@ public class ConfigurationLoader {
     ConfigProperty.AGENT_PROXY.setParser(ProxyConfigParser.INSTANCE);
     ConfigProperty.PROFILER.setParser(ProfilerSettingParser.INSTANCE);
     ConfigProperty.AGENT_TRANSACTION_NAMING_SCHEMES.setParser(new TransactionNamingSchemesParser());
+    ConfigProperty.AGENT_SQL_TAG_DATABASES.setParser(new SqlTagDatabasesParser());
   }
 
   public static void load() throws InvalidConfigException {

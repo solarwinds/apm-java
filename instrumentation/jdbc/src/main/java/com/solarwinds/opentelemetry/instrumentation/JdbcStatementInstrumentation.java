@@ -27,7 +27,7 @@ import net.bytebuddy.matcher.ElementMatcher;
  *
  * <p>This only works for `Statement` at this moment (ie no `PreparedStatement`)
  */
-public class SwoStatementInstrumentation implements TypeInstrumentation {
+public class JdbcStatementInstrumentation implements TypeInstrumentation {
 
   @Override
   public ElementMatcher<ClassLoader> classLoaderOptimization() {
@@ -48,7 +48,7 @@ public class SwoStatementInstrumentation implements TypeInstrumentation {
   public void transform(TypeTransformer transformer) {
     transformer.applyAdviceToMethod(
         nameStartsWith("execute").and(takesArgument(0, String.class)).and(isPublic()),
-        SwoStatementInstrumentation.class.getName() + "$StatementAdvice");
+        JdbcStatementInstrumentation.class.getName() + "$StatementAdvice");
   }
 
   @SuppressWarnings("unused")
@@ -56,7 +56,7 @@ public class SwoStatementInstrumentation implements TypeInstrumentation {
     @Advice.OnMethodEnter
     public static void onEnter(@Advice.Argument(value = 0, readOnly = false) String sql) {
       sql = TraceContextInjector.inject(currentContext(), sql);
-      SwoStatementTracer.writeStackTraceSpec(currentContext());
+      StatementTracer.writeStackTraceSpec(currentContext());
       StatementTruncator.maybeTruncateStatement(currentContext());
     }
   }

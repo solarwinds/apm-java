@@ -17,8 +17,8 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SwoStatementInstrumentationTest {
-  @InjectMocks private SwoStatementInstrumentation tested;
+class JdbcStatementInstrumentationTest {
+  @InjectMocks private JdbcStatementInstrumentation tested;
 
   @Test
   void returnNoneMatcherWhenSqlTagIsNotEnabled() {
