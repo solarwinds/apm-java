@@ -5,6 +5,7 @@
 
 package com.solarwinds.opentelemetry.instrumentation;
 
+import static com.solarwinds.opentelemetry.instrumentation.TraceContextInjector.buildMatcher;
 import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
@@ -38,7 +39,10 @@ public class JdbcStatementInstrumentation implements TypeInstrumentation {
   public ElementMatcher<TypeDescription> typeMatcher() {
     Boolean sqlTag = ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_TAG, false);
     if (sqlTag) {
-      return implementsInterface(named("java.sql.Statement"));
+      ElementMatcher.Junction<TypeDescription> matcher = buildMatcher();
+      if (matcher != null) {
+        return matcher.and(implementsInterface(named("java.sql.Statement")));
+      }
     }
 
     return none();

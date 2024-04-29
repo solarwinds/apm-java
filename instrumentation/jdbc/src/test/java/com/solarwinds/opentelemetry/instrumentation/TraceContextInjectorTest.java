@@ -37,11 +37,10 @@ class TraceContextInjectorTest {
   @BeforeAll
   static void setup() {
     activeDbs.add("postgresql");
-    TraceContextInjector.addDb("postgresql");
   }
 
   @Test
-  void returnSqlWithTraceContextInjected() throws InvalidConfigException {
+  void returnSqlWithTraceContextInjected() {
     String sql = "select name from students";
     String traceId = idGenerator.generateTraceId();
     String spanId = idGenerator.generateSpanId();
@@ -55,7 +54,6 @@ class TraceContextInjectorTest {
       when(spanContextMock.getTraceId()).thenReturn(traceId);
 
       when(spanContextMock.getSpanId()).thenReturn(spanId);
-      ConfigManager.setConfig(ConfigProperty.AGENT_SQL_TAG_DATABASES, activeDbs);
 
       String actual = TraceContextInjector.inject(Context.current(), sql);
       String expected = String.format("/*traceparent='00-%s-%s-01'*/ %s", traceId, spanId, sql);
@@ -64,7 +62,7 @@ class TraceContextInjectorTest {
   }
 
   @Test
-  void returnSqlWithoutTraceContextWhenSpanIsNotSampled() throws InvalidConfigException {
+  void returnSqlWithoutTraceContextWhenSpanIsNotSampled() {
     String sql = "select name from students";
 
     try (MockedStatic<Span> spanMockedStatic = mockStatic(Span.class)) {
@@ -73,7 +71,6 @@ class TraceContextInjectorTest {
 
       when(spanContextMock.isValid()).thenReturn(true);
       when(spanContextMock.isSampled()).thenReturn(false);
-      ConfigManager.setConfig(ConfigProperty.AGENT_SQL_TAG_DATABASES, activeDbs);
 
       String actual = TraceContextInjector.inject(Context.current(), sql);
       assertEquals(sql, actual);
@@ -81,14 +78,20 @@ class TraceContextInjectorTest {
   }
 
   @Test
-  void returnTrueWhenDbIsNotConfigured() {
+  void returnTrueWhenDbIsNotConfiguredAndInputIsMysql() {
     ConfigManager.removeConfig(ConfigProperty.AGENT_SQL_TAG_DATABASES);
-    assertTrue(TraceContextInjector.doNotInjectTraceContext());
+    assertTrue(TraceContextInjector.isDbConfigured(TraceContextInjector.Db.mysql));
   }
 
   @Test
-  void returnFalseWhenDbIsConfigured() throws InvalidConfigException {
+  void returnTrueWhenDbIsConfiguredAndInputIsPostgresql() throws InvalidConfigException {
     ConfigManager.setConfig(ConfigProperty.AGENT_SQL_TAG_DATABASES, activeDbs);
-    assertFalse(TraceContextInjector.doNotInjectTraceContext());
+    assertTrue(TraceContextInjector.isDbConfigured(TraceContextInjector.Db.postgresql));
+  }
+
+  @Test
+  void returnFalseWhenDbIsNotConfigured() {
+    ConfigManager.removeConfig(ConfigProperty.AGENT_SQL_TAG_DATABASES);
+    assertFalse(TraceContextInjector.isDbConfigured(TraceContextInjector.Db.postgresql));
   }
 }

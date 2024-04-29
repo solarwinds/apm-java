@@ -21,7 +21,6 @@ public class JdbcInstrumentationModule extends InstrumentationModule {
   public List<TypeInstrumentation> typeInstrumentations() {
     List<TypeInstrumentation> typeInstrumentations = new ArrayList<>();
     typeInstrumentations.add(new JdbcStatementInstrumentation());
-    typeInstrumentations.add(new JdbcDriverInstrumentation());
 
     typeInstrumentations.add(new JdbcConnectionInstrumentation());
     typeInstrumentations.add(new JdbcPreparedStatementInstrumentation());
