@@ -1,5 +1,6 @@
 package com.solarwinds.opentelemetry.instrumentation;
 
+import static com.solarwinds.opentelemetry.instrumentation.TraceContextInjector.buildMatcher;
 import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
@@ -17,7 +18,7 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
-public class SwoConnectionInstrumentation implements TypeInstrumentation {
+public class JdbcConnectionInstrumentation implements TypeInstrumentation {
 
   @Override
   public ElementMatcher<ClassLoader> classLoaderOptimization() {
@@ -29,8 +30,10 @@ public class SwoConnectionInstrumentation implements TypeInstrumentation {
     Boolean sqlTagPrepared =
         ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_TAG_PREPARED, false);
     if (sqlTagPrepared) {
-      return named("com.mysql.cj.jdbc.ConnectionImpl") // only inject MySQL JDBC driver
-          .and(implementsInterface(named("java.sql.Connection")));
+      ElementMatcher.Junction<TypeDescription> matcher = buildMatcher();
+      if (matcher != null) {
+        return matcher.and(implementsInterface(named("java.sql.Connection")));
+      }
     }
 
     return none();
@@ -43,7 +46,7 @@ public class SwoConnectionInstrumentation implements TypeInstrumentation {
             .and(takesArgument(0, String.class))
             // Also include CallableStatement, which is a subtype of PreparedStatement
             .and(returns(implementsInterface(named("java.sql.PreparedStatement")))),
-        SwoConnectionInstrumentation.class.getName() + "$PrepareAdvice");
+        JdbcConnectionInstrumentation.class.getName() + "$PrepareAdvice");
   }
 
   @SuppressWarnings("unused")
@@ -52,7 +55,7 @@ public class SwoConnectionInstrumentation implements TypeInstrumentation {
     @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void injectComment(@Advice.Argument(value = 0, readOnly = false) String sql) {
       sql = TraceContextInjector.inject(currentContext(), sql);
-      SwoStatementTracer.writeStackTraceSpec(currentContext());
+      StatementTracer.writeStackTraceSpec(currentContext());
     }
   }
 }

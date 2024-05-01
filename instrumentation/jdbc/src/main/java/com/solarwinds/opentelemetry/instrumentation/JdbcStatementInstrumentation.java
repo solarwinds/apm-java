@@ -1,5 +1,11 @@
+/*
+ * Copyright The OpenTelemetry Authors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.solarwinds.opentelemetry.instrumentation;
 
+import static com.solarwinds.opentelemetry.instrumentation.TraceContextInjector.buildMatcher;
 import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
@@ -7,7 +13,7 @@ import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.none;
-import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
+import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
@@ -17,37 +23,44 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
-public class SwoPreparedStatementInstrumentation implements TypeInstrumentation {
+/**
+ * Experimental instrumentation to add back traces to existing OT spans.
+ *
+ * <p>This only works for `Statement` at this moment (ie no `PreparedStatement`)
+ */
+public class JdbcStatementInstrumentation implements TypeInstrumentation {
 
   @Override
   public ElementMatcher<ClassLoader> classLoaderOptimization() {
-    return hasClassesNamed("java.sql.PreparedStatement");
+    return hasClassesNamed("java.sql.Statement");
   }
 
   @Override
   public ElementMatcher<TypeDescription> typeMatcher() {
-    Boolean sqlTagPrepared =
-        ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_TAG_PREPARED, false);
-    if (sqlTagPrepared) {
-      return implementsInterface(named("java.sql.PreparedStatement"));
+    Boolean sqlTag = ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_TAG, false);
+    if (sqlTag) {
+      ElementMatcher.Junction<TypeDescription> matcher = buildMatcher();
+      if (matcher != null) {
+        return matcher.and(implementsInterface(named("java.sql.Statement")));
+      }
     }
+
     return none();
   }
 
   @Override
   public void transform(TypeTransformer transformer) {
     transformer.applyAdviceToMethod(
-        nameStartsWith("execute").and(takesArguments(0)).and(isPublic()),
-        SwoPreparedStatementInstrumentation.class.getName() + "$PreparedStatementExecuteAdvice");
+        nameStartsWith("execute").and(takesArgument(0, String.class)).and(isPublic()),
+        JdbcStatementInstrumentation.class.getName() + "$StatementAdvice");
   }
 
   @SuppressWarnings("unused")
-  public static class PreparedStatementExecuteAdvice {
-    @Advice.OnMethodEnter(suppress = Throwable.class)
-    public static void onEnter() {}
-
-    @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
-    public static void onExit() {
+  public static class StatementAdvice {
+    @Advice.OnMethodEnter
+    public static void onEnter(@Advice.Argument(value = 0, readOnly = false) String sql) {
+      sql = TraceContextInjector.inject(currentContext(), sql);
+      StatementTracer.writeStackTraceSpec(currentContext());
       StatementTruncator.maybeTruncateStatement(currentContext());
     }
   }

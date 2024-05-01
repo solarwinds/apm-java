@@ -57,6 +57,7 @@ public class PetClinicRestContainer implements Container {
           .withEnv("OTEL_JAVAAGENT_DEBUG", "true")
           .withEnv("SW_APM_SQL_TAG", "true")
           .withEnv("SW_APM_SQL_TAG_PREPARED", "true")
+          .withEnv("SW_APM_SQL_TAG_DATABASES", "postgresql")
           .waitingFor(
               Wait.forHttp("/petclinic/actuator/health").withReadTimeout(Duration.ofMinutes(5))
                   .forPort(PETCLINIC_PORT))
@@ -101,6 +102,7 @@ public class PetClinicRestContainer implements Container {
             .withEnv("spring_jpa_hibernate_ddl-auto", "none")
             .withEnv("SW_APM_DEBUG_LEVEL", "trace")
             .withEnv("SW_APM_SQL_TAG", "true")
+            .withEnv("SW_APM_SQL_TAG_DATABASES", "postgresql")
             .withEnv("SW_APM_SQL_TAG_PREPARED", "true")
             .withEnv("SW_APM_COLLECTOR", System.getenv("SW_APM_COLLECTOR"))
             .withEnv("SW_APM_SERVICE_KEY", String.format("%s:java-apm-smoke-test", System.getenv("SW_APM_SERVICE_KEY")))
