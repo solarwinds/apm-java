@@ -43,3 +43,7 @@ buildConfig {
   buildConfigField('String', 'SOLARWINDS_AGENT_VERSION', "\"${versions.agent}\"")
   buildConfigField('String', 'BUILD_DATETIME', "\"${new Date().format('LLL dd, yyyy - HH:mm:ss z')}\"")
 }
+
+compileJava {
+  options.release.set(8)
+}

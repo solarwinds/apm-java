@@ -3,16 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.solarwinds.opentelemetry.instrumentation;
+package com.solarwinds.opentelemetry.instrumentation.webmvc.v6_0;
 
 import io.opentelemetry.instrumentation.api.incubator.semconv.util.SpanNames;
+import jakarta.servlet.Servlet;
 import java.lang.reflect.Method;
-import javax.servlet.Servlet;
 import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.Controller;
 
-public class SwoSpringWebMvcTracer {
+public class WebMvcHandlerNameExtractor {
 
   public static String spanNameOnHandle(Object handler) {
     Class<?> clazz;

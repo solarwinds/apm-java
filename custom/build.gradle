@@ -33,3 +33,7 @@ test {
   }
   environment("SW_APM_SERVICE_KEY", "token:name")
 }
+
+compileJava {
+  options.release.set(8)
+}

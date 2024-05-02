@@ -17,7 +17,7 @@ executors:
     parameters:
       tag:
         type: string
-        default: 12-jdk-hotspot
+        default: temurin-17-jdk
     docker: # use docker images curated by solarwinds. the script that builds them is here: https://github.com/librato/ci-scripts
       - image: 377069709311.dkr.ecr.us-east-1.amazonaws.com/base_ci_build:<< parameters.tag >>
         aws_auth:
@@ -53,9 +53,6 @@ commands:
   initialize-me:
     steps:
       - checkout
-      - run:
-          name: Install jq # this is needed for the aws steps to work
-          command: apt-get update && apt-get install -y --no-install-recommends jq && rm -rf /var/lib/apt/lists/*
       - run:
           name: Build
           command: ./gradlew clean build -x test
@@ -360,7 +357,7 @@ jobs:
             source /ci-scripts/bin/helpers.sh
             send_to_slack "A new release is ready \`$VERSION\`"
   s3-stage-upload:  # this job uploads the jar to stage s3
-    executor: java
+    executor: linux
     steps:
       - initialize-me
       - aws-cli/setup:
@@ -409,13 +406,8 @@ jobs:
             aws s3 cp VERSION \
             s3://ssp-stage-global-agent-binaries/apm/java/latest/VERSION \
             --acl public-read
-      - run:
-          name: Send to slack
-          command: |
-            source /ci-scripts/bin/helpers.sh
-            send_to_slack "A new release:\`$AGENTVERSION\` is ready for download in stage bucket"
   s3-prod-upload:  # this job uploads the jar and default config json to prod s3
-    executor: java
+    executor: linux
     steps:
       - initialize-me
       - aws-util/assume-role:
@@ -464,12 +456,6 @@ jobs:
             aws s3 cp VERSION \
             s3://ssp-prod-global-agent-binaries/apm/java/latest/VERSION \
             --acl public-read
-      - run:
-          name: Send to slack
-          command: |
-            source /ci-scripts/bin/helpers.sh
-            send_to_slack "A new release:\`$AGENTVERSION\` is ready for download in prod bucket"
-
 workflows:
   build_test_release:
     jobs:
