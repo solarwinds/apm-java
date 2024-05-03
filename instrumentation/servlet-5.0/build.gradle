@@ -7,3 +7,7 @@ dependencies {
     compileOnly project(":custom")
     compileOnly project(":bootstrap")
 }
+
+compileJava{
+  options.release.set(8)
+}

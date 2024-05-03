@@ -95,14 +95,8 @@ subprojects {
         configFile = file("$rootDir/checkstyle.xml")
     }
 
-    tasks {
-        test {
-            useJUnitPlatform()
-        }
-
-        compileJava {
-            options.release.set(8)
-        }
+    test {
+        useJUnitPlatform()
     }
 
     javadoc {
@@ -122,5 +116,8 @@ subprojects {
       googleJavaFormat()
       formatAnnotations()
     }
+  }
+  java {
+    disableAutoTargetJvm()
   }
 }

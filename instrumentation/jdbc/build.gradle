@@ -26,3 +26,7 @@ test {
     events "passed", "skipped", "failed"
   }
 }
+
+compileJava {
+  options.release.set(8)
+}

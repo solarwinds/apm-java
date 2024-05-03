@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.solarwinds.opentelemetry.instrumentation;
+package com.solarwinds.opentelemetry.instrumentation.webmvc.v6_0;
 
+import static com.solarwinds.opentelemetry.instrumentation.webmvc.v6_0.WebMvcHandlerNameExtractor.spanNameOnHandle;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;
@@ -23,8 +24,7 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
-/** Experimental instrumentation to set `TransactionName` KV to OT Trace root span for Spring MVC */
-public class SwoHandlerAdapterInstrumentation implements TypeInstrumentation {
+public class HandlerAdapterInstrumentation implements TypeInstrumentation {
 
   @Override
   public ElementMatcher<ClassLoader> classLoaderOptimization() {
@@ -42,19 +42,24 @@ public class SwoHandlerAdapterInstrumentation implements TypeInstrumentation {
         isMethod()
             .and(isPublic())
             .and(nameStartsWith("handle"))
-            .and(takesArgument(0, named("javax.servlet.http.HttpServletRequest")))
+            .and(takesArgument(0, named("jakarta.servlet.http.HttpServletRequest")))
             .and(takesArguments(3)),
-        SwoHandlerAdapterInstrumentation.class.getName() + "$ControllerAdvice");
+        HandlerAdapterInstrumentation.class.getName() + "$ControllerAdvice");
   }
 
+  @SuppressWarnings("unused")
   public static class ControllerAdvice {
-    @Advice.OnMethodEnter
-    public static void setTransactionNameToServerSpan(@Advice.Argument(2) Object handler) {
+
+    @Advice.OnMethodEnter(suppress = Throwable.class)
+    public static void nameResourceAndStartSpan(@Advice.Argument(2) Object handler) {
+
       Context parentContext = Java8BytecodeBridge.currentContext();
       Span serverSpan = Java8BytecodeBridge.spanFromContext(parentContext);
       if (serverSpan != null) {
-        String transactionName = SwoSpringWebMvcTracer.spanNameOnHandle(handler);
-        serverSpan.setAttribute("HandlerName", transactionName);
+        String transactionName = spanNameOnHandle(handler);
+        if (transactionName != null) {
+          serverSpan.setAttribute("HandlerName", transactionName);
+        }
       }
     }
   }
