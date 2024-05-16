@@ -1,3 +1,4 @@
+#!/usr/bin/env zsh
 #
 # Copyright SolarWinds Worldwide, LLC.
 #
@@ -14,7 +15,9 @@
 # limitations under the License.
 #
 
-BRANCH=$(echo -n "${CIRCLE_BRANCH}" | sed -e 's/[^0-9a-zA-Z\._\-]/./g' | tr '[:upper:]' '[:lower:]')
-AGENTVERSION=$(unzip -p agent/build/libs/solarwinds-apm-agent.jar META-INF/MANIFEST.MF)
-AGENTVERSION=$(echo -n "${AGENTVERSION}" | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g')
-export AGENTVERSION=$AGENTVERSION
+# This script exist to enable conveniently building and publishing the artifacts to local maven repo
+date
+./gradlew spotlessApply clean build
+./gradlew agent:publishToMavenLocal
+./gradlew solarwinds-otel-sdk:publishToMavenLocal
+

@@ -1,3 +1,19 @@
+/*
+ * Copyright SolarWinds Worldwide, LLC.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
@@ -125,17 +141,6 @@ tasks {
   }
 }
 
-tasks.register("lambda-layer", Zip) {
-  archiveFileName.set("layer.zip")
-  destinationDirectory.set(file("$buildDir/lambda-layer"))
-
-  from("$buildDir/libs") {
-    include("solarwinds-apm-agent.jar")
-  }
-  from("lambda")
-  into("solarwinds-apm")
-}
-
 tasks.register('sourcesJar', Jar) {
   from('.') {
     include 'SOURCES_DOC_README'
@@ -158,17 +163,17 @@ publishing {
         description = "${archivesBaseName}"
         url = "www.solarwinds.com"
         scm {
-          url = 'https://www.solarwinds.com'
+          url = 'https://github.com/solarwinds/apm-java/'
         }
         developers {
           developer {
             id = 'APM'
-            name = 'The APM Agent team'
+            name = 'The APM Library team'
           }
         }
         licenses {
           license {
-            name = 'Librato Open License'
+            name = 'Apache License, Version 2.0'
           }
         }
         groupId = 'com.solarwinds'
