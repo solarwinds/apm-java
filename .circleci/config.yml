@@ -396,7 +396,9 @@ jobs:
             # Upload file to GitHub release
             upload_file_to_release "$release_id" "version.txt"
             upload_file_to_release "$release_id" "checksum.txt"
+            
             upload_file_to_release "$release_id" "agent/build/libs/solarwinds-apm-agent.jar"
+            upload_file_to_release "$release_id" "custom/shared/src/main/resources/solarwinds-apm-config.json"
             
             source /ci-scripts/bin/helpers.sh
             send_to_slack "A new release is ready \`$VERSION\`"
