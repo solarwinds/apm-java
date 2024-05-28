@@ -194,6 +194,31 @@ public class ConfigurationLoader {
     }
   }
 
+  static void configOtelLogExport(ConfigContainer container) {
+    Boolean exportLog = (Boolean) container.get(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED);
+    String collectorEndpoint = (String) container.get(ConfigProperty.AGENT_COLLECTOR);
+    if (collectorEndpoint != null && (exportLog == null || exportLog)) {
+      String serviceKey = (String) container.get(ConfigProperty.AGENT_SERVICE_KEY);
+      String apiKey = ServiceKeyUtils.getApiKey(serviceKey);
+
+      String[] fragments = collectorEndpoint.split("\\.");
+      String dataCell = "na-01";
+      if (fragments.length > 2) {
+        // This is based on knowledge of the SWO url format where the third name from the left in
+        // the domain is the data-cell name and assumes this format will stay stable.
+        dataCell = fragments[2];
+      }
+
+      System.setProperty("otel.exporter.otlp.protocol", "grpc");
+      System.setProperty("otel.logs.exporter", "otlp");
+      System.setProperty(
+          "otel.exporter.otlp.logs.headers", String.format("authorization=Bearer %s", apiKey));
+      System.setProperty(
+          "otel.exporter.otlp.logs.endpoint",
+          String.format("https://otel.collector.%s.cloud.solarwinds.com", dataCell));
+    }
+  }
+
   static Map<String, String> mergeEnvWithSysProperties(Map<String, String> env, Properties props) {
     Map<String, String> res = new HashMap<>(env);
 
@@ -245,6 +270,7 @@ public class ConfigurationLoader {
                 config)); // initialize the logger factory as soon as the config is available
         try {
           processConfigs(configs);
+          configOtelLogExport(configs);
         } catch (InvalidConfigException e) {
           // if there was a config read exception then processConfigs might throw exception due to
           // incomplete config container.

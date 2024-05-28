@@ -241,4 +241,14 @@ public class SmokeTest {
     assertTrue(actual, "sw-jdbc instrumentation is not applied");
   }
 
+
+  @Test
+  void assertThatLogsAreExported() throws IOException {
+    String resultJson = new String(
+        Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+    double passes = ResultsCollector.read(resultJson,
+        "$.root_group.checks.['logs'].passes");
+    assertTrue(passes > 0, "log export is broken");
+  }
+
 }
