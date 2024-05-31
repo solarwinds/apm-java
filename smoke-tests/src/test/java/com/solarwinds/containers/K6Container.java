@@ -59,6 +59,7 @@ public class K6Container {
             .withEnv("SWO_COOKIE", System.getenv("SWO_COOKIE"))
             .withEnv("SWO_XSR_TOKEN", System.getenv("SWO_XSR_TOKEN"))
             .withEnv("LAMBDA", System.getenv("LAMBDA"))
+            .withEnv("SERVICE_NAME", "java-apm-smoke-test")
         .withCommand(
             "run",
             "--summary-export",

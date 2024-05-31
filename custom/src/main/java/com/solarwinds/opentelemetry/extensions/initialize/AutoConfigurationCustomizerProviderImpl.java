@@ -28,6 +28,11 @@ import com.solarwinds.opentelemetry.extensions.SolarwindsTracerProviderCustomize
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 
+/**
+ * An implementation of {@link AutoConfigurationCustomizer} which serves as the bootstrap for our
+ * distro. It's the first user class loaded by the upstream agent. We use the opportunity to
+ * bootstrap our configuration via static code.
+ */
 @AutoService({AutoConfigurationCustomizerProvider.class})
 public class AutoConfigurationCustomizerProviderImpl
     implements AutoConfigurationCustomizerProvider {

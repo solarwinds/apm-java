@@ -446,6 +446,105 @@ function verify_transaction_name() {
   }
 }
 
+function getEntityId() {
+  let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
+  const entityQueryPayload = {
+    "operationName": "getServiceEntitiesQuery",
+    "variables": {
+      "includeKubernetesClusterUid": false,
+      "filter": {
+        "types": [
+          "Service"
+        ]
+      },
+      "timeFilter": {
+        "startTime": "1 hour ago",
+        "endTime": "now"
+      },
+      "sortBy": {
+        "sorts": [
+          {
+            "propertyName": "name",
+            "direction": "DESC"
+          }
+        ]
+      },
+      "pagination": {
+        "first": 50
+      },
+      "bucketSizeInS": 60
+    },
+    "query": "query getServiceEntitiesQuery($filter: EntityFilterInput, $timeFilter: TimeRangeInput!, $sortBy: EntitySortInput, $pagination: PagingInput, $bucketSizeInS: Int!, $includeKubernetesClusterUid: Boolean = false) {\n  entities {\n    search(\n      filter: $filter\n      sortBy: $sortBy\n      paging: $pagination\n      timeRange: $timeFilter\n    ) {\n      totalEntitiesCount\n      pageInfo {\n        endCursor\n        hasNextPage\n        startCursor\n        hasPreviousPage\n        __typename\n      }\n      groups {\n        entities {\n          ... on Service {\n            ...ServiceEntity\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment ServiceEntity on Service {\n  id\n  name: displayName\n  lastSeenTime\n  language\n  kubernetesPodInstances @include(if: $includeKubernetesClusterUid) {\n    clusterUid\n    __typename\n  }\n  healthScore {\n    scoreV2\n    categoryV2\n    __typename\n  }\n  traceServiceErrorRatio {\n    ...MetricSeriesMeasurementsForServiceEntity\n    __typename\n  }\n  traceServiceErrorRatioValue\n  traceServiceRequestRate {\n    ...MetricSeriesMeasurementsForServiceEntity\n    __typename\n  }\n  traceServiceRequestRateValue\n  responseTime {\n    ...MetricSeriesMeasurementsForServiceEntity\n    __typename\n  }\n  responseTimeValue\n  sumRequests\n  __typename\n}\n\nfragment MetricSeriesMeasurementsForServiceEntity on Metric {\n  measurements(\n    metricInput: {aggregation: {method: AVG, bucketSizeInS: $bucketSizeInS, missingDataPointsHandling: NULL_FILL}, timeRange: $timeFilter}\n  ) {\n    series {\n      measurements {\n        time\n        value\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"
+  }
+
+  for (; retryCount; retryCount--) {
+    let entityResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(entityQueryPayload),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': `${__ENV.SWO_COOKIE}`,
+            'X-Csrf-Token': `${__ENV.SWO_XSR_TOKEN}`
+          }
+        });
+
+    entityResponse = JSON.parse(entityResponse.body)
+    if (entityResponse['errors']) {
+      console.log("Error -> Entity id response:", JSON.stringify(entityResponse))
+      continue
+    }
+
+    const {data: {entities: {search:{groups}}}} = entityResponse
+    for (let i = 0; i < groups.length; i++) {
+      const {entities} = groups[i]
+      for (let j = 0; j < entities.length; j++) {
+        const {name, id} = entities[j]
+
+        if(name === `${__ENV.SERVICE_NAME}`){
+          return id
+        }
+      }
+    }
+  }
+}
+
+function verify_logs_export() {
+  let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
+  const logQueryPayload = {
+    "operationName": "getLogEvents",
+    "variables": {
+      "input": {
+        "direction": "BACKWARD",
+        "searchLimit": 500,
+        "entityIds": [
+          getEntityId()
+        ],
+        "query": ""
+      }
+    },
+    "query": "query getLogEvents($input: LogEventsInput!) {\n  logEvents(input: $input) {\n    events {\n      id\n      facility\n      program\n      message\n      receivedAt\n      severity\n      sourceName\n      isJson\n      positions {\n        length\n        starts\n        __typename\n      }\n      __typename\n    }\n    cursor {\n      maxId\n      maxTimestamp\n      minId\n      minTimestamp\n      __typename\n    }\n    __typename\n  }\n}\n"
+  }
+
+  for (; retryCount; retryCount--) {
+    let logResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(logQueryPayload),
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': `${__ENV.SWO_COOKIE}`,
+            'X-Csrf-Token': `${__ENV.SWO_XSR_TOKEN}`
+          }
+        });
+
+    logResponse = JSON.parse(logResponse.body)
+    if (logResponse['errors']) {
+      console.log("Error -> Log response:", JSON.stringify(logResponse))
+      continue
+    }
+
+    const {data: {logEvents: {events}}} = logResponse
+    check(events, {"logs": events => events.length > 0})
+  }
+}
+
 function silence(fn) {
   try {
     fn()
@@ -480,10 +579,11 @@ export default function () {
     silence(verify_transaction_name)
 
   } else {
+    silence(verify_logs_export)
     silence(verify_that_specialty_path_is_not_sampled)
     silence(verify_that_span_data_is_persisted_0)
-    silence(verify_that_span_data_is_persisted)
 
+    silence(verify_that_span_data_is_persisted)
     silence(verify_that_trace_is_persisted)
     silence(verify_distributed_trace)
   }

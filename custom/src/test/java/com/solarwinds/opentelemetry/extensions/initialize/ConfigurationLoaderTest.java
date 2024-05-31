@@ -151,4 +151,49 @@ class ConfigurationLoaderTest {
     assertEquals("test", ServiceKeyUtils.getServiceName(serviceKeyAfter));
     assertEquals("token:test", serviceKeyAfter);
   }
+
+  @Test
+  @ClearSystemProperty(key = "otel.logs.exporter")
+  @ClearSystemProperty(key = "otel.exporter.otlp.protocol")
+  @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
+  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
+  void verifySettingOtelLogExportSystemVariablesWhenEnabled() throws InvalidConfigException {
+    ConfigContainer configContainer = new ConfigContainer();
+    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
+    configContainer.putByStringValue(
+        ConfigProperty.AGENT_COLLECTOR, "apm.collector.na-02.cloud.solarwinds.com");
+
+    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED, "true");
+    ConfigurationLoader.configOtelLogExport(configContainer);
+
+    assertEquals("otlp", System.getProperty("otel.logs.exporter"));
+    assertEquals("grpc", System.getProperty("otel.exporter.otlp.protocol"));
+
+    assertEquals(
+        "https://otel.collector.na-02.cloud.solarwinds.com",
+        System.getProperty("otel.exporter.otlp.logs.endpoint"));
+    assertEquals(
+        "authorization=Bearer token", System.getProperty("otel.exporter.otlp.logs.headers"));
+  }
+
+  @Test
+  @ClearSystemProperty(key = "otel.logs.exporter")
+  @ClearSystemProperty(key = "otel.exporter.otlp.protocol")
+  @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
+  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
+  void verifyOtelLogExportSystemVariablesAreNotSetWhenDisabled() throws InvalidConfigException {
+    ConfigContainer configContainer = new ConfigContainer();
+    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
+    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED, "false");
+    configContainer.putByStringValue(
+        ConfigProperty.AGENT_COLLECTOR, "apm.collector.na-02.cloud.solarwinds.com");
+
+    ConfigurationLoader.configOtelLogExport(configContainer);
+
+    assertNull(System.getProperty("otel.logs.exporter"));
+    assertNull(System.getProperty("otel.exporter.otlp.protocol"));
+
+    assertNull(System.getProperty("otel.exporter.otlp.logs.endpoint"));
+    assertNull(System.getProperty("otel.exporter.otlp.logs.headers"));
+  }
 }

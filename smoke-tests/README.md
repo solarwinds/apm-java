@@ -34,6 +34,12 @@ This directory contains the test machinery code and the machinery is held togeth
 - `SWO_EMAIL`: The swo user email used to get temporary login credentials.
 - `SWO_PWORD`: The swo user password.
 
+## Running the test
+- build docker image for `spring-boot-webmvc` and tag it with `smt:webmvc`
+- set environment variable `LAMBDA=false`
+- From the project root, run `./gradlew test`
+- To execute lambda tests set environment variable `LAMBDA=true`
+
 ## Viewing the data in SWO
 To view test generated data in swo, use service names: `java-apm-smoke-test`, `java-apm-smoke-test-webmvc` and `lambda-e2e`
 
