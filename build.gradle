@@ -44,10 +44,11 @@ subprojects {
                 opentelemetryJavaagent: "2.4.0",
                 bytebuddy             : "1.12.10",
                 guava                 : "30.1-jre",
-                joboe                 : "10.0.5",
+                joboe: "10.0.5",
                 agent                 : "2.4.0", // the custom distro agent version
                 autoservice           : "1.0.1",
                 caffeine              : "2.9.3",
+                json : "20231013",
         ]
         versions.opentelemetryAlpha = "${versions.opentelemetry}-alpha"
         versions.opentelemetrySemconv = "1.21.0-alpha"
@@ -66,15 +67,11 @@ subprojects {
         maven {
             url = uri("https://oss.sonatype.org/content/repositories/snapshots")
         }
-        maven {
-            url = uri("https://maven.pkg.github.com/solarwinds-cloud/maven-releases")
-            credentials {
-                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
-                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
-            }
-        }
         mavenLocal()
         mavenCentral()
+        flatDir {
+            dirs("$rootDir/libs")
+        }
     }
 
     dependencies {

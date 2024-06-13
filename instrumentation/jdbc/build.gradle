@@ -20,8 +20,10 @@ apply from: "$rootDir/gradle/instrumentation.gradle"
 dependencies {
   compileOnly project(":bootstrap")
   compileOnly "com.solarwinds.joboe:config:${versions.joboe}"
-  compileOnly "io.opentelemetry:opentelemetry-sdk-trace:${versions.opentelemetry}"
+  compileOnly "com.solarwinds.joboe:logging:${versions.joboe}"
+  compileOnly "org.json:json:${versions.json}"
 
+  compileOnly "io.opentelemetry:opentelemetry-sdk-trace:${versions.opentelemetry}"
   compileOnly "io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}"
   compileOnly "com.github.ben-manes.caffeine:caffeine:${versions.caffeine}"
 

@@ -21,20 +21,13 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Clone apm-java-test-apps
-        uses: actions/checkout@v4
-        with:
-          repository: appoptics/apm-java-test-apps
-          path: ./apm-java-test-apps
-          token: ${{ secrets.GP_TOKEN }}
-          ref: cc/local
       - name: Run application
-        working-directory: apm-java-test-apps
+        working-directory: smoke-tests
         run: |
           ./gradlew :netty-test:run
         env:
-          SW_APM_COLLECTOR: apm.collector.cloud.solarwinds.com
-          SW_APM_SERVICE_KEY: ${{ secrets.SW_APM_SERVICE_KEY }}:chubi-test
+          SW_APM_COLLECTOR: apm.collector.st-ssp.solarwinds.com
+          SW_APM_SERVICE_KEY: ${{ secrets.SW_APM_SERVICE_KEY_STAGE }}:chubi-test
 
   smoke-test-windows:
     runs-on: windows-latest
@@ -47,15 +40,8 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Clone apm-java-test-apps
-        uses: actions/checkout@v4
-        with:
-          repository: appoptics/apm-java-test-apps
-          path: ./apm-java-test-apps
-          token: ${{ secrets.GP_TOKEN }}
-          ref: cc/local
       - name: Run application
-        working-directory: apm-java-test-apps
+        working-directory: smoke-tests
         run: |
           .\gradlew.bat :netty-test:run
         env:

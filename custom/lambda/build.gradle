@@ -22,6 +22,7 @@ dependencies {
   annotationProcessor 'org.projectlombok:lombok:1.18.28'
   compileOnly "com.solarwinds.joboe:config:${versions.joboe}"
   compileOnly "com.solarwinds.joboe:sampling:${versions.joboe}"
+  compileOnly "com.solarwinds.joboe:logging:${versions.joboe}"
 
   annotationProcessor 'com.google.auto.service:auto-service:1.0.1'
   compileOnly "com.google.auto.service:auto-service-annotations:1.0.1"
@@ -35,7 +36,8 @@ dependencies {
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
 
   testImplementation project(path: ":custom:shared")
-  testImplementation("org.json:json:20231013")
+  testImplementation "org.json:json:${versions.json}"
+  testImplementation "com.solarwinds.joboe:sampling:${versions.joboe}"
 }
 
 test {

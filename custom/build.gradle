@@ -34,7 +34,8 @@ dependencies {
   annotationProcessor 'com.google.auto.service:auto-service:1.0.1'
 
   testImplementation project(path: ":custom:shared")
-  testImplementation("org.json:json:20231013")
+  testImplementation("org.json:json:${versions.json}")
+  testImplementation "com.solarwinds.joboe:core:${versions.joboe}"
 }
 
 tasks.withType(Checkstyle).configureEach {
