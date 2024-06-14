@@ -1,48 +1,304 @@
-# This workflow builds the NightHawk agent, run the tests, then publish a new release.
-# You'll need to bump the version by modifying `ext.versions.agent` property in the build.gradle file
-# then manually run this workflow to cut off a new release. The release name will be in the form of
-# "v+versionNumber". For example, if `ext.versions.agent` = 0.5.1, the release name will be "v0.5.1".
 name: Release
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  packages: write
+  contents: read
+  id-token: write
+
+env:
+  GITHUB_USERNAME: ${{ github.actor }}
+  PROD_BUCKET: ${{ secrets.PROD_BUCKET }}
 
 jobs:
-  build:
+  maven_release:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        ref: ${{ github.ref_name }}
-    - name: Set up JDK 11
-      uses: actions/setup-java@v3
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
       with:
-        java-version: '11'
+        java-version: '17'
         distribution: 'temurin'
+
     - name: Build with Gradle and Publish
       uses: gradle/gradle-build-action@v2.9.0
       with:
         arguments: publish
       env:
-        # These two secrets `secrets.GP_USERNAME` and `secrets.GP_TOKEN` are Github's PAT (Personal Access Token),
-        # which are used to download private packages from Github Packages (in our case, the Joboe core libs from https://github.com/librato/joboe)
-        # Gradle fetches the dependencies from Github Packages with this user/token pair, see build.gradle for the repositories config.
-        #
-        # Currently the PAT is set up under the trace-build service account and just requires read:packages access to the Librato org.
-        # (Check out this document about how to create a PAT: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
-        GP_USERNAME: ${{ secrets.GP_USERNAME }}
-        GP_TOKEN: ${{ secrets.GP_TOKEN }}
-        # GITHUB_TOKEN is used to publish the build artifacts (the NightHawk agent) to Github Packages.
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
         # The secrets are for publishing the build artifacts to the Maven Central.
-        SONATYPE_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-        SONATYPE_TOKEN: ${{ secrets.OSSRH_TOKEN }}
-        GPG_PRIVATE_KEY: ${{ secrets.SIGNING_KEY }}
-        GPG_PRIVATE_KEY_PASSPHRASE: ${{ secrets.SIGNING_PASSWORD }}
-    - name: Set agent version env
-      run: |
-        echo "AGENT_VERSION=v$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }')" >> $GITHUB_ENV
-    - name: Release and upload artifacts
-      run: gh release create ${{ env.AGENT_VERSION }} --title "${{ env.AGENT_VERSION }}" --target ${{ github.ref_name }} --draft agent/build/libs/*.jar
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+        SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
+        GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        GPG_PRIVATE_KEY_PASSPHRASE: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
+
+  github_release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build agent
+        run: ./gradlew clean build -x test
+
+      - name: Release and upload artifacts
+        run: |
+          VERSION=$(unzip -p agent/build/libs/solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }')
+          VERSION=$(echo $VERSION | sed 's/[^a-z0-9.-]//g') # remove illegal characters
+          echo "Current version is $VERSION"
+          
+          response=$(curl -fs -L \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}"\
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/$GITHUB_REPOSITORY/releases \
+            -d '{"tag_name":"v'"$VERSION"'", "name":"v'"$VERSION"'", "body":"New release: v'"$VERSION"'", "draft":false, "prerelease":false}')
+          
+          release_id=$(echo "$response" | jq -r '.id')
+          
+          echo "version: $VERSION" > version.txt
+          SHA256=$(sha256sum agent/build/libs/solarwinds-apm-agent.jar | awk '{print $1}')
+          echo "sha256: $SHA256" > checksum.txt
+          
+          # Function to upload a file to GitHub release
+          upload_file_to_release() {
+            local release_id="$1"
+            local file_path="$2"
+          
+            # Extract filename from file path
+            file_name=$(basename "$file_path")
+          
+            # Upload file to GitHub release
+            curl -fs \
+              -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Content-Type: application/octet-stream" \
+              --data-binary @"$file_path" \
+              "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$release_id/assets?name=$file_name"
+          }
+          
+          # Upload file to GitHub release
+          upload_file_to_release "$release_id" "version.txt"
+          upload_file_to_release "$release_id" "checksum.txt"
+          
+          upload_file_to_release "$release_id" "agent/build/libs/solarwinds-apm-agent.jar"
+          upload_file_to_release "$release_id" "custom/shared/src/main/resources/solarwinds-apm-config.json"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  s3-prod-upload:  # this job uploads the jar and default config json to prod s3
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build
+        run: ./gradlew clean build -x test
+
+      - name: Aws setup
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_S3_ROLE_ARN_SSP_PROD }}
+          aws-region: "us-east-1"
+
+      - name: Set agent version env
+        run: |
+          echo "AGENT_VERSION=$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }')" >> $GITHUB_ENV
+
+      - name: Check version doesn't exist
+        run: |
+          # make sure this version hasn't been pushed to prod yet
+          if curl -f -s "https://agent-binaries.cloud.solarwinds.com/apm/java/$AGENT_VERSION/solarwinds-apm-config.json" > /dev/null; then
+              echo "This version has been deployed to production already!"
+              exit 1
+          fi
+
+      - name: Copy to S3
+        run: |
+          aws s3 cp agent/build/libs/solarwinds-apm-agent.jar \
+          s3://$PROD_BUCKET/apm/java/$AGENT_VERSION/solarwinds-apm-agent.jar \
+          --acl public-read
+
+          aws s3 cp custom/shared/src/main/resources/solarwinds-apm-config.json \
+          s3://$PROD_BUCKET/apm/java/$AGENT_VERSION/solarwinds-apm-config.json \
+          --acl public-read
+
+      - name: Copy to S3(latest)
+        run: |
+          aws s3 cp s3://$PROD_BUCKET/apm/java/$AGENT_VERSION/solarwinds-apm-agent.jar \
+          s3://$PROD_BUCKET/apm/java/latest/solarwinds-apm-agent.jar \
+          --acl public-read
+
+          aws s3 cp s3://$PROD_BUCKET/apm/java/$AGENT_VERSION/solarwinds-apm-config.json \
+          s3://$PROD_BUCKET/apm/java/latest/solarwinds-apm-config.json \
+          --acl public-read
+
+          touch VERSION
+          echo "version: $AGENT_VERSION" >> VERSION
+          SHA256=$(sha256sum agent/build/libs/solarwinds-apm-agent.jar)
+          echo "sha256: $SHA256" >> VERSION
+
+          aws s3 cp VERSION \
+          s3://$PROD_BUCKET/apm/java/latest/VERSION \
+          --acl public-read
+
+  lambda-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Aws setup
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_LAMBDA_ROLE_PROD }}
+          aws-region: "us-east-1"
+
+      - name: Build agent
+        run: ./gradlew clean build -x test
+
+      - name: Create zip
+        run: ./gradlew :agent-lambda:lambda-layer
+
+      - name: Set agent version env
+        run: |
+          echo "AGENT_VERSION=v$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g')" >> $GITHUB_ENV
+
+      - name: Create lambda layer
+        run: |
+          regions=(
+          "ap-northeast-1"
+          "ap-northeast-2"
+          "ap-south-1"
+          "ap-southeast-1"
+          "ap-southeast-2"
+          "ca-central-1"
+          "eu-central-1"
+          "eu-north-1"
+          "eu-west-1"
+          "eu-west-2"
+          "eu-west-3"
+          "sa-east-1"
+          "us-east-1"
+          "us-east-2"
+          "us-west-1"
+          "us-west-2")
+
+          VERSION=$(echo "$AGENT_VERSION" | sed 's/[.]/_/g')
+          LAYER_NAME="solarwinds-apm-java-$VERSION"
+          touch arns.txt
+          layer_size=$(stat --printf=%s agent-lambda/build/lambda-layer/layer.zip)
+          
+          set +e
+          for region in "${regions[@]}"; do
+            status=0
+            aws lambda publish-layer-version \
+                        --layer-name $LAYER_NAME \
+                        --compatible-runtimes "java21" "java17" "java11" "java8.al2" \
+                        --compatible-architectures "x86_64" "arm64" \
+                        --description "Solarwinds' apm java lambda instrumentation layer, version: $AGENT_VERSION" \
+                        --region "$region" \
+                        --zip-file fileb://agent-lambda/build/lambda-layer/layer.zip \
+                        --output json > output.json
+
+            status=$?
+            if [ "$status" != 0 ]; then
+              echo "FAILED: publish $region"
+              continue
+            fi
+
+            pub_versionarn=$(jq -r '.LayerVersionArn' output.json)
+            pub_arn=$(jq -r '.LayerArn' output.json)
+            pub_version=$(jq -r '.Version' output.json)
+            pub_size=$(jq -r '.Content.CodeSize' output.json)
+
+            echo '-- verifying published layer --'
+            if [ "$pub_size" != "$layer_size" ]; then
+              echo "FAILED: Region = $region, versonArn = $pub_versionarn published size = $pub_size, expected size = $layer_size"
+              continue
+            fi
+
+            aws lambda add-layer-version-permission \
+              --region "$region" \
+              --layer-name "$pub_arn" \
+              --version-number "$pub_version" \
+              --principal '*' \
+              --action lambda:GetLayerVersion \
+              --statement-id global-GetLayerVersion
+
+            status=$?
+            if [ "$status" != 0 ]; then
+              echo "FAILED: add permission region = $region, versionArn = $pub_versionarn"
+              continue
+            fi
+
+            echo "$pub_versionarn" >> arns.txt
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          path: arns.txt
+
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Docker login
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
+
+      - name: Benchmark test
+        run: |
+          cd benchmark
+          ./gradlew test
+
+      - uses: actions/upload-artifact@v4
+        with:
+          path: benchmark/results/release/summary.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          path: benchmark/build/reports/tests/test/
+
+      - name: Docker logout
+        run: docker logout
