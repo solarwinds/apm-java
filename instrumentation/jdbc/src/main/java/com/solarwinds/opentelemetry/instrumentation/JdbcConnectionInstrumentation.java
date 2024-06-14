@@ -47,7 +47,7 @@ public class JdbcConnectionInstrumentation implements TypeInstrumentation {
         ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_TAG_PREPARED, false);
 
     if (sqlTagPrepared) {
-      // Duplicating lines 51 - 62 across TypeInstrumentation impls due runtime muzzle mismatch
+      // Duplicating lines 51 - 62 across TypeInstrumentation impls due to runtime muzzle mismatch
       // as a result of missing `net.bytebuddy.matcher.*` classes in consolidated method.
       ElementMatcher.Junction<TypeDescription> matcher = null;
       if (isDbConfigured(TraceContextInjector.Db.mysql)) {
