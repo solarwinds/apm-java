@@ -16,7 +16,7 @@
 
 package com.solarwinds.opentelemetry.instrumentation;
 
-import static com.solarwinds.opentelemetry.instrumentation.TraceContextInjector.buildMatcher;
+import static com.solarwinds.opentelemetry.instrumentation.TraceContextInjector.isDbConfigured;
 import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
@@ -45,8 +45,23 @@ public class JdbcConnectionInstrumentation implements TypeInstrumentation {
   public ElementMatcher<TypeDescription> typeMatcher() {
     Boolean sqlTagPrepared =
         ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_TAG_PREPARED, false);
+
     if (sqlTagPrepared) {
-      ElementMatcher.Junction<TypeDescription> matcher = buildMatcher();
+      // Duplicating lines 51 - 62 across TypeInstrumentation impls due to runtime muzzle mismatch
+      // as a result of missing `net.bytebuddy.matcher.*` classes in consolidated method.
+      ElementMatcher.Junction<TypeDescription> matcher = null;
+      if (isDbConfigured(TraceContextInjector.Db.mysql)) {
+        matcher = nameStartsWith("com.mysql.cj.jdbc"); // only inject MySQL JDBC driver
+      }
+
+      if (isDbConfigured(TraceContextInjector.Db.postgresql)) {
+        if (matcher != null) {
+          matcher = matcher.or(nameStartsWith("org.postgresql"));
+        } else {
+          matcher = nameStartsWith("org.postgresql");
+        }
+      }
+
       if (matcher != null) {
         return matcher.and(implementsInterface(named("java.sql.Connection")));
       }
