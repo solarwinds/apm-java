@@ -243,6 +243,7 @@ public class SmokeTest {
 
 
   @Test
+  @Disabled // Disabled because log linking doesn't work in staging at moment
   void assertThatLogsAreExported() throws IOException {
     String resultJson = new String(
         Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
