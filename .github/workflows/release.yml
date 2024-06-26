@@ -2,9 +2,7 @@ name: Release
 
 on:
   workflow_dispatch:
-  push:
     branches:
-      - main
 
 permissions:
   packages: write
@@ -29,10 +27,8 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Build with Gradle and Publish
-      uses: gradle/gradle-build-action@v2.9.0
-      with:
-        arguments: publish
+    - name: Build and Publish
+      run: ./gradlew clean publish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

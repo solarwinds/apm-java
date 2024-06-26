@@ -45,7 +45,7 @@ subprojects {
                 bytebuddy             : "1.12.10",
                 guava                 : "30.1-jre",
                 joboe                 : "10.0.6",
-                agent                 : "2.4.0", // the custom distro agent version
+                agent                 : "2.4.1", // the custom distro agent version
                 autoservice           : "1.0.1",
                 caffeine              : "2.9.3",
                 json : "20231013",
