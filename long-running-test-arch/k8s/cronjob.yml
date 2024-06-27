@@ -28,7 +28,7 @@ spec:
             - name: docker-cred
           containers:
             - name: k6-inst
-              image: ghcr.io/solarwinds-cloud/xk6:latest
+              image: ghcr.io/solarwinds/xk6:latest
               imagePullPolicy: Always
               args:
                 - "--out"
@@ -79,7 +79,7 @@ spec:
             - name: docker-cred
           containers:
             - name: k6-inst-rc
-              image: ghcr.io/solarwinds-cloud/xk6:latest
+              image: ghcr.io/solarwinds/xk6:latest
               imagePullPolicy: Always
               args:
                 - "--out"
@@ -130,7 +130,7 @@ spec:
             - name: docker-cred
           containers:
             - name: k6-uninst
-              image: ghcr.io/solarwinds-cloud/xk6:latest
+              image: ghcr.io/solarwinds/xk6:latest
               imagePullPolicy: Always
               args:
                 - "--out"

@@ -27,7 +27,7 @@ public class AOTestCollectorContainer {
 
     public static GenericContainer<?> build(Network network) {
         return new GenericContainer<>(
-                DockerImageName.parse("ghcr.io/solarwinds-cloud/apm-agent-test-collector:v2.0.4"))
+                DockerImageName.parse("ghcr.io/solarwinds/apm-agent-test-collector:v2.0.4"))
                 .withNetwork(network)
                 .withNetworkAliases("AOCollector")
                 .withLogConsumer(new Slf4jLogConsumer(logger))

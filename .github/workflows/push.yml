@@ -28,8 +28,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -47,7 +45,7 @@ jobs:
 
       - name: Set agent version env
         run: |
-          echo "AGENT_VERSION=$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }')" >> $GITHUB_ENV
+          echo "AGENT_VERSION=$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g')" >> $GITHUB_ENV
 
       - name: Copy to S3
         run: |
@@ -94,8 +92,6 @@ jobs:
       - s3-stage-upload
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Docker login
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
@@ -119,8 +115,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -161,7 +155,6 @@ jobs:
           done
           exit $lambda
 
-
   lambda-release-test:
     runs-on: ubuntu-latest
     needs:
@@ -170,8 +163,6 @@ jobs:
       LAMBDA: "true"
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -192,20 +183,19 @@ jobs:
           cd smoke-tests
           ./gradlew test -s
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           path: smoke-tests/build/reports/tests/test
+          name: lambda-release-test
 
       - name: Docker logout
         run: docker logout
 
-  lambda-publish:
+  lambda-publish-stage:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -303,6 +293,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           path: arns.txt
+          name: arns
 
   smoke-test-linux:
     runs-on: ubuntu-latest
@@ -310,8 +301,6 @@ jobs:
       - s3-stage-upload
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -332,8 +321,6 @@ jobs:
       - s3-stage-upload
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -347,3 +334,50 @@ jobs:
           .\gradlew.bat :netty-test:run
         env:
           SW_APM_SERVICE_KEY: ${{ secrets.SW_APM_SERVICE_KEY }}:smoke-test-windows
+
+  release-test:
+    runs-on: ubuntu-latest
+    env:
+      LAMBDA: "false"
+    needs:
+      - s3-stage-upload
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Docker login
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
+
+      - name: Build smoke-test
+        run: |
+          cd smoke-tests
+          ./gradlew build -x test
+
+      - name: Build webmvc jar
+        run: |
+          cd smoke-tests
+          ./gradlew :spring-boot-webmvc:build
+
+      - name: Build webmvc image
+        run: |
+          cd smoke-tests/spring-boot-webmvc
+          docker image build --tag smt:webmvc .
+
+      - name: Execute smoke tests
+        run: |
+          cd smoke-tests
+          ./gradlew test
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          path: smoke-tests/build/reports/tests/test
+          name: release-test
+
+      - name: Docker logout
+        run: docker logout
