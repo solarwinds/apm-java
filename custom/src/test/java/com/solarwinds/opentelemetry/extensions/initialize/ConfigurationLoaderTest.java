@@ -196,4 +196,22 @@ class ConfigurationLoaderTest {
     assertNull(System.getProperty("otel.exporter.otlp.logs.endpoint"));
     assertNull(System.getProperty("otel.exporter.otlp.logs.headers"));
   }
+
+  @Test
+  @ClearSystemProperty(key = "otel.logs.exporter")
+  @ClearSystemProperty(key = "otel.exporter.otlp.protocol")
+  @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
+  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
+  void verifyOtelLogExportEndpointIsProperlyFormed() throws InvalidConfigException {
+    ConfigContainer configContainer = new ConfigContainer();
+    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
+    configContainer.putByStringValue(
+        ConfigProperty.AGENT_COLLECTOR, "apm.collector.na-02.staging.solarwinds.com");
+
+    ConfigurationLoader.configOtelLogExport(configContainer);
+
+    assertEquals(
+        "https://otel.collector.na-02.staging.solarwinds.com",
+        System.getProperty("otel.exporter.otlp.logs.endpoint"));
+  }
 }

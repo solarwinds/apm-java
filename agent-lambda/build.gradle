@@ -54,6 +54,7 @@ dependencies {
 
     bootstrapLibs project(path: ":bootstrap")
     bootstrapLibs "com.solarwinds.joboe:config:${versions.joboe}"
+    bootstrapLibs "org.json:json:${versions.json}"
     bootstrapLibs "com.solarwinds.joboe:sampling:${versions.joboe}"
     bootstrapLibs "com.solarwinds.joboe:logging:${versions.joboe}"
 

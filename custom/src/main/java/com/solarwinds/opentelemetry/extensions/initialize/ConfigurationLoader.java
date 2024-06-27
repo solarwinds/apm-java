@@ -203,10 +203,16 @@ public class ConfigurationLoader {
 
       String[] fragments = collectorEndpoint.split("\\.");
       String dataCell = "na-01";
+      String env = "cloud";
+
       if (fragments.length > 2) {
         // This is based on knowledge of the SWO url format where the third name from the left in
         // the domain is the data-cell name and assumes this format will stay stable.
         dataCell = fragments[2];
+      }
+
+      if (fragments.length > 3) {
+        env = fragments[3];
       }
 
       System.setProperty("otel.exporter.otlp.protocol", "grpc");
@@ -215,7 +221,7 @@ public class ConfigurationLoader {
           "otel.exporter.otlp.logs.headers", String.format("authorization=Bearer %s", apiKey));
       System.setProperty(
           "otel.exporter.otlp.logs.endpoint",
-          String.format("https://otel.collector.%s.cloud.solarwinds.com", dataCell));
+          String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env));
     }
   }
 

@@ -35,7 +35,7 @@ spec:
         - name: docker-cred
       containers:
         - name: petclinic-ins
-          image: ghcr.io/solarwinds-cloud/petclinic:agent-latest
+          image: ghcr.io/solarwinds/petclinic:agent-latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -91,7 +91,7 @@ spec:
         - name: docker-cred
       containers:
         - name: petclinic-ins-rc
-          image: ghcr.io/solarwinds-cloud/petclinic:agent-rc
+          image: ghcr.io/solarwinds/petclinic:agent-rc
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
