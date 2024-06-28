@@ -46,6 +46,7 @@ public class OverheadTests {
   static void setUp() {
     collector = CollectorContainer.build(NETWORK);
     collector.start();
+
     aoCollector = AOTestCollectorContainer.build(NETWORK);
     aoCollector.start();
   }
@@ -53,6 +54,7 @@ public class OverheadTests {
   @AfterAll
   static void tearDown() {
     collector.close();
+    aoCollector.close();
   }
 
   @TestFactory
