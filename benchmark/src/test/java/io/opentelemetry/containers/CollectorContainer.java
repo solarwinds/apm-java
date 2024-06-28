@@ -29,7 +29,6 @@ public class CollectorContainer {
         .withNetworkAliases("collector")
         .withLogConsumer(new Slf4jLogConsumer(logger))
         .withExposedPorts(COLLECTOR_PORT, COLLECTOR_HEALTH_CHECK_PORT)
-        .waitingFor(Wait.forHttp("/health").forPort(COLLECTOR_HEALTH_CHECK_PORT))
         .withCopyFileToContainer(
             MountableFile.forClasspathResource("collector.yaml"), "/etc/otel.yaml")
         .withCommand("--config /etc/otel.yaml");

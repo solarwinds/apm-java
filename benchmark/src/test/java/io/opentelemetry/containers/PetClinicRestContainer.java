@@ -9,9 +9,6 @@ import io.opentelemetry.agents.Agent;
 import io.opentelemetry.agents.AgentResolver;
 import io.opentelemetry.agents.LatestSolarwindsAgentResolver;
 import io.opentelemetry.util.NamingConventions;
-
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -99,6 +96,7 @@ public class PetClinicRestContainer {
                       "-Dotel.traces.exporter=otlp",
                       "-Dotel.imr.export.interval=5000",
                       "-Dotel.exporter.otlp.insecure=true",
+                      "-Dotel.exporter.otlp.protocol=grpc",
                       "-Dotel.exporter.otlp.endpoint=http://collector:4317",
                       "-Dotel.resource.attributes=service.name=petclinic-otel-overhead"));
     } else {

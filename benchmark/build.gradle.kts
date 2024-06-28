@@ -1,6 +1,6 @@
 plugins {
   id("java")
-  id("com.diffplug.spotless") version "6.1.2"
+  id("com.diffplug.spotless") version "6.25.0"
 }
 
 spotless {
@@ -16,15 +16,18 @@ repositories {
 }
 
 dependencies {
-  testImplementation("org.testcontainers:testcontainers:1.16.2")
-  testImplementation("org.testcontainers:postgresql:1.15.3")
-  testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
-  testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.2")
-  testImplementation("com.squareup.okhttp3:okhttp:4.9.1")
-  testImplementation("org.jooq:joox:1.6.2")
-  testImplementation("com.jayway.jsonpath:json-path:2.6.0")
-  testImplementation("com.fasterxml.jackson.core:jackson-databind:2.0.1")
-  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
+  implementation(enforcedPlatform("org.junit:junit-bom:5.10.3"))
+
+  testImplementation("org.testcontainers:testcontainers:1.19.8")
+  testImplementation("org.testcontainers:postgresql:1.19.8")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation("org.junit.jupiter:junit-jupiter-params")
+  testImplementation("com.squareup.okhttp3:okhttp:4.12.0")
+  testImplementation("org.jooq:joox:2.0.1")
+  testImplementation("com.jayway.jsonpath:json-path:2.9.0")
+  testImplementation("org.slf4j:slf4j-simple:2.0.13")
+
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
 tasks {
