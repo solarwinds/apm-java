@@ -2,11 +2,31 @@ name: Release
 
 on:
   workflow_dispatch:
-    branches:
+    inputs:
+      run_maven_release:
+        type: boolean
+        default: false
+        required: false
+        description: Choose whether to do maven release
+      run_github_release:
+        type: boolean
+        default: false
+        required: false
+        description: Choose whether to do Github release
+      run_s3_upload:
+        type: boolean
+        default: false
+        required: false
+        description: Choose whether to do S3 upload
+      run_lambda_publish:
+        type: boolean
+        default: false
+        required: false
+        description: Choose whether to do lambda publish
 
 permissions:
   packages: write
-  contents: read
+  contents: write
   id-token: write
 
 env:
@@ -15,6 +35,7 @@ env:
 
 jobs:
   maven_release:
+    if: inputs.run_maven_release
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -25,11 +46,13 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Build and Publish
-      run: ./gradlew clean publish
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+
+    - name: Publish
+      run: ./gradlew publish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
         # The secrets are for publishing the build artifacts to the Maven Central.
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
         SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
@@ -37,6 +60,7 @@ jobs:
         GPG_PRIVATE_KEY_PASSPHRASE: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
 
   github_release:
+    if: inputs.run_github_release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -97,6 +121,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   s3-prod-upload:  # this job uploads the jar and default config json to prod s3
+    if: inputs.run_s3_upload
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -158,6 +183,7 @@ jobs:
           --acl public-read
 
   lambda-publish:
+    if: inputs.run_lambda_publish
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
