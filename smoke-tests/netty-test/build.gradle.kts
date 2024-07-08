@@ -1,9 +1,3 @@
-import com.jayway.jsonpath.JsonPath
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
-
 /*
  * © SolarWinds Worldwide, LLC. All rights reserved.
  *
@@ -24,12 +18,6 @@ plugins {
     java
     application
     id("de.undercouch.download") version "5.5.0"
-}
-
-buildscript {
-  dependencies {
-    classpath("com.jayway.jsonpath:json-path:2.9.0")
-  }
 }
 
 group = "com.solarwinds"
@@ -54,32 +42,6 @@ val swoAgentPath = project.buildDir.toString() + "/swo/solarwinds-apm-agent.jar"
 fun getAgentPath(downloadPath: String) = if (System.getenv("AGENT_PATH") == null) downloadPath
 else System.getenv("AGENT_PATH")
 
-fun getAgentUrlFromGitRelease(): String {
-  val httpClient = HttpClient.newHttpClient()
-  // Environment variables set by pipeline
-  val agentVersion = System.getenv("AGENT_VERSION")
-  val commitHash = System.getenv("AGENT_COMMIT_HASH")
-
-  val version = "v$agentVersion.$commitHash" // The format used by pipeline to name test pre-releases
-  val tagRequest = HttpRequest.newBuilder()
-    .uri(URI.create("https://api.github.com/repos/solarwinds/apm-java/releases/tags/$version"))
-    .header("Authorization", "Bearer " + System.getenv("GITHUB_TOKEN"))
-    .header("Accept", "application/vnd.github.v3+json")
-    .GET().build()
-
-  val tagResponse = httpClient.send(tagRequest, HttpResponse.BodyHandlers.ofString())
-  val releaseId = JsonPath.parse(tagResponse.body()).read<Int>("$.id")
-  val request = HttpRequest.newBuilder()
-    .uri(URI.create("https://api.github.com/repos/solarwinds/apm-java/releases/$releaseId"))
-    .header("Authorization", "Bearer " + System.getenv("GITHUB_TOKEN"))
-    .header("Accept", "application/vnd.github.v3+json")
-    .GET().build()
-
-  val httpResponse = httpClient.send(request, HttpResponse.BodyHandlers.ofString())
-  // We're grabbing the first asset url because the pipeline only uploads the agent jar and nothing else.
-  return JsonPath.parse(httpResponse.body()).read("$.assets[0].url")
-}
-
 application {
     mainClass.set("com.solarwinds.netty.NettyApp")
     applicationDefaultJvmArgs = listOf("-javaagent:${getAgentPath(swoAgentPath)}")
@@ -87,12 +49,9 @@ application {
 
 tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadSwoAgent") {
     doNotTrackState("Runs everytime because new build needs to be downloaded")
-    src(getAgentUrlFromGitRelease())
+    src(System.getenv("AGENT_DOWNLOAD_URL"))
     dest(swoAgentPath)
-
     overwrite(true)
-    header("Authorization", "Bearer " + System.getenv("GITHUB_TOKEN"))
-    header("Accept", "application/octet-stream")
 }
 
 tasks.named("run", JavaExec::class) {
