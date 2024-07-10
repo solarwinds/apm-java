@@ -197,28 +197,31 @@ public class ConfigurationLoader {
   static void configOtelLogExport(ConfigContainer container) {
     Boolean exportLog = (Boolean) container.get(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED);
     String collectorEndpoint = (String) container.get(ConfigProperty.AGENT_COLLECTOR);
-    if (collectorEndpoint != null && (exportLog == null || exportLog)) {
+
+    if (exportLog == null || exportLog) {
       String serviceKey = (String) container.get(ConfigProperty.AGENT_SERVICE_KEY);
       String apiKey = ServiceKeyUtils.getApiKey(serviceKey);
 
-      String[] fragments = collectorEndpoint.split("\\.");
       String dataCell = "na-01";
       String env = "cloud";
+      if (collectorEndpoint != null) {
+        String[] fragments = collectorEndpoint.split("\\.");
+        if (fragments.length > 2) {
+          // This is based on knowledge of the SWO url format where the third name from the left in
+          // the domain is the data-cell name and assumes this format will stay stable.
+          dataCell = fragments[2];
+        }
 
-      if (fragments.length > 2) {
-        // This is based on knowledge of the SWO url format where the third name from the left in
-        // the domain is the data-cell name and assumes this format will stay stable.
-        dataCell = fragments[2];
-      }
-
-      if (fragments.length > 3) {
-        env = fragments[3];
+        if (fragments.length > 3) {
+          env = fragments[3];
+        }
       }
 
       System.setProperty("otel.exporter.otlp.protocol", "grpc");
       System.setProperty("otel.logs.exporter", "otlp");
       System.setProperty(
           "otel.exporter.otlp.logs.headers", String.format("authorization=Bearer %s", apiKey));
+
       System.setProperty(
           "otel.exporter.otlp.logs.endpoint",
           String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env));

@@ -214,4 +214,19 @@ class ConfigurationLoaderTest {
         "https://otel.collector.na-02.staging.solarwinds.com",
         System.getProperty("otel.exporter.otlp.logs.endpoint"));
   }
+
+  @Test
+  @ClearSystemProperty(key = "otel.logs.exporter")
+  @ClearSystemProperty(key = "otel.exporter.otlp.protocol")
+  @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
+  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
+  void verifyDefaultEndpointIsUsed() throws InvalidConfigException {
+    ConfigContainer configContainer = new ConfigContainer();
+    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
+    ConfigurationLoader.configOtelLogExport(configContainer);
+
+    assertEquals(
+        "https://otel.collector.na-01.cloud.solarwinds.com",
+        System.getProperty("otel.exporter.otlp.logs.endpoint"));
+  }
 }
