@@ -14,8 +14,12 @@ public enum Configs {
   RELEASE(
       TestConfig.builder()
           .name("release")
-          .description("compares no agent, latest Otel standard, and latest NH/AO agents")
-          .withAgents(Agent.LATEST_RELEASE, Agent.NH_LATEST_RELEASE, Agent.NONE)
+          .description("compares no agent, latest Otel standard, and latest SWO agents")
+          .withAgents(
+              Agent.OTEL_LATEST_RELEASE,
+              Agent.SWO_SNAPSHOT_RELEASE,
+              Agent.SWO_GA_RELEASE,
+              Agent.NONE)
           .warmupSeconds(60)
           .build());
 

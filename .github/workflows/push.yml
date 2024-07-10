@@ -387,6 +387,8 @@ jobs:
 
   benchmark:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     needs:
       - s3-stage-upload
     steps:

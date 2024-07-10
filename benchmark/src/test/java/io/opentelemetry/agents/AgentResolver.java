@@ -19,21 +19,26 @@ import okhttp3.Response;
 public class AgentResolver {
 
   private final LatestAgentSnapshotResolver snapshotResolver = new LatestAgentSnapshotResolver();
-  private final LatestSolarwindsAgentResolver nighthawkAgentResolver =
-      new LatestSolarwindsAgentResolver();
+  private final SnapshotResolver swoSnapshotResolver = new SnapshotResolver();
+  private final GaResolver swoGaResolver = new GaResolver();
 
   public Optional<Path> resolve(Agent agent) throws Exception {
     if (Agent.NONE.equals(agent)) {
       return Optional.empty();
     }
-    if (Agent.LATEST_SNAPSHOT.equals(agent)) {
+
+    if (Agent.OTEL_LATEST_SNAPSHOT.equals(agent)) {
       return snapshotResolver.resolve();
-    } else if (Agent.NH_LATEST_RELEASE.equals(agent)) {
-      return nighthawkAgentResolver.resolve();
+    } else if (Agent.SWO_SNAPSHOT_RELEASE.equals(agent)) {
+      return swoSnapshotResolver.resolve();
+    } else if (Agent.SWO_GA_RELEASE.equals(agent)) {
+      return swoGaResolver.resolve();
     }
+
     if (agent.hasUrl()) {
       return Optional.of(downloadAgent(agent.getUrl()));
     }
+
     throw new IllegalArgumentException("Unknown agent: " + agent);
   }
 
