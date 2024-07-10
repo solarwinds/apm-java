@@ -46,13 +46,13 @@ spec:
                   name: swo-tokens
                   key: service-key
             - name: SW_APM_COLLECTOR
-              value: apm.collector.na-01.dev-ssp.solarwinds.com
+              value: apm.collector.na-01.st-ssp.solarwinds.com
             - name: OTEL_LOGS_EXPORTER
               value: otlp
             - name: OTEL_EXPORTER_OTLP_PROTOCOL
               value: grpc
             - name: OTEL_EXPORTER_OTLP_LOGS_ENDPOINT
-              value: https://otel-collector.dc-01.dev-ssp.solarwinds.com
+              value: https://otel.collector.na-01.st-ssp.solarwinds.com
             - name: OTEL_EXPORTER_OTLP_LOGS_HEADERS
               valueFrom:
                 secretKeyRef:
@@ -102,13 +102,13 @@ spec:
                   name: swo-tokens
                   key: service-key
             - name: SW_APM_COLLECTOR
-              value: apm.collector.na-01.dev-ssp.solarwinds.com
+              value: apm.collector.na-01.st-ssp.solarwinds.com
             - name: OTEL_LOGS_EXPORTER
               value: otlp
             - name: OTEL_EXPORTER_OTLP_PROTOCOL
               value: grpc
             - name: OTEL_EXPORTER_OTLP_LOGS_ENDPOINT
-              value: https://otel-collector.dc-01.dev-ssp.solarwinds.com
+              value: https://otel.collector.na-01.st-ssp.solarwinds.com
             - name: OTEL_EXPORTER_OTLP_LOGS_HEADERS
               valueFrom:
                 secretKeyRef:

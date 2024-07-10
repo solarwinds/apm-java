@@ -46,7 +46,7 @@ spec:
                 - name: OTEL_LOGS_EXPORTER
                   value: otlp
                 - name: OTEL_EXPORTER_OTLP_ENDPOINT
-                  value: https://otel-collector.dc-01.dev-ssp.solarwinds.com:443
+                  value: https://otel.collector.na-01.st-ssp.solarwinds.com:443
                 - name: OTEL_EXPORTER_OTLP_HEADERS
                   valueFrom:
                     secretKeyRef:
@@ -97,7 +97,7 @@ spec:
                 - name: OTEL_LOGS_EXPORTER
                   value: otlp
                 - name: OTEL_EXPORTER_OTLP_ENDPOINT
-                  value: https://otel-collector.dc-01.dev-ssp.solarwinds.com:443
+                  value: https://otel.collector.na-01.st-ssp.solarwinds.com:443
                 - name: OTEL_EXPORTER_OTLP_HEADERS
                   valueFrom:
                     secretKeyRef:
@@ -146,7 +146,7 @@ spec:
                 - name: HOST_ENDPOINT
                   value: "http://uninstrumented-service:8080"
                 - name: OTEL_EXPORTER_OTLP_ENDPOINT
-                  value: https://otel-collector.dc-01.dev-ssp.solarwinds.com:443
+                  value: https://otel.collector.na-01.st-ssp.solarwinds.com:443
                 - name: OTEL_EXPORTER_OTLP_HEADERS
                   valueFrom:
                     secretKeyRef:
