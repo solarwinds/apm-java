@@ -20,13 +20,8 @@ import static com.solarwinds.opentelemetry.core.Constants.SW_KEY_PREFIX;
 
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
-import com.solarwinds.joboe.core.ReporterFactory;
 import com.solarwinds.joboe.core.profiler.Profiler;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;
-import com.solarwinds.joboe.core.rpc.ClientException;
-import com.solarwinds.joboe.core.rpc.RpcClientManager;
-import com.solarwinds.joboe.logging.Logger;
-import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.Metadata;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.opentelemetry.core.Util;
@@ -39,28 +34,10 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
 
 /** Span process to perform code profiling */
 public class SolarwindsProfilingSpanProcessor implements SpanProcessor {
-  private static final Logger logger = LoggerFactory.getLogger();
   private static final ProfilerSetting profilerSetting =
       (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);
   private static final boolean PROFILER_ENABLED =
       profilerSetting != null && profilerSetting.isEnabled();
-
-  static {
-    if (PROFILER_ENABLED) {
-      try {
-        Profiler.initialize(
-            profilerSetting,
-            ReporterFactory.getInstance()
-                .createQueuingEventReporter(
-                    RpcClientManager.getClient(RpcClientManager.OperationType.PROFILING)));
-      } catch (ClientException e) {
-        logger.error("Error creating profiling report", e);
-        throw new RuntimeException(e);
-      }
-    } else {
-      logger.info("Profiler is disabled.");
-    }
-  }
 
   @Override
   public void onStart(@Nonnull Context parentContext, ReadWriteSpan span) {

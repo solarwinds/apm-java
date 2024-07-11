@@ -68,6 +68,8 @@ spec:
               value: "petclinic"
             - name: spring_datasource_password
               value: "petclinic"
+            - name: SW_APM_PROFILER_ENABLED
+              value: "true"
 
 ---
 apiVersion: apps/v1
@@ -124,6 +126,8 @@ spec:
               value: "petclinic"
             - name: spring_datasource_password
               value: "petclinic"
+            - name: SW_APM_PROFILER_ENABLED
+              value: "true"
 
 ---
 apiVersion: apps/v1
