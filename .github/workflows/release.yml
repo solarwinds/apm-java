@@ -285,35 +285,3 @@ jobs:
         with:
           path: arns.txt
           name: arns
-
-  benchmark:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Docker login
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
-
-      - name: Benchmark test
-        run: |
-          cd benchmark
-          ./gradlew test
-
-      - uses: actions/upload-artifact@v4
-        with:
-          path: benchmark/results/release/summary.txt
-          name: benchmark-summary
-
-      - uses: actions/upload-artifact@v4
-        with:
-          path: benchmark/build/reports/tests/test/
-          name: benchmark-test
-
-      - name: Docker logout
-        run: docker logout

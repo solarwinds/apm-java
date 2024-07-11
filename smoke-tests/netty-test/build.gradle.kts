@@ -48,7 +48,7 @@ application {
 }
 
 tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadSwoAgent") {
-    doNotTrackState("Runs everytime since new build needs to be downloaded")
+    doNotTrackState("Runs everytime because new build needs to be downloaded")
     src(System.getenv("AGENT_DOWNLOAD_URL"))
     dest(swoAgentPath)
     overwrite(true)

@@ -7,11 +7,7 @@ package io.opentelemetry.containers;
 
 import io.opentelemetry.agents.Agent;
 import io.opentelemetry.agents.AgentResolver;
-import io.opentelemetry.agents.LatestSolarwindsAgentResolver;
 import io.opentelemetry.util.NamingConventions;
-
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,13 +44,12 @@ public class PetClinicRestContainer {
   }
 
   public GenericContainer<?> build() throws Exception {
-
     Optional<Path> agentJar = agentResolver.resolve(this.agent);
 
     GenericContainer<?> container =
         new GenericContainer<>(
                 DockerImageName.parse(
-                    "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/petclinic-rest-base:latest"))
+                    "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/petclinic-rest-base:20230601125442"))
             .withNetwork(network)
             .withNetworkAliases("petclinic")
             .withLogConsumer(new Slf4jLogConsumer(logger))
@@ -74,11 +69,8 @@ public class PetClinicRestContainer {
             .withEnv("SW_APM_DEBUG_LEVEL", "info")
             .withEnv("SW_APM_COLLECTOR", "AOCollector:12223")
             .withEnv("SW_APM_TRUSTEDPATH", "/test-server-grpc.crt")
-                .withEnv("APPOPTICS_DEBUG_LEVEL", "info")
-                .withEnv("APPOPTICS_COLLECTOR", "AOCollector:12223")
-                .withEnv("APPOPTICS_TRUSTEDPATH", "/test-server-grpc.crt")
             .withCopyFileToContainer(
-                        MountableFile.forClasspathResource("test-server-grpc.crt"), "/test-server-grpc.crt")
+                MountableFile.forClasspathResource("test-server-grpc.crt"), "/test-server-grpc.crt")
             .dependsOn(collector)
             .withCommand(buildCommandline(agentJar));
     agentJar.ifPresent(
@@ -92,22 +84,29 @@ public class PetClinicRestContainer {
   @NotNull
   private String[] buildCommandline(Optional<Path> agentJar) {
     List<String> result = new ArrayList<>();
-    if (!agent.equals(Agent.NH_LATEST_RELEASE)) {
+    if (agent.equals(Agent.OTEL_LATEST_RELEASE)) {
       result.addAll(
-              Arrays.asList(
-                      "java",
-                      "-Dotel.traces.exporter=otlp",
-                      "-Dotel.imr.export.interval=5000",
-                      "-Dotel.exporter.otlp.insecure=true",
-                      "-Dotel.exporter.otlp.endpoint=http://collector:4317",
-                      "-Dotel.resource.attributes=service.name=petclinic-otel-overhead"));
+          Arrays.asList(
+              "java",
+              "-Dotel.traces.exporter=otlp",
+              "-Dotel.imr.export.interval=5000",
+              "-Dotel.exporter.otlp.insecure=true",
+              "-Dotel.exporter.otlp.protocol=grpc",
+              "-Dotel.exporter.otlp.endpoint=http://collector:4317",
+              "-Dotel.resource.attributes=service.name=petclinic-otel-overhead"));
     } else {
-      result.addAll(Arrays.asList("java",
-              "-Dotel.solarwinds.service.key=" + System.getenv("SW_APM_SERVICE_KEY") + ":sw-java-benchmark"));
+      result.addAll(
+          Arrays.asList(
+              "java",
+              "-Dsw.apm.service.key="
+                  + System.getenv("SW_APM_SERVICE_KEY")
+                  + ":sw-java-benchmark"));
     }
+
     result.addAll(this.agent.getAdditionalJvmArgs());
-    agentJar.ifPresent(path -> result.add("-javaagent:/app/" + path.getFileName() + (LatestSolarwindsAgentResolver.useAOAgent ? "=service_key="+System.getenv("SW_APM_SERVICE_KEY")+":sw-java-benchmark":"")));
+    agentJar.ifPresent(path -> result.add("-javaagent:/app/" + path.getFileName()));
     result.add("-jar");
+
     result.add("/app/spring-petclinic-rest.jar");
     System.err.println("Running app with command:\n" + String.join(" ", result));
     return result.toArray(new String[] {});

@@ -40,12 +40,18 @@ public class OverheadTests {
   private static GenericContainer<?> aoCollector;
   private final NamingConventions namingConventions = new NamingConventions();
   private final Map<String, Long> runDurations = new HashMap<>();
-  private static Set<String> verboseConfig = new HashSet<>(Arrays.asList(Strings.split(System.getenv("CONTAINER_LOGS") != null ? System.getenv("CONTAINER_LOGS") : "", '|')));
+  private static Set<String> verboseConfig =
+      new HashSet<>(
+          Arrays.asList(
+              Strings.split(
+                  System.getenv("CONTAINER_LOGS") != null ? System.getenv("CONTAINER_LOGS") : "",
+                  '|')));
 
   @BeforeAll
   static void setUp() {
     collector = CollectorContainer.build(NETWORK);
     collector.start();
+
     aoCollector = AOTestCollectorContainer.build(NETWORK);
     aoCollector.start();
   }
@@ -53,6 +59,7 @@ public class OverheadTests {
   @AfterAll
   static void tearDown() {
     collector.close();
+    aoCollector.close();
   }
 
   @TestFactory
@@ -102,14 +109,18 @@ public class OverheadTests {
 
     if (verboseConfig.contains("all") || verboseConfig.contains("app")) {
       String logs = petclinic.getLogs();
-      System.err.println(String.format("\n\n===============%s====================\n\n%s\n\n==============================="
-              , agent.getName(), logs));
+      System.err.println(
+          String.format(
+              "\n\n===============%s====================\n\n%s\n\n===============================",
+              agent.getName(), logs));
     }
 
     if (verboseConfig.contains("all") || verboseConfig.contains("collector")) {
       String aoCollectorLogs = aoCollector.getLogs();
-      System.err.println(String.format("\n\n===============%s====================\n\n%s\n\n==============================="
-              , aoCollector.getDockerImageName(), aoCollectorLogs));
+      System.err.println(
+          String.format(
+              "\n\n===============%s====================\n\n%s\n\n===============================",
+              aoCollector.getDockerImageName(), aoCollectorLogs));
     }
     // This is required to get a graceful exit of the VM before testcontainers kills it forcibly.
     // Without it, our jfr file will be empty.
@@ -134,22 +145,33 @@ public class OverheadTests {
     petclinic.execInContainer(command);
   }
 
-  private void doWarmupPhase(TestConfig testConfig, GenericContainer<?> petclinic) throws IOException, InterruptedException {
-    System.out.println("Performing startup warming phase for " + testConfig.getWarmupSeconds() + " seconds...");
+  private void doWarmupPhase(TestConfig testConfig, GenericContainer<?> petclinic)
+      throws IOException, InterruptedException {
+    System.out.println(
+        "Performing startup warming phase for " + testConfig.getWarmupSeconds() + " seconds...");
 
     // excluding the JFR recording from the warmup causes strange inconsistencies in the results
     System.out.println("Starting disposable JFR warmup recording...");
-    String[] startCommand = {"jcmd", "1", "JFR.start", "settings=/app/overhead.jfc", "dumponexit=true", "name=warmup", "filename=warmup.jfr"};
+    String[] startCommand = {
+      "jcmd",
+      "1",
+      "JFR.start",
+      "settings=/app/overhead.jfc",
+      "dumponexit=true",
+      "name=warmup",
+      "filename=warmup.jfr"
+    };
     petclinic.execInContainer(startCommand);
 
-    long deadline = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(testConfig.getWarmupSeconds());
-    while(System.currentTimeMillis() < deadline) {
+    long deadline =
+        System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(testConfig.getWarmupSeconds());
+    while (System.currentTimeMillis() < deadline) {
       GenericContainer<?> k6 =
-              new GenericContainer<>(DockerImageName.parse("loadimpact/k6"))
-                      .withNetwork(NETWORK)
-                      .withCopyFileToContainer(MountableFile.forHostPath("./k6"), "/app")
-                      .withCommand("run", "-u", "5", "-i", "200", "/app/basic.js")
-                      .withStartupCheckStrategy(new OneShotStartupCheckStrategy());
+          new GenericContainer<>(DockerImageName.parse("loadimpact/k6"))
+              .withNetwork(NETWORK)
+              .withCopyFileToContainer(MountableFile.forHostPath("./k6"), "/app")
+              .withCommand("run", "-u", "5", "-i", "200", "/app/basic.js")
+              .withStartupCheckStrategy(new OneShotStartupCheckStrategy());
       k6.start();
     }
 
