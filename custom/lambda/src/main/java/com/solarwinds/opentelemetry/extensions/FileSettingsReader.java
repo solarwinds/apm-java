@@ -28,7 +28,6 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class FileSettingsReader {
@@ -43,23 +42,25 @@ public class FileSettingsReader {
     this.settingsFilePath = settingsFilePath;
   }
 
-  public Map<String, Settings> getSettings() throws SamplingException {
+  public Settings getSettings() throws SamplingException {
+    Settings settings = null;
     try {
       byte[] bytes = Files.readAllBytes(Paths.get(settingsFilePath));
-      Map<String, Settings> kvSetting =
-          convertToSettingsMap(gson.fromJson(new String(bytes), type));
+      List<Settings> kvSetting = convertToSettingsMap(gson.fromJson(new String(bytes), type));
       logger.debug(String.format("Got settings from file: %s", kvSetting));
 
-      return kvSetting;
+      if (!kvSetting.isEmpty()) {
+        settings = kvSetting.get(0);
+      }
 
     } catch (IOException e) {
       logger.debug(String.format("Failed to read settings from file, error: %s", e));
       throw new SamplingException("Error reading settings from file");
     }
+    return settings;
   }
 
-  private Map<String, Settings> convertToSettingsMap(List<JsonSettings> jsonSettings) {
-    return jsonSettings.stream()
-        .collect(Collectors.toMap(JsonSettings::getLayer, FileSettings::new));
+  private List<Settings> convertToSettingsMap(List<JsonSettings> jsonSettings) {
+    return jsonSettings.stream().map(FileSettings::new).collect(Collectors.toList());
   }
 }

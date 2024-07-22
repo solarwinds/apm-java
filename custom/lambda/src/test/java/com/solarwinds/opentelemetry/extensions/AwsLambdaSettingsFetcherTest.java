@@ -24,8 +24,6 @@ import static org.mockito.Mockito.when;
 import com.solarwinds.joboe.sampling.SamplingException;
 import com.solarwinds.joboe.sampling.Settings;
 import com.solarwinds.joboe.sampling.SettingsListener;
-import java.util.Collections;
-import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -45,13 +43,7 @@ class AwsLambdaSettingsFetcherTest {
 
   @Test
   void returnSettingsWhenNoSettings() throws SamplingException {
-    when(fileSettingsReaderMock.getSettings())
-        .thenReturn(
-            new HashMap<>() {
-              {
-                put("", settingsMock);
-              }
-            });
+    when(fileSettingsReaderMock.getSettings()).thenReturn(settingsMock);
 
     tested.getSettings();
 
@@ -60,13 +52,7 @@ class AwsLambdaSettingsFetcherTest {
 
   @Test
   void returnSettingsWhenSettingsExpired() throws SamplingException {
-    when(fileSettingsReaderMock.getSettings())
-        .thenReturn(
-            new HashMap<>() {
-              {
-                put("", settingsMock);
-              }
-            });
+    when(fileSettingsReaderMock.getSettings()).thenReturn(settingsMock);
 
     when(settingsMock.getTimestamp()).thenReturn(0L);
     when(settingsMock.getTtl()).thenReturn(0L);
@@ -79,13 +65,7 @@ class AwsLambdaSettingsFetcherTest {
 
   @Test
   void callListenerOnSettingsRetrieved() throws SamplingException {
-    when(fileSettingsReaderMock.getSettings())
-        .thenReturn(
-            new HashMap<>() {
-              {
-                put("", settingsMock);
-              }
-            });
+    when(fileSettingsReaderMock.getSettings()).thenReturn(settingsMock);
 
     tested.registerListener(settingsListenerMock);
     tested.getSettings();
@@ -95,7 +75,7 @@ class AwsLambdaSettingsFetcherTest {
 
   @Test
   void returnNullWhenNoSettings() throws SamplingException {
-    when(fileSettingsReaderMock.getSettings()).thenReturn(Collections.emptyMap());
+    when(fileSettingsReaderMock.getSettings()).thenReturn(null);
 
     tested.getSettings();
 
