@@ -123,6 +123,8 @@ tasks {
     }
     exclude("**/module-info.class")
     exclude("inst/com/solarwinds/opentelemetry/core/**")
+    exclude("com/solarwinds/joboe/shaded/google/errorprone/annotations/**")
+
     relocatePackages(it)
 
     manifest {

@@ -49,7 +49,6 @@ jobs:
 
       - name: Copy to S3
         run: |
-          ls -al
           aws s3 cp agent/build/libs/solarwinds-apm-agent.jar \
           s3://$STAGE_BUCKET/apm/java/$AGENT_VERSION/solarwinds-apm-agent.jar \
           --acl public-read
