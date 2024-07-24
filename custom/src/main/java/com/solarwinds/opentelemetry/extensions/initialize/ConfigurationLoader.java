@@ -196,14 +196,14 @@ public class ConfigurationLoader {
 
   static void configOtelLogExport(ConfigContainer container) {
     Boolean exportLog = (Boolean) container.get(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED);
-    String collectorEndpoint = (String) container.get(ConfigProperty.AGENT_COLLECTOR);
-
-    if (exportLog == null || exportLog) {
+    if (exportLog != null && exportLog) {
       String serviceKey = (String) container.get(ConfigProperty.AGENT_SERVICE_KEY);
       String apiKey = ServiceKeyUtils.getApiKey(serviceKey);
 
       String dataCell = "na-01";
       String env = "cloud";
+      String collectorEndpoint = (String) container.get(ConfigProperty.AGENT_COLLECTOR);
+
       if (collectorEndpoint != null) {
         String[] fragments = collectorEndpoint.split("\\.");
         if (fragments.length > 2) {

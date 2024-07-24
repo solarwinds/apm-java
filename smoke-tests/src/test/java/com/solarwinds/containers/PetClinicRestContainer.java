@@ -85,6 +85,7 @@ public class PetClinicRestContainer implements Container {
               String.format("authorization=Bearer %s", System.getenv("SW_APM_SERVICE_KEY")))
           .withEnv("OTEL_SERVICE_NAME", "lambda-e2e")
           .withEnv("SW_APM_TRANSACTION_NAME", "lambda-test-txn")
+          .withEnv("SW_APM_EXPORT_LOGS_ENABLED", "true")
           .withStartupTimeout(Duration.ofMinutes(5))
           .withCopyFileToContainer(
               MountableFile.forHostPath(agentPath),
@@ -115,6 +116,7 @@ public class PetClinicRestContainer implements Container {
             .withEnv("SW_APM_SQL_TAG", "true")
             .withEnv("SW_APM_SQL_TAG_DATABASES", "postgresql")
             .withEnv("SW_APM_SQL_TAG_PREPARED", "true")
+            .withEnv("SW_APM_EXPORT_LOGS_ENABLED", "true")
             .withEnv("SW_APM_COLLECTOR", System.getenv("SW_APM_COLLECTOR"))
             .withEnv("SW_APM_SERVICE_KEY", String.format("%s:java-apm-smoke-test", System.getenv("SW_APM_SERVICE_KEY")))
             .withStartupTimeout(Duration.ofMinutes(5))

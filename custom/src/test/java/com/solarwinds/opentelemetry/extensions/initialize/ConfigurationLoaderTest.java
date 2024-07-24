@@ -181,10 +181,9 @@ class ConfigurationLoaderTest {
   @ClearSystemProperty(key = "otel.exporter.otlp.protocol")
   @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
   @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
-  void verifyOtelLogExportSystemVariablesAreNotSetWhenDisabled() throws InvalidConfigException {
+  void verifyOtelLogExportSystemVariablesAreNotSetWhenNotEnabled() throws InvalidConfigException {
     ConfigContainer configContainer = new ConfigContainer();
     configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
-    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED, "false");
     configContainer.putByStringValue(
         ConfigProperty.AGENT_COLLECTOR, "apm.collector.na-02.cloud.solarwinds.com");
 
@@ -208,6 +207,7 @@ class ConfigurationLoaderTest {
     configContainer.putByStringValue(
         ConfigProperty.AGENT_COLLECTOR, "apm.collector.na-02.staging.solarwinds.com");
 
+    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED, "true");
     ConfigurationLoader.configOtelLogExport(configContainer);
 
     assertEquals(
@@ -223,6 +223,8 @@ class ConfigurationLoaderTest {
   void verifyDefaultEndpointIsUsed() throws InvalidConfigException {
     ConfigContainer configContainer = new ConfigContainer();
     configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
+
+    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED, "true");
     ConfigurationLoader.configOtelLogExport(configContainer);
 
     assertEquals(
