@@ -436,23 +436,6 @@ public class ConfigurationLoader {
       configs.put(ConfigProperty.AGENT_LOGGING, false);
     }
 
-    if (configs.containsProperty(ConfigProperty.AGENT_SAMPLE_RATE)) {
-      Integer sampleRateFromConfig = (Integer) configs.get(ConfigProperty.AGENT_SAMPLE_RATE);
-      if (sampleRateFromConfig < 0 || sampleRateFromConfig > Constants.SAMPLE_RESOLUTION) {
-        logger.warn(
-            ConfigProperty.AGENT_SAMPLE_RATE
-                + ": Invalid argument value: "
-                + sampleRateFromConfig
-                + ": must be between 0 and "
-                + Constants.SAMPLE_RESOLUTION);
-        throw new InvalidConfigException(
-            "Invalid "
-                + ConfigProperty.AGENT_SAMPLE_RATE.getConfigFileKey()
-                + " : "
-                + sampleRateFromConfig);
-      }
-    }
-
     if (configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)
         && !((String) configs.get(ConfigProperty.AGENT_SERVICE_KEY)).isEmpty()) {
       // Customer access key (UUID)
