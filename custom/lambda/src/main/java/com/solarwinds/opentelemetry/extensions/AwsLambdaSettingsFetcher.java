@@ -22,8 +22,6 @@ import com.solarwinds.joboe.sampling.SamplingException;
 import com.solarwinds.joboe.sampling.Settings;
 import com.solarwinds.joboe.sampling.SettingsFetcher;
 import com.solarwinds.joboe.sampling.SettingsListener;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
 public class AwsLambdaSettingsFetcher implements SettingsFetcher {
@@ -45,26 +43,7 @@ public class AwsLambdaSettingsFetcher implements SettingsFetcher {
     if (settings == null
         || System.currentTimeMillis() - settings.getTimestamp() > settings.getTtl() * 1000) {
       try {
-        Map<String, Settings> allSettings = settingsReader.getSettings();
-        if (allSettings.isEmpty()) {
-          logger.warn("No Settings returned by the Settings Reader!");
-
-        } else {
-          settings = allSettings.get(DEFAULT_LAYER);
-          if (settings == null) {
-            logger.debug("Cannot find Settings with empty ID. Trying to locate the default record");
-            Optional<Settings> defaultSetting =
-                allSettings.values().stream().filter(Settings::isDefault).findFirst();
-
-            if (defaultSetting.isPresent()) {
-              settings = defaultSetting.get();
-            } else {
-              logger.warn(
-                  "Cannot find Settings with empty ID nor a default record... using the first record");
-              settings = allSettings.values().iterator().next();
-            }
-          }
-        }
+        settings = settingsReader.getSettings();
 
       } catch (SamplingException e) {
         logger.debug(
