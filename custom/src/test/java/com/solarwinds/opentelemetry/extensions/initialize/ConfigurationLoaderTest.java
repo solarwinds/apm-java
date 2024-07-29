@@ -220,6 +220,41 @@ class ConfigurationLoaderTest {
   @ClearSystemProperty(key = "otel.exporter.otlp.protocol")
   @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
   @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
+  void verifyOtelLogExportEndpointIsProperlyFormedWithPort() throws InvalidConfigException {
+    ConfigContainer configContainer = new ConfigContainer();
+    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
+    configContainer.putByStringValue(
+        ConfigProperty.AGENT_COLLECTOR, "otel.collector.na-01.cloud.solarwinds.com:443");
+
+    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED, "true");
+    ConfigurationLoader.configOtelLogExport(configContainer);
+
+    assertEquals(
+        "https://otel.collector.na-01.cloud.solarwinds.com",
+        System.getProperty("otel.exporter.otlp.logs.endpoint"));
+  }
+
+  @Test
+  @ClearSystemProperty(key = "otel.logs.exporter")
+  @ClearSystemProperty(key = "otel.exporter.otlp.protocol")
+  @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
+  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
+  void verifyOtelLogExportEndpointIsNullForAO() throws InvalidConfigException {
+    ConfigContainer configContainer = new ConfigContainer();
+    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
+    configContainer.putByStringValue(ConfigProperty.AGENT_COLLECTOR, "collector.appoptics.com:443");
+
+    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED, "true");
+    ConfigurationLoader.configOtelLogExport(configContainer);
+
+    assertNull(System.getProperty("otel.exporter.otlp.logs.endpoint"));
+  }
+
+  @Test
+  @ClearSystemProperty(key = "otel.logs.exporter")
+  @ClearSystemProperty(key = "otel.exporter.otlp.protocol")
+  @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
+  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
   void verifyDefaultEndpointIsUsed() throws InvalidConfigException {
     ConfigContainer configContainer = new ConfigContainer();
     configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
