@@ -31,7 +31,6 @@ public final class SamplingConfigProvider {
     if (samplingConfiguration == null) {
       SamplingConfiguration.SamplingConfigurationBuilder samplingConfigurationBuilder =
           SamplingConfiguration.builder()
-              .sampleRate((Integer) ConfigManager.getConfig(ConfigProperty.AGENT_SAMPLE_RATE))
               .tracingMode((TracingMode) ConfigManager.getConfig(ConfigProperty.AGENT_TRACING_MODE))
               .internalTransactionSettings(
                   (TraceConfigs)
