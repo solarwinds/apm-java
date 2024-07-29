@@ -205,6 +205,10 @@ public class ConfigurationLoader {
       String collectorEndpoint = (String) container.get(ConfigProperty.AGENT_COLLECTOR);
 
       if (collectorEndpoint != null) {
+        if (collectorEndpoint.contains("appoptics.com")) {
+          return;
+        }
+        collectorEndpoint = collectorEndpoint.split(":")[0];
         String[] fragments = collectorEndpoint.split("\\.");
         if (fragments.length > 2) {
           // This is based on knowledge of the SWO url format where the third name from the left in
