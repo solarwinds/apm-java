@@ -208,7 +208,7 @@ jobs:
 
       - name: Set agent version env
         run: |
-          echo "AGENT_VERSION=v$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g')" >> $GITHUB_ENV
+          echo "AGENT_VERSION=$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g')" >> $GITHUB_ENV
 
       - name: Create lambda layer
         run: |
