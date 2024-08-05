@@ -23,6 +23,11 @@ on:
         default: false
         required: false
         description: Choose whether to do lambda publish
+      sign_release:
+        type: boolean
+        default: false
+        required: false
+        description: Choose whether to create a signed jar
 
 permissions:
   packages: write
@@ -285,3 +290,93 @@ jobs:
         with:
           path: arns.txt
           name: arns
+
+  sign_release:
+    if: inputs.sign_release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build agent
+        run: ./gradlew clean build -x test
+
+      - name: Sign and download signed jar
+        run: |
+          response=$(curl -fs \
+            -H "Authorization: Bearer $SIGN_PATH_API_TOKEN" \
+            -F "ProjectSlug=$SIGN_PATH_PROJECT_SLUG" \
+            -F "ArtifactConfigurationSlug=$SIGN_PATH_ARTIFACT_SLUG" \
+            -F "SigningPolicySlug=$SIGN_PATH_SIGNING_POLICY" \
+            -F "Artifact=@agent/build/libs/solarwinds-apm-agent.jar" \
+            https://app.signpath.io/API/v1/$SIGN_PATH_ORG_ID/SigningRequests)
+
+          SIGNING_REQUEST_ID=$(echo "$response" | jq -r '.signingRequestId')
+
+          state=""
+          while [[ "$state" != "true" ]]
+          do
+            response=$(curl -fsSL \
+              -H "Authorization: Bearer $SIGN_PATH_API_TOKEN" \
+              https://app.signpath.io/API/v1/$SIGN_PATH_ORG_ID/SigningRequests/$SIGNING_REQUEST_ID)
+
+            state=$(echo "$response" | jq -r ".isFinalStatus")
+            status_state=$(echo "$response" | jq -r ".status")
+            echo "Status -> $status_state"
+
+            sleep 5
+          done
+
+          curl -fs \
+            -o agent/build/libs/solarwinds-apm-agent-signed.jar \
+            -H "Authorization: Bearer $SIGN_PATH_API_TOKEN" \
+            https://app.signpath.io/API/v1/$SIGN_PATH_ORG_ID/SigningRequests/$SIGNING_REQUEST_ID/SignedArtifact
+
+        env:
+          SIGN_PATH_API_TOKEN: ${{ secrets.SIGN_PATH_API_TOKEN }}
+          SIGN_PATH_PROJECT_SLUG: ${{ secrets.SIGN_PATH_PROJECT_SLUG }}
+          SIGN_PATH_SIGNING_POLICY: ${{ secrets.SIGN_PATH_SIGNING_POLICY }}
+          SIGN_PATH_ORG_ID: ${{ secrets.SIGN_PATH_ORG_ID }}
+          SIGN_PATH_ARTIFACT_SLUG: ${{ secrets.SIGN_PATH_ARTIFACT_SLUG }}
+
+      - name: Upload signed artifact
+        run: |
+          VERSION=$(unzip -p agent/build/libs/solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }')
+          VERSION=$(echo $VERSION | sed 's/[^a-z0-9.-]//g') # remove illegal characters
+          
+          response=$(curl -fsL \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}"\
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/$GITHUB_REPOSITORY/releases/tags/v$VERSION)
+          
+          release_id=$(echo "$response" | jq -r '.id')
+          
+          # Function to upload a file to GitHub release
+          upload_file_to_release() {
+            local release_id="$1"
+            local file_path="$2"
+          
+            # Extract filename from file path
+            file_name=$(basename "$file_path")
+          
+            # Upload file to GitHub release
+            curl -fs \
+              -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Content-Type: application/octet-stream" \
+              --data-binary @"$file_path" \
+              "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$release_id/assets?name=$file_name"
+          }
+          
+          # Upload file to GitHub release
+          upload_file_to_release "$release_id" "agent/build/libs/solarwinds-apm-agent-signed.jar"
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
