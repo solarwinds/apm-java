@@ -23,11 +23,6 @@ on:
         default: false
         required: false
         description: Choose whether to do lambda publish
-      sign_release:
-        type: boolean
-        default: false
-        required: false
-        description: Choose whether to create a signed jar
 
 permissions:
   packages: write
@@ -292,7 +287,8 @@ jobs:
           name: arns
 
   sign_release:
-    if: inputs.sign_release
+    needs:
+      - github_release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
