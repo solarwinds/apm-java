@@ -18,6 +18,9 @@
 package com.solarwinds.webmvc
 
 import com.solarwinds.api.ext.SolarwindsAgent
+import io.opentelemetry.api.GlobalOpenTelemetry
+import io.opentelemetry.api.OpenTelemetry
+import io.opentelemetry.instrumentation.annotations.WithSpan
 import mu.KotlinLogging
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -32,16 +35,32 @@ import java.net.http.HttpResponse
 @RequestMapping
 class Controller {
     private val log = KotlinLogging.logger {}
+    private val otelSdk: OpenTelemetry = GlobalOpenTelemetry.get()
+    private val tracer = otelSdk.getTracer("sdk.tracing")
 
     @GetMapping("greet/{name}")
     fun greet(@PathVariable name: String): String{
+        val startSpan = tracer.spanBuilder("greet-span")
+            .setAttribute("sw.test.source", "SDK.trace.test")
+            .startSpan()
+        startSpan.makeCurrent().use {
         SolarwindsAgent.setTransactionName(name)
+            startSpan.end()
         return  "Hello $name\n===================================\n\n"
+        }
     }
 
+    @WithSpan
     @GetMapping("distributed")
     fun distributed(): String {
+        val startSpan = tracer.spanBuilder("greet-span")
+            .setAttribute("sw.test.source", "SDK.trace.test")
+            .startSpan()
+
+        startSpan.makeCurrent().use {
         log.info("Got request at distributed")
+            startSpan.end()
+        }
         return HttpClient.newHttpClient()
             .send(
                 HttpRequest.newBuilder(URI.create("http://petclinic:9966/petclinic/api/pettypes")).GET().build(),

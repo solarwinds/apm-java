@@ -271,10 +271,8 @@ function verify_distributed_trace() {
 
                     for (let k = 0; k < properties.length; k++) {
                         const property = properties[k]
-                        if (property.key === "service.name") {
-                            check(property, {"check that remote service, java-apm-smoke-test, is path of the trace": prop => prop.value === "java-apm-smoke-test"})
-                            if (property.value === "java-apm-smoke-test") return;
-                        }
+                        check(property, {"check that remote service, java-apm-smoke-test, is path of the trace": prop => prop.value === "java-apm-smoke-test"})
+                        check(property, {"sdk-trace": prop => prop.value === "SDK.trace.test"})
                     }
                 }
             }
