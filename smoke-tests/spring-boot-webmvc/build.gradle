@@ -40,7 +40,10 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
+    implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.5.0")
+    runtimeOnly("io.opentelemetry:opentelemetry-api:1.39.0")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
