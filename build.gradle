@@ -29,7 +29,7 @@ buildscript {
     dependencies {
         classpath "com.diffplug.spotless:spotless-plugin-gradle:6.14.0"
         classpath "com.github.johnrengelman:shadow:8.1.1"
-        classpath "io.opentelemetry.instrumentation:gradle-plugins:2.5.0-alpha"
+        classpath "io.opentelemetry.instrumentation:gradle-plugins:2.6.0-alpha"
     }
 }
 
@@ -40,12 +40,12 @@ subprojects {
 
     ext {
         versions = [
-                opentelemetry         : "1.39.0",
-                opentelemetryJavaagent: "2.5.0",
+                opentelemetry         : "1.40.0",
+                opentelemetryJavaagent: "2.6.0",
                 bytebuddy             : "1.12.10",
                 guava                 : "30.1-jre",
                 joboe                 : "10.0.11",
-                agent                 : "2.5.1", // the custom distro agent version
+                agent                 : "2.6.0", // the custom distro agent version
                 autoservice           : "1.0.1",
                 caffeine              : "2.9.3",
                 json : "20231013",
