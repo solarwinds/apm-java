@@ -22,12 +22,12 @@ import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.metrics.ObservableLongGauge;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 @AutoService(AgentListener.class)
 public class TraceDecisionMetricCollector implements AutoCloseable, AgentListener {
-  private final List<ObservableLongGauge> gauges = new LinkedList<>();
+  private final List<ObservableLongGauge> gauges = new ArrayList<>();
 
   public void collect(Meter meter) {
     gauges.add(
@@ -99,5 +99,6 @@ public class TraceDecisionMetricCollector implements AutoCloseable, AgentListene
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     collect(MeterProvider.getSamplingMetricsMeter());
+    Runtime.getRuntime().addShutdownHook(new Thread(this::close));
   }
 }
