@@ -29,10 +29,18 @@ version = "0.0.1-SNAPSHOT"
 
 repositories {
   mavenCentral()
+    maven {
+        url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+        credentials {
+            username = System.getenv("SONATYPE_USERNAME")
+            password = System.getenv("SONATYPE_TOKEN")
+        }
+    }
 }
 
+def sdkVersion = System.getenv("AGENT_VERSION") ?: "2.6.0"
 dependencies {
-    implementation("io.github.appoptics:solarwinds-otel-sdk:2.2.0")
+    implementation("io.github.appoptics:solarwinds-otel-sdk:$sdkVersion-SNAPSHOT")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
