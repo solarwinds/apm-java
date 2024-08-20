@@ -34,9 +34,7 @@ dependencies {
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:${versions.opentelemetryJavaagentAlpha}")
 
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
-  implementation "com.solarwinds.joboe:logging:${versions.joboe}"
 
-  testImplementation project(path: ":bootstrap")
   testImplementation 'org.mockito:mockito-core:5.3.0'
   testImplementation 'org.mockito:mockito-junit-jupiter:5.3.0'
 

@@ -16,15 +16,14 @@
 
 package com.solarwinds.api.ext;
 
-import com.solarwinds.joboe.logging.Logger;
-import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.opentelemetry.core.AgentState;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 public class SolarwindsAgent {
   private SolarwindsAgent() {}
 
-  private static final Logger logger = LoggerFactory.getLogger();
+  private static final Logger logger = Logger.getLogger(SolarwindsAgent.class.getName());
 
   private static boolean agentAttached = false;
 
@@ -35,7 +34,7 @@ public class SolarwindsAgent {
       agentAttached = true;
 
     } catch (ClassNotFoundException | NoClassDefFoundError | NoSuchMethodError e) {
-      logger.warn("The SolarWinds APM Agent is not available. The SDK will be no-op.");
+      logger.warning("The SolarWinds APM Agent is not available. The SDK will be no-op.");
     }
   }
 
