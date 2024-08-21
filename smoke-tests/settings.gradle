@@ -28,4 +28,5 @@ rootProject.name = 'smoke-tests'
 
 include 'netty-test'
 include 'spring-boot-webmvc'
+include 'netty-test-no-agent'
 

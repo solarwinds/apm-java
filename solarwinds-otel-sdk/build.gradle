@@ -83,9 +83,12 @@ publishing {
             name = 'Apache License, Version 2.0'
           }
         }
+
         groupId = 'io.github.appoptics'
         artifactId = "${archivesBaseName}"
-        version = "${versions.agent}"
+        def sdkVersion = System.getenv("AGENT_VERSION") ?: "2.6.0"
+        version = Boolean.parseBoolean(System.getenv("SNAPSHOT_BUILD")) ? "$sdkVersion-SNAPSHOT" : "${versions.agent}"
+
         from components.java
         artifact sourcesJar
         artifact javadocJar
@@ -93,10 +96,14 @@ publishing {
     }
     publishToMavenLocal
   }
+
   repositories {
     maven {
       name = "OSSRH"
-      url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+      def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+      def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+
+      url = Boolean.parseBoolean(System.getenv("SNAPSHOT_BUILD")) ? snapshotsRepoUrl : releasesRepoUrl
       credentials {
         username = System.getenv("SONATYPE_USERNAME")
         password = System.getenv("SONATYPE_TOKEN")
@@ -114,7 +121,6 @@ signing {
   useInMemoryPgpKeys(signingKey, signingPassword)
   sign publishing.publications.mavenJava
 }
-
 
 test {
   useJUnitPlatform()
