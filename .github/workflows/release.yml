@@ -211,9 +211,9 @@ jobs:
       - name: Create zip
         run: ./gradlew :agent-lambda:lambda-layer
 
-      - name: Set agent version env
-        run: |
-          echo "AGENT_VERSION=$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g')" >> $GITHUB_ENV
+      - name: Set agent version
+        id: set_version
+        uses: ./.github/actions/version
 
       - name: Create lambda layer
         run: |
@@ -285,6 +285,8 @@ jobs:
 
             echo "$pub_versionarn" >> arns.txt
           done
+        env:
+          AGENT_VERSION: ${{ steps.set_version.outputs.version }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -345,11 +347,12 @@ jobs:
           SIGN_PATH_ORG_ID: ${{ secrets.SIGN_PATH_ORG_ID }}
           SIGN_PATH_ARTIFACT_SLUG: ${{ secrets.SIGN_PATH_ARTIFACT_SLUG }}
 
+      - name: Set agent version
+        id: set_version
+        uses: ./.github/actions/version
+
       - name: Upload signed artifact
         run: |
-          VERSION=$(unzip -p agent/build/libs/solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }')
-          VERSION=$(echo $VERSION | sed 's/[^a-z0-9.-]//g') # remove illegal characters
-          
           response=$(curl -fsL \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${GITHUB_TOKEN}"\
@@ -381,6 +384,7 @@ jobs:
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.set_version.outputs.version }}
 
   reversing_lab_scan:
     if: inputs.run_rl_scan

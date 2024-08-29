@@ -229,9 +229,9 @@ jobs:
       - name: Create zip
         run: ./gradlew :agent-lambda:lambda-layer
 
-      - name: Set agent version env
-        run: |
-          echo "AGENT_VERSION=$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g')" >> $GITHUB_ENV
+      - name: Set agent version
+        id: set_version
+        uses: ./.github/actions/version
 
       - name: Create lambda layer
         run: |           
@@ -303,6 +303,8 @@ jobs:
 
             echo "$pub_versionarn" >> arns.txt
           done
+        env:
+          AGENT_VERSION: ${{ steps.set_version.outputs.version }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -322,11 +324,14 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Set agent version env
+      - name: Set agent version
+        id: set_version
+        uses: ./.github/actions/version
+
+      - name: Set snapshot version
         run: |
-          ./gradlew build -x test
           GIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
-          echo "AGENT_VERSION=$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g').$GIT_HASH" >> $GITHUB_ENV
+          echo "AGENT_VERSION=${{ steps.set_version.outputs.version }}.$GIT_HASH" >> $GITHUB_ENV
 
       - name: Run application
         working-directory: smoke-tests
@@ -348,11 +353,14 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Set agent version env
+      - name: Set agent version
+        id: set_version
+        uses: ./.github/actions/version
+
+      - name: Set snapshot version
         run: |
-          ./gradlew build -x test
           GIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
-          echo "AGENT_VERSION=$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g').$GIT_HASH" >> $GITHUB_ENV
+          echo "AGENT_VERSION=${{ steps.set_version.outputs.version }}.$GIT_HASH" >> $GITHUB_ENV
 
       - name: Run application
         working-directory: smoke-tests
@@ -397,11 +405,14 @@ jobs:
       - name: Docker login
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
 
-      - name: Set agent version env
+      - name: Set agent version
+        id: set_version
+        uses: ./.github/actions/version
+
+      - name: Set snapshot version
         run: |
-          ./gradlew build -x test
           GIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
-          echo "AGENT_VERSION=$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g').$GIT_HASH" >> $GITHUB_ENV
+          echo "AGENT_VERSION=${{ steps.set_version.outputs.version }}.$GIT_HASH" >> $GITHUB_ENV
 
       - name: Build smoke-test
         run: |
@@ -486,11 +497,14 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Set agent version env
+      - name: Set agent version
+        id: set_version
+        uses: ./.github/actions/version
+
+      - name: Set snapshot version
         run: |
-          ./gradlew build -x test
           GIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
-          echo "AGENT_VERSION=$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g').$GIT_HASH" >> $GITHUB_ENV
+          echo "AGENT_VERSION=${{ steps.set_version.outputs.version }}.$GIT_HASH" >> $GITHUB_ENV
 
       - name: Publish
         run: ./gradlew publish
