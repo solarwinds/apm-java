@@ -41,6 +41,8 @@ env:
 jobs:
   maven_release:
     if: inputs.run_maven_release
+    needs:
+      - reversing_lab_scan
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -66,6 +68,8 @@ jobs:
 
   github_release:
     if: inputs.run_github_release
+    needs:
+      - reversing_lab_scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -127,6 +131,8 @@ jobs:
 
   s3-prod-upload:  # this job uploads the jar and default config json to prod s3
     if: inputs.run_s3_upload
+    needs:
+      - reversing_lab_scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -189,6 +195,8 @@ jobs:
 
   lambda-publish:
     if: inputs.run_lambda_publish
+    needs:
+      - reversing_lab_scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -414,5 +422,18 @@ jobs:
           rl-portal-org: SolarWinds
           rl-portal-group: SaaS-Agents-SWO
           rl-package-url: apm-java/solarwinds-apm-agent@${{ steps.build.outputs.agent_version }}
+        env:
+          RLPORTAL_ACCESS_TOKEN: ${{ secrets.RL_ACCESS_TOKEN }}
+
+      - name: Scan SDK Jar
+        id: rl-scan
+        uses: reversinglabs/gh-action-rl-scanner-cloud-only@v1
+        with:
+          artifact-to-scan: solarwinds-otel-sdk/build/libs/solarwinds-otel-sdk.jar
+          rl-verbose: true
+          rl-portal-server: solarwinds
+          rl-portal-org: SolarWinds
+          rl-portal-group: SaaS-Agents-SWO
+          rl-package-url: apm-java/solarwinds-otel-sdk@${{ steps.build.outputs.agent_version }}
         env:
           RLPORTAL_ACCESS_TOKEN: ${{ secrets.RL_ACCESS_TOKEN }}
