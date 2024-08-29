@@ -23,6 +23,11 @@ on:
         default: false
         required: false
         description: Choose whether to do lambda publish
+      run_rl_scan:
+        type: boolean
+        default: false
+        required: false
+        description: Choose whether to run Reversing lab scan
 
 permissions:
   packages: write
@@ -376,3 +381,34 @@ jobs:
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  reversing_lab_scan:
+    if: inputs.run_rl_scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build agent
+        id: build
+        run: |
+          ./gradlew clean build -x test
+          echo "agent_version=$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g')" >> $GITHUB_OUTPUT
+
+      - name: Scan Jar
+        id: rl-scan
+        uses: reversinglabs/gh-action-rl-scanner-cloud-only@v1
+        with:
+          artifact-to-scan: agent/build/libs/solarwinds-apm-agent.jar
+          rl-verbose: true
+          rl-portal-server: solarwinds
+          rl-portal-org: SolarWinds
+          rl-portal-group: SaaS-Agents-SWO
+          rl-package-url: apm-java/solarwinds-apm-agent@${{ steps.build.outputs.agent_version }}
+        env:
+          RLPORTAL_ACCESS_TOKEN: ${{ secrets.RL_ACCESS_TOKEN }}
