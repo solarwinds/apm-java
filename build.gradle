@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-group = "com.solarwinds"
-
 buildscript {
     repositories {
         maven {
@@ -32,6 +30,12 @@ buildscript {
         classpath "io.opentelemetry.instrumentation:gradle-plugins:2.6.0-alpha"
     }
 }
+
+plugins{
+    id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
+}
+
+group = "com.solarwinds"
 
 subprojects {
   apply plugin: "java"

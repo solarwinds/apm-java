@@ -57,7 +57,7 @@ jobs:
       uses: gradle/actions/setup-gradle@v3
 
     - name: Publish
-      run: ./gradlew publish
+      run: ./gradlew publish closeAndReleaseSonatypeStagingRepository
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # The secrets are for publishing the build artifacts to the Maven Central.

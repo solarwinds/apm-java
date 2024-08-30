@@ -16,14 +16,17 @@
 
 plugins {
   id("java")
+  id("signing")
   id("maven-publish")
   id("com.github.johnrengelman.shadow")
-  id("signing")
 }
 
 apply from: "$rootDir/gradle/shadow.gradle"
 project.archivesBaseName = 'solarwinds-otel-sdk'
 def relocatePackages = ext.relocatePackages
+
+def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
 
 dependencies {
   compileOnly project(":bootstrap")
@@ -100,9 +103,6 @@ publishing {
   repositories {
     maven {
       name = "OSSRH"
-      def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-      def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-
       url = Boolean.parseBoolean(System.getenv("SNAPSHOT_BUILD")) ? snapshotsRepoUrl : releasesRepoUrl
       credentials {
         username = System.getenv("SONATYPE_USERNAME")
@@ -131,4 +131,16 @@ test {
 
 compileJava {
   options.release.set(8)
+}
+
+nexusPublishing {
+  repositories {
+    sonatype {
+      password = System.getenv("SONATYPE_TOKEN")
+      username = System.getenv("SONATYPE_USERNAME")
+
+      nexusUrl = uri(releasesRepoUrl)
+      snapshotRepositoryUrl = uri(snapshotsRepoUrl)
+    }
+  }
 }
