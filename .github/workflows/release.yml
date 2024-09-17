@@ -413,7 +413,6 @@ jobs:
           echo "agent_version=$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g')" >> $GITHUB_OUTPUT
 
       - name: Scan Jar
-        id: rl-scan
         uses: reversinglabs/gh-action-rl-scanner-cloud-only@v1
         with:
           artifact-to-scan: agent/build/libs/solarwinds-apm-agent.jar
@@ -426,7 +425,6 @@ jobs:
           RLPORTAL_ACCESS_TOKEN: ${{ secrets.RL_ACCESS_TOKEN }}
 
       - name: Scan SDK Jar
-        id: rl-scan
         uses: reversinglabs/gh-action-rl-scanner-cloud-only@v1
         with:
           artifact-to-scan: solarwinds-otel-sdk/build/libs/solarwinds-otel-sdk.jar
