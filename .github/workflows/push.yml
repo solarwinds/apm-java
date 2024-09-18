@@ -50,9 +50,9 @@ jobs:
       - name: Build agent
         run: ./gradlew clean build -x test
 
-      - name: Set agent version env
-        run: |
-          echo "AGENT_VERSION=$(cd agent/build/libs && unzip -p solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }' | sed 's/[^a-z0-9.-]//g')" >> $GITHUB_ENV
+      - name: Set agent version
+        id: set_version
+        uses: ./.github/actions/version
 
       - name: Copy to S3
         run: |
@@ -90,7 +90,8 @@ jobs:
           aws s3 cp VERSION \
           s3://$STAGE_BUCKET/apm/java/latest/VERSION \
           --acl public-read
-  
+        env:
+          AGENT_VERSION: ${{ steps.set_version.outputs.version }}
 
   build-test-images:
     runs-on: ubuntu-latest
