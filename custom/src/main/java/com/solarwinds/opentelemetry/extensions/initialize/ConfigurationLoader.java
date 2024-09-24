@@ -194,7 +194,7 @@ public class ConfigurationLoader {
     }
   }
 
-  static void configOtelLogExport(ConfigContainer container) {
+  static void configureOtelLogExport(ConfigContainer container) {
     Boolean exportLog = (Boolean) container.get(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED);
     if (exportLog != null && exportLog) {
       String serviceKey = (String) container.get(ConfigProperty.AGENT_SERVICE_KEY);
@@ -221,13 +221,51 @@ public class ConfigurationLoader {
         }
       }
 
-      System.setProperty("otel.exporter.otlp.protocol", "grpc");
+      System.setProperty("otel.exporter.otlp.logs.protocol", "grpc");
       System.setProperty("otel.logs.exporter", "otlp");
       System.setProperty(
           "otel.exporter.otlp.logs.headers", String.format("authorization=Bearer %s", apiKey));
 
       System.setProperty(
           "otel.exporter.otlp.logs.endpoint",
+          String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env));
+    }
+  }
+
+  static void configureOtelMetricExport(ConfigContainer container) {
+    Boolean exportMetrics = (Boolean) container.get(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED);
+    if (exportMetrics != null && exportMetrics) {
+      String serviceKey = (String) container.get(ConfigProperty.AGENT_SERVICE_KEY);
+      String apiKey = ServiceKeyUtils.getApiKey(serviceKey);
+
+      String dataCell = "na-01";
+      String env = "cloud";
+      String collectorEndpoint = (String) container.get(ConfigProperty.AGENT_COLLECTOR);
+
+      if (collectorEndpoint != null) {
+        if (collectorEndpoint.contains("appoptics.com")) {
+          return;
+        }
+        collectorEndpoint = collectorEndpoint.split(":")[0];
+        String[] fragments = collectorEndpoint.split("\\.");
+        if (fragments.length > 2) {
+          // This is based on knowledge of the SWO url format where the third name from the left in
+          // the domain is the data-cell name and assumes this format will stay stable.
+          dataCell = fragments[2];
+        }
+
+        if (fragments.length > 3) {
+          env = fragments[3];
+        }
+      }
+
+      System.setProperty("otel.exporter.otlp.metrics.protocol", "grpc");
+      System.setProperty("otel.metrics.exporter", "otlp");
+      System.setProperty(
+          "otel.exporter.otlp.metrics.headers", String.format("authorization=Bearer %s", apiKey));
+
+      System.setProperty(
+          "otel.exporter.otlp.metrics.endpoint",
           String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env));
     }
   }
@@ -283,7 +321,8 @@ public class ConfigurationLoader {
                 config)); // initialize the logger factory as soon as the config is available
         try {
           processConfigs(configs);
-          configOtelLogExport(configs);
+          configureOtelLogExport(configs);
+          configureOtelMetricExport(configs);
         } catch (InvalidConfigException e) {
           // if there was a config read exception then processConfigs might throw exception due to
           // incomplete config container.

@@ -289,7 +289,7 @@ function verify_that_specialty_path_is_not_sampled() {
     check(flag, {"verify that transaction is filtered": f => f === "00"})
 }
 
-function verify_that_metrics_are_reported(metric, checkFn) {
+function verify_that_metrics_are_reported(metric, checkFn, service="lambda-e2e") {
   let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
   for (let i = 0; i < retryCount; i++) {
     const newOwner = names.randomOwner();
@@ -317,7 +317,7 @@ function verify_that_metrics_are_reported(metric, checkFn) {
           "fillIfResultEmpty": false
         },
         "filter": null,
-        "query": "service.name:\"lambda-e2e\"",
+        "query": `service.name:\"${service}\"`,
         "groupBy": [
           "service.name"
         ],
@@ -334,7 +334,7 @@ function verify_that_metrics_are_reported(metric, checkFn) {
           "fillIfResultEmpty": false
         },
         "filter": null,
-        "query": "service.name:\"lambda-e2e\"",
+        "query": `service.name:\"${service}\"`,
         "groupBy": [
           "service.name"
         ],
@@ -577,6 +577,12 @@ export default function () {
     silence(verify_transaction_name)
 
   } else {
+    silence(function () {
+          verify_that_metrics_are_reported("jvm.memory.used",
+              (measurement) => check(measurement, {"otel-metrics": mrs => mrs.value > 0}),
+              "java-apm-smoke-test"
+          )
+      })
     silence(verify_logs_export)
     silence(verify_that_specialty_path_is_not_sampled)
     silence(verify_that_span_data_is_persisted_0)

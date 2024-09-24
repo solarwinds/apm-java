@@ -183,7 +183,6 @@ public class SmokeTest {
         assertTrue(passes > 1, "transaction naming is broken");
     }
 
-
     @Test
     void assertAgentClassesAreNotInstrumented() {
         Boolean actual = logStreamAnalyzer.getAnswer().get("Transformed (com.solarwinds.ext.*|com.solarwinds.joboe.*)");
@@ -207,7 +206,6 @@ public class SmokeTest {
         Boolean actual = logStreamAnalyzer.getAnswer().get("Completed operation \\[post init message\\] with Result code \\[OK\\] arg");
         assertTrue(actual, "init message wasn't sent");
     }
-
 
     @Test
     @EnabledIfSystemProperty(named = "test.cloud", matches = "AWS")
@@ -241,7 +239,6 @@ public class SmokeTest {
     assertTrue(actual, "sw-jdbc instrumentation is not applied");
   }
 
-
   @Test
   void assertThatLogsAreExported() throws IOException {
     String resultJson = new String(
@@ -249,6 +246,15 @@ public class SmokeTest {
     double passes = ResultsCollector.read(resultJson,
         "$.root_group.checks.['logs'].passes");
     assertTrue(passes > 0, "log export is broken");
+  }
+
+  @Test
+  void assertThatMetricsAreExported() throws IOException {
+    String resultJson = new String(
+        Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+    double passes = ResultsCollector.read(resultJson,
+        "$.root_group.checks.['otel-metrics'].passes");
+    assertTrue(passes > 0, "otel metric export is broken");
   }
 
   @Test

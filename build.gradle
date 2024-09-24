@@ -48,7 +48,7 @@ subprojects {
                 opentelemetryJavaagent: "2.8.0",
                 bytebuddy             : "1.12.10",
                 guava                 : "30.1-jre",
-                joboe                 : "10.0.11",
+                joboe                 : "10.0.12",
                 agent                 : "2.8.0", // the custom distro agent version
                 autoservice           : "1.0.1",
                 caffeine              : "2.9.3",
