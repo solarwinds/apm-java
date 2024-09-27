@@ -552,6 +552,8 @@ function silence(fn) {
 }
 
 export default function () {
+  silence(verify_that_span_data_is_persisted_0)
+
   if (`${__ENV.LAMBDA}` === "true") {
     const request_count = (measurement) => check(measurement, {"request_count": mrs => mrs.value > 0})
     const tracecount = (measurement) => check(measurement, {"tracecount": mrs => mrs.value > 0})
@@ -585,7 +587,6 @@ export default function () {
       })
     silence(verify_logs_export)
     silence(verify_that_specialty_path_is_not_sampled)
-    silence(verify_that_span_data_is_persisted_0)
 
     silence(verify_that_span_data_is_persisted)
     silence(verify_that_trace_is_persisted)

@@ -18,7 +18,7 @@ package com.solarwinds.containers;
 
 import com.solarwinds.agents.Agent;
 import com.solarwinds.agents.AgentResolver;
-import com.solarwinds.util.NamingConventions;
+
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -42,14 +42,12 @@ public class PetClinicRestContainer implements Container {
 
   private final Network network;
   private final Agent agent;
-  private final NamingConventions namingConventions;
 
 
-  public PetClinicRestContainer(AgentResolver agentResolver, Network network, Agent agent, NamingConventions namingConventions) {
+  public PetClinicRestContainer(AgentResolver agentResolver, Network network, Agent agent) {
     this.agentResolver = agentResolver;
     this.network = network;
     this.agent = agent;
-    this.namingConventions = namingConventions;
   }
 
   public GenericContainer<?> build() {
@@ -62,8 +60,6 @@ public class PetClinicRestContainer implements Container {
           .withNetworkAliases("petclinic")
           .withLogConsumer(new Slf4jLogConsumer(logger))
           .withExposedPorts(PETCLINIC_PORT)
-          .withFileSystemBind(namingConventions.localResults(),
-              namingConventions.containerResults())
           .withFileSystemBind("./solarwinds-apm-settings.json", "/tmp/solarwinds-apm-settings.json")
           .withEnv("OTEL_JAVAAGENT_DEBUG", "true")
           .withEnv("SW_APM_SQL_TAG", "true")
@@ -99,7 +95,6 @@ public class PetClinicRestContainer implements Container {
             .withNetworkAliases("petclinic")
             .withLogConsumer(new Slf4jLogConsumer(logger))
             .withExposedPorts(PETCLINIC_PORT)
-            .withFileSystemBind(namingConventions.localResults(), namingConventions.containerResults())
             .withFileSystemBind("./apm-config.json", "/app/apm-config.json")
             .withEnv("SW_APM_CONFIG_FILE", "/app/apm-config.json")
             .withEnv("OTEL_JAVAAGENT_DEBUG", "true")

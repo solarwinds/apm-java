@@ -31,11 +31,11 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
-import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.data.SpanData;
+import io.opentelemetry.sdk.trace.internal.ExtendedSpanProcessor;
 import io.opentelemetry.semconv.SemanticAttributes;
 
-public class InboundMeasurementMetricsGenerator implements SpanProcessor {
+public class InboundMeasurementMetricsGenerator implements ExtendedSpanProcessor {
   private LongHistogram responseTime;
 
   private static final Logger logger = LoggerFactory.getLogger();
@@ -107,6 +107,20 @@ public class InboundMeasurementMetricsGenerator implements SpanProcessor {
 
   @Override
   public boolean isEndRequired() {
+    return true;
+  }
+
+  @Override
+  public void onEnding(ReadWriteSpan span) {
+    SpanData spanData = span.toSpanData();
+    final SpanContext parentSpanContext = spanData.getParentSpanContext();
+    if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) {
+      span.setAttribute(TRANSACTION_NAME_KEY, TransactionNameManager.getTransactionName(spanData));
+    }
+  }
+
+  @Override
+  public boolean isOnEndingRequired() {
     return true;
   }
 }

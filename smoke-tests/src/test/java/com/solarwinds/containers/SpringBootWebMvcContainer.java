@@ -18,7 +18,6 @@ package com.solarwinds.containers;
 
 import com.solarwinds.agents.Agent;
 import com.solarwinds.agents.AgentResolver;
-import com.solarwinds.util.NamingConventions;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +32,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class SpringBootWebMvcContainer implements Container {
 
@@ -51,6 +51,28 @@ public class SpringBootWebMvcContainer implements Container {
 
   public GenericContainer<?> build() {
     Path agentPath = agentResolver.resolve(this.agent).orElseThrow();
+    if (Objects.equals(System.getenv("LAMBDA"), "true")) {
+      return new GenericContainer<>(DockerImageName.parse("smt:webmvc"))
+              .withNetwork(network)
+              .withNetworkAliases("webmvc")
+              .withLogConsumer(new Slf4jLogConsumer(logger))
+              .withExposedPorts(SERVER_PORT)
+              .waitingFor(Wait.forHttp("/actuator/health").withReadTimeout(Duration.ofMinutes(5)).forPort(SERVER_PORT))
+              .withFileSystemBind("./solarwinds-apm-settings.json", "/tmp/solarwinds-apm-settings.json")
+              .withEnv("SERVER_PORT", String.format("%d", SERVER_PORT))
+              .withEnv("SW_APM_CONFIG_FILE", "/app/apm-config.json")
+              .withEnv("SW_APM_DEBUG_LEVEL", "trace")
+              .withEnv("OTEL_EXPORTER_OTLP_ENDPOINT", System.getenv("OTEL_EXPORTER_OTLP_ENDPOINT"))
+              .withEnv("OTEL_EXPORTER_OTLP_HEADERS",
+                      String.format("authorization=Bearer %s", System.getenv("SW_APM_SERVICE_KEY")))
+              .withEnv("OTEL_SERVICE_NAME", "java-apm-smoke-test-webmvc-lambda")
+              .withStartupTimeout(Duration.ofMinutes(5))
+              .withCopyFileToContainer(
+                      MountableFile.forHostPath(agentPath),
+                      "/app/" + agentPath.getFileName())
+              .withCommand(buildCommandline(agentPath, true));
+    }
+
     return new GenericContainer<>(DockerImageName.parse("smt:webmvc"))
             .withNetwork(network)
             .withNetworkAliases("webmvc")
@@ -66,14 +88,16 @@ public class SpringBootWebMvcContainer implements Container {
             .withCopyFileToContainer(
                     MountableFile.forHostPath(agentPath),
                     "/app/" + agentPath.getFileName())
-            .withCommand(buildCommandline(agentPath));
+            .withCommand(buildCommandline(agentPath, false));
   }
 
   @NotNull
-  private String[] buildCommandline(Path agentJarPath) {
+  private String[] buildCommandline(Path agentJarPath, boolean isLambda) {
     List<String> result = new ArrayList<>();
     result.add("java");
-    result.add("-Dotel.javaagent.extensions=/app/custom-extensions.jar");
+    if (!isLambda) {
+      result.add("-Dotel.javaagent.extensions=/app/custom-extensions.jar");
+    }
 
     result.addAll(this.agent.getAdditionalJvmArgs());
     result.add("-javaagent:/app/" + agentJarPath.getFileName());

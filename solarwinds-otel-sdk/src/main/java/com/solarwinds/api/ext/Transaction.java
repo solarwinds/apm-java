@@ -20,7 +20,6 @@ import com.solarwinds.opentelemetry.core.CustomTransactionNameDict;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.instrumentation.api.instrumenter.LocalRootSpan;
 import java.util.regex.Pattern;
 
 /**
@@ -48,23 +47,7 @@ class Transaction {
       return false;
     }
 
-    CustomTransactionNameDict.set(spanContext.getTraceId(), transformTransactionName(name));
-    LocalRootSpan.fromContext(Context.current())
-        .setAttribute("sw.transaction", transformTransactionName(name));
-
+    CustomTransactionNameDict.set(spanContext.getTraceId(), name);
     return true;
-  }
-
-  private static String transformTransactionName(String transactionName) {
-
-    if (transactionName.length() > 255) {
-      transactionName = transactionName.substring(0, 252) + "...";
-    } else if (transactionName.isEmpty()) {
-      transactionName = " "; // ensure that it at least has 1 character
-    }
-
-    transactionName = REPLACE_PATTERN.matcher(transactionName).replaceAll("_");
-    transactionName = transactionName.toLowerCase();
-    return transactionName;
   }
 }

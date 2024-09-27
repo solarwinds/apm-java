@@ -23,7 +23,6 @@ import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.SettingsManager;
-import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
@@ -42,14 +41,6 @@ public class LambdaAgentListener implements AgentListener {
       SettingsManager.initialize(
           new AwsLambdaSettingsFetcher(new FileSettingsReader("/tmp/solarwinds-apm-settings.json")),
           SamplingConfigProvider.getSamplingConfiguration());
-
-      TransactionNameManager.setRuntimeNameGenerator(
-          spanData ->
-              new TransactionNameManager.TransactionNameResult(
-                  spanData
-                      .getAttributes()
-                      .get(AttributeKey.stringKey(SharedNames.TRANSACTION_NAME_KEY)),
-                  true));
       logger.info("Successfully submitted SolarwindsAPM OpenTelemetry extensions settings");
     } else {
       logger.info("SolarwindsAPM OpenTelemetry extensions is disabled");

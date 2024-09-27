@@ -16,31 +16,31 @@
 
 package com.solarwinds;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
 import com.solarwinds.agents.Agent;
-import com.solarwinds.agents.SwoAgentResolver;
 import com.solarwinds.agents.SwoLambdaAgentResolver;
 import com.solarwinds.config.Configs;
 import com.solarwinds.config.TestConfig;
 import com.solarwinds.containers.K6Container;
 import com.solarwinds.containers.PetClinicRestContainer;
 import com.solarwinds.containers.PostgresContainer;
+import com.solarwinds.containers.SpringBootWebMvcContainer;
 import com.solarwinds.results.ResultsCollector;
 import com.solarwinds.util.LogStreamAnalyzer;
 import com.solarwinds.util.NamingConventions;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @EnabledIfEnvironmentVariable(named = "LAMBDA", matches = "true")
 public class LambdaTest {
@@ -64,34 +64,37 @@ public class LambdaTest {
         .forEach(
             agent -> {
               try {
-                runAppOnce(config, agent);
+                runAppOnce(agent);
               } catch (Exception e) {
                 fail("Unhandled exception in " + config.name(), e);
               }
             });
   }
 
-  static void runAppOnce(TestConfig config, Agent agent) throws Exception {
+  static void runAppOnce(Agent agent) throws Exception {
     GenericContainer<?> postgres = new PostgresContainer(NETWORK).build();
     postgres.start();
 
-    GenericContainer<?> petClinic = new PetClinicRestContainer(new SwoLambdaAgentResolver(), NETWORK,
-        agent, namingConventions).build();
+    GenericContainer<?> webMvc = new SpringBootWebMvcContainer(new SwoLambdaAgentResolver(), NETWORK, agent).build();
+    webMvc.start();
+
+    GenericContainer<?> petClinic = new PetClinicRestContainer(new SwoLambdaAgentResolver(), NETWORK, agent).build();
     petClinic.start();
     petClinic.followOutput(logStreamAnalyzer);
 
-    GenericContainer<?> k6 = new K6Container(NETWORK, agent, config, namingConventions).build();
+    GenericContainer<?> k6 = new K6Container(NETWORK, agent, namingConventions).build();
     k6.start();
     k6.followOutput(new Slf4jLogConsumer(LoggerFactory.getLogger("k6")));
 
     petClinic.execInContainer("kill", "1");
+    webMvc.execInContainer("kill", "1");
     postgres.stop();
   }
 
   @Test
   void assertThatRequestCountMetricIsReported() throws IOException {
     String resultJson = new String(
-        Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+            Files.readAllBytes(namingConventions.local.k6Results(Configs.LAMBDA_E2E.config.agents().get(0))));
 
     double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['request_count'].passes");
     assertTrue(passes > 1, "Expects a count > 1 ");
@@ -100,7 +103,7 @@ public class LambdaTest {
   @Test
   void assertThatTraceCountMetricIsReported() throws IOException {
     String resultJson = new String(
-        Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+            Files.readAllBytes(namingConventions.local.k6Results(Configs.LAMBDA_E2E.config.agents().get(0))));
 
     double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['tracecount'].passes");
     assertTrue(passes > 1, "Expects a count > 1 ");
@@ -109,7 +112,7 @@ public class LambdaTest {
   @Test
   void assertThatSampleCountMetricIsReported() throws IOException {
     String resultJson = new String(
-        Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+            Files.readAllBytes(namingConventions.local.k6Results(Configs.LAMBDA_E2E.config.agents().get(0))));
 
     double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['samplecount'].passes");
     assertTrue(passes > 1, "Expects a count > 1 ");
@@ -118,7 +121,7 @@ public class LambdaTest {
   @Test
   void assertThatResponseTimeMetricIsReported() throws IOException {
     String resultJson = new String(
-        Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+            Files.readAllBytes(namingConventions.local.k6Results(Configs.LAMBDA_E2E.config.agents().get(0))));
 
     double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['response_time'].passes");
     assertTrue(passes > 1, "Expects a count > 1 ");
@@ -127,10 +130,10 @@ public class LambdaTest {
   @Test
   void assertThatCustomTransactionNameTakesEffect() throws IOException {
     String resultJson = new String(
-        Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+            Files.readAllBytes(namingConventions.local.k6Results(Configs.LAMBDA_E2E.config.agents().get(0))));
 
     double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['transaction-name'].passes");
-    assertTrue(passes > 1, "Expects a count > 1 ");
+    assertTrue(passes > 1, "Environment based transaction naming is broken ");
   }
 
   @Test
@@ -143,5 +146,12 @@ public class LambdaTest {
   void assertThatJDBCInstrumentationIsApplied() {
     Boolean actual = logStreamAnalyzer.getAnswer().get("Applying instrumentation: sw-jdbc");
     assertTrue(actual, "sw-jdbc instrumentation is not applied");
+  }
+
+  @Test
+  void assertSDKTransactionNaming() throws IOException {
+    String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.LAMBDA_E2E.config.agents().get(0))));
+    double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['custom transaction name'].passes");
+    assertTrue(passes > 1, "SDK transaction naming is broken");
   }
 }

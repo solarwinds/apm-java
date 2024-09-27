@@ -72,14 +72,14 @@ public class SmokeTest {
                 .forEach(
                         agent -> {
                             try {
-                                runAppOnce(config, agent);
+                                runAppOnce(agent);
                             } catch (Exception e) {
                                 fail("Unhandled exception in " + config.name(), e);
                             }
                         });
     }
 
-    static void runAppOnce(TestConfig config, Agent agent) throws Exception {
+    static void runAppOnce(Agent agent) throws Exception {
         GenericContainer<?> webMvc = new SpringBootWebMvcContainer(new SwoAgentResolver(), NETWORK, agent).build();
         webMvc.start();
         webMvc.followOutput(logStreamAnalyzer);
@@ -91,11 +91,11 @@ public class SmokeTest {
         GenericContainer<?> postgres = new PostgresContainer(NETWORK).build();
         postgres.start();
 
-        GenericContainer<?> petClinic = new PetClinicRestContainer(new SwoAgentResolver(), NETWORK, agent, namingConventions).build();
+        GenericContainer<?> petClinic = new PetClinicRestContainer(new SwoAgentResolver(), NETWORK, agent).build();
         petClinic.start();
         petClinic.followOutput(logStreamAnalyzer);
 
-        GenericContainer<?> k6 = new K6Container(NETWORK, agent, config, namingConventions).build();
+        GenericContainer<?> k6 = new K6Container(NETWORK, agent, namingConventions).build();
         k6.start();
         k6.followOutput(new Slf4jLogConsumer(LoggerFactory.getLogger("k6")), OutputFrame.OutputType.STDOUT);
 
