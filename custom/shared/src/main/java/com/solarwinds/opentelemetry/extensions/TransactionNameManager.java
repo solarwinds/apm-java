@@ -36,10 +36,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.Value;
 
 public class TransactionNameManager {
   private static final Logger logger = LoggerFactory.getLogger();
@@ -63,11 +59,6 @@ public class TransactionNameManager {
   private static int maxNameCount = DEFAULT_MAX_NAME_COUNT;
 
   private static NamingScheme namingScheme = new DefaultNamingScheme(null);
-
-  @Getter @Setter
-  private static RuntimeNameGenerator runtimeNameGenerator =
-      (SpanData spanData) ->
-          new TransactionNameResult(CustomTransactionNameDict.get(spanData.getTraceId()), false);
 
   static {
     customTransactionNamePattern = getTransactionNamePattern();
@@ -128,12 +119,7 @@ public class TransactionNameManager {
    * @return transaction name
    */
   public static String getTransactionName(SpanData spanData) {
-    TransactionNameResult transactionNameResult = buildTransactionName(spanData);
-    String transactionName = transactionNameResult.name;
-
-    if (transactionNameResult.isLambda()) {
-      return transactionName;
-    }
+    String transactionName = buildTransactionName(spanData);
 
     if (transactionName != null) {
       Boolean domainPrefixedTransactionName =
@@ -203,19 +189,19 @@ public class TransactionNameManager {
     return transactionName;
   }
 
-  static TransactionNameResult buildTransactionName(SpanData spanData) {
+  static String buildTransactionName(SpanData spanData) {
     Attributes spanAttributes = spanData.getAttributes();
-    TransactionNameResult transactionNameResult = runtimeNameGenerator.generateName(spanData);
+    String custName = CustomTransactionNameDict.get(spanData.getTraceId());
 
-    if (transactionNameResult.name != null) {
-      logger.trace(String.format("Using custom transaction name -> %s", transactionNameResult));
-      return transactionNameResult;
+    if (custName != null) {
+      logger.trace(String.format("Using custom transaction name -> %s", custName));
+      return custName;
     }
 
     String name = namingScheme.createName(spanAttributes);
     if (name != null && !name.isEmpty()) {
       logger.trace(String.format("Using scheme derived transaction name -> %s", name));
-      return new TransactionNameResult(name, false);
+      return name;
     }
 
     // use HandlerName which may be injected by some MVC instrumentations (currently only Spring
@@ -223,14 +209,14 @@ public class TransactionNameManager {
     String handlerName = spanAttributes.get(AttributeKey.stringKey("HandlerName"));
     if (handlerName != null) {
       logger.trace(String.format("Using HandlerName(%s) as the transaction name", handlerName));
-      return new TransactionNameResult(handlerName, false);
+      return handlerName;
     }
 
     // use "http.route"
     String httpRoute = spanAttributes.get(SemanticAttributes.HTTP_ROUTE);
     if (httpRoute != null) {
       logger.trace(String.format("Using http.route (%s) as the transaction name", httpRoute));
-      return new TransactionNameResult(httpRoute, false);
+      return httpRoute;
     }
 
     // get transaction name from url
@@ -246,7 +232,7 @@ public class TransactionNameManager {
             String.format(
                 "Using custom configure pattern to extract transaction name: (%s)",
                 transactionName));
-        return new TransactionNameResult(transactionName, false);
+        return transactionName;
       }
     }
 
@@ -261,12 +247,12 @@ public class TransactionNameManager {
       logger.trace(
           String.format(
               "Using token name pattern to extract transaction name: (%s)", transactionNameByUrl));
-      return new TransactionNameResult(transactionNameByUrl, false);
+      return transactionNameByUrl;
     }
 
     String spanName = spanData.getName();
     logger.trace(String.format("Using span name as the transaction name: (%s)", spanName));
-    return new TransactionNameResult(spanName, false);
+    return spanName;
   }
 
   /**
@@ -378,17 +364,5 @@ public class TransactionNameManager {
     clearTransactionNames();
     URL_TRANSACTION_NAME_CACHE.invalidateAll();
     maxNameCount = DEFAULT_MAX_NAME_COUNT;
-  }
-
-  @Value
-  @RequiredArgsConstructor
-  public static class TransactionNameResult {
-    String name;
-    boolean lambda;
-  }
-
-  @FunctionalInterface
-  public interface RuntimeNameGenerator {
-    TransactionNameResult generateName(SpanData spanData);
   }
 }

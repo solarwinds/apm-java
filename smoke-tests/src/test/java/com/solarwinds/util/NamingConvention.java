@@ -43,24 +43,6 @@ public class NamingConvention {
     return Paths.get(dir, "k6_out_" + agent.getName() + ".json");
   }
 
-  /**
-   * Returns a path to the location of the jfr output file for a given agent run.
-   *
-   * @param agent The agent to get the jfr file path for.
-   */
-  public Path jfrFile(Agent agent) {
-    return Paths.get(dir, "petclinic-" + agent.getName() + ".jfr");
-  }
-
-  /**
-   * Returns the path to the file that contains the startup duration for a given agent run.
-   *
-   * @param agent The agent to get the startup duration for.
-   */
-  public Path startupDurationFile(Agent agent) {
-    return Paths.get(dir, "startup-time-" + agent.getName() + ".txt");
-  }
-
   /** Returns the root path that this naming convention was configured with. */
   public String root() {
     return dir;

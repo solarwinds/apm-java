@@ -17,7 +17,6 @@
 package com.solarwinds.containers;
 
 import com.solarwinds.agents.Agent;
-import com.solarwinds.config.TestConfig;
 import com.solarwinds.util.NamingConventions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,14 +34,12 @@ public class K6Container {
   private static final Logger logger = LoggerFactory.getLogger(K6Container.class);
   private final Network network;
   private final Agent agent;
-  private final TestConfig config;
   private final NamingConventions namingConventions;
 
   public K6Container(
-      Network network, Agent agent, TestConfig config, NamingConventions namingConvention) {
+          Network network, Agent agent, NamingConventions namingConvention) {
     this.network = network;
     this.agent = agent;
-    this.config = config;
     this.namingConventions = namingConvention;
   }
 

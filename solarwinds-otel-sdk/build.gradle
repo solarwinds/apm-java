@@ -36,8 +36,6 @@ dependencies {
   compileOnly("io.opentelemetry:opentelemetry-context:${versions.opentelemetry}")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:${versions.opentelemetryJavaagentAlpha}")
 
-  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
-
   testImplementation 'org.mockito:mockito-core:5.3.0'
   testImplementation 'org.mockito:mockito-junit-jupiter:5.3.0'
 
