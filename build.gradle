@@ -35,7 +35,9 @@ plugins{
     id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
 }
 
-group = "com.solarwinds"
+def swoVersion = property('swo.agent.version')
+group = "io.github.appoptics"
+version = Boolean.parseBoolean(System.getenv("SNAPSHOT_BUILD")) ? "$swoVersion-SNAPSHOT" : swoVersion
 
 subprojects {
   apply plugin: "java"
@@ -49,7 +51,7 @@ subprojects {
                 bytebuddy             : "1.12.10",
                 guava                 : "30.1-jre",
                 joboe                 : "10.0.12",
-                agent                 : "2.8.0", // the custom distro agent version
+                agent                 : swoVersion, // the custom distro agent version
                 autoservice           : "1.0.1",
                 caffeine              : "2.9.3",
                 json : "20231013",
@@ -137,4 +139,16 @@ subprojects {
   java {
     disableAutoTargetJvm()
   }
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            password = System.getenv("SONATYPE_TOKEN")
+            username = System.getenv("SONATYPE_USERNAME")
+
+            nexusUrl = uri("https://s01.oss.sonatype.org/service/local/")
+            snapshotRepositoryUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+        }
+    }
 }
