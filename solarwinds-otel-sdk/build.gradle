@@ -45,17 +45,18 @@ dependencies {
 }
 
 tasks.register('sourcesJar', Jar) {
-  from('.') {
-    include 'SOURCES_DOC_README'
-  }
+  from sourceSets.main.allJava
   archiveClassifier.set("sources")
 }
 
 tasks.register('javadocJar', Jar) {
-  from('.') {
-    include 'SOURCES_DOC_README'
-  }
+  from generateDoc
   archiveClassifier.set("javadoc")
+}
+
+tasks.register('generateDoc', Javadoc) {
+  source = sourceSets.main.allJava
+  classpath = sourceSets.main.compileClasspath
 }
 
 shadowJar{
