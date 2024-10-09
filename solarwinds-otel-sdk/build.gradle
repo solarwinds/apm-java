@@ -25,9 +25,6 @@ apply from: "$rootDir/gradle/shadow.gradle"
 project.archivesBaseName = 'solarwinds-otel-sdk'
 def relocatePackages = ext.relocatePackages
 
-def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-
 dependencies {
   compileOnly project(":bootstrap")
   compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
@@ -88,24 +85,13 @@ publishing {
 
         groupId = 'io.github.appoptics'
         artifactId = "${archivesBaseName}"
-        def sdkVersion = System.getenv("AGENT_VERSION") ?: "2.6.0"
-        version = Boolean.parseBoolean(System.getenv("SNAPSHOT_BUILD")) ? "$sdkVersion-SNAPSHOT" : "${versions.agent}"
+        
+        def snapshotVersion = System.getenv("AGENT_VERSION")
+        version = Boolean.parseBoolean(System.getenv("SNAPSHOT_BUILD")) ? "${snapshotVersion}-SNAPSHOT" : "${versions.agent}"
 
         from components.java
         artifact sourcesJar
         artifact javadocJar
-      }
-    }
-    publishToMavenLocal
-  }
-
-  repositories {
-    maven {
-      name = "OSSRH"
-      url = Boolean.parseBoolean(System.getenv("SNAPSHOT_BUILD")) ? snapshotsRepoUrl : releasesRepoUrl
-      credentials {
-        username = System.getenv("SONATYPE_USERNAME")
-        password = System.getenv("SONATYPE_TOKEN")
       }
     }
   }
@@ -130,16 +116,4 @@ test {
 
 compileJava {
   options.release.set(8)
-}
-
-nexusPublishing {
-  repositories {
-    sonatype {
-      password = System.getenv("SONATYPE_TOKEN")
-      username = System.getenv("SONATYPE_USERNAME")
-
-      nexusUrl = uri(releasesRepoUrl)
-      snapshotRepositoryUrl = uri(snapshotsRepoUrl)
-    }
-  }
 }

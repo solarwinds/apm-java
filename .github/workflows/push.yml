@@ -587,4 +587,4 @@ jobs:
           echo "AGENT_VERSION=${{ steps.set_version.outputs.version }}.$GIT_HASH" >> $GITHUB_ENV
 
       - name: Publish
-        run: ./gradlew publish
+        run: ./gradlew publishToSonatype
