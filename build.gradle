@@ -75,8 +75,12 @@ subprojects {
         }
         mavenLocal()
         mavenCentral()
-        flatDir {
-            dirs("$rootDir/libs")
+        maven {
+            url = uri("https://maven.pkg.github.com/solarwinds/joboe")
+            credentials {
+                username = System.getenv("GITHUB_USERNAME")
+                password = System.getenv("GITHUB_TOKEN")
+            }
         }
     }
 
