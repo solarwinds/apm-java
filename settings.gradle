@@ -44,13 +44,15 @@ include "agent"
 include "solarwinds-otel-sdk"
 include "bootstrap"
 include "custom"
+include 'custom:lambda'
+include 'custom:shared'
+include 'agent-lambda'
 include "instrumentation"
 include "instrumentation:jdbc"
 include "instrumentation:spring-webmvc:spring-webmvc-3.1"
 include "instrumentation:servlet-5.0"
 include "instrumentation:servlet-3.0"
-include 'custom:lambda'
-include 'custom:shared'
-include 'agent-lambda'
 include 'instrumentation:spring-webmvc:spring-webmvc-6'
 include 'instrumentation:spring-webmvc'
+include 'instrumentation:hibernate:hibernate-6.0'
+
