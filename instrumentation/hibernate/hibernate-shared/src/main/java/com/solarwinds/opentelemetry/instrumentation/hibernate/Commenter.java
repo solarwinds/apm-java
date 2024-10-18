@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.instrumentation.hibernate.v6_0;
+package com.solarwinds.opentelemetry.instrumentation.hibernate;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;

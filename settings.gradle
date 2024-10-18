@@ -54,5 +54,8 @@ include "instrumentation:servlet-5.0"
 include "instrumentation:servlet-3.0"
 include 'instrumentation:spring-webmvc:spring-webmvc-6'
 include 'instrumentation:spring-webmvc'
+include 'instrumentation:hibernate:hibernate-shared'
 include 'instrumentation:hibernate:hibernate-6.0'
+include 'instrumentation:hibernate:hibernate-3.3'
+include 'instrumentation:hibernate:hibernate-4.0'
 

@@ -15,18 +15,21 @@
  */
 package com.solarwinds.opentelemetry.instrumentation.hibernate.v6_0;
 
-import static com.solarwinds.opentelemetry.instrumentation.hibernate.v6_0.Commenter.generateComment;
 import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
+import com.solarwinds.opentelemetry.instrumentation.hibernate.FunctionWrapper;
+import com.solarwinds.opentelemetry.instrumentation.hibernate.HibernateInstrumenter;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.javaagent.bootstrap.CallDepth;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import java.lang.reflect.Field;
+import java.sql.PreparedStatement;
+import java.util.function.Function;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -47,7 +50,7 @@ public class DrsaInstrumentation implements TypeInstrumentation {
   @Override
   public void transform(TypeTransformer transformer) {
     transformer.applyAdviceToMethod(
-        isMethod().and(named("getResultSet")),
+        isMethod().and(named("executeQuery")),
         DrsaInstrumentation.class.getName() + "$DeferredResultSetAccessAdvice");
   }
 
@@ -67,36 +70,36 @@ public class DrsaInstrumentation implements TypeInstrumentation {
       }
 
       try {
-        /*
-        We're using reflection here because this seems to be the best place we can intercept the raw sql before the
-        PreparedStatement is generated. The generation of the prepared statement in done via a Java 8 lambda which
-        can be tricky to bytecode modify. The consequence here is that we're accessing internal API, and it's bound to
-        be flaky.
-        */
+        // We're using reflection here because this seems to be the best place we can intercept the
+        // raw sql before the PreparedStatement is generated and be able to make the span a parent
+        // of the execution step.
 
         Class<?> clazz = drsa.getClass();
-        Field privateField = clazz.getDeclaredField("finalSql");
-        privateField.setAccessible(true);
+        Field finalSql = clazz.getDeclaredField("finalSql");
+        finalSql.setAccessible(true);
 
-        String queryString = (String) privateField.get(drsa);
-        if (queryString.contains("traceparent")) {
-          return;
-        }
-
+        String sql = (String) finalSql.get(drsa);
+        finalSql.setAccessible(false);
         Context parentContext = currentContext();
-        if (!HibernateInstrumenter.getInstance().shouldStart(parentContext, queryString)) {
+        if (!HibernateInstrumenter.getInstance().shouldStart(parentContext, sql)) {
           return;
         }
 
-        context = HibernateInstrumenter.getInstance().start(parentContext, queryString);
-        scope = context.makeCurrent();
-        String comment = generateComment(currentContext());
+        Field statementCreator = clazz.getDeclaredField("statementCreator");
+        statementCreator.setAccessible(true);
+        Function<String, PreparedStatement> function =
+            (Function<String, PreparedStatement>) statementCreator.get(drsa);
 
-        if (comment != null) {
-          privateField.set(drsa, String.format("%s %s", comment, queryString));
+        if (!(function instanceof FunctionWrapper)) {
+          // We wrap the `statementCreator` field our own wrapper to inject the context. This is
+          // less risk compared to modifying `finalSql` field.
+          statementCreator.set(drsa, new FunctionWrapper(function));
         }
+        statementCreator.setAccessible(false);
 
-        swoSql = queryString;
+        context = HibernateInstrumenter.getInstance().start(parentContext, sql);
+        scope = context.makeCurrent();
+        swoSql = sql;
 
       } catch (Throwable ignore) {
         // ignore because we can't do jack here
