@@ -1,6 +1,11 @@
 apply from: "$rootDir/gradle/instrumentation.gradle"
 
 dependencies {
+    implementation project(":instrumentation:instrumentation-shared")
     compileOnly "io.opentelemetry:opentelemetry-sdk-trace:${versions.opentelemetry}"
     compileOnly "io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}"
+}
+
+compileJava{
+    dependsOn(':instrumentation:instrumentation-shared:byteBuddyJava')
 }

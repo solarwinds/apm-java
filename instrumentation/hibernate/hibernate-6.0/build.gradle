@@ -2,6 +2,7 @@ apply from: "$rootDir/gradle/instrumentation.gradle"
 
 dependencies {
     implementation(project(':instrumentation:hibernate:hibernate-shared'))
+    implementation project(":instrumentation:instrumentation-shared")
     compileOnly("org.hibernate:hibernate-core:6.0.0.Final")
     compileOnly "io.opentelemetry:opentelemetry-sdk-trace:${versions.opentelemetry}"
     compileOnly "io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}"

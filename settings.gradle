@@ -58,4 +58,5 @@ include 'instrumentation:hibernate:hibernate-shared'
 include 'instrumentation:hibernate:hibernate-6.0'
 include 'instrumentation:hibernate:hibernate-3.3'
 include 'instrumentation:hibernate:hibernate-4.0'
+include 'instrumentation:instrumentation-shared'
 

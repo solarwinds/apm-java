@@ -16,6 +16,7 @@
 
 package com.solarwinds.opentelemetry.instrumentation.hibernate;
 
+import com.solarwinds.opentelemetry.instrumentation.jdbc.shared.DbConstraintChecker;
 import io.opentelemetry.context.Context;
 import java.sql.PreparedStatement;
 import java.util.function.Function;
@@ -30,7 +31,10 @@ public class FunctionWrapper implements Function<String, PreparedStatement> {
   @Override
   public PreparedStatement apply(String sql) {
     String comment = Commenter.generateComment(Context.current());
-    if (comment != null) {
+    if (comment != null
+        && DbConstraintChecker.preparedSqlTagEnabled()
+        && (DbConstraintChecker.isDbConfigured(DbConstraintChecker.Db.mysql)
+            || DbConstraintChecker.isDbConfigured(DbConstraintChecker.Db.postgresql))) {
       return delegate.apply(String.format("%s %s", comment, sql));
     }
 

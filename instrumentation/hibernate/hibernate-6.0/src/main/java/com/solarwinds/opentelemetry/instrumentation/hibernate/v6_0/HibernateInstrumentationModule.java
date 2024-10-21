@@ -17,8 +17,10 @@
 package com.solarwinds.opentelemetry.instrumentation.hibernate.v6_0;
 
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
+import static net.bytebuddy.matcher.ElementMatchers.none;
 
 import com.google.auto.service.AutoService;
+import com.solarwinds.opentelemetry.instrumentation.jdbc.shared.DbConstraintChecker;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import java.util.List;
@@ -33,14 +35,17 @@ public class HibernateInstrumentationModule extends InstrumentationModule {
 
   @Override
   public ElementMatcher.Junction<ClassLoader> classLoaderMatcher() {
-    return hasClassesNamed(
-        // not present before 6.0
-        "org.hibernate.query.spi.SqmQuery");
+    if (DbConstraintChecker.preparedSqlTagEnabled()) {
+      return hasClassesNamed(
+          // not present before 6.0
+          "org.hibernate.query.spi.SqmQuery");
+    }
+    return none();
   }
 
   @Override
   public boolean isHelperClass(String className) {
-    return className.startsWith("com.solarwinds.opentelemetry.instrumentation.hibernate");
+    return className.startsWith("com.solarwinds.opentelemetry.instrumentation");
   }
 
   @Override
