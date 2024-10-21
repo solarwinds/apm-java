@@ -37,7 +37,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DrsaInstrumentationTest {
 
   @RegisterExtension
-  public static AgentInstrumentationExtension testing = AgentInstrumentationExtension.create();
+  private static final AgentInstrumentationExtension testing =
+      AgentInstrumentationExtension.create();
 
   private SessionFactory sessionFactory;
 
@@ -93,6 +94,7 @@ class DrsaInstrumentationTest {
 
           session.close();
         });
+
     testing.waitAndAssertTraces(
         trace ->
             trace.hasSpansSatisfyingExactly(

@@ -31,8 +31,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class LoaderInstrumentationTest {
+
   @RegisterExtension
-  public static AgentInstrumentationExtension testing = AgentInstrumentationExtension.create();
+  private static final AgentInstrumentationExtension testing =
+      AgentInstrumentationExtension.create();
 
   private SessionFactory sessionFactory;
 
