@@ -73,10 +73,13 @@ public class JdbcConnectionInstrumentation implements TypeInstrumentation {
   @Override
   public void transform(TypeTransformer transformer) {
     transformer.applyAdviceToMethod(
-        nameStartsWith("prepare")
-            .and(takesArgument(0, String.class))
-            // Also include CallableStatement, which is a subtype of PreparedStatement
-            .and(returns(implementsInterface(named("java.sql.PreparedStatement")))),
+        named("prepareCall")
+            .and(takesArgument(0, String.class).and(takesArgument(1, int.class)))
+            .and(returns(implementsInterface(named("java.sql.PreparedStatement"))))
+            .or(
+                named("prepareStatement")
+                    .and(takesArgument(0, String.class))
+                    .and(returns(implementsInterface(named("java.sql.PreparedStatement"))))),
         JdbcConnectionInstrumentation.class.getName() + "$PrepareAdvice");
   }
 
