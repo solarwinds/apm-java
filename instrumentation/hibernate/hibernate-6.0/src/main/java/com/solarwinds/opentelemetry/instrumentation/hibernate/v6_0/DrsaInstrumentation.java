@@ -91,8 +91,8 @@ public class DrsaInstrumentation implements TypeInstrumentation {
             (Function<String, PreparedStatement>) statementCreator.get(drsa);
 
         if (!(function instanceof FunctionWrapper)) {
-          // We wrap the `statementCreator` field our own wrapper to inject the context. This is
-          // less risk compared to modifying `finalSql` field.
+          // We wrap the `statementCreator` field with our own wrapper to inject the context. This
+          // is less risky compared to modifying `finalSql` field.
           statementCreator.set(drsa, new FunctionWrapper(function));
         }
         statementCreator.setAccessible(false);

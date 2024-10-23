@@ -58,7 +58,7 @@ public class StatementTruncator {
 
       if (sql.contains("traceparent")) {
         // Remove trace context from captured db.statement. For hibernate, we inject context before
-        // capture by upstream.
+        // it's captured by upstream.
         sql = sql.replaceAll("/.*traceparent.*/", "");
         span.setAttribute(SemanticAttributes.DB_STATEMENT, sql);
       }

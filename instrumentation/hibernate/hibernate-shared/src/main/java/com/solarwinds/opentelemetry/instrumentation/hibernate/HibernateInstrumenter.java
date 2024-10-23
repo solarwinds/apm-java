@@ -22,7 +22,7 @@ import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
 public final class HibernateInstrumenter {
   private static final Instrumenter<String, Void> INSTANCE =
       Instrumenter.<String, Void>builder(
-              GlobalOpenTelemetry.get(), "com.solarwinds.jdbc", (sql) -> "sw.jdbc.context")
+              GlobalOpenTelemetry.get(), "com.solarwinds.hibernate-6.0", (sql) -> "sw.jdbc.context")
           .addAttributesExtractor(new SqlAttributeExtractor())
           .buildInstrumenter();
 

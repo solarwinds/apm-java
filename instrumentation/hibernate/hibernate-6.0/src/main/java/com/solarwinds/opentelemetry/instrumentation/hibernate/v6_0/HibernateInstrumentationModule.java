@@ -30,7 +30,7 @@ import net.bytebuddy.matcher.ElementMatcher;
 public class HibernateInstrumentationModule extends InstrumentationModule {
 
   public HibernateInstrumentationModule() {
-    super("sw-hibernate", "sw-hibernate-6.0");
+    super("hibernate-6.0", "sw-hibernate-6.0");
   }
 
   @Override
