@@ -16,7 +16,7 @@
 
 package com.solarwinds.opentelemetry.instrumentation;
 
-import static com.solarwinds.opentelemetry.instrumentation.TraceContextInjector.isDbConfigured;
+import static com.solarwinds.opentelemetry.instrumentation.jdbc.shared.DbConstraintChecker.isDbConfigured;
 import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
@@ -26,8 +26,7 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.none;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
-import com.solarwinds.joboe.config.ConfigManager;
-import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.opentelemetry.instrumentation.jdbc.shared.DbConstraintChecker;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import net.bytebuddy.asm.Advice;
@@ -43,16 +42,14 @@ public class JdbcPreparedStatementInstrumentation implements TypeInstrumentation
 
   @Override
   public ElementMatcher<TypeDescription> typeMatcher() {
-    Boolean sqlTagPrepared =
-        ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_TAG_PREPARED, false);
 
-    if (sqlTagPrepared) {
+    if (DbConstraintChecker.preparedSqlTagEnabled()) {
       ElementMatcher.Junction<TypeDescription> matcher = null;
-      if (isDbConfigured(TraceContextInjector.Db.mysql)) {
+      if (isDbConfigured(DbConstraintChecker.Db.mysql)) {
         matcher = nameStartsWith("com.mysql.cj.jdbc"); // only inject MySQL JDBC driver
       }
 
-      if (isDbConfigured(TraceContextInjector.Db.postgresql)) {
+      if (isDbConfigured(DbConstraintChecker.Db.postgresql)) {
         if (matcher != null) {
           matcher = matcher.or(nameStartsWith("org.postgresql"));
         } else {

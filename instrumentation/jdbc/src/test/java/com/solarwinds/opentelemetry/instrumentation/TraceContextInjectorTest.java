@@ -17,22 +17,14 @@
 package com.solarwinds.opentelemetry.instrumentation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
-import com.solarwinds.joboe.config.ConfigManager;
-import com.solarwinds.joboe.config.ConfigProperty;
-import com.solarwinds.joboe.config.InvalidConfigException;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.IdGenerator;
-import java.util.HashSet;
-import java.util.Set;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -47,13 +39,6 @@ class TraceContextInjectorTest {
   @Mock private SpanContext spanContextMock;
 
   private final IdGenerator idGenerator = IdGenerator.random();
-
-  private static final Set<String> activeDbs = new HashSet<>();
-
-  @BeforeAll
-  static void setup() {
-    activeDbs.add("postgresql");
-  }
 
   @Test
   void returnSqlWithTraceContextInjected() {
@@ -91,23 +76,5 @@ class TraceContextInjectorTest {
       String actual = TraceContextInjector.inject(Context.current(), sql);
       assertEquals(sql, actual);
     }
-  }
-
-  @Test
-  void returnTrueWhenDbIsNotConfiguredAndInputIsMysql() {
-    ConfigManager.removeConfig(ConfigProperty.AGENT_SQL_TAG_DATABASES);
-    assertTrue(TraceContextInjector.isDbConfigured(TraceContextInjector.Db.mysql));
-  }
-
-  @Test
-  void returnTrueWhenDbIsConfiguredAndInputIsPostgresql() throws InvalidConfigException {
-    ConfigManager.setConfig(ConfigProperty.AGENT_SQL_TAG_DATABASES, activeDbs);
-    assertTrue(TraceContextInjector.isDbConfigured(TraceContextInjector.Db.postgresql));
-  }
-
-  @Test
-  void returnFalseWhenDbIsNotConfigured() {
-    ConfigManager.removeConfig(ConfigProperty.AGENT_SQL_TAG_DATABASES);
-    assertFalse(TraceContextInjector.isDbConfigured(TraceContextInjector.Db.postgresql));
   }
 }
