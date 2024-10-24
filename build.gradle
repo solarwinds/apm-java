@@ -57,7 +57,7 @@ subprojects {
                 json : "20231013",
         ]
         versions.opentelemetryAlpha = "${versions.opentelemetry}-alpha"
-        versions.opentelemetrySemconv = "1.21.0-alpha"
+        versions.opentelemetrySemconv = "1.28.0-alpha"
         versions.opentelemetryJavaagentAlpha = "${versions.opentelemetryJavaagent}-alpha"
 
         deps = [
