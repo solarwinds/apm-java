@@ -130,6 +130,9 @@ class JavaagentProvider implements CommandLineArgumentProvider {
             "-Dsw.apm.sql.tag.prepared=true",
             // prevent sporadic gradle deadlocks, see SafeLogger for more details
             "-Dotel.javaagent.testing.transform-safe-logging.enabled=true",
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+            "-XX:+IgnoreUnrecognizedVMOptions",
             "-Dotel.javaagent.debug=true"]
   }
 }

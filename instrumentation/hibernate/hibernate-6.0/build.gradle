@@ -5,10 +5,13 @@ dependencies {
     implementation project(":instrumentation:instrumentation-shared")
 
     compileOnly "org.hibernate:hibernate-core:6.0.0.Final"
+    compileOnly "com.solarwinds.joboe:logging:${versions.joboe}"
+
     compileOnly "io.opentelemetry:opentelemetry-sdk-trace:${versions.opentelemetry}"
     compileOnly "io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}"
 
     testImplementation "org.hibernate:hibernate-core:6.0.0.Final"
+    testImplementation("com.h2database:h2:2.3.232")
 }
 
 compileJava {

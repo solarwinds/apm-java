@@ -7,6 +7,9 @@ dependencies {
     compileOnly("org.hibernate:hibernate-core:4.0.0.Final")
     compileOnly "io.opentelemetry:opentelemetry-sdk-trace:${versions.opentelemetry}"
     compileOnly "io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}"
+
+    testImplementation("org.hibernate:hibernate-core:4.0.0.Final")
+    testImplementation("com.h2database:h2:2.3.232")
 }
 
 compileJava {

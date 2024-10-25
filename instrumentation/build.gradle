@@ -20,6 +20,11 @@ subprojects {
     if (subProj.getPlugins().hasPlugin('java')) {
       // Make it so all instrumentation subproject tests can be run with a single command.
       instr_project.tasks.test.dependsOn(subProj.tasks.test)
+      subProj.tasks.test.configure {
+        testLogging {
+          events "passed", "skipped", "failed"
+        }
+      }
 
       instr_project.dependencies {
         implementation(project(subProj.getPath()))

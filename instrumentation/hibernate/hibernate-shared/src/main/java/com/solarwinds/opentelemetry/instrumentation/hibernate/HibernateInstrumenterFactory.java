@@ -22,7 +22,7 @@ import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
 public final class HibernateInstrumenterFactory {
   public static Instrumenter<String, Void> createInstance(String name) {
     return Instrumenter.<String, Void>builder(
-            GlobalOpenTelemetry.get(), name, (sql) -> "sw.jdbc.context")
+            GlobalOpenTelemetry.get(), name, (sql) -> "sw.hibernate.context")
         .buildInstrumenter();
   }
 }

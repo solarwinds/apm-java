@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.instrumentation.hibernate.v6_0;
+package com.solarwinds.opentelemetry.instrumentation.hibernate.v4_0;
 
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.query.Query;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,8 +30,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DrsaInstrumentationTest {
-
+class LoaderInstrumentationTest {
   @RegisterExtension
   public static AgentInstrumentationExtension testing = AgentInstrumentationExtension.create();
 
@@ -77,20 +72,7 @@ class DrsaInstrumentationTest {
         "root",
         () -> {
           Session session = sessionFactory.openSession();
-          session.beginTransaction();
-          CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
-
-          CriteriaQuery<Dev> createQuery = criteriaBuilder.createQuery(Dev.class);
-          Root<Dev> root = createQuery.from(Dev.class);
-          createQuery
-              .select(root)
-              .where(criteriaBuilder.equal(root.get("name"), "cleverchuk"))
-              .orderBy(criteriaBuilder.desc(root.get("name")));
-
-          Query<Dev> query = session.createQuery(createQuery);
-          query.getResultList();
-          session.getTransaction().commit();
-
+          session.createQuery("SELECT name FROM devs").list();
           session.close();
         });
     testing.waitAndAssertTraces(

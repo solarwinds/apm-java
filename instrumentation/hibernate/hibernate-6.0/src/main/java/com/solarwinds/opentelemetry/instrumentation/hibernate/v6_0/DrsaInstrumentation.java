@@ -20,6 +20,7 @@ import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
+import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.opentelemetry.instrumentation.hibernate.FunctionWrapper;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
@@ -100,8 +101,8 @@ public class DrsaInstrumentation implements TypeInstrumentation {
         scope = context.makeCurrent();
         swoSql = sql;
 
-      } catch (Throwable ignore) {
-        // ignore because we can't do jack here
+      } catch (Throwable throwable) {
+        LoggerFactory.getLogger().error("[Hibernate - v6] Error injecting context", throwable);
       }
     }
 
