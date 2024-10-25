@@ -18,6 +18,7 @@ package com.solarwinds.opentelemetry.instrumentation.jdbc.shared;
 
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,6 +43,10 @@ public class DbConstraintChecker {
 
   public static boolean preparedSqlTagEnabled() {
     return ConfigManager.getConfigOptional(ConfigProperty.AGENT_SQL_TAG_PREPARED, false);
+  }
+
+  public static boolean anyDbConfigured() {
+    return Arrays.stream(Db.values()).anyMatch(DbConstraintChecker::isDbConfigured);
   }
 
   public enum Db {

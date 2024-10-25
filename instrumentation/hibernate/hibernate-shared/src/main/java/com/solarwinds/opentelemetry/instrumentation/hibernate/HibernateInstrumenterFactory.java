@@ -16,23 +16,13 @@
 
 package com.solarwinds.opentelemetry.instrumentation.hibernate;
 
-import io.opentelemetry.api.common.AttributesBuilder;
-import io.opentelemetry.context.Context;
-import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor;
-import io.opentelemetry.semconv.SemanticAttributes;
-import javax.annotation.Nullable;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
 
-public class SqlAttributeExtractor implements AttributesExtractor<String, Void> {
-  @Override
-  public void onStart(AttributesBuilder attributes, Context parentContext, String sql) {
-    attributes.put(SemanticAttributes.DB_STATEMENT, sql);
+public final class HibernateInstrumenterFactory {
+  public static Instrumenter<String, Void> createInstance(String name) {
+    return Instrumenter.<String, Void>builder(
+            GlobalOpenTelemetry.get(), name, (sql) -> "sw.jdbc.context")
+        .buildInstrumenter();
   }
-
-  @Override
-  public void onEnd(
-      AttributesBuilder attributes,
-      Context context,
-      String sql,
-      @Nullable Void v,
-      @Nullable Throwable error) {}
 }

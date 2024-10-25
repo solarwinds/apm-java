@@ -8,4 +8,5 @@ dependencies {
 
 compileJava{
     dependsOn(':instrumentation:instrumentation-shared:byteBuddyJava')
+    options.release.set(8)
 }

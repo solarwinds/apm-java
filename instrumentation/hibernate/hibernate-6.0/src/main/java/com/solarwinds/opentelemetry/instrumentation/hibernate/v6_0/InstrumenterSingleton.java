@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/instrumentation.gradle"
-dependencies {
-    compileOnly "com.solarwinds.joboe:config:${versions.joboe}"
-    testImplementation project(path: ":instrumentation:instrumentation-shared")
-}
+package com.solarwinds.opentelemetry.instrumentation.hibernate.v6_0;
 
-test {
-    useJUnitPlatform()
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
-}
+import com.solarwinds.opentelemetry.instrumentation.hibernate.HibernateInstrumenterFactory;
+import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
 
-compileJava {
-    options.release.set(8)
+public class InstrumenterSingleton {
+  private static final Instrumenter<String, Void> INSTRUMENTER =
+      HibernateInstrumenterFactory.createInstance("com.solarwinds.hibernate-6.0");
+
+  public static Instrumenter<String, Void> instrumenter() {
+    return INSTRUMENTER;
+  }
+
+  private InstrumenterSingleton() {}
 }

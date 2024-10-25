@@ -2,6 +2,8 @@ apply from: "$rootDir/gradle/instrumentation.gradle"
 
 dependencies {
     implementation(project(':instrumentation:hibernate:hibernate-shared'))
+    implementation(project(":instrumentation:instrumentation-shared"))
+
     compileOnly("org.hibernate:hibernate-core:4.0.0.Final")
     compileOnly "io.opentelemetry:opentelemetry-sdk-trace:${versions.opentelemetry}"
     compileOnly "io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}"
@@ -9,5 +11,5 @@ dependencies {
 
 compileJava {
     dependsOn(':instrumentation:hibernate:hibernate-shared:byteBuddyJava')
-    options.release.set(11)
+    options.release.set(8)
 }

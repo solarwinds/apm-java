@@ -33,8 +33,7 @@ public class FunctionWrapper implements Function<String, PreparedStatement> {
     String comment = Commenter.generateComment(Context.current());
     if (comment != null
         && DbConstraintChecker.preparedSqlTagEnabled()
-        && (DbConstraintChecker.isDbConfigured(DbConstraintChecker.Db.mysql)
-            || DbConstraintChecker.isDbConfigured(DbConstraintChecker.Db.postgresql))) {
+        && DbConstraintChecker.anyDbConfigured()) {
       return delegate.apply(String.format("%s %s", comment, sql));
     }
 

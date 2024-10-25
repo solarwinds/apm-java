@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.instrumentation.hibernate.v6_0;
+package com.solarwinds.opentelemetry.instrumentation.hibernate.v4_0;
 
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static net.bytebuddy.matcher.ElementMatchers.none;
@@ -23,6 +23,7 @@ import com.google.auto.service.AutoService;
 import com.solarwinds.opentelemetry.instrumentation.jdbc.shared.DbConstraintChecker;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
+import java.util.Collections;
 import java.util.List;
 import net.bytebuddy.matcher.ElementMatcher;
 
@@ -30,15 +31,17 @@ import net.bytebuddy.matcher.ElementMatcher;
 public class HibernateInstrumentationModule extends InstrumentationModule {
 
   public HibernateInstrumentationModule() {
-    super("hibernate", "sw-hibernate-6.0");
+    super("sw-hibernate-4.0");
   }
 
   @Override
   public ElementMatcher.Junction<ClassLoader> classLoaderMatcher() {
     if (DbConstraintChecker.preparedSqlTagEnabled() && DbConstraintChecker.anyDbConfigured()) {
       return hasClassesNamed(
-          // not present before 6.0
-          "org.hibernate.query.spi.SqmQuery");
+          // not present before 4.0
+          "org.hibernate.internal.SessionFactoryImpl",
+          // missing in 6.0
+          "org.hibernate.Criteria");
     }
     return none();
   }
@@ -49,12 +52,12 @@ public class HibernateInstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  public List<TypeInstrumentation> typeInstrumentations() {
-    return List.of(new DrsaInstrumentation());
+  public int order() {
+    return Integer.MAX_VALUE;
   }
 
   @Override
-  public int order() {
-    return Integer.MAX_VALUE;
+  public List<TypeInstrumentation> typeInstrumentations() {
+    return Collections.singletonList(new LoaderInstrumentation());
   }
 }

@@ -21,7 +21,6 @@ import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
 import com.solarwinds.opentelemetry.instrumentation.hibernate.FunctionWrapper;
-import com.solarwinds.opentelemetry.instrumentation.hibernate.HibernateInstrumenter;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.javaagent.bootstrap.CallDepth;
@@ -81,7 +80,7 @@ public class DrsaInstrumentation implements TypeInstrumentation {
         String sql = (String) finalSql.get(drsa);
         finalSql.setAccessible(false);
         Context parentContext = currentContext();
-        if (!HibernateInstrumenter.getInstance().shouldStart(parentContext, sql)) {
+        if (!InstrumenterSingleton.instrumenter().shouldStart(parentContext, sql)) {
           return;
         }
 
@@ -97,7 +96,7 @@ public class DrsaInstrumentation implements TypeInstrumentation {
         }
         statementCreator.setAccessible(false);
 
-        context = HibernateInstrumenter.getInstance().start(parentContext, sql);
+        context = InstrumenterSingleton.instrumenter().start(parentContext, sql);
         scope = context.makeCurrent();
         swoSql = sql;
 
@@ -120,7 +119,7 @@ public class DrsaInstrumentation implements TypeInstrumentation {
 
       if (scope != null) {
         scope.close();
-        HibernateInstrumenter.getInstance().end(context, swoSql, null, throwable);
+        InstrumenterSingleton.instrumenter().end(context, swoSql, null, throwable);
       }
     }
   }

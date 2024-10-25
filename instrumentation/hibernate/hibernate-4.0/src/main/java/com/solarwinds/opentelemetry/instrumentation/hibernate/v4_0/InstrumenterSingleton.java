@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.instrumentation.hibernate;
+package com.solarwinds.opentelemetry.instrumentation.hibernate.v4_0;
 
-import io.opentelemetry.api.GlobalOpenTelemetry;
+import com.solarwinds.opentelemetry.instrumentation.hibernate.HibernateInstrumenterFactory;
 import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
 
-public final class HibernateInstrumenter {
-  private static final Instrumenter<String, Void> INSTANCE =
-      Instrumenter.<String, Void>builder(
-              GlobalOpenTelemetry.get(), "com.solarwinds.hibernate-6.0", (sql) -> "sw.jdbc.context")
-          .addAttributesExtractor(new SqlAttributeExtractor())
-          .buildInstrumenter();
+public class InstrumenterSingleton {
+  private static final Instrumenter<String, Void> INSTRUMENTER =
+      HibernateInstrumenterFactory.createInstance("com.solarwinds.hibernate-4.0");
 
-  public static Instrumenter<String, Void> getInstance() {
-    return INSTANCE;
+  public static Instrumenter<String, Void> instrumenter() {
+    return INSTRUMENTER;
   }
+
+  private InstrumenterSingleton() {}
 }
