@@ -23,11 +23,6 @@ apply from: "$rootDir/gradle/shadow.gradle"
 
 def relocatePackages = ext.relocatePackages
 
-configurations {
-  testInstrumentation
-  testAgent
-}
-
 dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
@@ -37,8 +32,6 @@ dependencies {
   annotationProcessor deps.autoservice
   compileOnly deps.autoservice
 
-  // the javaagent that is going to be used when running instrumentation unit tests
-//  testAgent(project(path: ":testing:agent-for-testing", configuration: "shadow"))
   // test dependencies
   testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagentAlpha}")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing:${versions.opentelemetry}")
@@ -50,34 +43,96 @@ dependencies {
   add("muzzleTooling", "io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}")
 }
 
+
 shadowJar {
-  configurations = [project.configurations.runtimeClasspath, project.configurations.testInstrumentation]
-  mergeServiceFiles()
-
   archiveFileName = 'agent-testing.jar'
+  configurations = [project.configurations.runtimeClasspath]
 
+  mergeServiceFiles()
   relocatePackages(it)
 }
 
-tasks.withType(Test).configureEach {
-  inputs.file(shadowJar.archiveFile)
+evaluationDependsOn(":testing:agent-for-testing")
 
-  jvmArgs "-Dotel.javaagent.debug=true"
-  jvmArgs "-Dotel.javaagent.experimental.initializer.jar=${shadowJar.archiveFile.get().asFile.absolutePath}"
-  jvmArgs "-Dotel.javaagent.testing.additional-library-ignores.enabled=false"
-  jvmArgs "-Dotel.javaagent.testing.fail-on-context-leak=true"
-  // prevent sporadic gradle deadlocks, see SafeLogger for more details
-  jvmArgs "-Dotel.javaagent.testing.transform-safe-logging.enabled=true"
+tasks.withType(Test).configureEach {
+  def shadowJar = tasks.shadowJar
+  def agentShadowJar = project(':testing:agent-for-testing').tasks.shadowJar
 
   dependsOn shadowJar
-  dependsOn configurations.testAgent.buildDependencies
+  dependsOn agentShadowJar
+
+  inputs.file(shadowJar.archiveFile)
+  jvmArgumentProviders.add(new JavaagentProvider(agentShadowJar.archiveFile, shadowJar.archiveFile))
 
   // The sources are packaged into the testing jar so we need to make sure to exclude from the test
   // classpath, which automatically inherits them, to ensure our shaded versions are used.
   classpath = classpath.filter {
-    if (it == file("$buildDir/resources/main") || it == file("$buildDir/classes/java/main")) {
+    if (layout.buildDirectory.file('resources/main') == it || layout.buildDirectory.file('classes/java/main') == it) {
       return false
     }
+
+    def lib = it.absoluteFile
+    if (lib.name.startsWith("opentelemetry-javaagent-") && !lib.name.contains("extension-api")) {
+      return false
+    }
+
+    if (lib.name.startsWith("opentelemetry-") && lib.name.contains("-autoconfigure-")) {
+      return false
+    }
+
     return true
+  }
+}
+
+tasks.register('generateInstrumentationVersionFile') {
+  def name = "com.solarwinds.${project.name}"
+  def version = rootProject.version.toString()
+  inputs.property('instrumentation.name', name)
+  inputs.property('instrumentation.version', version)
+
+  def propertiesDir = layout.buildDirectory.dir('generated/instrumentationVersion/META-INF/io/opentelemetry/instrumentation')
+  outputs.dir(propertiesDir)
+
+  doLast {
+    new File(propertiesDir.get().asFile, "${name}.properties").text = "version=${version}"
+  }
+}
+
+sourceSets {
+  main {
+    output.dir('build/generated/instrumentationVersion', builtBy: 'generateInstrumentationVersionFile')
+  }
+}
+
+class JavaagentProvider implements CommandLineArgumentProvider {
+  @InputFile
+  @PathSensitive(PathSensitivity.RELATIVE)
+  final Provider<RegularFile> agentJar
+
+  @InputFile
+  @PathSensitive(PathSensitivity.RELATIVE)
+  final Provider<RegularFile> instrumentationJar
+
+  JavaagentProvider(Provider<RegularFile> agentJar, Provider<RegularFile> instrumentationJar) {
+    this.agentJar = agentJar
+    this.instrumentationJar = instrumentationJar
+  }
+
+  @Override
+  Iterable<String> asArguments() {
+    return [
+            "-javaagent:${agentJar.get().asFile.absolutePath}",
+            "-Dotel.javaagent.experimental.initializer.jar=${instrumentationJar.get().asFile.absolutePath}",
+            "-Dotel.javaagent.testing.additional-library-ignores.enabled=false",
+            "-Dotel.javaagent.testing.fail-on-context-leak=true",
+            "-Dsw.apm.service.key=give-me-a-token:test-app",
+            "-Dsw.apm.sql.tag=true",
+            "-Dsw.apm.sql.tag.prepared=true",
+            // prevent sporadic gradle deadlocks, see SafeLogger for more details
+            "-Dotel.javaagent.testing.transform-safe-logging.enabled=true",
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+            "-XX:+IgnoreUnrecognizedVMOptions",
+            "-Dotel.javaagent.debug=true"]
   }
 }

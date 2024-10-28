@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-Project instr_project = project
-subprojects {
-  afterEvaluate { Project subProj ->
-    if (subProj.getPlugins().hasPlugin('java')) {
-      // Make it so all instrumentation subproject tests can be run with a single command.
-      instr_project.tasks.test.dependsOn(subProj.tasks.test)
-      subProj.tasks.test.configure {
-        testLogging {
-          events "passed", "skipped", "failed"
-        }
-      }
+apply from: "$rootDir/gradle/instrumentation.gradle"
+dependencies {
+    compileOnly "com.solarwinds.joboe:config:${versions.joboe}"
+    testImplementation project(path: ":instrumentation:instrumentation-shared")
+}
 
-      instr_project.dependencies {
-        implementation(project(subProj.getPath()))
-      }
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
     }
-  }
+}
+
+compileJava {
+    options.release.set(8)
 }

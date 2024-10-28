@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-Project instr_project = project
-subprojects {
-  afterEvaluate { Project subProj ->
-    if (subProj.getPlugins().hasPlugin('java')) {
-      // Make it so all instrumentation subproject tests can be run with a single command.
-      instr_project.tasks.test.dependsOn(subProj.tasks.test)
-      subProj.tasks.test.configure {
-        testLogging {
-          events "passed", "skipped", "failed"
-        }
-      }
+package com.solarwinds.opentelemetry.instrumentation.hibernate;
 
-      instr_project.dependencies {
-        implementation(project(subProj.getPath()))
-      }
-    }
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
+
+public final class HibernateInstrumenterFactory {
+  public static Instrumenter<String, Void> createInstance(String name) {
+    return Instrumenter.<String, Void>builder(
+            GlobalOpenTelemetry.get(), name, (sql) -> "sw.hibernate.context")
+        .buildInstrumenter();
   }
 }

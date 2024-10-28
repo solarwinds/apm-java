@@ -19,6 +19,7 @@ apply from: "$rootDir/gradle/instrumentation.gradle"
 
 dependencies {
   compileOnly project(":bootstrap")
+  compileOnly project(":instrumentation:instrumentation-shared")
   compileOnly "com.solarwinds.joboe:config:${versions.joboe}"
   compileOnly "com.solarwinds.joboe:logging:${versions.joboe}"
   compileOnly "org.json:json:${versions.json}"
@@ -27,7 +28,8 @@ dependencies {
   compileOnly "io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}"
   compileOnly "com.github.ben-manes.caffeine:caffeine:${versions.caffeine}"
 
-  testImplementation project(path: ":instrumentation:jdbc")
+  testImplementation project(":instrumentation:jdbc")
+  testImplementation project(":instrumentation:instrumentation-shared")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagentAlpha}") {
     exclude group: 'org.eclipse.jetty', module: 'jetty-server'
   }
@@ -46,5 +48,6 @@ test {
 }
 
 compileJava {
+  dependsOn(':instrumentation:instrumentation-shared:byteBuddyJava')
   options.release.set(8)
 }
