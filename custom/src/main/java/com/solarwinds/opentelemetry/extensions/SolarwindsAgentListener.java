@@ -53,6 +53,7 @@ import com.solarwinds.joboe.metrics.SystemMonitorFactoryImpl;
 import com.solarwinds.joboe.metrics.TracingReporterMetricsCollector;
 import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.opentelemetry.core.AgentState;
+import com.solarwinds.opentelemetry.extensions.initialize.ConfigurationLoader;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.javaagent.extension.AgentListener;
@@ -152,10 +153,16 @@ public class SolarwindsAgentListener implements AgentListener {
                                       configs,
                                       SolarwindsInboundMetricsSpanProcessor
                                           .buildSpanMetricsCollector());
-                              metricsCollector.addCollector(
-                                  MetricsCategory.TRACING_REPORTER,
-                                  new TracingReporterMetricsCollector(
-                                      ReporterProvider.getEventReporter()));
+
+                              if (ConfigurationLoader.shouldUseOtlpForMetrics()) {
+                                metricsCollector.removeCollector(MetricsCategory.LAYER_COUNT);
+                              } else {
+                                metricsCollector.addCollector(
+                                    MetricsCategory.TRACING_REPORTER,
+                                    new TracingReporterMetricsCollector(
+                                        ReporterProvider.getEventReporter()));
+                              }
+
                               return MetricsMonitor.buildInstance(configs, metricsCollector);
                             } catch (InvalidConfigException | ClientException e) {
                               logger.debug(String.format("Error creating MetricsCollector: %s", e));

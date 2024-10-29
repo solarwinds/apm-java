@@ -265,4 +265,40 @@ public class SmokeTest {
     double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['sdk-trace'].passes");
     assertTrue(passes > 1, "SDK trace is not working, expected a count > 1 ");
   }
+
+    @Test
+    void assertThatRequestCountMetricIsReported() throws IOException {
+        String resultJson = new String(
+                Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['request_count'].passes");
+        assertTrue(passes > 1, "Expects a count > 1 ");
+    }
+
+    @Test
+    void assertThatTraceCountMetricIsReported() throws IOException {
+        String resultJson = new String(
+                Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['tracecount'].passes");
+        assertTrue(passes > 1, "Expects a count > 1 ");
+    }
+
+    @Test
+    void assertThatSampleCountMetricIsReported() throws IOException {
+        String resultJson = new String(
+                Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['samplecount'].passes");
+        assertTrue(passes > 1, "Expects a count > 1 ");
+    }
+
+    @Test
+    void assertThatResponseTimeMetricIsReported() throws IOException {
+        String resultJson = new String(
+                Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['response_time'].passes");
+        assertTrue(passes > 1, "Expects a count > 1 ");
+    }
 }
