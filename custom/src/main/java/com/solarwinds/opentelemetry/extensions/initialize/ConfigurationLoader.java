@@ -234,7 +234,7 @@ public class ConfigurationLoader {
 
   static void configureOtelMetricExport(ConfigContainer container) {
     Boolean exportMetrics = (Boolean) container.get(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED);
-    if (exportMetrics != null && exportMetrics) {
+    if (exportMetrics == null || exportMetrics) {
       String serviceKey = (String) container.get(ConfigProperty.AGENT_SERVICE_KEY);
       String apiKey = ServiceKeyUtils.getApiKey(serviceKey);
 
@@ -588,5 +588,14 @@ public class ConfigurationLoader {
     configs.put(ConfigProperty.PROFILER, finalProfilerSetting, true);
 
     ConfigManager.initialize(configs);
+  }
+
+  public static boolean shouldUseOtlpForMetrics() {
+    Boolean enabled =
+        (Boolean) ConfigManager.getConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED);
+
+    String collectorEndpoint = (String) ConfigManager.getConfig(ConfigProperty.AGENT_COLLECTOR);
+    return (enabled == null || enabled)
+        && (collectorEndpoint == null || !collectorEndpoint.contains("appoptics.com"));
   }
 }

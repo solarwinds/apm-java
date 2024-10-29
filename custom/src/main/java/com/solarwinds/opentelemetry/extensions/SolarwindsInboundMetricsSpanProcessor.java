@@ -34,6 +34,7 @@ import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.metrics.SpanMetricsCollector;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.opentelemetry.core.Constants;
+import com.solarwinds.opentelemetry.extensions.initialize.ConfigurationLoader;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.StatusCode;
@@ -96,6 +97,10 @@ public class SolarwindsInboundMetricsSpanProcessor implements SpanProcessor {
       // this sometimes cause serious problem if NPE is throw. too expensive? We don't really have
       // to check as we always do inbound right now
       if (Boolean.TRUE.equals(spanData.getAttributes().get(AO_METRICS_KEY))) {
+
+        if (ConfigurationLoader.shouldUseOtlpForMetrics()) {
+          return;
+        }
         MEASUREMENT_REPORTER.reportMetrics(spanData);
         HISTOGRAM_REPORTER.reportMetrics(spanData);
       }
