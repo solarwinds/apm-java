@@ -24,7 +24,6 @@ import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.none;
 import static net.bytebuddy.matcher.ElementMatchers.returns;
-import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 import com.solarwinds.opentelemetry.instrumentation.jdbc.shared.DbConstraintChecker;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
@@ -69,9 +68,7 @@ public class JdbcConnectionInstrumentation implements TypeInstrumentation {
   @Override
   public void transform(TypeTransformer transformer) {
     transformer.applyAdviceToMethod(
-        nameStartsWith("prepare")
-            .and(takesArgument(0, String.class))
-            // Also include CallableStatement, which is a subtype of PreparedStatement
+        named("prepareStatement")
             .and(returns(implementsInterface(named("java.sql.PreparedStatement")))),
         JdbcConnectionInstrumentation.class.getName() + "$PrepareAdvice");
   }

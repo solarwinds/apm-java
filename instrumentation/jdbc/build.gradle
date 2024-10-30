@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-apply plugin: 'groovy'
 apply from: "$rootDir/gradle/instrumentation.gradle"
+
 
 dependencies {
   compileOnly project(":bootstrap")
@@ -30,22 +30,8 @@ dependencies {
 
   testImplementation project(":instrumentation:jdbc")
   testImplementation project(":instrumentation:instrumentation-shared")
-  testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagentAlpha}") {
-    exclude group: 'org.eclipse.jetty', module: 'jetty-server'
-  }
-
-  // mandatory dependencies for using Spock
-  testImplementation "org.apache.groovy:groovy:4.0.1"
-  testImplementation platform("org.spockframework:spock-bom:2.1-groovy-3.0")
-  testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
 }
 
-test {
-  useJUnitPlatform()
-  testLogging {
-    events "passed", "skipped", "failed"
-  }
-}
 
 compileJava {
   dependsOn(':instrumentation:instrumentation-shared:byteBuddyJava')
