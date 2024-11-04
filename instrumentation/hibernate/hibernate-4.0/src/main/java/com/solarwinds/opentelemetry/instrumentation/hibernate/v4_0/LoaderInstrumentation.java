@@ -21,7 +21,6 @@ import static net.bytebuddy.matcher.ElementMatchers.hasSuperType;
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
-import com.solarwinds.opentelemetry.instrumentation.hibernate.Commenter;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.javaagent.bootstrap.CallDepth;
@@ -74,11 +73,6 @@ public class LoaderInstrumentation implements TypeInstrumentation {
 
       context = InstrumenterSingleton.instrumenter().start(parentContext, sql);
       scope = context.makeCurrent();
-
-      String comment = Commenter.generateComment(currentContext());
-      if (comment != null) {
-        queryParameters.setComment(comment);
-      }
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)

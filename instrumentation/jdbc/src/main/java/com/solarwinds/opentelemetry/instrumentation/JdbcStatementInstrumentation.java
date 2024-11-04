@@ -27,6 +27,7 @@ import static net.bytebuddy.matcher.ElementMatchers.none;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 import com.solarwinds.opentelemetry.instrumentation.jdbc.shared.DbConstraintChecker;
+import io.opentelemetry.javaagent.bootstrap.CallDepth;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import net.bytebuddy.asm.Advice;
@@ -79,10 +80,25 @@ public class JdbcStatementInstrumentation implements TypeInstrumentation {
   @SuppressWarnings("unused")
   public static class StatementAdvice {
     @Advice.OnMethodEnter
-    public static void onEnter(@Advice.Argument(value = 0, readOnly = false) String sql) {
+    public static void onEnter(
+        @Advice.Local("swoCallDepth") CallDepth callDepth,
+        @Advice.Argument(value = 0, readOnly = false) String sql) {
+
+      callDepth = CallDepth.forClass(StatementTracer.class);
+      if (callDepth.getAndIncrement() > 0) {
+        return;
+      }
+
       sql = TraceContextInjector.inject(currentContext(), sql);
       StatementTracer.writeStackTraceSpec(currentContext());
       StatementTruncator.maybeTruncateStatement(currentContext());
+    }
+
+    @Advice.OnMethodExit(suppress = Throwable.class)
+    public static void end(@Advice.Local("swoCallDepth") CallDepth callDepth) {
+      if (callDepth != null) {
+        callDepth.decrementAndGet();
+      }
     }
   }
 }
