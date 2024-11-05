@@ -20,6 +20,15 @@ on:
   schedule:
     - cron: '0 7 * * 1'
 
+permissions:
+  packages: read
+  contents: read
+  id-token: write
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_USERNAME: ${{ github.actor }}
+
 jobs:
   analyze:
     name: Analyze

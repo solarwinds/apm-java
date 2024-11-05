@@ -30,10 +30,7 @@ public class ResourceCustomizer implements BiFunction<Resource, ConfigProperties
 
   @Override
   public Resource apply(Resource resource, ConfigProperties configProperties) {
-    ResourceBuilder resourceBuilder =
-        resource.toBuilder()
-            .put("sw.data.module", "apm")
-            .put("sw.apm.version", BuildConfig.SOLARWINDS_AGENT_VERSION);
+    ResourceBuilder resourceBuilder = resource.toBuilder();
     String resourceAttribute = resource.getAttribute(ResourceAttributes.PROCESS_COMMAND_LINE);
     List<String> processArgs = resource.getAttribute(ResourceAttributes.PROCESS_COMMAND_ARGS);
 

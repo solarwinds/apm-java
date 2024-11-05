@@ -70,7 +70,7 @@ public class SpringBootWebMvcContainer implements Container {
               .withCopyFileToContainer(
                       MountableFile.forHostPath(agentPath),
                       "/app/" + agentPath.getFileName())
-              .withCommand(buildCommandline(agentPath, true));
+              .withCommand(buildCommandline(agentPath));
     }
 
     return new GenericContainer<>(DockerImageName.parse("smt:webmvc"))
@@ -88,16 +88,13 @@ public class SpringBootWebMvcContainer implements Container {
             .withCopyFileToContainer(
                     MountableFile.forHostPath(agentPath),
                     "/app/" + agentPath.getFileName())
-            .withCommand(buildCommandline(agentPath, false));
+            .withCommand(buildCommandline(agentPath));
   }
 
   @NotNull
-  private String[] buildCommandline(Path agentJarPath, boolean isLambda) {
+  private String[] buildCommandline(Path agentJarPath) {
     List<String> result = new ArrayList<>();
     result.add("java");
-    if (!isLambda) {
-      result.add("-Dotel.javaagent.extensions=/app/custom-extensions.jar");
-    }
 
     result.addAll(this.agent.getAdditionalJvmArgs());
     result.add("-javaagent:/app/" + agentJarPath.getFileName());

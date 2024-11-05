@@ -30,6 +30,7 @@ import com.solarwinds.joboe.sampling.SamplingException;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.opentelemetry.core.Constants;
 import com.solarwinds.opentelemetry.core.Util;
+import com.solarwinds.opentelemetry.extensions.initialize.ConfigurationLoader;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.common.CompletableResultCode;
@@ -50,7 +51,7 @@ public class SolarwindsSpanExporter implements SpanExporter {
 
   @Override
   public CompletableResultCode export(@Nonnull Collection<SpanData> collection) {
-    if (!isAgentEnabled()) {
+    if (!isAgentEnabled() || ConfigurationLoader.shouldUseOtlpForTraces()) {
       return CompletableResultCode.ofSuccess();
     }
     EventReporter eventReporter = ReporterProvider.getEventReporter();
@@ -84,33 +85,10 @@ public class SolarwindsSpanExporter implements SpanExporter {
             entryEvent = new EventImpl(null, w3cContext, false);
           }
 
-          if (!spanData.getParentSpanContext().isValid()
-              || spanData.getParentSpanContext().isRemote()) { // then a root span of this service
-            String transactionName =
-                spanData
-                    .getAttributes()
-                    .get(
-                        AttributeKey.stringKey(
-                            "TransactionName")); // check if there's transaction name set as
-            // attribute
-            if (transactionName == null) {
-              transactionName = TransactionNameManager.getTransactionName(spanData);
-              if (transactionName != null) {
-                entryEvent.addInfo(
-                    "TransactionName",
-                    transactionName); // only do this if we are generating a transaction name here.
-                // If it's already in attributes, it will be inserted by
-                // addInfo(getTags...)
-              }
-            }
-          }
-
           InstrumentationScopeInfo scopeInfo = spanData.getInstrumentationScopeInfo();
           entryEvent.addInfo(
               "Label",
               "entry",
-              "Layer",
-              spanName,
               "sw.span_kind",
               spanData.getKind().toString(),
               "otel.scope.name",

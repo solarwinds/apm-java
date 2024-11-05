@@ -29,7 +29,7 @@ export const options = {
 
 function verify_that_trace_is_persisted() {
     let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
-    for (; retryCount; retryCount--) {
+    for (; retryCount > 0; retryCount--) {
         const petTypesResponse = http.get(`${baseUri}/pettypes`);
         check(petTypesResponse.headers, {
             'should have X-Trace header': (h) => h['X-Trace'] !== undefined
@@ -50,7 +50,7 @@ function verify_that_trace_is_persisted() {
             "query": "query getTraceDetails($traceId: ID!, $spanId: ID, $aggregateSpans: Boolean, $incomplete: Boolean) {\n  traceDetails(\n    traceId: $traceId\n    spanId: $spanId\n    aggregateSpans: $aggregateSpans\n    incomplete: $incomplete\n  ) {\n    traceId\n    action\n    spanCount\n    time\n    controller\n    duration\n    originSpan {\n      id\n      service\n      status\n      transaction\n      duration\n      method\n      errorCount\n      host\n      startTime\n      action\n      controller\n      serviceEntity\n      containerEntity\n      hostEntity\n      websiteEntity\n      hostEntityName\n      websiteEntityName\n      serviceInstanceEntityName\n      __typename\n    }\n    selectedSpan {\n      id\n      service\n      status\n      transaction\n      duration\n      method\n      errorCount\n      host\n      startTime\n      action\n      controller\n      serviceEntity\n      containerEntity\n      hostEntity\n      websiteEntity\n      hostEntityName\n      websiteEntityName\n      serviceInstanceEntityName\n      __typename\n    }\n    allErrors {\n      hostname\n      message\n      spanLayer\n      time\n      exceptionClassMessageHash\n      spanId\n      __typename\n    }\n    allQueries {\n      ...QueryItem\n      __typename\n    }\n    traceBreakdown {\n      duration\n      errorCount\n      layer\n      percentOfTraceDuration\n      spanCount\n      spanIds\n      __typename\n    }\n    waterfall {\n      ...WaterfallRow\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment QueryItem on QueryItem {\n  averageTime\n  count\n  query\n  queryHash\n  totalTime\n  percentOfTraceDuration\n  spanIds\n  dboQueryId\n  __typename\n}\n\nfragment WaterfallRow on WaterfallRow {\n  parentId\n  items {\n    layer\n    spanId\n    endTime\n    startTime\n    service\n    error {\n      exceptionClassMessageHash\n      message\n      spanId\n      timestamp\n      __typename\n    }\n    async\n    __typename\n  }\n  __typename\n}\n"
         }
 
-        for (; retryCount; retryCount--) {
+        for (; retryCount > 0; retryCount--) {
             let traceDetailResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(traceDetailPayload),
                 {
                     headers: {
@@ -83,7 +83,7 @@ function verify_that_trace_is_persisted() {
 function verify_that_span_data_is_persisted() {
     const newOwner = names.randomOwner();
     let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
-    for (; retryCount; retryCount--) {
+    for (; retryCount > 0; retryCount--) {
         const newOwnerResponse = http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
             {
                 headers: {
@@ -105,7 +105,7 @@ function verify_that_span_data_is_persisted() {
             "query": "query getSubSpanRawData($traceId: ID!, $spanFilter: TraceArchiveSpanFilter, $incomplete: Boolean) {\n  traceArchive(\n    traceId: $traceId\n    spanFilter: $spanFilter\n    incomplete: $incomplete\n  ) {\n    traceId\n    traceSpans {\n      edges {\n        node {\n          events {\n            eventId\n            properties {\n              key\n              value\n              __typename\n            }\n            __typename\n          }\n          spanId\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n"
         }
 
-        for (; retryCount; retryCount--) {
+        for (; retryCount > 0; retryCount--) {
             let spanDataResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(spanRawDataPayload),
                 {
                     headers: {
@@ -157,7 +157,7 @@ function verify_that_span_data_is_persisted() {
 
 function verify_that_span_data_is_persisted_0() {
     let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
-    for (; retryCount; retryCount--) {
+    for (; retryCount > 0; retryCount--) {
         const transactionName = "int-test"
         const response = http.get(`${webMvcUri}/greet/${transactionName}`, {
             headers: {
@@ -179,7 +179,7 @@ function verify_that_span_data_is_persisted_0() {
             "query": "query getSubSpanRawData($traceId: ID!, $spanFilter: TraceArchiveSpanFilter, $incomplete: Boolean) {\n  traceArchive(\n    traceId: $traceId\n    spanFilter: $spanFilter\n    incomplete: $incomplete\n  ) {\n    traceId\n    traceSpans {\n      edges {\n        node {\n          events {\n            eventId\n            properties {\n              key\n              value\n              __typename\n            }\n            __typename\n          }\n          spanId\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n"
         }
 
-        for (; retryCount; retryCount--) {
+        for (; retryCount > 0; retryCount--) {
             let spanDataResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(spanRawDataPayload),
                 {
                     headers: {
@@ -222,7 +222,7 @@ function verify_that_span_data_is_persisted_0() {
 
 function verify_distributed_trace() {
     let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
-    for (; retryCount; retryCount--) {
+    for (; retryCount > 0; retryCount--) {
         const response = http.get(`${webMvcUri}/distributed`, {
             headers: {
                 'Content-Type': 'application/json'
@@ -242,7 +242,7 @@ function verify_distributed_trace() {
             "query": "query getSubSpanRawData($traceId: ID!, $spanFilter: TraceArchiveSpanFilter, $incomplete: Boolean) {\n  traceArchive(\n    traceId: $traceId\n    spanFilter: $spanFilter\n    incomplete: $incomplete\n  ) {\n    traceId\n    traceSpans {\n      edges {\n        node {\n          events {\n            eventId\n            properties {\n              key\n              value\n              __typename\n            }\n            __typename\n          }\n          spanId\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n"
         }
 
-        for (; retryCount; retryCount--) {
+        for (; retryCount > 0; retryCount--) {
             let spanDataResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(spanRawDataPayload),
                 {
                     headers: {
@@ -383,7 +383,7 @@ function verify_that_metrics_are_reported(metric, checkFn, service="lambda-e2e")
 
 function verify_transaction_name() {
   let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
-  for (; retryCount; retryCount--) {
+  for (; retryCount > 0; retryCount--) {
     const newOwner = names.randomOwner();
     const response = http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
         {
@@ -406,7 +406,7 @@ function verify_transaction_name() {
       "query": "query getSubSpanRawData($traceId: ID!, $spanFilter: TraceArchiveSpanFilter, $incomplete: Boolean) {\n  traceArchive(\n    traceId: $traceId\n    spanFilter: $spanFilter\n    incomplete: $incomplete\n  ) {\n    traceId\n    traceSpans {\n      edges {\n        node {\n          events {\n            eventId\n            properties {\n              key\n              value\n              __typename\n            }\n            __typename\n          }\n          spanId\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n"
     }
 
-    for (; retryCount; retryCount--) {
+    for (; retryCount > 0; retryCount--) {
       let spanDataResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(spanRawDataPayload),
           {
             headers: {
@@ -475,7 +475,7 @@ function getEntityId() {
     "query": "query getServiceEntitiesQuery($filter: EntityFilterInput, $timeFilter: TimeRangeInput!, $sortBy: EntitySortInput, $pagination: PagingInput, $bucketSizeInS: Int!, $includeKubernetesClusterUid: Boolean = false) {\n  entities {\n    search(\n      filter: $filter\n      sortBy: $sortBy\n      paging: $pagination\n      timeRange: $timeFilter\n    ) {\n      totalEntitiesCount\n      pageInfo {\n        endCursor\n        hasNextPage\n        startCursor\n        hasPreviousPage\n        __typename\n      }\n      groups {\n        entities {\n          ... on Service {\n            ...ServiceEntity\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment ServiceEntity on Service {\n  id\n  name: displayName\n  lastSeenTime\n  language\n  kubernetesPodInstances @include(if: $includeKubernetesClusterUid) {\n    clusterUid\n    __typename\n  }\n  healthScore {\n    scoreV2\n    categoryV2\n    __typename\n  }\n  traceServiceErrorRatio {\n    ...MetricSeriesMeasurementsForServiceEntity\n    __typename\n  }\n  traceServiceErrorRatioValue\n  traceServiceRequestRate {\n    ...MetricSeriesMeasurementsForServiceEntity\n    __typename\n  }\n  traceServiceRequestRateValue\n  responseTime {\n    ...MetricSeriesMeasurementsForServiceEntity\n    __typename\n  }\n  responseTimeValue\n  sumRequests\n  __typename\n}\n\nfragment MetricSeriesMeasurementsForServiceEntity on Metric {\n  measurements(\n    metricInput: {aggregation: {method: AVG, bucketSizeInS: $bucketSizeInS, missingDataPointsHandling: NULL_FILL}, timeRange: $timeFilter}\n  ) {\n    series {\n      measurements {\n        time\n        value\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"
   }
 
-  for (; retryCount; retryCount--) {
+  for (; retryCount > 0; retryCount--) {
     let entityResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(entityQueryPayload),
         {
           headers: {
@@ -522,7 +522,7 @@ function verify_logs_export() {
     "query": "query getLogEvents($input: LogEventsInput!) {\n  logEvents(input: $input) {\n    events {\n      id\n      facility\n      program\n      message\n      receivedAt\n      severity\n      sourceName\n      isJson\n      positions {\n        length\n        starts\n        __typename\n      }\n      __typename\n    }\n    cursor {\n      maxId\n      maxTimestamp\n      minId\n      minTimestamp\n      __typename\n    }\n    __typename\n  }\n}\n"
   }
 
-  for (; retryCount; retryCount--) {
+  for (; retryCount > 0; retryCount--) {
     let logResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(logQueryPayload),
         {
           headers: {

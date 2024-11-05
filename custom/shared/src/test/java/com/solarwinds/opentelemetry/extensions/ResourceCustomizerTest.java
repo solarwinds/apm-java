@@ -18,7 +18,6 @@ package com.solarwinds.opentelemetry.extensions;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
@@ -99,20 +98,5 @@ class ResourceCustomizerTest {
     assertEquals(
         Arrays.asList("-Duser.country=US", "-Duser.language=en"),
         actual.getAttribute(ResourceAttributes.PROCESS_COMMAND_ARGS));
-  }
-
-  @Test
-  void verifyAgentVersionIsAddedToResource() {
-    Resource resource =
-        Resource.create(
-            Attributes.builder()
-                .put(
-                    ResourceAttributes.PROCESS_COMMAND_ARGS,
-                    Arrays.asList("-Duser.country=US", "-Duser.language=en"))
-                .build());
-    Resource actual =
-        tested.apply(resource, DefaultConfigProperties.create(Collections.emptyMap()));
-
-    assertNotNull(actual.getAttribute(AttributeKey.stringKey("sw.apm.version")));
   }
 }

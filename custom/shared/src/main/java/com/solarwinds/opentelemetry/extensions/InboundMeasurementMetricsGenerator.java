@@ -16,10 +16,12 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
+import static com.solarwinds.opentelemetry.extensions.SharedNames.LAYER_NAME_PLACEHOLDER;
 import static com.solarwinds.opentelemetry.extensions.SharedNames.TRANSACTION_NAME_KEY;
 
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.metrics.LongHistogram;
@@ -116,7 +118,13 @@ public class InboundMeasurementMetricsGenerator implements ExtendedSpanProcessor
     final SpanContext parentSpanContext = spanData.getParentSpanContext();
     if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) {
       span.setAttribute(TRANSACTION_NAME_KEY, TransactionNameManager.getTransactionName(spanData));
+      span.setAttribute(
+          AttributeKey.stringKey("TransactionName"),
+          TransactionNameManager.getTransactionName(spanData));
     }
+
+    span.setAttribute(
+        "Layer", String.format(LAYER_NAME_PLACEHOLDER, span.getKind(), span.getName().trim()));
   }
 
   @Override

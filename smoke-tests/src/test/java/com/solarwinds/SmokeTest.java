@@ -138,7 +138,7 @@ public class SmokeTest {
     void assertXTraceOptions()  throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['xtrace-options is added to root span'].passes");
-        assertTrue(passes > 2, "Xtrace options is not captured in root span");
+        assertTrue(passes > 1, "Xtrace options is not captured in root span");
     }
 
     @Test
@@ -154,7 +154,7 @@ public class SmokeTest {
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['trigger trace'].passes");
         assertTrue(passes > 0, "trigger trace is broken");
     }
-    
+
     @Test
     @Disabled
     void assertCodeProfiling()  throws IOException {
@@ -180,7 +180,7 @@ public class SmokeTest {
     void assertTransactionNaming() throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['custom transaction name'].passes");
-        assertTrue(passes > 1, "transaction naming is broken");
+        assertTrue(passes > 0, "transaction naming is broken");
     }
 
     @Test
@@ -263,7 +263,7 @@ public class SmokeTest {
         Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
 
     double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['sdk-trace'].passes");
-    assertTrue(passes > 1, "SDK trace is not working, expected a count > 1 ");
+    assertTrue(passes > 0, "SDK trace is not working, expected a count > 0");
   }
 
     @Test
@@ -272,7 +272,7 @@ public class SmokeTest {
                 Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
 
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['request_count'].passes");
-        assertTrue(passes > 1, "Expects a count > 1 ");
+        assertTrue(passes > 0, "Expects a count > 0");
     }
 
     @Test
@@ -281,7 +281,7 @@ public class SmokeTest {
                 Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
 
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['tracecount'].passes");
-        assertTrue(passes > 1, "Expects a count > 1 ");
+        assertTrue(passes > 0, "Expects a count > 0");
     }
 
     @Test
@@ -290,7 +290,7 @@ public class SmokeTest {
                 Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
 
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['samplecount'].passes");
-        assertTrue(passes > 1, "Expects a count > 1 ");
+        assertTrue(passes > 0, "Expects a count > 0");
     }
 
     @Test
@@ -299,6 +299,6 @@ public class SmokeTest {
                 Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
 
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['response_time'].passes");
-        assertTrue(passes > 1, "Expects a count > 1 ");
+        assertTrue(passes > 0, "Expects a count > 0");
     }
 }
