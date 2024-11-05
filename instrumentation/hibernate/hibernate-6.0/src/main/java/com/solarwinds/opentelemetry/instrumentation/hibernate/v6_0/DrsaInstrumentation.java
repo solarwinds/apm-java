@@ -20,16 +20,11 @@ import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
-import com.solarwinds.joboe.logging.LoggerFactory;
-import com.solarwinds.opentelemetry.instrumentation.hibernate.FunctionWrapper;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.javaagent.bootstrap.CallDepth;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
-import java.lang.reflect.Field;
-import java.sql.PreparedStatement;
-import java.util.function.Function;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -69,41 +64,15 @@ public class DrsaInstrumentation implements TypeInstrumentation {
         return;
       }
 
-      try {
-        // We're using reflection here because this seems to be the best place we can intercept the
-        // raw sql before the PreparedStatement is generated and be able to make the span a parent
-        // of the execution step.
-
-        Class<?> clazz = drsa.getClass();
-        Field finalSql = clazz.getDeclaredField("finalSql");
-        finalSql.setAccessible(true);
-
-        String sql = (String) finalSql.get(drsa);
-        finalSql.setAccessible(false);
-        Context parentContext = currentContext();
-        if (!InstrumenterSingleton.instrumenter().shouldStart(parentContext, sql)) {
-          return;
-        }
-
-        Field statementCreator = clazz.getDeclaredField("statementCreator");
-        statementCreator.setAccessible(true);
-        Function<String, PreparedStatement> function =
-            (Function<String, PreparedStatement>) statementCreator.get(drsa);
-
-        if (!(function instanceof FunctionWrapper)) {
-          // We wrap the `statementCreator` field with our own wrapper to inject the context. This
-          // is less risky compared to modifying `finalSql` field.
-          statementCreator.set(drsa, new FunctionWrapper(function));
-        }
-        statementCreator.setAccessible(false);
-
-        context = InstrumenterSingleton.instrumenter().start(parentContext, sql);
-        scope = context.makeCurrent();
-        swoSql = sql;
-
-      } catch (Throwable throwable) {
-        LoggerFactory.getLogger().error("[Hibernate - v6] Error injecting context", throwable);
+      String sql = "";
+      Context parentContext = currentContext();
+      if (!InstrumenterSingleton.instrumenter().shouldStart(parentContext, sql)) {
+        return;
       }
+
+      context = InstrumenterSingleton.instrumenter().start(parentContext, sql);
+      scope = context.makeCurrent();
+      swoSql = sql;
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
