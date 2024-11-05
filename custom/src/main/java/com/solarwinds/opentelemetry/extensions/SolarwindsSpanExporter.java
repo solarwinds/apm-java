@@ -84,33 +84,10 @@ public class SolarwindsSpanExporter implements SpanExporter {
             entryEvent = new EventImpl(null, w3cContext, false);
           }
 
-          if (!spanData.getParentSpanContext().isValid()
-              || spanData.getParentSpanContext().isRemote()) { // then a root span of this service
-            String transactionName =
-                spanData
-                    .getAttributes()
-                    .get(
-                        AttributeKey.stringKey(
-                            "TransactionName")); // check if there's transaction name set as
-            // attribute
-            if (transactionName == null) {
-              transactionName = TransactionNameManager.getTransactionName(spanData);
-              if (transactionName != null) {
-                entryEvent.addInfo(
-                    "TransactionName",
-                    transactionName); // only do this if we are generating a transaction name here.
-                // If it's already in attributes, it will be inserted by
-                // addInfo(getTags...)
-              }
-            }
-          }
-
           InstrumentationScopeInfo scopeInfo = spanData.getInstrumentationScopeInfo();
           entryEvent.addInfo(
               "Label",
               "entry",
-              "Layer",
-              spanName,
               "sw.span_kind",
               spanData.getKind().toString(),
               "otel.scope.name",
