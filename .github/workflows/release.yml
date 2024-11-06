@@ -32,7 +32,6 @@ permissions:
 env:
   GITHUB_USERNAME: ${{ github.actor }}
   PROD_BUCKET: ${{ secrets.PROD_BUCKET }}
-  GITHUB_TOKEN: ${{ secrets.CI_TOKEN }}
 
 jobs:
   maven_release:
