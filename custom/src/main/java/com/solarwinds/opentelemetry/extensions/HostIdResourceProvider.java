@@ -58,7 +58,6 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ResourceProvider;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.ResourceAttributes;
-
 import java.util.function.BiConsumer;
 
 @AutoService(ResourceProvider.class)
@@ -72,7 +71,8 @@ public class HostIdResourceProvider implements ResourceProvider {
     setIfNotNull(builder::put, ResourceAttributes.HOST_NAME, hostId.getHostname());
     setIfNotNull(
         builder::put, ResourceAttributes.CLOUD_AVAILABILITY_ZONE, hostId.getEc2AvailabilityZone());
-    setIfNotNull(builder::put, AttributeKey.stringKey("ec2.instance.id"), hostId.getEc2InstanceId());
+    setIfNotNull(
+        builder::put, AttributeKey.stringKey("ec2.instance.id"), hostId.getEc2InstanceId());
 
     setIfNotNull(builder::put, ResourceAttributes.CONTAINER_ID, hostId.getDockerContainerId());
     setIfNotNull(builder::put, ResourceAttributes.PROCESS_PID, (long) hostId.getPid());
@@ -116,8 +116,10 @@ public class HostIdResourceProvider implements ResourceProvider {
 
     HostId.AzureVmMetadata azureVmMetadata = hostId.getAzureVmMetadata();
     if (azureVmMetadata != null) {
-      setIfNotNull(builder::put, AttributeKey.stringKey("azure.host.id"), azureVmMetadata.getHostId());
-      setIfNotNull(builder::put, AttributeKey.stringKey("azure.hostname"), azureVmMetadata.getHostName());
+      setIfNotNull(
+          builder::put, AttributeKey.stringKey("azure.host.id"), azureVmMetadata.getHostId());
+      setIfNotNull(
+          builder::put, AttributeKey.stringKey("azure.hostname"), azureVmMetadata.getHostName());
       setIfNotNull(
           builder::put, ResourceAttributes.CLOUD_PROVIDER, azureVmMetadata.getCloudProvider());
 
