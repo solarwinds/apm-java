@@ -30,7 +30,6 @@ import com.solarwinds.joboe.sampling.SamplingException;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.opentelemetry.core.Constants;
 import com.solarwinds.opentelemetry.core.Util;
-import com.solarwinds.opentelemetry.extensions.initialize.ConfigurationLoader;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.common.CompletableResultCode;
@@ -51,7 +50,7 @@ public class SolarwindsSpanExporter implements SpanExporter {
 
   @Override
   public CompletableResultCode export(@Nonnull Collection<SpanData> collection) {
-    if (!isAgentEnabled() || ConfigurationLoader.shouldUseOtlpForTraces()) {
+    if (!isAgentEnabled()) {
       return CompletableResultCode.ofSuccess();
     }
     EventReporter eventReporter = ReporterProvider.getEventReporter();

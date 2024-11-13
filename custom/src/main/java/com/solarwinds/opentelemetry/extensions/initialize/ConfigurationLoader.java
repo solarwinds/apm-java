@@ -361,7 +361,7 @@ public class ConfigurationLoader {
           processConfigs(configs);
           configureOtelLogExport(configs);
           configureOtelMetricExport(configs);
-          configureOtelTraceExport(configs);
+          //          configureOtelTraceExport(configs);
         } catch (InvalidConfigException e) {
           // if there was a config read exception then processConfigs might throw exception due to
           // incomplete config container.
