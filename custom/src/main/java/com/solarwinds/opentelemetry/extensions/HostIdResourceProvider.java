@@ -58,6 +58,7 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ResourceProvider;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.ResourceAttributes;
+
 import java.util.function.BiConsumer;
 
 @AutoService(ResourceProvider.class)
@@ -71,7 +72,7 @@ public class HostIdResourceProvider implements ResourceProvider {
     setIfNotNull(builder::put, ResourceAttributes.HOST_NAME, hostId.getHostname());
     setIfNotNull(
         builder::put, ResourceAttributes.CLOUD_AVAILABILITY_ZONE, hostId.getEc2AvailabilityZone());
-    setIfNotNull(builder::put, ResourceAttributes.HOST_ID, hostId.getEc2InstanceId());
+    setIfNotNull(builder::put, AttributeKey.stringKey("ec2.instance.id"), hostId.getEc2InstanceId());
 
     setIfNotNull(builder::put, ResourceAttributes.CONTAINER_ID, hostId.getDockerContainerId());
     setIfNotNull(builder::put, ResourceAttributes.PROCESS_PID, (long) hostId.getPid());
@@ -82,7 +83,7 @@ public class HostIdResourceProvider implements ResourceProvider {
         builder::put,
         AttributeKey.stringKey("azure.app.service.instance.id"),
         hostId.getAzureAppServiceInstanceId());
-    setIfNotNull(builder::put, ResourceAttributes.HOST_ID, hostId.getHerokuDynoId());
+    setIfNotNull(builder::put, AttributeKey.stringKey("heroku.dyno.id"), hostId.getHerokuDynoId());
     setIfNotNull(
         builder::put, AttributeKey.stringKey("sw.uams.client.id"), hostId.getUamsClientId());
     setIfNotNull(builder::put, AttributeKey.stringKey("uuid"), hostId.getUuid());
@@ -96,8 +97,8 @@ public class HostIdResourceProvider implements ResourceProvider {
 
     HostId.AwsMetadata awsMetadata = hostId.getAwsMetadata();
     if (awsMetadata != null) {
-      setIfNotNull(builder::put, ResourceAttributes.HOST_ID, awsMetadata.getHostId());
-      setIfNotNull(builder::put, ResourceAttributes.HOST_NAME, awsMetadata.getHostName());
+      setIfNotNull(builder::put, AttributeKey.stringKey("aws.host.id"), awsMetadata.getHostId());
+      setIfNotNull(builder::put, AttributeKey.stringKey("aws.hostname"), awsMetadata.getHostName());
       setIfNotNull(builder::put, ResourceAttributes.CLOUD_PROVIDER, awsMetadata.getCloudProvider());
 
       setIfNotNull(
@@ -115,8 +116,8 @@ public class HostIdResourceProvider implements ResourceProvider {
 
     HostId.AzureVmMetadata azureVmMetadata = hostId.getAzureVmMetadata();
     if (azureVmMetadata != null) {
-      setIfNotNull(builder::put, ResourceAttributes.HOST_ID, azureVmMetadata.getHostId());
-      setIfNotNull(builder::put, ResourceAttributes.HOST_NAME, azureVmMetadata.getHostName());
+      setIfNotNull(builder::put, AttributeKey.stringKey("azure.host.id"), azureVmMetadata.getHostId());
+      setIfNotNull(builder::put, AttributeKey.stringKey("azure.hostname"), azureVmMetadata.getHostName());
       setIfNotNull(
           builder::put, ResourceAttributes.CLOUD_PROVIDER, azureVmMetadata.getCloudProvider());
 
