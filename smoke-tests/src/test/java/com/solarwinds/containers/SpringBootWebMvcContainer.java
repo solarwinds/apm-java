@@ -98,6 +98,8 @@ public class SpringBootWebMvcContainer implements Container {
     result.add("java");
 
     result.addAll(this.agent.getAdditionalJvmArgs());
+    result.add("-Dotel.bsp.max.queue.size=3");
+    result.add("-Dotel.bsp.max.export.batch.size=1");
     result.add("-javaagent:/app/" + agentJarPath.getFileName());
     result.add("-jar");
 
