@@ -42,6 +42,8 @@ public class DumpSpanExporter implements SpanExporter, ConfigurableSpanExporterP
             traces
                 .computeIfAbsent(spanData.getTraceId(), (key) -> new ArrayList<>())
                 .add(spanData));
+
+    System.out.printf("export -> Chubi Spans: %s%n", traces);
     return CompletableResultCode.ofSuccess();
   }
 
