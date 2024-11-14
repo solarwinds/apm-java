@@ -300,7 +300,7 @@ public class ConfigurationLoader {
     }
 
     System.setProperty("otel.exporter.otlp.traces.protocol", "grpc");
-    System.setProperty("otel.traces.exporter", "otlp");
+    System.setProperty("otel.traces.exporter", "otlp,dump");
     System.setProperty(
         "otel.exporter.otlp.traces.headers", String.format("authorization=Bearer %s", apiKey));
 
