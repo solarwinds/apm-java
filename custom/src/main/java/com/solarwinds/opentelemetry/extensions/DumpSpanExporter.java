@@ -23,25 +23,37 @@ import io.opentelemetry.sdk.autoconfigure.spi.traces.ConfigurableSpanExporterPro
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @AutoService(ConfigurableSpanExporterProvider.class)
 public class DumpSpanExporter implements SpanExporter, ConfigurableSpanExporterProvider {
   Gson gson = new Gson();
 
+  Map<String, List<SpanData>> traces = new HashMap<>();
+
   @Override
   public CompletableResultCode export(Collection<SpanData> collection) {
-    System.out.printf("Chubi Spans: %s%n", collection);
+    collection.forEach(
+        spanData ->
+            traces
+                .computeIfAbsent(spanData.getTraceId(), (key) -> new ArrayList<>())
+                .add(spanData));
     return CompletableResultCode.ofSuccess();
   }
 
   @Override
   public CompletableResultCode flush() {
+    System.out.printf("Flush -> Chubi Spans: %s%n", traces);
     return CompletableResultCode.ofSuccess();
   }
 
   @Override
   public CompletableResultCode shutdown() {
+    System.out.printf("Shutdown -> Chubi Spans: %s%n", traces);
     return CompletableResultCode.ofSuccess();
   }
 
