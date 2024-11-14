@@ -71,8 +71,7 @@ public class HostIdResourceProvider implements ResourceProvider {
     setIfNotNull(builder::put, ResourceAttributes.HOST_NAME, hostId.getHostname());
     setIfNotNull(
         builder::put, ResourceAttributes.CLOUD_AVAILABILITY_ZONE, hostId.getEc2AvailabilityZone());
-    setIfNotNull(
-        builder::put, AttributeKey.stringKey("ec2.instance.id"), hostId.getEc2InstanceId());
+    setIfNotNull(builder::put, ResourceAttributes.HOST_ID, hostId.getEc2InstanceId());
 
     setIfNotNull(builder::put, ResourceAttributes.CONTAINER_ID, hostId.getDockerContainerId());
     setIfNotNull(builder::put, ResourceAttributes.PROCESS_PID, (long) hostId.getPid());
@@ -83,66 +82,10 @@ public class HostIdResourceProvider implements ResourceProvider {
         builder::put,
         AttributeKey.stringKey("azure.app.service.instance.id"),
         hostId.getAzureAppServiceInstanceId());
-    setIfNotNull(builder::put, AttributeKey.stringKey("heroku.dyno.id"), hostId.getHerokuDynoId());
+    setIfNotNull(builder::put, ResourceAttributes.HOST_ID, hostId.getHerokuDynoId());
     setIfNotNull(
         builder::put, AttributeKey.stringKey("sw.uams.client.id"), hostId.getUamsClientId());
     setIfNotNull(builder::put, AttributeKey.stringKey("uuid"), hostId.getUuid());
-
-    HostId.K8sMetadata k8sMetadata = hostId.getK8sMetadata();
-    if (k8sMetadata != null) {
-      setIfNotNull(builder::put, ResourceAttributes.K8S_POD_UID, k8sMetadata.getPodUid());
-      setIfNotNull(builder::put, ResourceAttributes.K8S_NAMESPACE_NAME, k8sMetadata.getNamespace());
-      setIfNotNull(builder::put, ResourceAttributes.K8S_POD_NAME, k8sMetadata.getPodName());
-    }
-
-    HostId.AwsMetadata awsMetadata = hostId.getAwsMetadata();
-    if (awsMetadata != null) {
-      setIfNotNull(builder::put, AttributeKey.stringKey("aws.host.id"), awsMetadata.getHostId());
-      setIfNotNull(builder::put, AttributeKey.stringKey("aws.hostname"), awsMetadata.getHostName());
-      setIfNotNull(builder::put, ResourceAttributes.CLOUD_PROVIDER, awsMetadata.getCloudProvider());
-
-      setIfNotNull(
-          builder::put, ResourceAttributes.CLOUD_ACCOUNT_ID, awsMetadata.getCloudAccountId());
-      setIfNotNull(builder::put, ResourceAttributes.CLOUD_PLATFORM, awsMetadata.getCloudPlatform());
-      setIfNotNull(
-          builder::put,
-          ResourceAttributes.CLOUD_AVAILABILITY_ZONE,
-          awsMetadata.getCloudAvailabilityZone());
-
-      setIfNotNull(builder::put, ResourceAttributes.CLOUD_REGION, awsMetadata.getCloudRegion());
-      setIfNotNull(builder::put, ResourceAttributes.HOST_IMAGE_ID, awsMetadata.getHostImageId());
-      setIfNotNull(builder::put, ResourceAttributes.HOST_TYPE, awsMetadata.getHostType());
-    }
-
-    HostId.AzureVmMetadata azureVmMetadata = hostId.getAzureVmMetadata();
-    if (azureVmMetadata != null) {
-      setIfNotNull(
-          builder::put, AttributeKey.stringKey("azure.host.id"), azureVmMetadata.getHostId());
-      setIfNotNull(
-          builder::put, AttributeKey.stringKey("azure.hostname"), azureVmMetadata.getHostName());
-      setIfNotNull(
-          builder::put, ResourceAttributes.CLOUD_PROVIDER, azureVmMetadata.getCloudProvider());
-
-      setIfNotNull(
-          builder::put, ResourceAttributes.CLOUD_ACCOUNT_ID, azureVmMetadata.getCloudAccountId());
-      setIfNotNull(
-          builder::put, ResourceAttributes.CLOUD_PLATFORM, azureVmMetadata.getCloudPlatform());
-      setIfNotNull(builder::put, ResourceAttributes.CLOUD_REGION, azureVmMetadata.getCloudRegion());
-
-      setIfNotNull(
-          builder::put, AttributeKey.stringKey("azure.vm.name"), azureVmMetadata.getAzureVmName());
-      setIfNotNull(
-          builder::put, AttributeKey.stringKey("azure.vm.size"), azureVmMetadata.getAzureVmSize());
-      setIfNotNull(
-          builder::put,
-          AttributeKey.stringKey("azure.resource.group.name"),
-          azureVmMetadata.getAzureResourceGroupName());
-
-      setIfNotNull(
-          builder::put,
-          AttributeKey.stringKey("azure.vm.scale.set.name"),
-          azureVmMetadata.getAzureVmScaleSetName());
-    }
 
     return Resource.create(builder.build());
   }
