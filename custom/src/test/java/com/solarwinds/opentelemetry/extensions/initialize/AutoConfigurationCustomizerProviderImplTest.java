@@ -58,8 +58,15 @@ class AutoConfigurationCustomizerProviderImplTest {
     when(autoConfigurationCustomizerMock.addResourceCustomizer(any()))
         .thenReturn(autoConfigurationCustomizerMock);
 
+    when(autoConfigurationCustomizerMock.addMetricExporterCustomizer(any()))
+        .thenReturn(autoConfigurationCustomizerMock);
+
     tested.customize(autoConfigurationCustomizerMock);
+
     verify(autoConfigurationCustomizerMock, atMostOnce()).addPropertiesCustomizer(any());
     verify(autoConfigurationCustomizerMock, atMostOnce()).addTracerProviderCustomizer(any());
+
+    verify(autoConfigurationCustomizerMock, atMostOnce()).addResourceCustomizer(any());
+    verify(autoConfigurationCustomizerMock, atMostOnce()).addMetricExporterCustomizer(any());
   }
 }

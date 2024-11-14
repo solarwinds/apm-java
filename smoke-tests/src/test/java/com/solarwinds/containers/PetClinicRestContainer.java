@@ -128,6 +128,7 @@ public class PetClinicRestContainer implements Container {
 
     result.addAll(this.agent.getAdditionalJvmArgs());
     result.add("-javaagent:/app/" + agentJarPath.getFileName());
+    result.add("-Dotel.metric.export.interval=100ms");
     result.add("-jar");
 
     result.add("/app/spring-petclinic-rest.jar");

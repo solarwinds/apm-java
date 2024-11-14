@@ -554,11 +554,12 @@ function silence(fn) {
 export default function () {
   silence(verify_that_span_data_is_persisted_0)
 
+  const request_count = (measurement) => check(measurement, {"request_count": mrs => mrs.value > 0})
+  const tracecount = (measurement) => check(measurement, {"tracecount": mrs => mrs.value > 0})
+  const samplecount = (measurement) => check(measurement, {"samplecount": mrs => mrs.value > 0})
+  const response_time = (measurement) => check(measurement, {"response_time": mrs => mrs.value > 0})
+
   if (`${__ENV.LAMBDA}` === "true") {
-    const request_count = (measurement) => check(measurement, {"request_count": mrs => mrs.value > 0})
-    const tracecount = (measurement) => check(measurement, {"tracecount": mrs => mrs.value > 0})
-    const samplecount = (measurement) => check(measurement, {"samplecount": mrs => mrs.value > 0})
-    const response_time = (measurement) => check(measurement, {"response_time": mrs => mrs.value > 0})
 
     silence(function () {
       verify_that_metrics_are_reported("trace.service.request_count", request_count)
@@ -579,12 +580,30 @@ export default function () {
     silence(verify_transaction_name)
 
   } else {
-    silence(function () {
+      const service = "java-apm-smoke-test"
+      silence(function () {
+          verify_that_metrics_are_reported("trace.service.request_count", request_count, service)
+      })
+
+      silence(function () {
+          verify_that_metrics_are_reported("trace.service.tracecount", tracecount, service)
+      })
+
+      silence(function () {
+          verify_that_metrics_are_reported("trace.service.samplecount", samplecount, service)
+      })
+
+      silence(function () {
+          verify_that_metrics_are_reported("trace.service.response_time", response_time, service)
+      })
+
+      silence(function () {
           verify_that_metrics_are_reported("jvm.memory.used",
               (measurement) => check(measurement, {"otel-metrics": mrs => mrs.value > 0}),
-              "java-apm-smoke-test"
+              service
           )
       })
+
     silence(verify_logs_export)
     silence(verify_that_specialty_path_is_not_sampled)
 
