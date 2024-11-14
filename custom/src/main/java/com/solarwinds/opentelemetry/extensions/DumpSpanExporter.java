@@ -31,7 +31,7 @@ public class DumpSpanExporter implements SpanExporter, ConfigurableSpanExporterP
 
   @Override
   public CompletableResultCode export(Collection<SpanData> collection) {
-    System.out.println(gson.toJson(collection));
+    System.out.printf("Chubi Spans: %s%n", collection);
     return CompletableResultCode.ofSuccess();
   }
 
