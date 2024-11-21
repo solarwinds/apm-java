@@ -22,7 +22,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 @Value
@@ -40,7 +40,9 @@ public class Agent {
   }
 
   public Agent(String name, String description, String url) {
-    this(name, description, url, Collections.singletonList("-Dio.opentelemetry.context.enableStrictContext=true"));
+    this(name, description, url, Arrays.asList("-Dio.opentelemetry.context.enableStrictContext=true",
+            "-Dotel.java.experimental.span-stacktrace.min.duration=0ms",
+            "-Dsw.apm.span.stack.trace.filters=thread.id,os.description,http.request.method"));
   }
 
   public Agent(String name, String description, String url, List<String> additionalJvmArgs) {

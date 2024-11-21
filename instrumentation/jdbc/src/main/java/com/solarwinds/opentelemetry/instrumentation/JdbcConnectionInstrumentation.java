@@ -88,7 +88,7 @@ public class JdbcConnectionInstrumentation implements TypeInstrumentation {
       }
 
       sql = TraceContextInjector.inject(currentContext(), sql);
-      StatementTracer.writeStackTraceSpec(currentContext());
+      StatementTracer.writeQuerySpec(currentContext());
     }
 
     @Advice.OnMethodExit(suppress = Throwable.class)
