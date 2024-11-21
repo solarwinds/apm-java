@@ -90,7 +90,7 @@ public class JdbcStatementInstrumentation implements TypeInstrumentation {
       }
 
       sql = TraceContextInjector.inject(currentContext(), sql);
-      StatementTracer.writeStackTraceSpec(currentContext());
+      StatementTracer.writeQuerySpec(currentContext());
       StatementTruncator.maybeTruncateStatement(currentContext());
     }
 

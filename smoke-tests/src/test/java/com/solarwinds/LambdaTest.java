@@ -154,4 +154,13 @@ public class LambdaTest {
     double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['custom transaction name'].passes");
     assertTrue(passes > 1, "SDK transaction naming is broken");
   }
+
+  @Test
+  void assertThatCodeStacktraceIsCaptured() throws IOException {
+    String resultJson = new String(
+            Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+
+    double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['code.stacktrace'].passes");
+    assertTrue(passes > 0, "Expects a count > 0");
+  }
 }

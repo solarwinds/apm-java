@@ -17,6 +17,7 @@
 package com.solarwinds.opentelemetry.extensions;
 
 import static com.solarwinds.opentelemetry.extensions.SharedNames.COMPONENT_NAME;
+import static com.solarwinds.opentelemetry.extensions.SharedNames.SPAN_STACKTRACE_FILTER_CLASS;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +31,8 @@ public class PropertiesSupplier implements Supplier<Map<String, String>> {
     defaultProperties.put(
         "otel.propagators", String.format("tracecontext,baggage,%s,xray", COMPONENT_NAME));
     defaultProperties.put("otel.instrumentation.runtime-telemetry.enabled", "false");
+    defaultProperties.put(
+        "otel.java.experimental.span-stacktrace.filter", SPAN_STACKTRACE_FILTER_CLASS);
     defaultProperties.put("otel.exporter.otlp.protocol", "grpc");
   }
 

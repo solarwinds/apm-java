@@ -21,11 +21,9 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 
 public class StatementTracer {
-  public static void writeStackTraceSpec(Context context) {
+  public static void writeQuerySpec(Context context) {
     Span span = Span.fromContext(context);
     if (span.getSpanContext().isSampled()) {
-      String backTraceString = BackTraceUtil.backTraceToString(BackTraceUtil.getBackTrace(1));
-      span.setAttribute(Constants.SW_KEY_PREFIX + "Backtrace", backTraceString);
       span.setAttribute(Constants.SW_KEY_PREFIX + "Spec", "query");
     }
   }

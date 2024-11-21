@@ -23,6 +23,9 @@ public final class SharedNames {
 
   public static String TRANSACTION_NAME_KEY = "sw.transaction";
 
+  public static String SPAN_STACKTRACE_FILTER_CLASS =
+      "com.solarwinds.opentelemetry.extensions.SpanStacktraceFilter";
+
   // This is visible to customer via span layer and can be used to configure transaction
   // filtering setting.
   public static final String LAYER_NAME_PLACEHOLDER = "%s:%s";
