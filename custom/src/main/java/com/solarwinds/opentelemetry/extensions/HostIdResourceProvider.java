@@ -48,6 +48,7 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
+import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.core.HostId;
 import com.solarwinds.joboe.core.util.ServerHostInfoReader;
 import io.opentelemetry.api.common.AttributeKey;
@@ -58,6 +59,7 @@ import io.opentelemetry.sdk.autoconfigure.spi.ResourceProvider;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.ResourceAttributes;
 
+@AutoService(ResourceProvider.class)
 public class HostIdResourceProvider implements ResourceProvider {
 
   @Override
