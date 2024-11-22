@@ -390,14 +390,14 @@ class ConfigurationLoaderTest {
   }
 
   @Test
-  void returnFalseWhenCollectorIsAO() throws InvalidConfigException {
+  void returnFalseWhenCollectorIsAOForMetric() throws InvalidConfigException {
     ConfigManager.setConfig(ConfigProperty.AGENT_COLLECTOR, "collector.appoptics.com:443");
     assertFalse(ConfigurationLoader.shouldUseOtlpForMetrics());
     ConfigManager.removeConfig(ConfigProperty.AGENT_COLLECTOR);
   }
 
   @Test
-  void returnFalseWhenDisabled() throws InvalidConfigException {
+  void returnFalseWhenDisabledForMetric() throws InvalidConfigException {
     ConfigManager.setConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, false);
     assertFalse(ConfigurationLoader.shouldUseOtlpForMetrics());
     ConfigManager.removeConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED);

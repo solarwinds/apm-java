@@ -65,7 +65,7 @@ public class LoaderInstrumentation implements TypeInstrumentation {
         return;
       }
 
-      String sql = "";
+      String sql = queryParameters.getFilteredSQL();
       Context parentContext = currentContext();
       if (!InstrumenterSingleton.instrumenter().shouldStart(parentContext, sql)) {
         return;
