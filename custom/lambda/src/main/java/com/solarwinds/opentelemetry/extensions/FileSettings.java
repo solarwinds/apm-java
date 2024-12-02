@@ -67,11 +67,6 @@ public class FileSettings extends Settings {
   }
 
   @Override
-  public String getLayer() {
-    return jsonSettings.getLayer();
-  }
-
-  @Override
   public long getTtl() {
     return jsonSettings.getTtl();
   }
