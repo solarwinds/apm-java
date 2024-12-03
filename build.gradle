@@ -26,7 +26,7 @@ buildscript {
     }
     dependencies {
         classpath "com.diffplug.spotless:spotless-plugin-gradle:6.14.0"
-        classpath "com.github.johnrengelman:shadow:8.1.1"
+        classpath "com.gradleup.shadow:shadow-gradle-plugin:8.3.5"
         classpath "io.opentelemetry.instrumentation:gradle-plugins:${property('otel.agent.version')}-alpha"
     }
 }
@@ -48,7 +48,7 @@ subprojects {
         versions = [
                 opentelemetry         : property('otel.sdk.version'), // property is defined in gradle.properties
                 opentelemetryJavaagent: property('otel.agent.version'),
-                bytebuddy             : "1.12.10",
+                bytebuddy             : "1.15.10",
                 guava                 : "30.1-jre",
                 joboe                 : "10.0.15",
                 agent                 : swoVersion, // the custom distro agent version

@@ -54,7 +54,6 @@ public class DrsaInstrumentation implements TypeInstrumentation {
 
     @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void startMethod(
-        @Advice.This DeferredResultSetAccess drsa,
         @Advice.Local("swoCallDepth") CallDepth callDepth,
         @Advice.Local("swoSqlContext") String swoSql,
         @Advice.Local("swoContext") Context context,
