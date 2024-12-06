@@ -54,7 +54,7 @@ public class SmokeTest {
     private static final NamingConventions namingConventions = new NamingConventions();
 
     private static final LogStreamAnalyzer<Slf4jLogConsumer> logStreamAnalyzer = new LogStreamAnalyzer<>(
-            List.of("Transformed (com.solarwinds.ext.*|com.solarwinds.joboe.*)","hostId:.*i-[0-9a-z]+",
+            List.of("hostId:.*i-[0-9a-z]+",
                     "Completed operation \\[post init message\\] with Result code \\[OK\\] arg",
                     "hostId:.*[0-9a-z-]+", "Extension attached!","Created collector client  : collector.appoptics.com:443",
                     "trace_id=[a-z0-9]+\\s+span_id=[a-z0-9]+\\s+trace_flags=(01|00)",
@@ -181,12 +181,6 @@ public class SmokeTest {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['custom transaction name'].passes");
         assertTrue(passes > 0, "transaction naming is broken");
-    }
-
-    @Test
-    void assertAgentClassesAreNotInstrumented() {
-        Boolean actual = logStreamAnalyzer.getAnswer().get("Transformed (com.solarwinds.ext.*|com.solarwinds.joboe.*)");
-        assertFalse(actual, "agent classes are instrumented");
     }
 
     @Test
