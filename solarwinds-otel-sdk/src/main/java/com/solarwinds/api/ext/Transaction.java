@@ -20,15 +20,12 @@ import com.solarwinds.opentelemetry.core.CustomTransactionNameDict;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
-import java.util.regex.Pattern;
 
 /**
  * The API to set the custom transaction name for the current trace. It returns false if the current
  * trace is not valid or not sampled.
  */
 class Transaction {
-
-  private static final Pattern REPLACE_PATTERN = Pattern.compile("[^-.:_\\\\/\\w? ]");
 
   /**
    * Set the transaction name of the current trace.
