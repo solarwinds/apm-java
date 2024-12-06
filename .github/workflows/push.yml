@@ -13,7 +13,6 @@ env:
   SW_APM_DEBUG_LEVEL: trace
   AGENT_DOWNLOAD_URL: https://agent-binaries.global.st-ssp.solarwinds.com/apm/java/latest/solarwinds-apm-agent.jar
   SW_APM_COLLECTOR: ${{ secrets.SW_APM_COLLECTOR }}
-  OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
   SW_APM_SERVICE_KEY_AO: ${{ secrets.SW_APM_SERVICE_KEY_AO }}
   SW_APM_SERVICE_KEY: ${{ secrets.SW_APM_SERVICE_KEY }}
   GITHUB_USERNAME: ${{ github.actor }}
@@ -171,6 +170,7 @@ jobs:
       - s3-stage-upload
     env:
       LAMBDA: "true"
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
     steps:
       - uses: actions/checkout@v4
 

@@ -179,7 +179,7 @@ public class ConfigurationLoader {
       if (serviceKey != null) {
         String name = ServiceKeyUtils.getServiceName(serviceKey);
         if (name != null) {
-          System.setProperty("otel.service.name", name);
+          setSystemProperty("otel.service.name", name);
         }
       }
 
@@ -223,12 +223,12 @@ public class ConfigurationLoader {
         }
       }
 
-      System.setProperty("otel.exporter.otlp.logs.protocol", "grpc");
-      System.setProperty("otel.logs.exporter", "otlp");
-      System.setProperty(
+      setSystemProperty("otel.exporter.otlp.logs.protocol", "grpc");
+      setSystemProperty("otel.logs.exporter", "otlp");
+      setSystemProperty(
           "otel.exporter.otlp.logs.headers", String.format("authorization=Bearer %s", apiKey));
 
-      System.setProperty(
+      setEndpoint(
           "otel.exporter.otlp.logs.endpoint",
           String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env));
     }
@@ -261,12 +261,12 @@ public class ConfigurationLoader {
         }
       }
 
-      System.setProperty("otel.exporter.otlp.metrics.protocol", "grpc");
-      System.setProperty("otel.metrics.exporter", "otlp");
-      System.setProperty(
+      setSystemProperty("otel.exporter.otlp.metrics.protocol", "grpc");
+      setSystemProperty("otel.metrics.exporter", "otlp");
+      setSystemProperty(
           "otel.exporter.otlp.metrics.headers", String.format("authorization=Bearer %s", apiKey));
 
-      System.setProperty(
+      setEndpoint(
           "otel.exporter.otlp.metrics.endpoint",
           String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env));
     }
@@ -282,7 +282,7 @@ public class ConfigurationLoader {
 
     if (collectorEndpoint != null) {
       if (collectorEndpoint.contains("appoptics.com")) {
-        System.setProperty("otel.traces.exporter", COMPONENT_NAME);
+        setSystemProperty("otel.traces.exporter", COMPONENT_NAME);
         return;
       }
 
@@ -299,11 +299,11 @@ public class ConfigurationLoader {
       }
     }
 
-    System.setProperty("otel.exporter.otlp.traces.protocol", "grpc");
-    System.setProperty(
+    setSystemProperty("otel.exporter.otlp.traces.protocol", "grpc");
+    setSystemProperty(
         "otel.exporter.otlp.traces.headers", String.format("authorization=Bearer %s", apiKey));
 
-    System.setProperty(
+    setEndpoint(
         "otel.exporter.otlp.traces.endpoint",
         String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env));
   }
@@ -636,5 +636,35 @@ public class ConfigurationLoader {
     String collectorEndpoint = (String) ConfigManager.getConfig(ConfigProperty.AGENT_COLLECTOR);
     return (enabled == null || enabled)
         && (collectorEndpoint == null || !collectorEndpoint.contains("appoptics.com"));
+  }
+
+  private static void setSystemProperty(String key, String value) {
+    String propertyValue = getConfigValue(key);
+    if (propertyValue == null) {
+      propertyValue = value;
+      System.setProperty(key, value);
+    }
+
+    logger.debug(
+        String.format("System configuration set with key-value -> %s = %s", key, propertyValue));
+  }
+
+  private static void setEndpoint(String key, String value) {
+    if (getConfigValue("otel.exporter.otlp.endpoint") == null) {
+      setSystemProperty(key, value);
+    }
+  }
+
+  static String normalize(String key) {
+    return key.toUpperCase().replace(".", "_");
+  }
+
+  private static String getConfigValue(String key) {
+    String propertyValue = System.getProperty(key);
+    if (propertyValue == null) {
+      propertyValue = System.getenv(normalize(key));
+    }
+
+    return propertyValue;
   }
 }
