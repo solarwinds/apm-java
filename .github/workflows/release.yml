@@ -32,6 +32,7 @@ permissions:
 env:
   GITHUB_USERNAME: ${{ github.actor }}
   PROD_BUCKET: ${{ secrets.PROD_BUCKET }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   maven_release:
@@ -52,7 +53,6 @@ jobs:
     - name: Publish
       run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # The secrets are for publishing the build artifacts to the Maven Central.
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
         SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
@@ -117,8 +117,6 @@ jobs:
           
           upload_file_to_release "$release_id" "agent/build/libs/solarwinds-apm-agent.jar"
           upload_file_to_release "$release_id" "custom/shared/src/main/resources/solarwinds-apm-config.json"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   s3-prod-upload:  # this job uploads the jar and default config json to prod s3
     if: inputs.run_s3_upload
@@ -384,7 +382,6 @@ jobs:
           upload_file_to_release "$release_id" "agent/build/libs/solarwinds-apm-agent-signed.jar"
 
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.set_version.outputs.version }}
 
   docker_hub:
