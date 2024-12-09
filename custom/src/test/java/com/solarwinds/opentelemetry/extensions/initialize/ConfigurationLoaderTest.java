@@ -402,4 +402,11 @@ class ConfigurationLoaderTest {
     assertFalse(ConfigurationLoader.shouldUseOtlpForMetrics());
     ConfigManager.removeConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED);
   }
+
+  @Test
+  void returnEnvironmentVariableEquivalent() {
+    assertEquals(
+        "OTEL_EXPORTER_OTLP_ENDPOINT",
+        ConfigurationLoader.normalize("otel.exporter.otlp.endpoint"));
+  }
 }
