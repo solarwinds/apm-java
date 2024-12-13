@@ -28,7 +28,6 @@ import com.solarwinds.joboe.core.metrics.histogram.HistogramFactory;
 import com.solarwinds.joboe.core.metrics.histogram.HistogramMetricsEntry;
 import com.solarwinds.joboe.core.metrics.measurement.SummaryLongMeasurement;
 import com.solarwinds.joboe.core.metrics.measurement.SummaryMeasurementMetricsEntry;
-import com.solarwinds.joboe.core.util.HttpUtils;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.metrics.SpanMetricsCollector;
@@ -162,14 +161,6 @@ public class SolarwindsInboundMetricsSpanProcessor implements SpanProcessor {
       final Long status =
           spanData.getAttributes().get(SemanticAttributes.HTTP_RESPONSE_STATUS_CODE);
 
-      // special handling for status code
-      if (!hasError && status != null) {
-        hasError =
-            HttpUtils.isServerErrorStatusCode(
-                status.intValue()); // do not attempt to override the property if it's already
-        // explicitly set
-      }
-
       if (status != null) {
         aoSecondaryKey.put("HttpStatus", String.valueOf(status));
         swoTags.put("http.status_code", String.valueOf(status));
@@ -230,7 +221,6 @@ public class SolarwindsInboundMetricsSpanProcessor implements SpanProcessor {
   // TODO copied from Core, should improve to avoid code duplication
   private static class OpenTelemetryInboundHistogramReporter extends MetricSpanReporter {
     public static final String TRANSACTION_LATENCY_METRIC_NAME = "TransactionResponseTime";
-    public static final String TRANSACTION_NAME_TAG_KEY = "TransactionName";
     private static final HistogramFactory.HistogramType HISTOGRAM_TYPE =
         HistogramFactory.HistogramType.HDR;
 

@@ -83,9 +83,6 @@ public class InboundMeasurementMetricsGenerator implements ExtendedSpanProcessor
 
       final long duration =
           (spanData.getEndEpochNanos() - spanData.getStartEpochNanos()) / 1_000_000;
-      if (!hasError && status != null) {
-        hasError = status.intValue() > 499;
-      }
 
       AttributesBuilder responseTimeAttr = Attributes.builder();
       if (span.getKind() == SpanKind.SERVER && status != null) {
@@ -101,7 +98,6 @@ public class InboundMeasurementMetricsGenerator implements ExtendedSpanProcessor
 
       String errorKey = "sw.is_error";
       responseTimeAttr.put(errorKey, hasError);
-
       responseTime.record(
           duration, responseTimeAttr.put(TRANSACTION_NAME_KEY, transactionName).build());
     }
