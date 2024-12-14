@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+env:
+  GITHUB_USERNAME: ${{ github.actor }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   reversing_lab_scan_agent:
     runs-on: ubuntu-latest
