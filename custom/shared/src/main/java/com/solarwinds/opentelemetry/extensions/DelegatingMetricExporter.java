@@ -16,12 +16,15 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
+import com.solarwinds.joboe.config.ConfigManager;
+import com.solarwinds.joboe.config.ConfigProperty;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.metrics.InstrumentType;
 import io.opentelemetry.sdk.metrics.data.AggregationTemporality;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import java.util.Collection;
+import java.util.stream.Collectors;
 import lombok.NonNull;
 
 public class DelegatingMetricExporter implements MetricExporter {
@@ -33,7 +36,19 @@ public class DelegatingMetricExporter implements MetricExporter {
 
   @Override
   public CompletableResultCode export(@NonNull Collection<MetricData> metrics) {
-    return delegate.export(metrics);
+    if (ConfigManager.getConfigOptional(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, true)) {
+      return delegate.export(metrics);
+    }
+
+    return delegate.export(
+        metrics.stream()
+            .filter(
+                metricData ->
+                    MeterProvider.samplingMeterScopeName.equals(
+                            metricData.getInstrumentationScopeInfo().getName())
+                        || MeterProvider.requestMeterScopeName.equals(
+                            metricData.getInstrumentationScopeInfo().getName()))
+            .collect(Collectors.toList()));
   }
 
   @Override

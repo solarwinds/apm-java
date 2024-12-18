@@ -21,18 +21,18 @@ import io.opentelemetry.api.metrics.Meter;
 
 public class MeterProvider {
 
-  public static final String samplingMeterName = "sw.apm.sampling.metrics";
+  public static final String samplingMeterScopeName = "sw.apm.sampling.metrics";
 
-  public static final String requestMeterName = "sw.apm.request.metrics";
+  public static final String requestMeterScopeName = "sw.apm.request.metrics";
 
   public static Meter getSamplingMetricsMeter() {
-    return GlobalOpenTelemetry.meterBuilder(samplingMeterName)
+    return GlobalOpenTelemetry.meterBuilder(samplingMeterScopeName)
         .setInstrumentationVersion(BuildConfig.SOLARWINDS_AGENT_VERSION)
         .build();
   }
 
   public static Meter getRequestMetricsMeter() {
-    return GlobalOpenTelemetry.meterBuilder(requestMeterName)
+    return GlobalOpenTelemetry.meterBuilder(requestMeterScopeName)
         .setInstrumentationVersion(BuildConfig.SOLARWINDS_AGENT_VERSION)
         .build();
   }

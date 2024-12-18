@@ -235,41 +235,38 @@ public class ConfigurationLoader {
   }
 
   static void configureOtelMetricExport(ConfigContainer container) {
-    Boolean exportMetrics = (Boolean) container.get(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED);
-    if (exportMetrics == null || exportMetrics) {
-      String serviceKey = (String) container.get(ConfigProperty.AGENT_SERVICE_KEY);
-      String apiKey = ServiceKeyUtils.getApiKey(serviceKey);
+    String serviceKey = (String) container.get(ConfigProperty.AGENT_SERVICE_KEY);
+    String apiKey = ServiceKeyUtils.getApiKey(serviceKey);
+    String dataCell = "na-01";
 
-      String dataCell = "na-01";
-      String env = "cloud";
-      String collectorEndpoint = (String) container.get(ConfigProperty.AGENT_COLLECTOR);
-
-      if (collectorEndpoint != null) {
-        if (collectorEndpoint.contains("appoptics.com")) {
-          return;
-        }
-        collectorEndpoint = collectorEndpoint.split(":")[0];
-        String[] fragments = collectorEndpoint.split("\\.");
-        if (fragments.length > 2) {
-          // This is based on knowledge of the SWO url format where the third name from the left in
-          // the domain is the data-cell name and assumes this format will stay stable.
-          dataCell = fragments[2];
-        }
-
-        if (fragments.length > 3) {
-          env = fragments[3];
-        }
+    String env = "cloud";
+    String collectorEndpoint = (String) container.get(ConfigProperty.AGENT_COLLECTOR);
+    if (collectorEndpoint != null) {
+      if (collectorEndpoint.contains("appoptics.com")) {
+        return;
       }
 
-      setSystemProperty("otel.exporter.otlp.metrics.protocol", "grpc");
-      setSystemProperty("otel.metrics.exporter", "otlp");
-      setSystemProperty(
-          "otel.exporter.otlp.metrics.headers", String.format("authorization=Bearer %s", apiKey));
+      collectorEndpoint = collectorEndpoint.split(":")[0];
+      String[] fragments = collectorEndpoint.split("\\.");
+      if (fragments.length > 2) {
+        // This is based on knowledge of the SWO url format where the third name from the left in
+        // the domain is the data-cell name and assumes this format will stay stable.
+        dataCell = fragments[2];
+      }
 
-      setEndpoint(
-          "otel.exporter.otlp.metrics.endpoint",
-          String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env));
+      if (fragments.length > 3) {
+        env = fragments[3];
+      }
     }
+
+    setSystemProperty("otel.exporter.otlp.metrics.protocol", "grpc");
+    setSystemProperty("otel.metrics.exporter", "otlp");
+    setSystemProperty(
+        "otel.exporter.otlp.metrics.headers", String.format("authorization=Bearer %s", apiKey));
+
+    setEndpoint(
+        "otel.exporter.otlp.metrics.endpoint",
+        String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env));
   }
 
   static void configureOtelTraceExport(ConfigContainer container) {
@@ -630,12 +627,8 @@ public class ConfigurationLoader {
   }
 
   public static boolean shouldUseOtlpForMetrics() {
-    Boolean enabled =
-        (Boolean) ConfigManager.getConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED);
-
     String collectorEndpoint = (String) ConfigManager.getConfig(ConfigProperty.AGENT_COLLECTOR);
-    return (enabled == null || enabled)
-        && (collectorEndpoint == null || !collectorEndpoint.contains("appoptics.com"));
+    return collectorEndpoint == null || !collectorEndpoint.contains("appoptics.com");
   }
 
   private static void setSystemProperty(String key, String value) {

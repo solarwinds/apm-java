@@ -397,13 +397,6 @@ class ConfigurationLoaderTest {
   }
 
   @Test
-  void returnFalseWhenDisabledForMetric() throws InvalidConfigException {
-    ConfigManager.setConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, false);
-    assertFalse(ConfigurationLoader.shouldUseOtlpForMetrics());
-    ConfigManager.removeConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED);
-  }
-
-  @Test
   void returnEnvironmentVariableEquivalent() {
     assertEquals(
         "OTEL_EXPORTER_OTLP_ENDPOINT",

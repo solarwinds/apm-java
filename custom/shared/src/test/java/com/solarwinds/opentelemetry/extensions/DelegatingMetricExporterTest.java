@@ -19,13 +19,23 @@ package com.solarwinds.opentelemetry.extensions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.solarwinds.joboe.config.ConfigManager;
+import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.config.InvalidConfigException;
+import io.opentelemetry.sdk.common.InstrumentationScopeInfo;
 import io.opentelemetry.sdk.metrics.InstrumentType;
 import io.opentelemetry.sdk.metrics.data.AggregationTemporality;
+import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -37,10 +47,36 @@ class DelegatingMetricExporterTest {
 
   @Mock private MetricExporter metricExporterMock;
 
+  @Mock private MetricData metricDataMock;
+
+  @Mock private MetricData metricDataMock0;
+
+  @Mock private MetricData metricDataMock1;
+
+  @Captor private ArgumentCaptor<List<MetricData>> metricData;
+
   @Test
-  void verifyThatExportIsDelegated() {
-    tested.export(Collections.emptyList());
+  void verifyThatAllMetricDataAreExported() {
+    tested.export(Collections.singleton(metricDataMock));
     verify(metricExporterMock).export(any());
+  }
+
+  @Test
+  void verifyThatOnlySwoMetricDataAreExported() throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, false);
+
+    when(metricDataMock.getInstrumentationScopeInfo())
+        .thenReturn(InstrumentationScopeInfo.create(MeterProvider.requestMeterScopeName));
+    when(metricDataMock0.getInstrumentationScopeInfo())
+        .thenReturn(InstrumentationScopeInfo.create(MeterProvider.samplingMeterScopeName));
+    when(metricDataMock1.getInstrumentationScopeInfo())
+        .thenReturn(InstrumentationScopeInfo.create("test-scope"));
+
+    tested.export(Arrays.asList(metricDataMock, metricDataMock0, metricDataMock1));
+    verify(metricExporterMock).export(metricData.capture());
+    assertEquals(Arrays.asList(metricDataMock, metricDataMock0), metricData.getValue());
+
+    ConfigManager.removeConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED);
   }
 
   @Test
