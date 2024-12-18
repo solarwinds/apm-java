@@ -35,7 +35,7 @@ class SqlTagDatabasesParserTest {
   void returnSetGivenCommaSeparatedString() throws InvalidConfigException {
     final String arg = "mysql,postgresql";
     final Set<String> expected =
-        new HashSet<>() {
+        new HashSet<String>() {
           {
             add("mysql");
             add("postgresql");

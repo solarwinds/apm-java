@@ -15,21 +15,14 @@
  */
 
 plugins {
-    id("solarwinds.instrumentation-conventions")
+  id("solarwinds.instrumentation-conventions")
 }
 
 dependencies {
-    compileOnly "com.solarwinds.joboe:config"
-    testImplementation project(path: ":instrumentation:instrumentation-shared")
+  compileOnly("com.solarwinds.joboe:config")
+  testImplementation(project(":instrumentation:instrumentation-shared"))
 }
 
-test {
-    useJUnitPlatform()
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
-}
-
-compileJava {
-    options.release.set(8)
+swoJava {
+  minJavaVersionSupported.set(JavaVersion.VERSION_1_8)
 }

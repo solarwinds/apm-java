@@ -38,7 +38,7 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import io.opentelemetry.sdk.trace.samplers.SamplingDecision;
 import io.opentelemetry.sdk.trace.samplers.SamplingResult;
-import java.util.List;
+import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -130,7 +130,7 @@ class SolarwindsSamplerTest {
           "name",
           SpanKind.INTERNAL,
           Attributes.empty(),
-          List.of());
+          Collections.emptyList());
 
       traceDecisionUtilMockedStatic.verify(
           () -> TraceDecisionUtil.shouldTraceRequest(any(), any(), any(), any()));
@@ -163,7 +163,7 @@ class SolarwindsSamplerTest {
           "name",
           SpanKind.INTERNAL,
           Attributes.empty(),
-          List.of());
+          Collections.emptyList());
 
       traceDecisionUtilMockedStatic.verify(
           () -> TraceDecisionUtil.shouldTraceRequest(any(), any(), any(), any()));
@@ -202,7 +202,7 @@ class SolarwindsSamplerTest {
           "name",
           SpanKind.INTERNAL,
           Attributes.empty(),
-          List.of());
+          Collections.emptyList());
 
       traceDecisionUtilMockedStatic.verify(
           () ->
@@ -232,7 +232,7 @@ class SolarwindsSamplerTest {
               "name",
               SpanKind.INTERNAL,
               Attributes.empty(),
-              List.of());
+              Collections.emptyList());
 
       assertEquals(SamplingDecision.RECORD_AND_SAMPLE, actual.getDecision());
     }
@@ -255,7 +255,7 @@ class SolarwindsSamplerTest {
               "name",
               SpanKind.INTERNAL,
               Attributes.empty(),
-              List.of());
+              Collections.emptyList());
 
       assertEquals(SamplingDecision.DROP, actual.getDecision());
     }

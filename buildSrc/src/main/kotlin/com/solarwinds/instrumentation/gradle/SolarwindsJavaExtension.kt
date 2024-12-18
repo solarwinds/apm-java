@@ -13,3 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package com.solarwinds.instrumentation.gradle
+
+import org.gradle.api.JavaVersion
+import org.gradle.api.provider.Property
+
+abstract class SolarwindsJavaExtension {
+  abstract val minJavaVersionSupported: Property<JavaVersion>
+  abstract val maxJavaVersionSupported: Property<JavaVersion>
+
+  init {
+    minJavaVersionSupported.convention(JavaVersion.VERSION_1_8)
+  }
+}

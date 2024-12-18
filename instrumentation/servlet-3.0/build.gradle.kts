@@ -18,24 +18,12 @@ plugins {
   id("solarwinds.instrumentation-conventions")
 }
 
-
 dependencies {
-  compileOnly project(":bootstrap")
-  compileOnly project(":instrumentation:instrumentation-shared")
-  compileOnly "com.solarwinds.joboe:config"
-  compileOnly "com.solarwinds.joboe:logging"
-  compileOnly "org.json:json"
-
-  compileOnly "io.opentelemetry:opentelemetry-sdk-trace"
-  compileOnly "io.opentelemetry.semconv:opentelemetry-semconv"
-  compileOnly "com.github.ben-manes.caffeine:caffeine"
-
-  testImplementation project(":instrumentation:jdbc")
-  testImplementation project(":instrumentation:instrumentation-shared")
+  compileOnly("javax.servlet:javax.servlet-api:3.0.1")
+  compileOnly(project(":custom"))
+  compileOnly(project(":bootstrap"))
 }
 
-
-compileJava {
-  dependsOn(':instrumentation:instrumentation-shared:byteBuddyJava')
-  options.release.set(8)
+swoJava {
+  minJavaVersionSupported.set(JavaVersion.VERSION_1_8)
 }

@@ -1,3 +1,6 @@
+import com.diffplug.gradle.spotless.SpotlessTask
+import com.github.gmazzo.buildconfig.BuildConfigTask
+
 /*
  * © SolarWinds Worldwide, LLC. All rights reserved.
  *
@@ -16,7 +19,9 @@
 
 plugins {
   id("com.diffplug.spotless")
+  id("com.github.gmazzo.buildconfig")
 }
+
 
 spotless {
   java {
@@ -32,7 +37,6 @@ spotless {
         "continuation_indent_size" to "2",
         "max_line_length" to "160",
         "insert_final_newline" to "true",
-        "ktlint_standard_no-wildcard-imports" to "disabled",
         // ktlint does not break up long lines, it just fails on them
         "ktlint_standard_max-line-length" to "disabled",
         // ktlint makes it *very* hard to locate where this actually happened
@@ -57,6 +61,11 @@ spotless {
     trimTrailingWhitespace()
     endWithNewline()
   }
+}
+
+
+tasks.withType(SpotlessTask::class).configureEach {
+  dependsOn(tasks.withType(BuildConfigTask::class.java))
 }
 
 tasks.withType<JavaCompile>().configureEach {

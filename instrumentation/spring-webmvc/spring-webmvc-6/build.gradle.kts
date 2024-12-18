@@ -36,15 +36,9 @@ muzzle {
 dependencies {
   compileOnly("org.springframework:spring-webmvc:6.0.0")
   compileOnly("jakarta.servlet:jakarta.servlet-api:5.0.0")
-  compileOnly "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator"
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator")
 }
 
-java {
-  toolchain {
-    languageVersion = JavaLanguageVersion.of(17)
-  }
-}
-
-compileJava {
-  options.release.set(17)
+swoJava {
+  minJavaVersionSupported.set(JavaVersion.VERSION_17)
 }

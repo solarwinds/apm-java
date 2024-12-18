@@ -20,40 +20,37 @@ plugins {
 
 muzzle {
   pass {
-    group = 'org.springframework'
-    module = 'spring-webmvc'
-    versions = "[3.1.0.RELEASE,]"
+    group.set("org.springframework")
+    module.set("spring-webmvc")
+    versions.set("[3.1.0.RELEASE,]")
     // these versions depend on org.springframework:spring-web which has a bad dependency on
     // javax.faces:jsf-api:1.1 which was released as pom only
-    skip('1.2.1', '1.2.2', '1.2.3', '1.2.4')
+    skip("1.2.1", "1.2.2", "1.2.3", "1.2.4")
     // 3.2.1.RELEASE has transitive dependencies like spring-web as "provided" instead of "compile"
-    skip('3.2.1.RELEASE')
-    extraDependency "javax.servlet:javax.servlet-api:3.0.1"
-    assertInverse = true
+    skip("3.2.1.RELEASE")
+    extraDependency("javax.servlet:javax.servlet-api:3.0.1")
+    assertInverse.set(true)
   }
 
   // FIXME: webmvc depends on web, so we need a separate instrumentation for spring-web specifically.
   fail {
-    group = 'org.springframework'
-    module = 'spring-web'
-    versions = "[,]"
+    group.set("org.springframework")
+    module.set("spring-web")
+    versions.set("[,]")
     // these versions depend on org.springframework:spring-web which has a bad dependency on
     // javax.faces:jsf-api:1.1 which was released as pom only
-    skip('1.2.1', '1.2.2', '1.2.3', '1.2.4')
-    extraDependency "javax.servlet:javax.servlet-api:3.0.1"
+    skip("1.2.1", "1.2.2", "1.2.3", "1.2.4")
+    extraDependency("javax.servlet:javax.servlet-api:3.0.1")
   }
 }
 
 dependencies {
-  compileOnly "org.springframework:spring-webmvc:3.1.0.RELEASE"
-  compileOnly "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api"
-  compileOnly "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator"
-  compileOnly "javax.servlet:javax.servlet-api:3.1.0"
+  compileOnly("javax.servlet:javax.servlet-api:3.1.0")
+  compileOnly("org.springframework:spring-webmvc:3.1.0.RELEASE")
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator")
 }
 
-compileJava {
-  options.release.set(8)
+swoJava {
+  minJavaVersionSupported.set(JavaVersion.VERSION_1_8)
 }
-
-
-

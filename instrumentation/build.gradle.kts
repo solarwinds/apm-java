@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+val instrumentationProject = project
+subprojects {
+  afterEvaluate {
+    plugins.withId("java") {
+      // Make it so all instrumentation subproject tests can be run with a single command.
+      instrumentationProject.tasks.withType<Test>().configureEach {
+        dependsOn(this@afterEvaluate.tasks.test)
+      }
 
-plugins {
-    id("solarwinds.instrumentation-conventions")
-}
-
-archivesBaseName = "servlet5"
-
-dependencies {
-    compileOnly("jakarta.servlet:jakarta.servlet-api:5.0.0")
-    compileOnly project(":custom")
-    compileOnly project(":bootstrap")
-}
-
-compileJava{
-  options.release.set(8)
+      instrumentationProject.dependencies {
+        implementation(project(this@afterEvaluate.path))
+      }
+    }
+  }
 }
