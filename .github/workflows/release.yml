@@ -415,13 +415,46 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_CI_USER }}
           password: ${{ secrets.DOCKER_HUB_CI_PASSWORD }}
 
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ github.repository_owner }}/autoinstrumentation-java
+          tags: |
+            type=raw,value=${{ steps.set_version.outputs.version }}
+            type=raw,value=latest
+          labels: |
+            maintainer=swo-librarians
+            org.opencontainers.image.title=apm-java
+            org.opencontainers.image.description=Solarwinds OTEL distro Java agent
+            org.opencontainers.image.vendor=SolarWinds Worldwide, LLC
+
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           push: true
           context: agent
           platforms: linux/amd64,linux/arm64,linux/s390x,linux/ppc64le
-          tags: ${{ github.repository_owner }}/autoinstrumentation-java:${{ steps.set_version.outputs.version }},${{ github.repository_owner }}/autoinstrumentation-java:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Analyze for critical and high CVEs
+        id: docker-scout-cves
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: "fs://./"
+          platform: "linux/amd64"
+          ignore-base: true
+          only-package-types: maven
+
+      - name: Analyze for critical and high CVEs
+        id: docker-scout-image-cves
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: ${{ steps.meta.outputs.tags[0] }}
+          platform: "linux/amd64"
 
   ghrc_io:
     runs-on: ubuntu-latest
