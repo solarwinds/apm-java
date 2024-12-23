@@ -118,6 +118,7 @@ public class SolarwindsInboundMetricsSpanProcessor implements SpanProcessor {
     // cannot use Guava cache here, jboss issue...
     private final Map<MetricKey, SummaryLongMeasurement> measurements =
         new ConcurrentHashMap<MetricKey, SummaryLongMeasurement>();
+
     // private final String measurementName;
 
     protected OpenTelemetryInboundMeasurementReporter() {

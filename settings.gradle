@@ -61,4 +61,5 @@ include 'instrumentation:instrumentation-shared'
 include 'testing'
 include 'testing:agent-for-testing'
 include 'testing:agent-test-extension'
+include 'dependencyManagement'
 

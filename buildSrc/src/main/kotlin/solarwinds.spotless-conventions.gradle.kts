@@ -21,7 +21,6 @@ plugins {
 spotless {
   java {
     target("src/*/java/**/*.java")
-//    removeUnusedImports()
     googleJavaFormat()
     formatAnnotations()
   }

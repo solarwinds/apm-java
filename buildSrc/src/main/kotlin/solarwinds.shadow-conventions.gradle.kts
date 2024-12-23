@@ -32,15 +32,15 @@ tasks.withType<ShadowJar>().configureEach {
   }
 
   // relocate OpenTelemetry API usage
-  relocate( "io.opentelemetry.api", "io.opentelemetry.javaagent.shaded.io.opentelemetry.api")
-  relocate ("io.opentelemetry.semconv", "io.opentelemetry.javaagent.shaded.io.opentelemetry.semconv")
-  relocate ("io.opentelemetry.context", "io.opentelemetry.javaagent.shaded.io.opentelemetry.context")
+  relocate("io.opentelemetry.api", "io.opentelemetry.javaagent.shaded.io.opentelemetry.api")
+  relocate("io.opentelemetry.semconv", "io.opentelemetry.javaagent.shaded.io.opentelemetry.semconv")
+  relocate("io.opentelemetry.context", "io.opentelemetry.javaagent.shaded.io.opentelemetry.context")
 
   // relocate the OpenTelemetry extensions that are used by instrumentation modules
   // these extensions live in the AgentClassLoader, and are injected into the user"s class loader
   // by the instrumentation modules that use them
-  relocate ("io.opentelemetry.extension.aws", "io.opentelemetry.javaagent.shaded.io.opentelemetry.extension.aws")
-  relocate ("io.opentelemetry.extension.kotlin", "io.opentelemetry.javaagent.shaded.io.opentelemetry.extension.kotlin")
+  relocate("io.opentelemetry.extension.aws", "io.opentelemetry.javaagent.shaded.io.opentelemetry.extension.aws")
+  relocate("io.opentelemetry.extension.kotlin", "io.opentelemetry.javaagent.shaded.io.opentelemetry.extension.kotlin")
 
   relocate("com.google", "com.solarwinds.joboe.shaded.google")
   relocate("com.github.benmanes", "com.solarwinds.joboe.shaded.caffeine")
