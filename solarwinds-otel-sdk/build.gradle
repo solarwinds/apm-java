@@ -15,15 +15,13 @@
  */
 
 plugins {
-  id("java")
   id("signing")
   id("maven-publish")
-  id("com.gradleup.shadow")
+  id("solarwinds.java-conventions")
+  id("solarwinds.shadow-conventions")
 }
 
-apply from: "$rootDir/gradle/shadow.gradle"
 project.archivesBaseName = 'solarwinds-otel-sdk'
-def relocatePackages = ext.relocatePackages
 
 dependencies {
   compileOnly project(":bootstrap")

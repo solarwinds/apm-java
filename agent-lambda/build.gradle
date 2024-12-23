@@ -18,16 +18,12 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    id 'com.gradleup.shadow'
     id 'maven-publish'
     id 'signing'
+    id("solarwinds.shadow-conventions")
 }
 
-apply from: "$rootDir/gradle/shadow.gradle"
-
 project.archivesBaseName = 'solarwinds-apm-agent-lambda'
-
-def relocatePackages = ext.relocatePackages
 
 configurations {
     // this configuration collects libs that will be placed in the bootstrap classloader
@@ -85,7 +81,6 @@ tasks {
 
         mergeServiceFiles()
         exclude("**/module-info.class")
-        relocatePackages(it)
 
         // exclude known bootstrap dependencies - they can't appear in the inst/ directory
         dependencies {
@@ -126,7 +121,6 @@ tasks {
         }
         exclude("**/module-info.class")
         exclude("inst/com/solarwinds/opentelemetry/core/**")
-        relocatePackages(it)
 
         manifest {
             attributes.put("Main-Class", "io.opentelemetry.javaagent.OpenTelemetryAgent")

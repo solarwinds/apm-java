@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/instrumentation.gradle"
+plugins {
+  id("solarwinds.instrumentation-conventions")
+}
 
 
 dependencies {

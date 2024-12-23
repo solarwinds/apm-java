@@ -1,4 +1,6 @@
-apply from: "$rootDir/gradle/instrumentation.gradle"
+plugins {
+    id("solarwinds.instrumentation-conventions")
+}
 
 dependencies {
     compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetry}")
