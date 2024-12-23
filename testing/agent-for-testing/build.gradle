@@ -46,10 +46,10 @@ dependencies {
     javaagentLibs project(':instrumentation:hibernate:hibernate-shared')
 
     bootstrapLibs project(":bootstrap")
-    bootstrapLibs "com.solarwinds.joboe:core:${versions.joboe}"
-    bootstrapLibs "com.solarwinds.joboe:metrics:${versions.joboe}"
+    bootstrapLibs "com.solarwinds.joboe:core"
+    bootstrapLibs "com.solarwinds.joboe:metrics"
 
-    upstreamAgent "io.opentelemetry.javaagent:opentelemetry-agent-for-testing:${versions.opentelemetryJavaagentAlpha}"
+    upstreamAgent "io.opentelemetry.javaagent:opentelemetry-agent-for-testing"
 }
 
 CopySpec isolateClasses(Iterable<File> jars) {

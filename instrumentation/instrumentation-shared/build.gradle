@@ -19,7 +19,7 @@ plugins {
 }
 
 dependencies {
-    compileOnly "com.solarwinds.joboe:config:${versions.joboe}"
+    compileOnly "com.solarwinds.joboe:config"
     testImplementation project(path: ":instrumentation:instrumentation-shared")
 }
 

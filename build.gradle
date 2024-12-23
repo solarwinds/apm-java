@@ -14,23 +14,6 @@
  * limitations under the License.
  */
 
-buildscript {
-    repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-        maven {
-            name = "sonatype"
-            url = uri("https://oss.sonatype.org/content/repositories/snapshots")
-        }
-    }
-    dependencies {
-        classpath "com.diffplug.spotless:spotless-plugin-gradle:6.14.0"
-        classpath "com.gradleup.shadow:shadow-gradle-plugin:8.3.5"
-        classpath "io.opentelemetry.instrumentation:gradle-plugins:${property('otel.agent.version')}-alpha"
-    }
-}
-
 plugins{
     id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
 }
@@ -40,109 +23,25 @@ group = "io.github.appoptics"
 version = Boolean.parseBoolean(System.getenv("SNAPSHOT_BUILD")) ? "$swoVersion-SNAPSHOT" : swoVersion
 
 subprojects {
-  apply plugin: "java"
-  apply plugin: "checkstyle"
-  apply plugin: "com.diffplug.spotless"
+    if (it.name != "dependencyManagement"){
+        apply plugin: "checkstyle"
+        apply (plugin: "solarwinds.spotless-conventions")
+        apply (plugin: "solarwinds.java-conventions")
 
-    ext {
-        versions = [
-                opentelemetry         : property('otel.sdk.version'), // property is defined in gradle.properties
-                opentelemetryJavaagent: property('otel.agent.version'),
-                bytebuddy             : "1.15.10",
-                guava                 : "30.1-jre",
-                joboe                 : "10.0.17",
-                agent                 : swoVersion, // the custom distro agent version
-                autoservice           : "1.0.1",
-                caffeine              : "2.9.3",
-                json : "20231013",
-        ]
-        versions.opentelemetryAlpha = "${versions.opentelemetry}-alpha"
-        versions.opentelemetrySemconv = "1.28.0-alpha"
-        versions.opentelemetryJavaagentAlpha = "${versions.opentelemetryJavaagent}-alpha"
-
-        deps = [
-                bytebuddy  : "net.bytebuddy:byte-buddy-dep:${versions.bytebuddy}",
-                autoservice: [
-                        "com.google.auto.service:auto-service:${versions.autoservice}",
-                        "com.google.auto.service:auto-service-annotations:${versions.autoservice}",
-                ],
-        ]
-    }
-
-    repositories {
-        maven {
-            url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+        checkstyleMain {
+            configFile = file("$rootDir/checkstyle.xml")
         }
-        mavenLocal()
-        mavenCentral()
-        maven {
-            url = uri("https://maven.pkg.github.com/solarwinds/joboe")
-            credentials {
-                username = System.getenv("GITHUB_USERNAME")
-                password = System.getenv("GITHUB_TOKEN")
-            }
+
+        checkstyleTest.enabled = false
+
+        checkstyleTest {
+            configFile = file("$rootDir/checkstyle.xml")
+        }
+
+        javadoc {
+            source = sourceSets.main.allJava
         }
     }
-
-    dependencies {
-        testImplementation project(path: ":bootstrap")
-        testImplementation 'org.mockito:mockito-core:5.3.0'
-        testImplementation 'org.mockito:mockito-junit-jupiter:5.3.0'
-        testImplementation 'javax.annotation:javax.annotation-api:1.3.2'
-
-        testImplementation 'org.mockito:mockito-inline:5.2.0'
-        testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
-
-        testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetry}")
-        testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
-        testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}")
-
-        testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
-        testImplementation("io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}")
-        testImplementation("io.opentelemetry:opentelemetry-sdk-testing:${versions.opentelemetry}")
-
-        testImplementation "com.solarwinds.joboe:core:${versions.joboe}"
-        testImplementation "com.solarwinds.joboe:metrics:${versions.joboe}"
-        testImplementation 'org.junit-pioneer:junit-pioneer:2.1.0'
-
-    }
-
-    checkstyleMain {
-        configFile = file("$rootDir/checkstyle.xml")
-    }
-
-    checkstyleTest.enabled = false
-
-    checkstyleTest {
-        configFile = file("$rootDir/checkstyle.xml")
-    }
-
-    test {
-        useJUnitPlatform()
-    }
-
-    javadoc {
-        source = sourceSets.main.allJava
-    }
-
-  spotless {
-    format "misc", {
-      target ".gitattributes", ".gitignore"
-      trimTrailingWhitespace()
-      endWithNewline()
-    }
-
-    java {
-      target "src/*/java/**/*.java"
-      removeUnusedImports()
-      googleJavaFormat()
-      formatAnnotations()
-    }
-  }
-  java {
-    disableAutoTargetJvm()
-  }
 }
 
 nexusPublishing {

@@ -26,6 +26,14 @@ spotless {
   }
 }
 
+tasks.named("assemble").configure {
+  dependsOn(tasks.named("spotlessApply"))
+}
+
+tasks.named("check").configure {
+  dependsOn(tasks.named("spotlessCheck"))
+}
+
 repositories {
   gradlePluginPortal()
   maven {

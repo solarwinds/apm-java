@@ -49,12 +49,12 @@ dependencies {
     javaagentLibs project(path: ":instrumentation")
 
     bootstrapLibs project(path: ":bootstrap")
-    bootstrapLibs "com.solarwinds.joboe:config:${versions.joboe}"
-    bootstrapLibs "org.json:json:${versions.json}"
-    bootstrapLibs "com.solarwinds.joboe:sampling:${versions.joboe}"
-    bootstrapLibs "com.solarwinds.joboe:logging:${versions.joboe}"
+    bootstrapLibs "com.solarwinds.joboe:config"
+    bootstrapLibs "org.json:json"
+    bootstrapLibs "com.solarwinds.joboe:sampling"
+    bootstrapLibs "com.solarwinds.joboe:logging"
 
-    upstreamAgent "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}"
+    upstreamAgent "io.opentelemetry.javaagent:opentelemetry-javaagent"
 }
 
 CopySpec isolateClasses(Iterable<File> jars) {
@@ -129,7 +129,7 @@ tasks {
             attributes.put("Can-Redefine-Classes", "true")
             attributes.put("Can-Retransform-Classes", "true")
             attributes.put("Implementation-Vendor", "SolarWinds Inc.")
-            attributes.put("Implementation-Version", "${versions.agent}")
+            attributes.put("Implementation-Version", "${swoAgentVersion}")
         }
     }
 

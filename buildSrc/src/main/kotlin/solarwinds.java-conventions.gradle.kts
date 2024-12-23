@@ -16,7 +16,7 @@
 
 plugins {
   java
-  id ("com.github.jarmstrong.buildconfig")
+  id("com.github.jarmstrong.buildconfig")
 }
 
 repositories {
@@ -50,13 +50,11 @@ val dependencyManagementConfiguration = configurations.create("dependencyManagem
 afterEvaluate {
   configurations.configureEach {
     if (isCanBeResolved && !isCanBeConsumed) {
-      //propagate constraints
+      // propagate constraints
       extendsFrom(dependencyManagementConfiguration)
     }
   }
 }
-
-val versions: Map<String, String> by rootProject.extra
 
 dependencies {
   dependencyManagementConfiguration(platform(project(":dependencyManagement")))
@@ -70,16 +68,16 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
-  testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions["opentelemetry"]}")
-  testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions["opentelemetryJavaagentAlpha"]}")
-  testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions["opentelemetryJavaagentAlpha"]}")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
+  testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
+  testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
 
-  testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions["opentelemetryJavaagent"]}")
-  testImplementation("io.opentelemetry.semconv:opentelemetry-semconv:${versions["opentelemetrySemconv"]}")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:${versions["opentelemetry"]}")
+  testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
+  testImplementation("io.opentelemetry.semconv:opentelemetry-semconv")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing")
 
-  testImplementation("com.solarwinds.joboe:core:${versions["joboe"]}")
-  testImplementation("com.solarwinds.joboe:metrics:${versions["joboe"]}")
+  testImplementation("com.solarwinds.joboe:core")
+  testImplementation("com.solarwinds.joboe:metrics")
   testImplementation("org.junit-pioneer:junit-pioneer")
 }
 
@@ -90,6 +88,3 @@ tasks.withType<Test>().configureEach {
   }
   environment("SW_APM_SERVICE_KEY", "token:name")
 }
-
-
-

@@ -14,55 +14,42 @@
  * limitations under the License.
  */
 
-plugins {
-  id "com.github.jarmstrong.buildconfig" version "1.9.0"
-}
 
 dependencies {
   compileOnly project(path: ":bootstrap")
-  compileOnly 'org.projectlombok:lombok:1.18.28'
-  annotationProcessor 'org.projectlombok:lombok:1.18.28'
+  compileOnly 'org.projectlombok:lombok'
+  annotationProcessor 'org.projectlombok:lombok'
 
-  compileOnly "com.solarwinds.joboe:config:${versions.joboe}"
-  compileOnly "com.solarwinds.joboe:logging:${versions.joboe}"
+  compileOnly "com.solarwinds.joboe:config"
+  compileOnly "com.solarwinds.joboe:logging"
 
-  compileOnly "com.solarwinds.joboe:sampling:${versions.joboe}"
-  annotationProcessor 'com.google.auto.service:auto-service:1.0.1'
-  compileOnly "com.google.auto.service:auto-service-annotations:1.0.1"
+  compileOnly "com.solarwinds.joboe:sampling"
+  annotationProcessor 'com.google.auto.service:auto-service'
+  compileOnly "com.google.auto.service:auto-service-annotations"
 
-  compileOnly("io.opentelemetry:opentelemetry-api:${versions.opentelemetry}")
-  compileOnly("io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}")
-  compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetry}")
+  compileOnly("io.opentelemetry:opentelemetry-api")
+  compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")
+  compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
 
-  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}")
-  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
 
-  implementation "org.json:json:${versions.json}"
-  implementation "com.google.code.gson:gson:2.10.1"
-  implementation "com.github.ben-manes.caffeine:caffeine:${versions.caffeine}"
-  implementation("io.opentelemetry.contrib:opentelemetry-span-stacktrace:${property('otel.java.contrib.version')}") {
+  implementation "org.json:json"
+  implementation "com.google.code.gson:gson"
+  implementation "com.github.ben-manes.caffeine:caffeine"
+
+  implementation("io.opentelemetry.contrib:opentelemetry-span-stacktrace") {
     exclude(module: "opentelemetry-sdk", group: "io.opentelemetry") // the agent includes this
   }
 
-  testImplementation("org.json:json:${versions.json}")
-  testImplementation "com.solarwinds.joboe:sampling:${versions.joboe}"
-}
-
-test {
-  useJUnitPlatform()
-  testLogging {
-    events "passed", "skipped", "failed"
-  }
-}
-
-spotlessJava {
-  dependsOn("generateBuildConfig")
+  testImplementation("org.json:json")
+  testImplementation "com.solarwinds.joboe:sampling"
 }
 
 buildConfig {
   packageName("com.solarwinds.opentelemetry.extensions")
-  buildConfigField('String', 'OTEL_AGENT_VERSION', "\"${versions.opentelemetryJavaagent}\"")
-  buildConfigField('String', 'SOLARWINDS_AGENT_VERSION', "\"${versions.agent}\"")
+  buildConfigField('String', 'OTEL_AGENT_VERSION', "\"${otelAgentVersion}\"")
+  buildConfigField('String', 'SOLARWINDS_AGENT_VERSION', "\"${swoAgentVersion}\"")
   buildConfigField('String', 'BUILD_DATETIME', "\"${new Date().format('LLL dd, yyyy - HH:mm:ss z')}\"")
 }
 

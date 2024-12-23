@@ -24,43 +24,35 @@ plugins {
 }
 
 evaluationDependsOn(":testing:agent-for-testing")
-
-
-val versions: Map<String, String> by rootProject.extra
-
 dependencies {
-  compileOnly("io.opentelemetry:opentelemetry-sdk:${versions["opentelemetry"]}")
-  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions["opentelemetryJavaagent"]}")
-  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions["opentelemetryJavaagentAlpha"]}")
+  compileOnly("io.opentelemetry:opentelemetry-sdk")
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
 
   compileOnly("net.bytebuddy:byte-buddy")
   compileOnly("com.google.auto.service:auto-service")
   annotationProcessor("com.google.auto.service:auto-service")
 
-
   // test dependencies
-  testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions["opentelemetryJavaagentAlpha"]}")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:${versions["opentelemetry"]}")
-  testImplementation("org.assertj:assertj-core:3.19.0")
-
+  testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing")
   add(
     "codegen",
-    "io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions["opentelemetryJavaagentAlpha"]}"
+    "io.opentelemetry.javaagent:opentelemetry-javaagent-tooling"
   )
   add(
     "muzzleBootstrap",
-    "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations-support:${versions["opentelemetryJavaagentAlpha"]}"
+    "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations-support"
   )
   add(
     "muzzleTooling",
-    "io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions["opentelemetryJavaagentAlpha"]}"
+    "io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api"
   )
   add(
     "muzzleTooling",
-    "io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions["opentelemetryJavaagentAlpha"]}"
+    "io.opentelemetry.javaagent:opentelemetry-javaagent-tooling"
   )
 }
-
 
 tasks.named<ShadowJar>("shadowJar") {
   archiveFileName.set("agent-testing.jar")
@@ -144,5 +136,4 @@ class JavaagentProvider(
     "-XX:+IgnoreUnrecognizedVMOptions",
     "-Dotel.javaagent.debug=true"
   )
-
 }
