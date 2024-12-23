@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/instrumentation.gradle"
+plugins {
+    id("solarwinds.instrumentation-conventions")
+}
+
 dependencies {
     compileOnly "com.solarwinds.joboe:config:${versions.joboe}"
     testImplementation project(path: ":instrumentation:instrumentation-shared")
