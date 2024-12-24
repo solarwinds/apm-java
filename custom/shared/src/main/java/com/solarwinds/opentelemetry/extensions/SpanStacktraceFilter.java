@@ -32,7 +32,7 @@ public class SpanStacktraceFilter implements Predicate<ReadableSpan> {
     filterAttributes.add("db.system");
     Set<String> configuredFilterAttributes =
         ConfigManager.getConfigOptional(
-            ConfigProperty.AGENT_SPAN_STACK_TRACE_FILTERS, filterAttributes);
+            ConfigProperty.AGENT_SPAN_STACKTRACE_FILTERS, filterAttributes);
     filterAttributes.addAll(configuredFilterAttributes);
   }
 

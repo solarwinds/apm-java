@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public final class StackTraceFilterParser implements ConfigParser<String, Set<String>> {
+public final class StacktraceFilterParser implements ConfigParser<String, Set<String>> {
   private static final Gson gson = new GsonBuilder().create();
 
   @Override

@@ -27,9 +27,9 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class StackTraceFilterParserTest {
+class StacktraceFilterParserTest {
 
-  @InjectMocks private StackTraceFilterParser tested;
+  @InjectMocks private StacktraceFilterParser tested;
 
   @Test
   void returnListOfStringGivenCommaSeparatedString() throws InvalidConfigException {
