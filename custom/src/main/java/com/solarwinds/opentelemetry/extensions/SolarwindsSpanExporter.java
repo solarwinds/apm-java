@@ -112,9 +112,9 @@ public class SolarwindsSpanExporter implements SpanExporter {
               "exit",
               "Layer",
               spanName,
-              "sw.span_status_code",
+              "otel.status_code",
               spanData.getStatus().getStatusCode().toString(),
-              "sw.span_status_message",
+              "otel.status_description",
               spanData.getStatus().getDescription());
           exitEvent.setTimestamp(spanData.getEndEpochNanos() / 1000);
           exitEvent.report(eventReporter);
