@@ -15,40 +15,31 @@
  */
 
 dependencies {
-  compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetry}")
-  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
-  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}")
-  compileOnly("io.opentelemetry:opentelemetry-api:${versions.opentelemetry}")
-  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
-  compileOnly("io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}")
+  compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
+  compileOnly("io.opentelemetry:opentelemetry-api")
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
+  compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")
   compileOnly project(path: ":bootstrap")
   compileOnly project(path: ":custom:shared")
 
-  compileOnly 'org.slf4j:slf4j-api:2.0.6'
-  compileOnly "com.solarwinds.joboe:core:${versions.joboe}"
-  compileOnly "com.solarwinds.joboe:metrics:${versions.joboe}"
+  compileOnly "com.solarwinds.joboe:core"
+  compileOnly "com.solarwinds.joboe:metrics"
 
-  compileOnly 'org.projectlombok:lombok:1.18.28'
-  annotationProcessor 'org.projectlombok:lombok:1.18.28'
-  compileOnly "com.google.auto.service:auto-service-annotations:1.0.1"
-  annotationProcessor 'com.google.auto.service:auto-service:1.0.1'
+  compileOnly 'org.projectlombok:lombok'
+  annotationProcessor 'org.projectlombok:lombok'
+  compileOnly "com.google.auto.service:auto-service-annotations"
+  annotationProcessor 'com.google.auto.service:auto-service'
 
   testImplementation project(path: ":custom:shared")
-  testImplementation("org.json:json:${versions.json}")
-  testImplementation "com.solarwinds.joboe:core:${versions.joboe}"
+  testImplementation("org.json:json")
+  testImplementation "com.solarwinds.joboe:core"
 }
 
 tasks.withType(Checkstyle).configureEach {
   exclude '**/BuildConfig.java'
   exclude '**/transaction/**'
-}
-
-test {
-  useJUnitPlatform()
-  testLogging {
-    events "passed", "skipped", "failed"
-  }
-  environment("SW_APM_SERVICE_KEY", "token:name")
 }
 
 compileJava {

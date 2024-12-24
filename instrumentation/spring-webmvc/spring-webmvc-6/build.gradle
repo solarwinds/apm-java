@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/instrumentation.gradle"
+plugins {
+  id("solarwinds.instrumentation-conventions")
+}
 
 muzzle {
   pass {
@@ -34,7 +36,7 @@ muzzle {
 dependencies {
   compileOnly("org.springframework:spring-webmvc:6.0.0")
   compileOnly("jakarta.servlet:jakarta.servlet-api:5.0.0")
-  compileOnly "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator:${versions.opentelemetryJavaagentAlpha}"
+  compileOnly "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator"
 }
 
 java {

@@ -1,12 +1,14 @@
-apply from: "$rootDir/gradle/instrumentation.gradle"
+plugins {
+    id("solarwinds.instrumentation-conventions")
+}
 
 dependencies {
     implementation(project(':instrumentation:hibernate:hibernate-shared'))
     implementation(project(":instrumentation:instrumentation-shared"))
 
     compileOnly("org.hibernate:hibernate-core:4.0.0.Final")
-    compileOnly "io.opentelemetry:opentelemetry-sdk-trace:${versions.opentelemetry}"
-    compileOnly "io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}"
+    compileOnly "io.opentelemetry:opentelemetry-sdk-trace"
+    compileOnly "io.opentelemetry.semconv:opentelemetry-semconv"
 
     testImplementation("org.hibernate:hibernate-core:4.0.0.Final")
     testImplementation("com.h2database:h2:2.3.232")

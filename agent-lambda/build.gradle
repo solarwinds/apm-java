@@ -18,16 +18,12 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    id 'com.gradleup.shadow'
     id 'maven-publish'
     id 'signing'
+    id("solarwinds.shadow-conventions")
 }
 
-apply from: "$rootDir/gradle/shadow.gradle"
-
 project.archivesBaseName = 'solarwinds-apm-agent-lambda'
-
-def relocatePackages = ext.relocatePackages
 
 configurations {
     // this configuration collects libs that will be placed in the bootstrap classloader
@@ -53,12 +49,12 @@ dependencies {
     javaagentLibs project(path: ":instrumentation")
 
     bootstrapLibs project(path: ":bootstrap")
-    bootstrapLibs "com.solarwinds.joboe:config:${versions.joboe}"
-    bootstrapLibs "org.json:json:${versions.json}"
-    bootstrapLibs "com.solarwinds.joboe:sampling:${versions.joboe}"
-    bootstrapLibs "com.solarwinds.joboe:logging:${versions.joboe}"
+    bootstrapLibs "com.solarwinds.joboe:config"
+    bootstrapLibs "org.json:json"
+    bootstrapLibs "com.solarwinds.joboe:sampling"
+    bootstrapLibs "com.solarwinds.joboe:logging"
 
-    upstreamAgent "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}"
+    upstreamAgent "io.opentelemetry.javaagent:opentelemetry-javaagent"
 }
 
 CopySpec isolateClasses(Iterable<File> jars) {
@@ -85,7 +81,6 @@ tasks {
 
         mergeServiceFiles()
         exclude("**/module-info.class")
-        relocatePackages(it)
 
         // exclude known bootstrap dependencies - they can't appear in the inst/ directory
         dependencies {
@@ -126,7 +121,6 @@ tasks {
         }
         exclude("**/module-info.class")
         exclude("inst/com/solarwinds/opentelemetry/core/**")
-        relocatePackages(it)
 
         manifest {
             attributes.put("Main-Class", "io.opentelemetry.javaagent.OpenTelemetryAgent")
@@ -135,7 +129,7 @@ tasks {
             attributes.put("Can-Redefine-Classes", "true")
             attributes.put("Can-Retransform-Classes", "true")
             attributes.put("Implementation-Vendor", "SolarWinds Inc.")
-            attributes.put("Implementation-Version", "${versions.agent}")
+            attributes.put("Implementation-Version", "${swoAgentVersion}")
         }
     }
 

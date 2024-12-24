@@ -1,12 +1,12 @@
 dependencies {
-  compileOnly "com.solarwinds.joboe:config:${versions.joboe}"
-  compileOnly "com.solarwinds.joboe:logging:${versions.joboe}"
+  compileOnly "com.solarwinds.joboe:config"
+  compileOnly "com.solarwinds.joboe:logging"
 
-  compileOnly "com.solarwinds.joboe:sampling:${versions.joboe}"
-  compileOnly "io.opentelemetry:opentelemetry-api:${versions.opentelemetry}"
-  compileOnly "io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}"
+  compileOnly "com.solarwinds.joboe:sampling"
+  compileOnly "io.opentelemetry:opentelemetry-api"
+  compileOnly "io.opentelemetry.semconv:opentelemetry-semconv"
 
-  implementation "com.github.ben-manes.caffeine:caffeine:${versions.caffeine}"
+  implementation "com.github.ben-manes.caffeine:caffeine"
 }
 
 compileJava {
