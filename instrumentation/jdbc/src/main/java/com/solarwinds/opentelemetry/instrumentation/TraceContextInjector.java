@@ -38,7 +38,7 @@ public class TraceContextInjector {
         "00-" + spanContext.getTraceId() + "-" + spanContext.getSpanId() + "-" + flags;
 
     String tag = String.format("/*traceparent='%s'*/", traceContext);
-    span.setAttribute("QueryTag", tag);
+    span.setAttribute("sw.query_tag", tag);
     return String.format("%s %s", tag, sql);
   }
 }
