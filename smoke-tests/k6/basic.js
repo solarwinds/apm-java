@@ -381,67 +381,83 @@ function verify_that_metrics_are_reported(metric, checkFn, service="lambda-e2e")
   }
 }
 
-function verify_transaction_name() {
-  let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
-  for (; retryCount > 0; retryCount--) {
-    const newOwner = names.randomOwner();
-    const response = http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
-    );
-
-    const traceContext = response.headers['X-Trace']
-    const [_, traceId, __, flag] = traceContext.split("-")
-    console.log("Trace context -> ", traceContext)
-    if (flag === '00') continue;
-
-    const spanRawDataPayload = {
-      "operationName": "getSubSpanRawData",
-      "variables": {
-        "traceId": traceId.toUpperCase()
-      },
-      "query": "query getSubSpanRawData($traceId: ID!, $spanFilter: TraceArchiveSpanFilter, $incomplete: Boolean) {\n  traceArchive(\n    traceId: $traceId\n    spanFilter: $spanFilter\n    incomplete: $incomplete\n  ) {\n    traceId\n    traceSpans {\n      edges {\n        node {\n          events {\n            eventId\n            properties {\n              key\n              value\n              __typename\n            }\n            __typename\n          }\n          spanId\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n"
+function check_transaction_name(property) {
+    if (property.key === "sw.transaction") {
+        check(property, {"transaction-name": prop => prop.value === "lambda-test-txn"})
+        return true;
     }
+    return false
+}
 
+
+function check_code_stack_trace(property) {
+    if (property.key === "code.stacktrace") {
+        check(property, {"code.stacktrace": _ => true})
+        return true;
+    }
+    return false
+}
+
+function check_property(fn) {
+    let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
     for (; retryCount > 0; retryCount--) {
-      let spanDataResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(spanRawDataPayload),
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Cookie': `${__ENV.SWO_COOKIE}`,
-              'X-Csrf-Token': `${__ENV.SWO_XSR_TOKEN}`
+        const newOwner = names.randomOwner();
+        const response = http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
             }
-          });
+        );
 
-      spanDataResponse = JSON.parse(spanDataResponse.body)
-      if (spanDataResponse['errors']) {
-        console.log("Error -> Transaction name response:", JSON.stringify(spanDataResponse))
-        continue
-      }
+        const traceContext = response.headers['X-Trace']
+        const [_, traceId, __, flag] = traceContext.split("-")
+        console.log("Trace context -> ", traceContext)
+        if (flag === '00') continue;
 
-      const {data: {traceArchive: {traceSpans: {edges}}}} = spanDataResponse
-      for (let i = 0; i < edges.length; i++) {
-        const edge = edges[i]
-        const {node: {events}} = edge
-
-        for (let j = 0; j < events.length; j++) {
-          const event = events[j]
-          const {properties} = event
-
-          for (let k = 0; k < properties.length; k++) {
-            const property = properties[k]
-            if (property.key === "sw.transaction") {
-              check(property, {"transaction-name": prop => prop.value === "lambda-test-txn"})
-              return;
-            }
-          }
+        const spanRawDataPayload = {
+            "operationName": "getSubSpanRawData",
+            "variables": {
+                "traceId": traceId.toUpperCase()
+            },
+            "query": "query getSubSpanRawData($traceId: ID!, $spanFilter: TraceArchiveSpanFilter, $incomplete: Boolean) {\n  traceArchive(\n    traceId: $traceId\n    spanFilter: $spanFilter\n    incomplete: $incomplete\n  ) {\n    traceId\n    traceSpans {\n      edges {\n        node {\n          events {\n            eventId\n            properties {\n              key\n              value\n              __typename\n            }\n            __typename\n          }\n          spanId\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n"
         }
-      }
+
+        for (; retryCount > 0; retryCount--) {
+            let spanDataResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(spanRawDataPayload),
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cookie': `${__ENV.SWO_COOKIE}`,
+                        'X-Csrf-Token': `${__ENV.SWO_XSR_TOKEN}`
+                    }
+                });
+
+            spanDataResponse = JSON.parse(spanDataResponse.body)
+            if (spanDataResponse['errors']) {
+                console.log("Error -> Transaction name response:", JSON.stringify(spanDataResponse))
+                continue
+            }
+
+            const {data: {traceArchive: {traceSpans: {edges}}}} = spanDataResponse
+            for (let i = 0; i < edges.length; i++) {
+                const edge = edges[i]
+                const {node: {events}} = edge
+
+                for (let j = 0; j < events.length; j++) {
+                    const event = events[j]
+                    const {properties} = event
+
+                    for (let k = 0; k < properties.length; k++) {
+                        const property = properties[k]
+                        if (fn(property)) {
+                            return;
+                        }
+                    }
+                }
+            }
+        }
     }
-  }
 }
 
 function getEntityId() {
@@ -577,7 +593,13 @@ export default function () {
       verify_that_metrics_are_reported("trace.service.response_time", response_time)
     })
 
-    silence(verify_transaction_name)
+    silence(function () {
+        check_property(check_transaction_name)
+    })
+
+    silence(function () {
+      check_property(check_code_stack_trace)
+    })
 
   } else {
       const service = "java-apm-smoke-test"
@@ -606,7 +628,9 @@ export default function () {
 
     silence(verify_logs_export)
     silence(verify_that_specialty_path_is_not_sampled)
-
+    silence(function () {
+        check_property(check_code_stack_trace)
+    })
     silence(verify_that_span_data_is_persisted)
     silence(verify_that_trace_is_persisted)
     silence(verify_distributed_trace)

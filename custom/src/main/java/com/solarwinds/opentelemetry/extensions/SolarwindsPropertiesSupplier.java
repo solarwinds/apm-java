@@ -17,6 +17,7 @@
 package com.solarwinds.opentelemetry.extensions;
 
 import static com.solarwinds.opentelemetry.extensions.SharedNames.COMPONENT_NAME;
+import static com.solarwinds.opentelemetry.extensions.SharedNames.SPAN_STACKTRACE_FILTER_CLASS;
 import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 
 import java.util.HashMap;
@@ -31,6 +32,8 @@ public class SolarwindsPropertiesSupplier implements Supplier<Map<String, String
     if (isAgentEnabled()) {
       PROPERTIES.put("otel.metrics.exporter", "none");
       PROPERTIES.put("otel.logs.exporter", "none");
+
+      PROPERTIES.put("otel.java.experimental.span-stacktrace.filter", SPAN_STACKTRACE_FILTER_CLASS);
       PROPERTIES.put("otel.propagators", String.format("tracecontext,baggage,%s", COMPONENT_NAME));
     } else {
       PROPERTIES.put("otel.sdk.disabled", "true");
