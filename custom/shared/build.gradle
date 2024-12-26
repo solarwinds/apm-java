@@ -40,6 +40,9 @@ dependencies {
   implementation "org.json:json:${versions.json}"
   implementation "com.google.code.gson:gson:2.10.1"
   implementation "com.github.ben-manes.caffeine:caffeine:${versions.caffeine}"
+  implementation("io.opentelemetry.contrib:opentelemetry-span-stacktrace:${property('otel.java.contrib.version')}") {
+    exclude(module: "opentelemetry-sdk", group: "io.opentelemetry") // the agent includes this
+  }
 
   testImplementation("org.json:json:${versions.json}")
   testImplementation "com.solarwinds.joboe:sampling:${versions.joboe}"

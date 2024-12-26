@@ -50,7 +50,7 @@ subprojects {
                 opentelemetryJavaagent: property('otel.agent.version'),
                 bytebuddy             : "1.15.10",
                 guava                 : "30.1-jre",
-                joboe                 : "10.0.15",
+                joboe                 : "10.0.17",
                 agent                 : swoVersion, // the custom distro agent version
                 autoservice           : "1.0.1",
                 caffeine              : "2.9.3",
