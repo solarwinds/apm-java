@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/instrumentation.gradle"
+plugins {
+  id("solarwinds.instrumentation-conventions")
+}
 
 
 dependencies {
   compileOnly project(":bootstrap")
   compileOnly project(":instrumentation:instrumentation-shared")
-  compileOnly "com.solarwinds.joboe:config:${versions.joboe}"
-  compileOnly "com.solarwinds.joboe:logging:${versions.joboe}"
-  compileOnly "org.json:json:${versions.json}"
+  compileOnly "com.solarwinds.joboe:config"
+  compileOnly "com.solarwinds.joboe:logging"
+  compileOnly "org.json:json"
 
-  compileOnly "io.opentelemetry:opentelemetry-sdk-trace:${versions.opentelemetry}"
-  compileOnly "io.opentelemetry.semconv:opentelemetry-semconv:${versions.opentelemetrySemconv}"
-  compileOnly "com.github.ben-manes.caffeine:caffeine:${versions.caffeine}"
+  compileOnly "io.opentelemetry:opentelemetry-sdk-trace"
+  compileOnly "io.opentelemetry.semconv:opentelemetry-semconv"
+  compileOnly "com.github.ben-manes.caffeine:caffeine"
 
   testImplementation project(":instrumentation:jdbc")
   testImplementation project(":instrumentation:instrumentation-shared")

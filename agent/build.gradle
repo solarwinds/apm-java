@@ -17,16 +17,12 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-  id 'com.gradleup.shadow'
   id 'maven-publish'
   id 'signing'
+  id("solarwinds.shadow-conventions")
 }
 
-apply from: "$rootDir/gradle/shadow.gradle"
-
 project.archivesBaseName = 'solarwinds-apm-agent'
-
-def relocatePackages = ext.relocatePackages
 
 configurations {
   // this configuration collects libs that will be placed in the bootstrap classloader
@@ -52,10 +48,10 @@ dependencies {
   javaagentLibs project(path: ":instrumentation")
 
   bootstrapLibs project(path: ":bootstrap")
-  bootstrapLibs "com.solarwinds.joboe:core:${versions.joboe}"
-  bootstrapLibs "com.solarwinds.joboe:metrics:${versions.joboe}"
+  bootstrapLibs "com.solarwinds.joboe:core"
+  bootstrapLibs "com.solarwinds.joboe:metrics"
 
-  upstreamAgent "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}"
+  upstreamAgent "io.opentelemetry.javaagent:opentelemetry-javaagent"
 }
 
 CopySpec isolateClasses(Iterable<File> jars) {
@@ -82,7 +78,6 @@ tasks {
 
     mergeServiceFiles()
     exclude("**/module-info.class")
-    relocatePackages(it)
 
     // exclude known bootstrap dependencies - they can't appear in the inst/ directory
     dependencies {
@@ -125,8 +120,6 @@ tasks {
     exclude("inst/com/solarwinds/opentelemetry/core/**")
     exclude("com/solarwinds/joboe/shaded/google/errorprone/annotations/**")
 
-    relocatePackages(it)
-
     manifest {
       attributes.put("Main-Class", "io.opentelemetry.javaagent.OpenTelemetryAgent")
       attributes.put("Agent-Class", "io.opentelemetry.javaagent.OpenTelemetryAgent")
@@ -134,7 +127,7 @@ tasks {
       attributes.put("Can-Redefine-Classes", "true")
       attributes.put("Can-Retransform-Classes", "true")
       attributes.put("Implementation-Vendor", "SolarWinds Inc.")
-      attributes.put("Implementation-Version", "${versions.agent}")
+      attributes.put("Implementation-Version", "${swoAgentVersion}")
     }
   }
 
