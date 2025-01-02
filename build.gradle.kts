@@ -18,29 +18,15 @@ plugins{
     id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
 }
 
-def swoVersion = property('swo.agent.version')
+val swoAgentVersion = "2.10.0"
+extra["swoAgentVersion"] = swoAgentVersion
 group = "io.github.appoptics"
-version = Boolean.parseBoolean(System.getenv("SNAPSHOT_BUILD")) ? "$swoVersion-SNAPSHOT" : swoVersion
+version = if (System.getenv("SNAPSHOT_BUILD").toBoolean()) "$swoAgentVersion-SNAPSHOT" else swoAgentVersion
 
 subprojects {
-    if (it.name != "dependencyManagement"){
-        apply plugin: "checkstyle"
-        apply (plugin: "solarwinds.spotless-conventions")
-        apply (plugin: "solarwinds.java-conventions")
-
-        checkstyleMain {
-            configFile = file("$rootDir/checkstyle.xml")
-        }
-
-        checkstyleTest.enabled = false
-
-        checkstyleTest {
-            configFile = file("$rootDir/checkstyle.xml")
-        }
-
-        javadoc {
-            source = sourceSets.main.allJava
-        }
+    if (this.name != "dependencyManagement") {
+        apply(plugin = "solarwinds.spotless-conventions")
+        apply(plugin = "solarwinds.java-conventions")
     }
 }
 

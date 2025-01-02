@@ -15,32 +15,30 @@
  */
 
 dependencies {
-  compileOnly project(path: ":custom:shared")
-  compileOnly "com.google.code.gson:gson:2.10.1"
-  compileOnly 'org.projectlombok:lombok'
+  compileOnly(project(":custom:shared"))
+  compileOnly("com.google.code.gson:gson")
+  compileOnly("org.projectlombok:lombok")
 
-  annotationProcessor 'org.projectlombok:lombok'
-  compileOnly "com.solarwinds.joboe:config"
-  compileOnly "com.solarwinds.joboe:sampling"
-  compileOnly "com.solarwinds.joboe:logging"
+  annotationProcessor("org.projectlombok:lombok")
+  compileOnly("com.solarwinds.joboe:config")
+  compileOnly("com.solarwinds.joboe:sampling")
 
-  annotationProcessor 'com.google.auto.service:auto-service'
-  compileOnly "com.google.auto.service:auto-service-annotations"
+  compileOnly("com.solarwinds.joboe:logging")
+  annotationProcessor("com.google.auto.service:auto-service")
+  compileOnly("com.google.auto.service:auto-service-annotations")
+
   compileOnly("io.opentelemetry:opentelemetry-api")
-
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
-  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
 
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
-  compileOnly project(path: ":bootstrap")
 
-  testImplementation project(path: ":custom:shared")
-  testImplementation "org.json:json"
-  testImplementation "com.solarwinds.joboe:sampling"
+  compileOnly(project(":bootstrap"))
+  testImplementation(project(":custom:shared"))
 }
 
-compileJava {
-  options.release.set(8)
+swoJava {
+  minJavaVersionSupported.set(JavaVersion.VERSION_1_8)
 }

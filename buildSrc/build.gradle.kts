@@ -11,7 +11,6 @@ spotless {
         "continuation_indent_size" to "2",
         "max_line_length" to "160",
         "insert_final_newline" to "true",
-        "ktlint_standard_no-wildcard-imports" to "disabled",
         // ktlint does not break up long lines, it just fails on them
         "ktlint_standard_max-line-length" to "disabled",
         // ktlint makes it *very* hard to locate where this actually happened
@@ -47,5 +46,5 @@ dependencies {
 
   implementation("io.opentelemetry.instrumentation:gradle-plugins:2.10.0-alpha")
   implementation("com.gradleup.shadow:shadow-gradle-plugin:8.3.5")
-  implementation("com.github.jarmstrong.buildconfig:com.github.jarmstrong.buildconfig.gradle.plugin:1.9.0")
+  implementation("com.github.gmazzo.buildconfig:com.github.gmazzo.buildconfig.gradle.plugin:5.5.1")
 }

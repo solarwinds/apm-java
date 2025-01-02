@@ -209,7 +209,7 @@ jobs:
         run: ./gradlew clean build -x test
 
       - name: Create zip
-        run: ./gradlew :agent-lambda:lambda-layer
+        run: ./gradlew :agent-lambda:lambdaLayer
 
       - name: Set agent version
         id: set_version

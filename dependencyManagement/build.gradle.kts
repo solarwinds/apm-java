@@ -4,7 +4,6 @@ plugins {
 
 val otelAgentVersion = "2.10.0"
 val otelSdkVersion = "1.44.1"
-val swoAgentVersion = "2.10.0"
 
 val mockitoVersion = "4.11.0"
 val byteBuddyVersion = "1.15.10"
@@ -19,7 +18,6 @@ val otelJavaContribVersion = "1.41.0-alpha"
 
 rootProject.extra["otelAgentVersion"] = otelAgentVersion
 rootProject.extra["otelSdkVersion"] = otelSdkVersion
-rootProject.extra["swoAgentVersion"] = swoAgentVersion
 
 javaPlatform {
   allowDependencies()

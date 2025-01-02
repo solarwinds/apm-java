@@ -1,3 +1,4 @@
+import com.solarwinds.instrumentation.gradle.SolarwindsJavaExtension
 /*
  * © SolarWinds Worldwide, LLC. All rights reserved.
  *
@@ -16,7 +17,7 @@
 
 plugins {
   java
-  id("com.github.jarmstrong.buildconfig")
+  checkstyle
 }
 
 repositories {
@@ -56,6 +57,24 @@ afterEvaluate {
   }
 }
 
+val swoJava = extensions.create<SolarwindsJavaExtension>("swoJava")
+
+java {
+  toolchain {
+    languageVersion.set(
+      swoJava.minJavaVersionSupported.map {
+        val defaultJavaVersion = swoJava.maxJavaVersionSupported.getOrElse(JavaVersion.VERSION_17).majorVersion.toInt()
+        JavaLanguageVersion.of(it.majorVersion.toInt().coerceAtLeast(defaultJavaVersion))
+      }
+    )
+  }
+
+  // See https://docs.gradle.org/current/userguide/upgrading_version_5.html, Automatic target JVM version
+  disableAutoTargetJvm()
+  withJavadocJar()
+  withSourcesJar()
+}
+
 dependencies {
   dependencyManagementConfiguration(platform(project(":dependencyManagement")))
   testImplementation(project(":bootstrap"))
@@ -87,4 +106,21 @@ tasks.withType<Test>().configureEach {
     events("passed", "skipped", "failed")
   }
   environment("SW_APM_SERVICE_KEY", "token:name")
+}
+
+tasks.withType<JavaCompile>().configureEach {
+  with(options) {
+    release.set(swoJava.minJavaVersionSupported.get().majorVersion.toInt())
+    compilerArgs.addAll(
+      listOf(
+        "-Xlint:all",
+      )
+    )
+
+    encoding = "UTF-8"
+  }
+}
+
+checkstyle {
+  configFile = file("$rootDir/checkstyle.xml")
 }

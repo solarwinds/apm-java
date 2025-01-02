@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-Project instr_project = project
-subprojects {
-  afterEvaluate { Project subProj ->
-    if (subProj.getPlugins().hasPlugin('java')) {
-      // Make it so all instrumentation subproject tests can be run with a single command.
-      instr_project.tasks.test.dependsOn(subProj.tasks.test)
-      subProj.tasks.test.configure {
-        testLogging {
-          events "passed", "skipped", "failed"
-        }
-      }
+plugins {
+  id("solarwinds.instrumentation-conventions")
+}
 
-      instr_project.dependencies {
-        implementation(project(subProj.getPath()))
-      }
-    }
-  }
+dependencies {
+  compileOnly("jakarta.servlet:jakarta.servlet-api:5.0.0")
+  compileOnly(project(":custom"))
+  compileOnly(project(":bootstrap"))
+}
+
+swoJava {
+  minJavaVersionSupported.set(JavaVersion.VERSION_1_8)
 }
