@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM --platform=amd64 golang:1.22.1 AS build
+FROM --platform=amd64 golang:1.23.0 AS build
 WORKDIR /app
 COPY go.mod go.mod
 COPY k6_otel.go k6_otel.go
