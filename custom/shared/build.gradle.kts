@@ -24,10 +24,11 @@ dependencies {
 
   compileOnly("com.solarwinds.joboe:config")
   compileOnly("com.solarwinds.joboe:logging")
+  compileOnly("io.opentelemetry.semconv:opentelemetry-semconv-incubating")
 
   compileOnly("com.solarwinds.joboe:sampling")
+  compileOnly("com.google.auto.service:auto-service")
   annotationProcessor("com.google.auto.service:auto-service")
-  compileOnly("com.google.auto.service:auto-service-annotations")
 
   compileOnly("io.opentelemetry:opentelemetry-api")
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")

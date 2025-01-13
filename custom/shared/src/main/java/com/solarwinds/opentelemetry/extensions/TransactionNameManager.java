@@ -29,7 +29,9 @@ import com.solarwinds.opentelemetry.core.CustomTransactionNameDict;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.trace.data.SpanData;
-import io.opentelemetry.semconv.SemanticAttributes;
+import io.opentelemetry.semconv.HttpAttributes;
+import io.opentelemetry.semconv.ServerAttributes;
+import io.opentelemetry.semconv.UrlAttributes;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -140,7 +142,7 @@ public class TransactionNameManager {
 
   private static String prefixTransactionNameWithDomainName(
       String transactionName, SpanData spanData) {
-    String httpHostValue = spanData.getAttributes().get(SemanticAttributes.SERVER_ADDRESS);
+    String httpHostValue = spanData.getAttributes().get(ServerAttributes.SERVER_ADDRESS);
     if (httpHostValue != null && !httpHostValue.isEmpty()) {
       if (transactionName.startsWith("/")) {
         return httpHostValue + transactionName;
@@ -213,14 +215,14 @@ public class TransactionNameManager {
     }
 
     // use "http.route"
-    String httpRoute = spanAttributes.get(SemanticAttributes.HTTP_ROUTE);
+    String httpRoute = spanAttributes.get(HttpAttributes.HTTP_ROUTE);
     if (httpRoute != null) {
       logger.trace(String.format("Using http.route (%s) as the transaction name", httpRoute));
       return httpRoute;
     }
 
     // get transaction name from url
-    String path = spanAttributes.get(SemanticAttributes.URL_PATH);
+    String path = spanAttributes.get(UrlAttributes.URL_PATH);
     if (customTransactionNamePattern
         != null) { // try forming transaction name by the custom configured pattern
       String transactionName =

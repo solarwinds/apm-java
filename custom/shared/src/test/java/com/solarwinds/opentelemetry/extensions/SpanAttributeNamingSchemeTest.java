@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.trace.data.SpanData;
-import io.opentelemetry.semconv.SemanticAttributes;
+import io.opentelemetry.semconv.HttpAttributes;
 import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +48,7 @@ class SpanAttributeNamingSchemeTest {
 
   @Test
   void verifyThatNameIsReturnedWhenOneAttributeExists() {
-    String name = tested.createName(Attributes.of(SemanticAttributes.HTTP_REQUEST_METHOD, "POST"));
+    String name = tested.createName(Attributes.of(HttpAttributes.HTTP_REQUEST_METHOD, "POST"));
     assertEquals("POST", name);
   }
 
@@ -56,7 +56,7 @@ class SpanAttributeNamingSchemeTest {
   void verifyThatNameIsReturnedWhenMoreThanOneAttributesExist() {
     Attributes attributes =
         Attributes.builder()
-            .put(SemanticAttributes.HTTP_REQUEST_METHOD, "POST")
+            .put(HttpAttributes.HTTP_REQUEST_METHOD, "POST")
             .put(AttributeKey.stringKey("Handler"), "Controller.segfault")
             .build();
 

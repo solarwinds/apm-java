@@ -16,12 +16,13 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
-import io.opentelemetry.semconv.ResourceAttributes;
+import io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
@@ -39,9 +40,10 @@ class ResourceCustomizerTest {
       Resource.create(
           Attributes.builder()
               .put(
-                  ResourceAttributes.PROCESS_COMMAND_LINE, "-Dsw.apm.service.key=token:chubi-token")
+                  ProcessIncubatingAttributes.PROCESS_COMMAND_LINE,
+                  "-Dsw.apm.service.key=token:chubi-token")
               .put(
-                  ResourceAttributes.PROCESS_COMMAND_ARGS,
+                  ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS,
                   Collections.singletonList("-Dsw.apm.service.key=token:chubi-token"))
               .build());
 
@@ -56,7 +58,8 @@ class ResourceCustomizerTest {
     Resource actual =
         tested.apply(resource, DefaultConfigProperties.create(Collections.emptyMap()));
     assertEquals(
-        "-Dsw.apm.service.key=****", actual.getAttribute(ResourceAttributes.PROCESS_COMMAND_LINE));
+        "-Dsw.apm.service.key=****",
+        actual.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE));
   }
 
   @Test
@@ -65,13 +68,14 @@ class ResourceCustomizerTest {
         Resource.create(
             Attributes.builder()
                 .put(
-                    ResourceAttributes.PROCESS_COMMAND_LINE, "-Duser.country=US -Duser.language=en")
+                    ProcessIncubatingAttributes.PROCESS_COMMAND_LINE,
+                    "-Duser.country=US -Duser.language=en")
                 .build());
     Resource actual =
         tested.apply(resource, DefaultConfigProperties.create(Collections.emptyMap()));
     assertEquals(
         "-Duser.country=US -Duser.language=en",
-        actual.getAttribute(ResourceAttributes.PROCESS_COMMAND_LINE));
+        actual.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE));
   }
 
   @Test
@@ -80,7 +84,8 @@ class ResourceCustomizerTest {
         tested.apply(resource, DefaultConfigProperties.create(Collections.emptyMap()));
     assertEquals(
         "-Dsw.apm.service.key=****",
-        Objects.requireNonNull(actual.getAttribute(ResourceAttributes.PROCESS_COMMAND_ARGS))
+        Objects.requireNonNull(
+                actual.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS))
             .get(0));
   }
 
@@ -90,13 +95,13 @@ class ResourceCustomizerTest {
         Resource.create(
             Attributes.builder()
                 .put(
-                    ResourceAttributes.PROCESS_COMMAND_ARGS,
+                    ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS,
                     Arrays.asList("-Duser.country=US", "-Duser.language=en"))
                 .build());
     Resource actual =
         tested.apply(resource, DefaultConfigProperties.create(Collections.emptyMap()));
     assertEquals(
         Arrays.asList("-Duser.country=US", "-Duser.language=en"),
-        actual.getAttribute(ResourceAttributes.PROCESS_COMMAND_ARGS));
+        actual.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS));
   }
 }

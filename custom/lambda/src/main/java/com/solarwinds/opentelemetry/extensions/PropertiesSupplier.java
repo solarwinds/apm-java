@@ -34,6 +34,7 @@ public class PropertiesSupplier implements Supplier<Map<String, String>> {
     defaultProperties.put(
         "otel.java.experimental.span-stacktrace.filter", SPAN_STACKTRACE_FILTER_CLASS);
     defaultProperties.put("otel.exporter.otlp.protocol", "grpc");
+    defaultProperties.put("otel.semconv-stability.opt-in", "database/dup");
   }
 
   @Override

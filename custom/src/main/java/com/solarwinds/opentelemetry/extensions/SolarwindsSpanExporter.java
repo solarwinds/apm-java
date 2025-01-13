@@ -37,7 +37,7 @@ import io.opentelemetry.sdk.common.InstrumentationScopeInfo;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
-import io.opentelemetry.semconv.SemanticAttributes;
+import io.opentelemetry.semconv.ExceptionAttributes;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -99,7 +99,7 @@ public class SolarwindsSpanExporter implements SpanExporter {
           entryEvent.report(eventReporter);
 
           for (EventData event : spanData.getEvents()) {
-            if (SemanticAttributes.EXCEPTION_EVENT_NAME.equals(event.getName())) {
+            if ("exception".equals(event.getName())) {
               reportErrorEvent(event);
             } else {
               reportInfoEvent(event);
@@ -134,14 +134,14 @@ public class SolarwindsSpanExporter implements SpanExporter {
 
   private static final List<AttributeKey<?>> OPEN_TELEMETRY_ERROR_ATTRIBUTE_KEYS =
       Arrays.asList(
-          SemanticAttributes.EXCEPTION_MESSAGE,
-          SemanticAttributes.EXCEPTION_TYPE,
-          SemanticAttributes.EXCEPTION_STACKTRACE);
+          ExceptionAttributes.EXCEPTION_MESSAGE,
+          ExceptionAttributes.EXCEPTION_TYPE,
+          ExceptionAttributes.EXCEPTION_STACKTRACE);
 
   private void reportErrorEvent(EventData eventData) {
     final Event event = Context.createEvent();
     final Attributes attributes = eventData.getAttributes();
-    String message = attributes.get(SemanticAttributes.EXCEPTION_MESSAGE);
+    String message = attributes.get(ExceptionAttributes.EXCEPTION_MESSAGE);
     if (message == null) {
       message = "";
     }
@@ -151,11 +151,11 @@ public class SolarwindsSpanExporter implements SpanExporter {
         "Spec",
         "error",
         "ErrorClass",
-        attributes.get(SemanticAttributes.EXCEPTION_TYPE),
+        attributes.get(ExceptionAttributes.EXCEPTION_TYPE),
         "ErrorMsg",
         message,
         "Backtrace",
-        attributes.get(SemanticAttributes.EXCEPTION_STACKTRACE));
+        attributes.get(ExceptionAttributes.EXCEPTION_STACKTRACE));
 
     final Map<AttributeKey<?>, Object> otherKvs = filterAttributes(attributes);
     OPEN_TELEMETRY_ERROR_ATTRIBUTE_KEYS.forEach(otherKvs.keySet()::remove);

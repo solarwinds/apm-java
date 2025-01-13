@@ -129,7 +129,7 @@ public class UrlSampleRateConfigParser implements ConfigParser<String, TraceConf
       Map<ResourceMatcher, TraceConfig> result = new LinkedHashMap<ResourceMatcher, TraceConfig>();
       for (int i = 0; i < array.length(); i++) {
         JSONObject urlRateEntry = array.getJSONObject(i);
-        String objectName = (String) urlRateEntry.keys().next();
+        String objectName = urlRateEntry.keys().next();
 
         if (objectName == null) {
           throw new InvalidConfigException("Invalid url sample rate note found, index [" + i + "]");
