@@ -16,11 +16,12 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
-import io.opentelemetry.semconv.ResourceAttributes;
+import io.opentelemetry.semconv.incubating.HostIncubatingAttributes;
+import io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,8 +37,8 @@ class HostIdResourceProviderTest {
     Resource resource =
         hostIdResourceProvider.createResource(
             DefaultConfigProperties.create(Collections.emptyMap()));
-    Long pid = resource.getAttribute(ResourceAttributes.PROCESS_PID);
-    String hostname = resource.getAttribute(ResourceAttributes.HOST_NAME);
+    Long pid = resource.getAttribute(ProcessIncubatingAttributes.PROCESS_PID);
+    String hostname = resource.getAttribute(HostIncubatingAttributes.HOST_NAME);
 
     assertNotNull(pid);
     assertNotNull(hostname);

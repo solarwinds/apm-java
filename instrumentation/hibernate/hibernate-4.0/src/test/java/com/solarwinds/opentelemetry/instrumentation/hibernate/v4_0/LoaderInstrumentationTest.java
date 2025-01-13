@@ -22,6 +22,8 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.service.ServiceRegistry;
+import org.hibernate.service.ServiceRegistryBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,7 +52,12 @@ class LoaderInstrumentationTest {
         .setProperty("hibernate.hbm2ddl.auto", "create")
         .setProperty("hibernate.show_sql", "true");
 
-    sessionFactory = configuration.addAnnotatedClass(Dev.class).buildSessionFactory();
+    ServiceRegistry serviceRegistry =
+        new ServiceRegistryBuilder()
+            .applySettings(configuration.getProperties())
+            .buildServiceRegistry();
+    sessionFactory =
+        configuration.addAnnotatedClass(Dev.class).buildSessionFactory(serviceRegistry);
 
     Session session = sessionFactory.openSession();
     Transaction transaction = session.beginTransaction();

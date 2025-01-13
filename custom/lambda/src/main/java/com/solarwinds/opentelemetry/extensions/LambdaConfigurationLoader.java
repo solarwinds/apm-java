@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class LambdaConfigurationLoader {
   private static final Logger logger = LoggerFactory.getLogger();
@@ -330,11 +331,17 @@ public class LambdaConfigurationLoader {
     }
 
     if (configs.containsProperty(ConfigProperty.AGENT_TRANSACTION_NAMING_SCHEMES)) {
-      List<TransactionNamingScheme> schemes =
-          (List<TransactionNamingScheme>)
-              configs.get(ConfigProperty.AGENT_TRANSACTION_NAMING_SCHEMES);
-      NamingScheme namingScheme = NamingScheme.createDecisionChain(schemes);
-      TransactionNameManager.setNamingScheme(namingScheme);
+      Object schemes = configs.get(ConfigProperty.AGENT_TRANSACTION_NAMING_SCHEMES);
+      if (schemes instanceof List<?>) {
+        List<TransactionNamingScheme> transactionNamingSchemes =
+            ((List<?>) schemes)
+                .stream()
+                    .filter(scheme -> scheme instanceof TransactionNamingScheme)
+                    .map(TransactionNamingScheme.class::cast)
+                    .collect(Collectors.toList());
+        NamingScheme namingScheme = NamingScheme.createDecisionChain(transactionNamingSchemes);
+        TransactionNameManager.setNamingScheme(namingScheme);
+      }
     }
 
     ConfigManager.initialize(configs);

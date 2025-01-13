@@ -20,7 +20,8 @@ import com.solarwinds.joboe.logging.LoggerFactory;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.resources.ResourceBuilder;
-import io.opentelemetry.semconv.ResourceAttributes;
+import io.opentelemetry.semconv.ServiceAttributes;
+import io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -31,12 +32,14 @@ public class ResourceCustomizer implements BiFunction<Resource, ConfigProperties
   @Override
   public Resource apply(Resource resource, ConfigProperties configProperties) {
     ResourceBuilder resourceBuilder = resource.toBuilder();
-    String resourceAttribute = resource.getAttribute(ResourceAttributes.PROCESS_COMMAND_LINE);
-    List<String> processArgs = resource.getAttribute(ResourceAttributes.PROCESS_COMMAND_ARGS);
+    String resourceAttribute =
+        resource.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE);
+    List<String> processArgs =
+        resource.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS);
 
     if (resourceAttribute != null) {
       resourceBuilder.put(
-          ResourceAttributes.PROCESS_COMMAND_LINE,
+          ProcessIncubatingAttributes.PROCESS_COMMAND_LINE,
           resourceAttribute.replaceAll("(sw.apm.service.key=)\\S+", "$1****"));
     }
 
@@ -45,7 +48,7 @@ public class ResourceCustomizer implements BiFunction<Resource, ConfigProperties
           processArgs.stream()
               .map(arg -> arg.replaceAll("(sw.apm.service.key=)\\S+", "$1****"))
               .collect(Collectors.toList());
-      resourceBuilder.put(ResourceAttributes.PROCESS_COMMAND_ARGS, args);
+      resourceBuilder.put(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS, args);
     }
 
     ResourceCustomizer.resource = resourceBuilder.build();
@@ -53,7 +56,7 @@ public class ResourceCustomizer implements BiFunction<Resource, ConfigProperties
         .debug(
             String.format(
                 "This log line is used for validation only: service.name: %s",
-                resource.getAttribute(ResourceAttributes.SERVICE_NAME)));
+                resource.getAttribute(ServiceAttributes.SERVICE_NAME)));
     return ResourceCustomizer.resource;
   }
 

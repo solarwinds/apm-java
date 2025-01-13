@@ -35,7 +35,7 @@ import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.internal.ExtendedSpanProcessor;
-import io.opentelemetry.semconv.SemanticAttributes;
+import io.opentelemetry.semconv.HttpAttributes;
 
 public class InboundMeasurementMetricsGenerator implements ExtendedSpanProcessor {
   private LongHistogram responseTime;
@@ -78,8 +78,7 @@ public class InboundMeasurementMetricsGenerator implements ExtendedSpanProcessor
       final String transactionName = TransactionNameManager.getTransactionName(spanData);
 
       boolean hasError = spanData.getStatus().getStatusCode() == StatusCode.ERROR;
-      final Long status =
-          spanData.getAttributes().get(SemanticAttributes.HTTP_RESPONSE_STATUS_CODE);
+      final Long status = spanData.getAttributes().get(HttpAttributes.HTTP_RESPONSE_STATUS_CODE);
 
       final long duration =
           (spanData.getEndEpochNanos() - spanData.getStartEpochNanos()) / 1_000_000;
@@ -90,7 +89,7 @@ public class InboundMeasurementMetricsGenerator implements ExtendedSpanProcessor
         responseTimeAttr.put(key, status);
       }
 
-      final String method = spanData.getAttributes().get(SemanticAttributes.HTTP_REQUEST_METHOD);
+      final String method = spanData.getAttributes().get(HttpAttributes.HTTP_REQUEST_METHOD);
       if (span.getKind() == SpanKind.SERVER && method != null) {
         String methodKey = "http.method";
         responseTimeAttr.put(methodKey, method);

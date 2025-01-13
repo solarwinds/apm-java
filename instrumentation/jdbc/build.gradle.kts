@@ -27,7 +27,7 @@ dependencies {
   compileOnly("com.solarwinds.joboe:logging")
   compileOnly("io.opentelemetry:opentelemetry-sdk-trace")
 
-  compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")
+  compileOnly("io.opentelemetry.semconv:opentelemetry-semconv-incubating")
   compileOnly("com.github.ben-manes.caffeine:caffeine")
 
   testImplementation(project(":instrumentation:jdbc"))

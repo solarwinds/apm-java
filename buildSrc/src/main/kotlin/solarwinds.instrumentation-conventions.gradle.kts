@@ -30,6 +30,9 @@ dependencies {
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
 
   compileOnly("net.bytebuddy:byte-buddy")
+
+  // Used by byte-buddy but not brought in as a transitive dependency.
+  compileOnly("com.google.code.findbugs:annotations")
   compileOnly("com.google.auto.service:auto-service")
   annotationProcessor("com.google.auto.service:auto-service")
 

@@ -77,47 +77,69 @@ java {
 
 dependencies {
   dependencyManagementConfiguration(platform(project(":dependencyManagement")))
+
   testImplementation(project(":bootstrap"))
+  testCompileOnly("com.google.auto.service:auto-service")
+  testImplementation("io.opentelemetry.semconv:opentelemetry-semconv-incubating")
 
   testImplementation("org.mockito:mockito-core")
   testImplementation("org.mockito:mockito-inline")
   testImplementation("org.mockito:mockito-junit-jupiter")
 
-  testImplementation("javax.annotation:javax.annotation-api")
-  testImplementation("org.junit.jupiter:junit-jupiter-api")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation("javax.annotation:javax.annotation-api")
 
+  testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
-  testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
 
-  testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
-  testImplementation("io.opentelemetry.semconv:opentelemetry-semconv")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing")
+  testImplementation("io.opentelemetry.semconv:opentelemetry-semconv")
+  testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
 
   testImplementation("com.solarwinds.joboe:core")
   testImplementation("com.solarwinds.joboe:metrics")
   testImplementation("org.junit-pioneer:junit-pioneer")
 }
 
-tasks.withType<Test>().configureEach {
-  useJUnitPlatform()
-  testLogging {
-    events("passed", "skipped", "failed")
+tasks {
+  withType<Test>().configureEach {
+    useJUnitPlatform()
+    testLogging {
+      events("passed", "skipped", "failed")
+    }
+    environment("SW_APM_SERVICE_KEY", "token:name")
   }
-  environment("SW_APM_SERVICE_KEY", "token:name")
-}
 
-tasks.withType<JavaCompile>().configureEach {
-  with(options) {
-    release.set(swoJava.minJavaVersionSupported.get().majorVersion.toInt())
-    compilerArgs.addAll(
-      listOf(
-        "-Xlint:all",
+  withType<JavaCompile>().configureEach {
+    with(options) {
+      release.set(swoJava.minJavaVersionSupported.get().majorVersion.toInt())
+      compilerArgs.addAll(
+        listOf(
+          "-Xlint:all",
+          // disable annotation ownership warnings
+          "-Xlint:-processing",
+          "-Werror"
+        )
       )
-    )
 
-    encoding = "UTF-8"
+      encoding = "UTF-8"
+    }
+  }
+
+  named<Javadoc>("javadoc") {
+    with(options as StandardJavadocDocletOptions) {
+      source = "8"
+      encoding = "UTF-8"
+      docEncoding = "UTF-8"
+      charSet = "UTF-8"
+      breakIterator(true)
+
+      addStringOption("Xdoclint:none", "-quiet")
+      // non-standard option to fail on warnings, see https://bugs.openjdk.java.net/browse/JDK-8200363
+      addStringOption("Xwerror", "-quiet")
+    }
   }
 }
 

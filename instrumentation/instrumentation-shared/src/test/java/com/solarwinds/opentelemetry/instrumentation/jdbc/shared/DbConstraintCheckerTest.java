@@ -16,7 +16,8 @@
 
 package com.solarwinds.opentelemetry.instrumentation.jdbc.shared;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;

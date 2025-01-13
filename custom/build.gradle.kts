@@ -18,12 +18,14 @@ dependencies {
   compileOnly(project(":bootstrap"))
   compileOnly(project(":custom:shared"))
   compileOnly("com.solarwinds.joboe:core")
-  compileOnly("com.solarwinds.joboe:metrics")
 
   compileOnly("org.projectlombok:lombok")
+  compileOnly("com.solarwinds.joboe:metrics")
   annotationProcessor("org.projectlombok:lombok")
+
+  compileOnly("com.google.auto.service:auto-service")
   annotationProcessor("com.google.auto.service:auto-service")
-  compileOnly("com.google.auto.service:auto-service-annotations")
+  compileOnly("io.opentelemetry.semconv:opentelemetry-semconv-incubating")
 
   compileOnly("io.opentelemetry:opentelemetry-api")
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")

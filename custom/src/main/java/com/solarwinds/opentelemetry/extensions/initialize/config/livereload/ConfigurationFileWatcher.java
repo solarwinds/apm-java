@@ -91,10 +91,9 @@ public final class ConfigurationFileWatcher {
           continue;
         }
 
-        WatchEvent<Path> ev = (WatchEvent<Path>) event;
-        Path filename = ev.context();
-        if (filename.endsWith(this.filename)) {
-          fileChangeListener.accept(filename);
+        Object filePath = event.context();
+        if (filePath instanceof Path && ((Path) filePath).endsWith(this.filename)) {
+          fileChangeListener.accept(((Path) filePath));
         }
       }
       boolean valid = key.reset();

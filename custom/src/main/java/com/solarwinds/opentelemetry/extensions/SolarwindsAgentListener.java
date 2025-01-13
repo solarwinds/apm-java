@@ -18,13 +18,13 @@ package com.solarwinds.opentelemetry.extensions;
 
 import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.setAgentEnabled;
-import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_COMMAND_ARGS;
-import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_COMMAND_LINE;
-import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_DESCRIPTION;
-import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_NAME;
-import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_VERSION;
-import static io.opentelemetry.semconv.ResourceAttributes.SERVICE_NAME;
-import static io.opentelemetry.semconv.ResourceAttributes.TELEMETRY_SDK_LANGUAGE;
+import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
+import static io.opentelemetry.semconv.TelemetryAttributes.TELEMETRY_SDK_LANGUAGE;
+import static io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS;
+import static io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes.PROCESS_COMMAND_LINE;
+import static io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes.PROCESS_RUNTIME_DESCRIPTION;
+import static io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes.PROCESS_RUNTIME_NAME;
+import static io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes.PROCESS_RUNTIME_VERSION;
 
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigGroup;

@@ -24,8 +24,8 @@ dependencies {
   compileOnly("com.solarwinds.joboe:sampling")
 
   compileOnly("com.solarwinds.joboe:logging")
+  compileOnly("com.google.auto.service:auto-service")
   annotationProcessor("com.google.auto.service:auto-service")
-  compileOnly("com.google.auto.service:auto-service-annotations")
 
   compileOnly("io.opentelemetry:opentelemetry-api")
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")

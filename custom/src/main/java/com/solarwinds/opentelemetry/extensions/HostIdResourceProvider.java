@@ -57,7 +57,11 @@ import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ResourceProvider;
 import io.opentelemetry.sdk.resources.Resource;
-import io.opentelemetry.semconv.ResourceAttributes;
+import io.opentelemetry.semconv.incubating.CloudIncubatingAttributes;
+import io.opentelemetry.semconv.incubating.ContainerIncubatingAttributes;
+import io.opentelemetry.semconv.incubating.HostIncubatingAttributes;
+import io.opentelemetry.semconv.incubating.K8sIncubatingAttributes;
+import io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes;
 
 @AutoService(ResourceProvider.class)
 public class HostIdResourceProvider implements ResourceProvider {
@@ -67,49 +71,50 @@ public class HostIdResourceProvider implements ResourceProvider {
     AttributesBuilder builder = Attributes.builder();
 
     HostId hostId = ServerHostInfoReader.INSTANCE.getHostId();
-    builder.put(ResourceAttributes.CONTAINER_ID, hostId.getDockerContainerId());
-    builder.put(ResourceAttributes.PROCESS_PID, (long) hostId.getPid());
+    builder.put(ContainerIncubatingAttributes.CONTAINER_ID, hostId.getDockerContainerId());
+    builder.put(ProcessIncubatingAttributes.PROCESS_PID, (long) hostId.getPid());
     builder.put(AttributeKey.stringArrayKey("mac.addresses"), hostId.getMacAddresses());
 
     builder.put(
         AttributeKey.stringKey("azure.app.service.instance.id"),
         hostId.getAzureAppServiceInstanceId());
-    builder.put(ResourceAttributes.HOST_ID, hostId.getHerokuDynoId());
+    builder.put(HostIncubatingAttributes.HOST_ID, hostId.getHerokuDynoId());
     builder.put(AttributeKey.stringKey("sw.uams.client.id"), hostId.getUamsClientId());
     builder.put(AttributeKey.stringKey("uuid"), hostId.getUuid());
 
     HostId.K8sMetadata k8sMetadata = hostId.getK8sMetadata();
     if (k8sMetadata != null) {
-      builder.put(ResourceAttributes.K8S_POD_UID, k8sMetadata.getPodUid());
-      builder.put(ResourceAttributes.K8S_NAMESPACE_NAME, k8sMetadata.getNamespace());
-      builder.put(ResourceAttributes.K8S_POD_NAME, k8sMetadata.getPodName());
+      builder.put(K8sIncubatingAttributes.K8S_POD_UID, k8sMetadata.getPodUid());
+      builder.put(K8sIncubatingAttributes.K8S_NAMESPACE_NAME, k8sMetadata.getNamespace());
+      builder.put(K8sIncubatingAttributes.K8S_POD_NAME, k8sMetadata.getPodName());
     }
 
     HostId.AwsMetadata awsMetadata = hostId.getAwsMetadata();
     if (awsMetadata != null) {
-      builder.put(ResourceAttributes.HOST_ID, awsMetadata.getHostId());
-      builder.put(ResourceAttributes.HOST_NAME, awsMetadata.getHostName());
-      builder.put(ResourceAttributes.CLOUD_PROVIDER, awsMetadata.getCloudProvider());
+      builder.put(HostIncubatingAttributes.HOST_ID, awsMetadata.getHostId());
+      builder.put(HostIncubatingAttributes.HOST_NAME, awsMetadata.getHostName());
+      builder.put(CloudIncubatingAttributes.CLOUD_PROVIDER, awsMetadata.getCloudProvider());
 
-      builder.put(ResourceAttributes.CLOUD_ACCOUNT_ID, awsMetadata.getCloudAccountId());
-      builder.put(ResourceAttributes.CLOUD_PLATFORM, awsMetadata.getCloudPlatform());
+      builder.put(CloudIncubatingAttributes.CLOUD_ACCOUNT_ID, awsMetadata.getCloudAccountId());
+      builder.put(CloudIncubatingAttributes.CLOUD_PLATFORM, awsMetadata.getCloudPlatform());
       builder.put(
-          ResourceAttributes.CLOUD_AVAILABILITY_ZONE, awsMetadata.getCloudAvailabilityZone());
+          CloudIncubatingAttributes.CLOUD_AVAILABILITY_ZONE,
+          awsMetadata.getCloudAvailabilityZone());
 
-      builder.put(ResourceAttributes.CLOUD_REGION, awsMetadata.getCloudRegion());
-      builder.put(ResourceAttributes.HOST_IMAGE_ID, awsMetadata.getHostImageId());
-      builder.put(ResourceAttributes.HOST_TYPE, awsMetadata.getHostType());
+      builder.put(CloudIncubatingAttributes.CLOUD_REGION, awsMetadata.getCloudRegion());
+      builder.put(HostIncubatingAttributes.HOST_IMAGE_ID, awsMetadata.getHostImageId());
+      builder.put(HostIncubatingAttributes.HOST_TYPE, awsMetadata.getHostType());
     }
 
     HostId.AzureVmMetadata azureVmMetadata = hostId.getAzureVmMetadata();
     if (azureVmMetadata != null) {
-      builder.put(ResourceAttributes.HOST_ID, azureVmMetadata.getHostId());
-      builder.put(ResourceAttributes.HOST_NAME, azureVmMetadata.getHostName());
-      builder.put(ResourceAttributes.CLOUD_PROVIDER, azureVmMetadata.getCloudProvider());
+      builder.put(HostIncubatingAttributes.HOST_ID, azureVmMetadata.getHostId());
+      builder.put(HostIncubatingAttributes.HOST_NAME, azureVmMetadata.getHostName());
+      builder.put(CloudIncubatingAttributes.CLOUD_PROVIDER, azureVmMetadata.getCloudProvider());
 
-      builder.put(ResourceAttributes.CLOUD_ACCOUNT_ID, azureVmMetadata.getCloudAccountId());
-      builder.put(ResourceAttributes.CLOUD_PLATFORM, azureVmMetadata.getCloudPlatform());
-      builder.put(ResourceAttributes.CLOUD_REGION, azureVmMetadata.getCloudRegion());
+      builder.put(CloudIncubatingAttributes.CLOUD_ACCOUNT_ID, azureVmMetadata.getCloudAccountId());
+      builder.put(CloudIncubatingAttributes.CLOUD_PLATFORM, azureVmMetadata.getCloudPlatform());
+      builder.put(CloudIncubatingAttributes.CLOUD_REGION, azureVmMetadata.getCloudRegion());
 
       builder.put(AttributeKey.stringKey("azure.vm.name"), azureVmMetadata.getAzureVmName());
       builder.put(AttributeKey.stringKey("azure.vm.size"), azureVmMetadata.getAzureVmSize());
@@ -122,9 +127,9 @@ public class HostIdResourceProvider implements ResourceProvider {
           azureVmMetadata.getAzureVmScaleSetName());
     }
 
-    builder.put(ResourceAttributes.HOST_NAME, hostId.getHostname());
-    builder.put(ResourceAttributes.CLOUD_AVAILABILITY_ZONE, hostId.getEc2AvailabilityZone());
-    builder.put(ResourceAttributes.HOST_ID, hostId.getEc2InstanceId());
+    builder.put(HostIncubatingAttributes.HOST_NAME, hostId.getHostname());
+    builder.put(CloudIncubatingAttributes.CLOUD_AVAILABILITY_ZONE, hostId.getEc2AvailabilityZone());
+    builder.put(HostIncubatingAttributes.HOST_ID, hostId.getEc2InstanceId());
     return Resource.create(builder.build());
   }
 }
