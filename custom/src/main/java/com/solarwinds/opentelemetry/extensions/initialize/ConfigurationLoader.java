@@ -133,11 +133,10 @@ public class ConfigurationLoader {
 
         ConfigurationFileWatcher.restartWatch(
             Paths.get(configurationFileDir),
-            runtimeConfigFilename,
             watchPeriod,
             watchService,
             watchScheduler,
-            filePath -> {
+            () -> {
               try {
                 logger.info("Configuration file change detected. Reloading configuration");
                 loadConfigurations();
