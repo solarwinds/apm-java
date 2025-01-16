@@ -91,7 +91,7 @@ public class JdbcConnectionInstrumentation implements TypeInstrumentation {
       StatementTracer.writeQuerySpec(currentContext());
     }
 
-    @Advice.OnMethodExit(suppress = Throwable.class)
+    @Advice.OnMethodExit(suppress = Throwable.class, onThrowable = Throwable.class)
     public static void end(@Advice.Local("swoCallDepth") CallDepth callDepth) {
       if (callDepth != null) {
         callDepth.decrementAndGet();
