@@ -35,6 +35,7 @@ public class SolarwindsPropertiesSupplier implements Supplier<Map<String, String
 
       PROPERTIES.put("otel.java.experimental.span-stacktrace.filter", SPAN_STACKTRACE_FILTER_CLASS);
       PROPERTIES.put("otel.propagators", String.format("tracecontext,baggage,%s", COMPONENT_NAME));
+      PROPERTIES.put("otel.semconv-stability.opt-in", "database/dup");
     } else {
       PROPERTIES.put("otel.sdk.disabled", "true");
     }

@@ -42,7 +42,7 @@ import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.data.SpanData;
-import io.opentelemetry.semconv.SemanticAttributes;
+import io.opentelemetry.semconv.HttpAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -159,15 +159,14 @@ public class SolarwindsInboundMetricsSpanProcessor implements SpanProcessor {
 
       final Map<String, String> aoSecondaryKey = new HashMap<>();
       boolean hasError = spanData.getStatus().getStatusCode() == StatusCode.ERROR;
-      final Long status =
-          spanData.getAttributes().get(SemanticAttributes.HTTP_RESPONSE_STATUS_CODE);
+      final Long status = spanData.getAttributes().get(HttpAttributes.HTTP_RESPONSE_STATUS_CODE);
 
       if (status != null) {
         aoSecondaryKey.put("HttpStatus", String.valueOf(status));
         swoTags.put("http.status_code", String.valueOf(status));
       }
 
-      final String method = spanData.getAttributes().get(SemanticAttributes.HTTP_REQUEST_METHOD);
+      final String method = spanData.getAttributes().get(HttpAttributes.HTTP_REQUEST_METHOD);
       if (method != null) {
         aoSecondaryKey.put("HttpMethod", method);
         swoTags.put("http.method", method);

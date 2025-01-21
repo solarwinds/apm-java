@@ -40,7 +40,8 @@ import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.sdk.trace.samplers.SamplingDecision;
 import io.opentelemetry.sdk.trace.samplers.SamplingResult;
-import io.opentelemetry.semconv.SemanticAttributes;
+import io.opentelemetry.semconv.ServerAttributes;
+import io.opentelemetry.semconv.UrlAttributes;
 import java.util.Arrays;
 import java.util.List;
 
@@ -168,9 +169,9 @@ public class SolarwindsSampler implements Sampler {
   }
 
   private String constructUrl(Attributes attributes) {
-    String scheme = attributes.get(SemanticAttributes.URL_SCHEME);
-    String host = attributes.get(SemanticAttributes.SERVER_ADDRESS);
-    String target = attributes.get(SemanticAttributes.URL_PATH);
+    String scheme = attributes.get(UrlAttributes.URL_SCHEME);
+    String host = attributes.get(ServerAttributes.SERVER_ADDRESS);
+    String target = attributes.get(UrlAttributes.URL_PATH);
 
     String url = String.format("%s://%s%s", scheme, host, target);
     logger.trace(String.format("Constructed url: %s", url));

@@ -33,7 +33,7 @@ import io.opentelemetry.sdk.testing.trace.TestSpanData;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.data.StatusData;
-import io.opentelemetry.semconv.SemanticAttributes;
+import io.opentelemetry.semconv.HttpAttributes;
 import java.util.Objects;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -101,9 +101,9 @@ class InboundMeasurementMetricsGeneratorTest {
             .setStatus(StatusData.ok())
             .setAttributes(
                 Attributes.of(
-                    SemanticAttributes.HTTP_REQUEST_METHOD,
+                    HttpAttributes.HTTP_REQUEST_METHOD,
                     "get",
-                    SemanticAttributes.HTTP_RESPONSE_STATUS_CODE,
+                    HttpAttributes.HTTP_RESPONSE_STATUS_CODE,
                     200L))
             .build();
 
@@ -141,9 +141,9 @@ class InboundMeasurementMetricsGeneratorTest {
             .setStatus(StatusData.error())
             .setAttributes(
                 Attributes.of(
-                    SemanticAttributes.HTTP_REQUEST_METHOD,
+                    HttpAttributes.HTTP_REQUEST_METHOD,
                     "get",
-                    SemanticAttributes.HTTP_RESPONSE_STATUS_CODE,
+                    HttpAttributes.HTTP_RESPONSE_STATUS_CODE,
                     500L))
             .build();
 
@@ -181,9 +181,9 @@ class InboundMeasurementMetricsGeneratorTest {
             .setStatus(StatusData.error())
             .setAttributes(
                 Attributes.of(
-                    SemanticAttributes.HTTP_REQUEST_METHOD,
+                    HttpAttributes.HTTP_REQUEST_METHOD,
                     "get",
-                    SemanticAttributes.HTTP_RESPONSE_STATUS_CODE,
+                    HttpAttributes.HTTP_RESPONSE_STATUS_CODE,
                     500L))
             .build();
 
@@ -212,7 +212,7 @@ class InboundMeasurementMetricsGeneratorTest {
             .setEndEpochNanos(10000)
             .setHasEnded(true)
             .setStatus(StatusData.ok())
-            .setAttributes(Attributes.of(SemanticAttributes.HTTP_REQUEST_METHOD, "get"))
+            .setAttributes(Attributes.of(HttpAttributes.HTTP_REQUEST_METHOD, "get"))
             .build();
 
     when(readWriteSpanMock.toSpanData()).thenReturn(testSpanData);

@@ -72,6 +72,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.stream.Collectors;
 import lombok.Getter;
 
 public class ConfigurationLoader {
@@ -571,11 +572,17 @@ public class ConfigurationLoader {
     }
 
     if (configs.containsProperty(ConfigProperty.AGENT_TRANSACTION_NAMING_SCHEMES)) {
-      List<TransactionNamingScheme> schemes =
-          (List<TransactionNamingScheme>)
-              configs.get(ConfigProperty.AGENT_TRANSACTION_NAMING_SCHEMES);
-      NamingScheme namingScheme = NamingScheme.createDecisionChain(schemes);
-      TransactionNameManager.setNamingScheme(namingScheme);
+      Object schemes = configs.get(ConfigProperty.AGENT_TRANSACTION_NAMING_SCHEMES);
+      if (schemes instanceof List<?>) {
+        List<TransactionNamingScheme> transactionNamingSchemes =
+            ((List<?>) schemes)
+                .stream()
+                    .filter(scheme -> scheme instanceof TransactionNamingScheme)
+                    .map(TransactionNamingScheme.class::cast)
+                    .collect(Collectors.toList());
+        NamingScheme namingScheme = NamingScheme.createDecisionChain(transactionNamingSchemes);
+        TransactionNameManager.setNamingScheme(namingScheme);
+      }
     }
 
     Boolean profilerEnabledFromEnvVar = null;
