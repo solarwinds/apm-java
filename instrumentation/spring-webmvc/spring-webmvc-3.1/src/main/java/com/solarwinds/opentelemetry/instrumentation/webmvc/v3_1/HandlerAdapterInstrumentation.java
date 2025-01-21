@@ -59,7 +59,7 @@ public class HandlerAdapterInstrumentation implements TypeInstrumentation {
   }
 
   public static class ControllerAdvice {
-    @Advice.OnMethodEnter
+    @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void setTransactionNameToServerSpan(@Advice.Argument(2) Object handler) {
       Context parentContext = Java8BytecodeBridge.currentContext();
       Span serverSpan = Java8BytecodeBridge.spanFromContext(parentContext);

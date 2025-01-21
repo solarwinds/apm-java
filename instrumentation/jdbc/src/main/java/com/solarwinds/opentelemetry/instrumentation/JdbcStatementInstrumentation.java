@@ -79,7 +79,7 @@ public class JdbcStatementInstrumentation implements TypeInstrumentation {
 
   @SuppressWarnings("unused")
   public static class StatementAdvice {
-    @Advice.OnMethodEnter
+    @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void onEnter(
         @Advice.Local("swoCallDepth") CallDepth callDepth,
         @Advice.Argument(value = 0, readOnly = false) String sql) {
@@ -94,7 +94,7 @@ public class JdbcStatementInstrumentation implements TypeInstrumentation {
       StatementTruncator.maybeTruncateStatement(currentContext());
     }
 
-    @Advice.OnMethodExit(suppress = Throwable.class)
+    @Advice.OnMethodExit(suppress = Throwable.class, onThrowable = Throwable.class)
     public static void end(@Advice.Local("swoCallDepth") CallDepth callDepth) {
       if (callDepth != null) {
         callDepth.decrementAndGet();
