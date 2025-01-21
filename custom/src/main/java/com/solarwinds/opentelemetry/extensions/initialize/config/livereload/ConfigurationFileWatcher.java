@@ -27,14 +27,11 @@ import java.nio.file.WatchService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 public final class ConfigurationFileWatcher {
   private final Path directory;
 
-  private final String filename;
-
-  private final Consumer<Path> fileChangeListener;
+  private final Runnable fileChangeListener;
 
   private final WatchService watchService;
 
@@ -48,13 +45,11 @@ public final class ConfigurationFileWatcher {
 
   private ConfigurationFileWatcher(
       Path directory,
-      String filename,
       long watchPeriod,
       WatchService watchService,
       ScheduledExecutorService executorService,
-      Consumer<Path> fileChangeListener) {
+      Runnable fileChangeListener) {
     this.directory = directory;
-    this.filename = filename;
     this.watchPeriod = watchPeriod;
     this.executorService = executorService;
     this.fileChangeListener = fileChangeListener;
@@ -63,22 +58,16 @@ public final class ConfigurationFileWatcher {
 
   public static void restartWatch(
       Path directory,
-      String filename,
       long watchPeriod,
       WatchService watchService,
       ScheduledExecutorService scheduledExecutorService,
-      Consumer<Path> fileChangeListener) {
+      Runnable fileChangeListener) {
     if (INSTANCE != null) {
       INSTANCE.cancelWatch();
     }
     INSTANCE =
         new ConfigurationFileWatcher(
-            directory,
-            filename,
-            watchPeriod,
-            watchService,
-            scheduledExecutorService,
-            fileChangeListener);
+            directory, watchPeriod, watchService, scheduledExecutorService, fileChangeListener);
     INSTANCE.startWatch();
   }
 
@@ -91,18 +80,15 @@ public final class ConfigurationFileWatcher {
           continue;
         }
 
-        Object filePath = event.context();
-        if (filePath instanceof Path && ((Path) filePath).endsWith(this.filename)) {
-          fileChangeListener.accept(((Path) filePath));
-        }
+        fileChangeListener.run();
       }
       boolean valid = key.reset();
       if (!valid) {
         LoggerFactory.getLogger()
             .info(
                 String.format(
-                    "Watch ended for directory(%s) and file(%s) because the directory became inaccessible",
-                    directory, filename));
+                    "Watch ended for directory(%s) because the directory became inaccessible",
+                    directory));
       }
     }
   }
@@ -121,8 +107,8 @@ public final class ConfigurationFileWatcher {
       LoggerFactory.getLogger()
           .info(
               String.format(
-                  "Failed to start watch for directory(%s) and file(%s) due to error - %s",
-                  directory, filename, exception));
+                  "Failed to start watch for directory(%s) due to error - %s",
+                  directory, exception));
     }
   }
 

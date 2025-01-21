@@ -23,7 +23,6 @@ import java.nio.file.*;
 import java.util.Collections;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -42,15 +41,13 @@ class ConfigurationFileWatcherTest {
 
   @Mock private ScheduledExecutorService scheduledExecutorServiceMock;
 
-  @Mock private Consumer<Path> fileChangeListerMock;
+  @Mock private Runnable fileChangeListerMock;
 
   @Mock private ScheduledFuture<?> scheduledFutureMock;
 
   @Mock private Path dirMock;
 
   @Captor private ArgumentCaptor<Runnable> runnableArgumentCaptor;
-
-  private final String filename = "file.json";
 
   private final long watchPeriod = 1;
 
@@ -66,12 +63,7 @@ class ConfigurationFileWatcherTest {
         .thenAnswer(invocation -> scheduledFutureMock);
 
     ConfigurationFileWatcher.restartWatch(
-        dirMock,
-        filename,
-        watchPeriod,
-        watchServiceMock,
-        scheduledExecutorServiceMock,
-        fileChangeListerMock);
+        dirMock, watchPeriod, watchServiceMock, scheduledExecutorServiceMock, fileChangeListerMock);
 
     runnableArgumentCaptor.getValue().run();
     verify(watchServiceMock).poll();
@@ -85,7 +77,6 @@ class ConfigurationFileWatcherTest {
     when(watchKeyMock.pollEvents()).thenReturn(Collections.singletonList(watchEventMock));
     when(watchEventMock.kind()).thenAnswer(invocation -> StandardWatchEventKinds.ENTRY_MODIFY);
 
-    when(watchEventMock.context()).thenReturn(Paths.get(filename));
     when(watchKeyMock.reset()).thenReturn(false);
     when(dirMock.register(any(), any())).thenReturn(watchKeyMock);
 
@@ -94,19 +85,13 @@ class ConfigurationFileWatcherTest {
         .thenAnswer(invocation -> scheduledFutureMock);
 
     ConfigurationFileWatcher.restartWatch(
-        dirMock,
-        filename,
-        watchPeriod,
-        watchServiceMock,
-        scheduledExecutorServiceMock,
-        fileChangeListerMock);
+        dirMock, watchPeriod, watchServiceMock, scheduledExecutorServiceMock, fileChangeListerMock);
 
     runnableArgumentCaptor.getValue().run();
 
     verify(watchServiceMock).poll();
     verify(watchKeyMock).pollEvents();
-    verify(watchEventMock).context();
 
-    verify(fileChangeListerMock).accept(any());
+    verify(fileChangeListerMock).run();
   }
 }
