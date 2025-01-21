@@ -497,6 +497,8 @@ jobs:
 
   reversing_lab_scan_agent:
     runs-on: ubuntu-latest
+    needs:
+      - github_release
     steps:
       - uses: actions/checkout@v4
 
@@ -522,6 +524,8 @@ jobs:
 
   reversing_lab_scan_sdk:
     runs-on: ubuntu-latest
+    needs:
+      - github_release
     steps:
       - uses: actions/checkout@v4
 
@@ -547,6 +551,8 @@ jobs:
 
   reversing_lab_scan_lambda:
     runs-on: ubuntu-latest
+    needs:
+      - github_release
     steps:
       - uses: actions/checkout@v4
 
