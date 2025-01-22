@@ -517,6 +517,7 @@ jobs:
         with:
           artifact-to-scan: agent/build/libs/solarwinds-apm-agent.jar
           rl-verbose: true
+          rl-submit-only: true
           rl-portal-server: solarwinds
           rl-portal-org: SolarWinds
           rl-portal-group: SaaS-Agents-SWO
@@ -544,6 +545,7 @@ jobs:
         with:
           artifact-to-scan: solarwinds-otel-sdk/build/libs/solarwinds-otel-sdk.jar
           rl-verbose: true
+          rl-submit-only: true
           rl-portal-server: solarwinds
           rl-portal-org: SolarWinds
           rl-portal-group: SaaS-Agents-SWO
@@ -571,6 +573,7 @@ jobs:
         with:
           artifact-to-scan: agent-lambda/build/libs/solarwinds-apm-agent-lambda.jar
           rl-verbose: true
+          rl-submit-only: true
           rl-portal-server: solarwinds
           rl-portal-org: SolarWinds
           rl-portal-group: SaaS-Agents-SWO
