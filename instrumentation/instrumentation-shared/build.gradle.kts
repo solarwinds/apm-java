@@ -19,7 +19,10 @@ plugins {
 }
 
 dependencies {
+  compileOnly(project(":bootstrap"))
   compileOnly("com.solarwinds.joboe:config")
+  compileOnly("io.opentelemetry.semconv:opentelemetry-semconv-incubating")
+
   testImplementation(project(":instrumentation:instrumentation-shared"))
 }
 

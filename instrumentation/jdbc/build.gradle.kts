@@ -21,7 +21,7 @@ plugins {
 dependencies {
   compileOnly(project(":bootstrap"))
   compileOnly("com.solarwinds.joboe:config")
-  compileOnly(project(":instrumentation:instrumentation-shared"))
+  implementation(project(":instrumentation:instrumentation-shared"))
 
   compileOnly("org.json:json")
   compileOnly("com.solarwinds.joboe:logging")
@@ -32,6 +32,11 @@ dependencies {
 
   testImplementation(project(":instrumentation:jdbc"))
   testImplementation(project(":instrumentation:instrumentation-shared"))
+  testImplementation(platform("org.testcontainers:testcontainers-bom:1.20.4"))
+
+  testImplementation("org.testcontainers:mysql")
+  testImplementation("org.testcontainers:junit-jupiter")
+  testImplementation("com.mysql:mysql-connector-j:9.2.0")
 }
 
 tasks.withType<JavaCompile>().configureEach {
