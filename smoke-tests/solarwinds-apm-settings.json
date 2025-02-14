@@ -1,12 +1,12 @@
 [
     {
         "arguments": {
-            "BucketCapacity": 1000000,
+            "BucketCapacity": 500000,
             "BucketRate": 1.0,
             "MetricsFlushInterval": 60,
-            "TriggerRelaxedBucketCapacity": 1000000,
+            "TriggerRelaxedBucketCapacity": 500000,
             "TriggerRelaxedBucketRate": 1.0,
-            "TriggerStrictBucketCapacity": 1000000,
+            "TriggerStrictBucketCapacity": 500000,
             "TriggerStrictBucketRate": 1.0
         },
         "flags": "SAMPLE_START,SAMPLE_THROUGH_ALWAYS,SAMPLE_BUCKET_ENABLED,TRIGGER_TRACE",
@@ -14,6 +14,6 @@
         "timestamp": 1698176407,
         "ttl": 120,
         "type": 0,
-        "value": 1000000
+        "value": 500000
     }
 ]

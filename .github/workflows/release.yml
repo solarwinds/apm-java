@@ -429,32 +429,31 @@ jobs:
             org.opencontainers.image.description=Solarwinds OTEL distro Java agent
             org.opencontainers.image.vendor=SolarWinds Worldwide, LLC
 
-      - name: Build and push
-        uses: docker/build-push-action@v5
+      - name: Build and push -> linux/amd64
+        uses: docker/build-push-action@v6
         with:
           push: true
           context: agent
-          platforms: linux/amd64,linux/arm64,linux/s390x,linux/ppc64le
+          platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          load: true
 
-      - name: Analyze for critical and high CVEs
-        id: docker-scout-cves
-        uses: docker/scout-action@v1
-        with:
-          command: cves
-          image: "fs://./"
-          platform: "linux/amd64"
-          ignore-base: true
-          only-package-types: maven
-
-      - name: Analyze for critical and high CVEs
-        id: docker-scout-image-cves
+      - name: Analyze for critical and high CVEs -> linux/amd64
         uses: docker/scout-action@v1
         with:
           command: cves
           image: ${{ steps.meta.outputs.tags[0] }}
           platform: "linux/amd64"
+
+      - name: Build and push -> linux/arm64,linux/s390x,linux/ppc64le
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          context: agent
+          platforms: linux/arm64,linux/s390x,linux/ppc64le
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
   ghrc_io:
     runs-on: ubuntu-latest
