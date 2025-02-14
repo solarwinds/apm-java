@@ -16,7 +16,7 @@
 
 package com.solarwinds.opentelemetry.instrumentation;
 
-import static com.solarwinds.opentelemetry.instrumentation.jdbc.shared.DbConstraintChecker.isDbConfigured;
+import static com.solarwinds.opentelemetry.instrumentation.DbConstraintChecker.isDbConfigured;
 import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
@@ -26,7 +26,6 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.none;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
-import com.solarwinds.opentelemetry.instrumentation.jdbc.shared.DbConstraintChecker;
 import io.opentelemetry.javaagent.bootstrap.CallDepth;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;

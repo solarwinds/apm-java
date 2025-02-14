@@ -20,7 +20,7 @@ import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.
 import static net.bytebuddy.matcher.ElementMatchers.none;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.opentelemetry.instrumentation.jdbc.shared.DbConstraintChecker;
+import com.solarwinds.opentelemetry.instrumentation.DbConstraintChecker;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import java.util.List;
