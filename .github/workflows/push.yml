@@ -8,6 +8,7 @@ permissions:
   packages: write
   contents: read
   id-token: write
+  security-events: write
 
 env:
   SW_APM_DEBUG_LEVEL: trace
@@ -588,3 +589,76 @@ jobs:
 
       - name: Publish
         run: ./gradlew publishToSonatype
+
+  docker_hub:
+    name: run scan on commit without pushing image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set agent version
+        id: set_version
+        uses: ./.github/actions/version
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKER_SOLARWINDS_ORG_LOGIN }}
+          password: ${{ secrets.ENOPS5919_APM_DOCKER_HUB_CI_OAT }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ github.repository_owner }}/autoinstrumentation-java
+          tags: |
+            type=raw,value=${{ steps.set_version.outputs.version }}
+            type=raw,value=latest
+          labels: |
+            maintainer=swo-librarians
+            org.opencontainers.image.title=apm-java
+            org.opencontainers.image.description=Solarwinds OTEL distro Java agent
+            org.opencontainers.image.vendor=SolarWinds Worldwide, LLC
+
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: agent
+          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.ENOPS5919_DOCKER_SCOUT_CI_USER }}
+          password: ${{ secrets.ENOPS5919_DOCKER_SCOUT_CI_PAT }}
+
+      - name: Analyze for critical and high CVEs -> linux/amd64
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: ${{ steps.meta.outputs.tags[0] }}
+          platform: "linux/amd64"
+          sarif-file: sarif.output.json
+
+      - name: Upload SARIF result
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: sarif.output.json
