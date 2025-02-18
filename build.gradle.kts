@@ -30,6 +30,72 @@ subprojects {
     }
 }
 
+allprojects {
+    plugins.withId("java"){
+        val cleanListedDependencies by tasks.registering {
+            val vulnerableDependencies = listOf(
+                "org.springframework:spring-webmvc:*",
+                "org.apache.struts:*:*"
+            )
+
+            doLast {
+                val gradleCache = System.getProperty("user.home") + "/.gradle/caches/modules-2/files-2.1"
+                val mavenLocal = System.getProperty("user.home") + "/.m2/repository"
+
+                vulnerableDependencies.forEach { dep ->
+                    val (group, name, version) = dep.split(":")
+                    val groupPath = group.replace(".", "/")
+
+                    if (name == "*") {
+                        // Delete all dependencies under this group
+                        val gradleGroupPath = file("$gradleCache/$group")
+                        val mavenGroupPath = file("$mavenLocal/$groupPath")
+
+                        if (gradleGroupPath.exists()) {
+                            gradleGroupPath.deleteRecursively()
+                        }
+
+                        if (mavenGroupPath.exists()) {
+                            mavenGroupPath.deleteRecursively()
+                        }
+
+                    } else {
+                        val gradlePath = file("$gradleCache/$group/$name")
+                        val mavenPath = file("$mavenLocal/$groupPath/$name")
+
+                        if (version == "*") {
+                            // Delete all versions of a specific artifact
+                            if (gradlePath.exists()) {
+                                gradlePath.deleteRecursively()
+                            }
+
+                            if (mavenPath.exists()) {
+                                mavenPath.deleteRecursively()
+                            }
+
+                        } else {
+                            // Delete only a specific version
+                            val gradleVersionPath = file("$gradlePath/$version")
+                            val mavenVersionPath = file("$mavenPath/$version")
+                            if (gradleVersionPath.exists()) {
+                                gradleVersionPath.deleteRecursively()
+                            }
+
+                            if (mavenVersionPath.exists()) {
+                                mavenVersionPath.deleteRecursively()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        tasks.named("test").configure {
+            finalizedBy(tasks.named("cleanListedDependencies"))
+        }
+    }
+}
+
 nexusPublishing {
     repositories {
         sonatype {
