@@ -16,7 +16,7 @@
 
 package com.solarwinds.opentelemetry.instrumentation.webmvc.v3_1;
 
-import io.opentelemetry.instrumentation.api.incubator.semconv.util.SpanNames;
+import io.opentelemetry.instrumentation.api.semconv.util.SpanNames;
 import java.lang.reflect.Method;
 import javax.servlet.Servlet;
 import org.springframework.web.HttpRequestHandler;
