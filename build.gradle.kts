@@ -18,7 +18,7 @@ plugins{
     id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
 }
 
-val swoAgentVersion = "2.12.0"
+val swoAgentVersion = "2.13.0"
 extra["swoAgentVersion"] = swoAgentVersion
 group = "io.github.appoptics"
 version = if (System.getenv("SNAPSHOT_BUILD").toBoolean()) "$swoAgentVersion-SNAPSHOT" else swoAgentVersion
@@ -90,7 +90,7 @@ allprojects {
             }
         }
 
-        tasks.named("test").configure {
+        tasks.withType<Test> {
             finalizedBy(tasks.named("cleanListedDependencies"))
         }
     }
