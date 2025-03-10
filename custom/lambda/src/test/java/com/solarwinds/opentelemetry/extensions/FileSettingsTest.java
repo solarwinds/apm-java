@@ -16,26 +16,34 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.solarwinds.joboe.sampling.SamplingException;
+import com.solarwinds.joboe.sampling.SettingsArg;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class FileSettingsTest {
   private FileSettings tested;
 
+  private final FileSettingsReader reader =
+      new FileSettingsReader(
+          FileSettingsTest.class.getResource("/solarwinds-apm-settings.json").getPath());
+
   @BeforeEach
-  void setup() {
-    tested =
-        new FileSettings(
-            JsonSettings.builder()
-                .flags(
-                    "OVERRIDE,SAMPLE_START,SAMPLE_THROUGH,SAMPLE_THROUGH_ALWAYS,TRIGGER_TRACE,SAMPLE_BUCKET_ENABLED")
-                .build());
+  void setup() throws SamplingException {
+    tested = (FileSettings) reader.getSettings();
   }
 
   @Test
   void return126() {
-    assertEquals(126, tested.getFlags());
+    assertEquals(116, tested.getFlags());
+  }
+
+  @Test
+  void testReadArgs() {
+    assertDoesNotThrow(() -> tested.getArgValue(SettingsArg.BUCKET_CAPACITY));
+    assertDoesNotThrow(() -> tested.getArgValue(SettingsArg.METRIC_FLUSH_INTERVAL));
   }
 }
