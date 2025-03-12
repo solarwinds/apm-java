@@ -75,10 +75,6 @@ public class FileSettings extends Settings {
   @SuppressWarnings("unchecked")
   public <T> T getArgValue(SettingsArg<T> settingsArg) {
     Object value = jsonSettings.getArguments().get(settingsArg.getKey());
-    if (value != null && settingsArg instanceof SettingsArg.ByteArraySettingsArg) {
-      value = value.toString().getBytes();
-    }
-
-    return (T) value;
+    return settingsArg.readValue(value);
   }
 }
