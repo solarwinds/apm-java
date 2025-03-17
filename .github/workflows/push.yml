@@ -102,24 +102,49 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Docker login
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Docker push
-        run: |
-          cd long-running-test-arch
-          IMAGE_ID_RC=$(echo "ghcr.io/$GITHUB_REPOSITORY_OWNER/petclinic:agent-rc" | tr '[:upper:]' '[:lower:]')
-          IMAGE_ID_ST=$(echo "ghcr.io/$GITHUB_REPOSITORY_OWNER/petclinic:agent-latest" | tr '[:upper:]' '[:lower:]')
-          IMAGE_ID_XK6=$(echo "ghcr.io/$GITHUB_REPOSITORY_OWNER/xk6:latest" | tr '[:upper:]' '[:lower:]')
+      - name: Build xk6 container
+        uses: docker/build-push-action@v6
+        with:
+          context: long-running-test-arch/xk6
+          platforms: linux/arm64,linux/amd64
+          push: true
+          tags: "ghcr.io/${{github.repository_owner}}/xk6:latest"
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-          docker buildx create --use --name multiarch
-          docker buildx build --tag $IMAGE_ID_RC --push -f Dockerfile-rc .
-          docker buildx build --tag $IMAGE_ID_ST --push -f Dockerfile .
-          docker buildx build --tag $IMAGE_ID_XK6 --push xk6/
+      - name: Build rc image
+        uses: docker/build-push-action@v6
+        with:
+          context: long-running-test-arch
+          file: long-running-test-arch/Dockerfile-rc
+          platforms: linux/amd64
+          push: true
+          tags: "ghcr.io/${{github.repository_owner}}/petclinic:agent-rc"
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Docker logout
-        if: always()
-        run: docker logout
+      - name: Build stable image
+        uses: docker/build-push-action@v6
+        with:
+          context: long-running-test-arch
+          platforms: linux/amd64
+          push: true
+          tags: "ghcr.io/${{github.repository_owner}}/petclinic:agent-latest"
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   test:
     runs-on: ubuntu-latest
