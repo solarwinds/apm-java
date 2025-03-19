@@ -261,6 +261,9 @@ function verify_distributed_trace() {
             const {data: {traceArchive: {traceSpans: {edges}}}} = spanDataResponse
             console.log("Edges: ", edges)
 
+
+            let contextCheck = false
+            let sdkCheck = false
             for (let i = 0; i < edges.length; i++) {
                 const edge = edges[i]
                 const {node: {events}} = edge
@@ -271,8 +274,22 @@ function verify_distributed_trace() {
 
                     for (let k = 0; k < properties.length; k++) {
                         const property = properties[k]
-                        check(property, {"check that remote service, java-apm-smoke-test, is path of the trace": prop => prop.value === "java-apm-smoke-test"})
-                        check(property, {"sdk-trace": prop => prop.value === "SDK.trace.test"})
+                        check(property, {
+                            "check that remote service, java-apm-smoke-test, is path of the trace": prop => {
+                                contextCheck = prop.value === "java-apm-smoke-test"
+                                return contextCheck
+                            }
+                        })
+                        check(property, {
+                            "sdk-trace": prop => {
+                                sdkCheck = prop.value === "SDK.trace.test"
+                                return sdkCheck
+                            }
+                        })
+                    }
+
+                    if (contextCheck && sdkCheck) {
+                        return
                     }
                 }
             }
