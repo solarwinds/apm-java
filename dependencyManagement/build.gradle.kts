@@ -15,6 +15,7 @@ val opentelemetrySemconv = "1.29.0-alpha"
 
 val autoservice = "1.0.1"
 val otelJavaContribVersion = "1.43.0-alpha"
+val junit5 = "5.9.2"
 
 rootProject.extra["otelAgentVersion"] = otelAgentVersion
 rootProject.extra["otelSdkVersion"] = otelSdkVersion
@@ -30,8 +31,8 @@ dependencies {
     api("org.mockito:mockito-inline:$mockitoVersion")
 
     api("javax.annotation:javax.annotation-api:1.3.2")
-    api("org.junit.jupiter:junit-jupiter-api:5.9.2")
-    api("org.junit.jupiter:junit-jupiter-engine:5.9.2")
+    api("org.junit.jupiter:junit-jupiter-api:$junit5")
+    api("org.junit.jupiter:junit-jupiter-engine:$junit5")
 
     api("io.opentelemetry:opentelemetry-api:$otelSdkVersion")
     api("io.opentelemetry.javaagent:opentelemetry-javaagent:$otelAgentVersion")
@@ -71,6 +72,7 @@ dependencies {
     api("com.google.code.findbugs:annotations:3.0.1u2")
     api("io.opentelemetry.contrib:opentelemetry-span-stacktrace:$otelJavaContribVersion")
     api("io.opentelemetry.semconv:opentelemetry-semconv-incubating:$opentelemetrySemconv")
+    api("org.junit.jupiter:junit-jupiter-params:$junit5")
 
   }
 }

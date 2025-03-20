@@ -101,6 +101,8 @@ dependencies {
   testImplementation("com.solarwinds.joboe:core")
   testImplementation("com.solarwinds.joboe:metrics")
   testImplementation("org.junit-pioneer:junit-pioneer")
+
+  testImplementation("org.junit.jupiter:junit-jupiter-params")
 }
 
 tasks {
