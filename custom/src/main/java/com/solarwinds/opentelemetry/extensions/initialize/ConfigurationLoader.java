@@ -642,12 +642,8 @@ public class ConfigurationLoader {
   private static void setSystemProperty(String key, String value) {
     String propertyValue = getConfigValue(key);
     if (propertyValue == null) {
-      propertyValue = value;
       System.setProperty(key, value);
     }
-
-    logger.debug(
-        String.format("System configuration set with key-value -> %s = %s", key, propertyValue));
   }
 
   private static void setEndpoint(String key, String value) {
