@@ -38,9 +38,16 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import io.opentelemetry.sdk.trace.samplers.SamplingDecision;
 import io.opentelemetry.sdk.trace.samplers.SamplingResult;
+import io.opentelemetry.semconv.ServerAttributes;
+import io.opentelemetry.semconv.UrlAttributes;
 import java.util.Collections;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -48,6 +55,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(MockitoExtension.class)
 class SolarwindsSamplerTest {
 
@@ -259,5 +267,41 @@ class SolarwindsSamplerTest {
 
       assertEquals(SamplingDecision.DROP, actual.getDecision());
     }
+  }
+
+  @ParameterizedTest
+  @MethodSource("constructParams")
+  void testConstructUrl(String expected, Attributes attributes) {
+    assertEquals(expected, tested.constructUrl(attributes));
+  }
+
+  private Stream<Arguments> constructParams() {
+    return Stream.of(
+        Arguments.of("", Attributes.empty()),
+        Arguments.of("localhost", Attributes.of(ServerAttributes.SERVER_ADDRESS, "localhost")),
+        Arguments.of(
+            "http://localhost",
+            Attributes.of(
+                ServerAttributes.SERVER_ADDRESS, "localhost", UrlAttributes.URL_SCHEME, "http")),
+        Arguments.of(
+            "https://hello.world.com/nim",
+            Attributes.of(
+                ServerAttributes.SERVER_ADDRESS,
+                "localhost",
+                UrlAttributes.URL_SCHEME,
+                "http",
+                UrlAttributes.URL_FULL,
+                "https://hello.world.com/nim",
+                UrlAttributes.URL_PATH,
+                "/path")),
+        Arguments.of(
+            "http://localhost/path",
+            Attributes.of(
+                ServerAttributes.SERVER_ADDRESS,
+                "localhost",
+                UrlAttributes.URL_SCHEME,
+                "http",
+                UrlAttributes.URL_PATH,
+                "/path")));
   }
 }

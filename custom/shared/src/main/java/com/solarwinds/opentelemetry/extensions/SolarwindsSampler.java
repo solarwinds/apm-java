@@ -168,12 +168,29 @@ public class SolarwindsSampler implements Sampler {
     return result;
   }
 
-  private String constructUrl(Attributes attributes) {
+  String constructUrl(Attributes attributes) {
     String scheme = attributes.get(UrlAttributes.URL_SCHEME);
     String host = attributes.get(ServerAttributes.SERVER_ADDRESS);
-    String target = attributes.get(UrlAttributes.URL_PATH);
+    String path = attributes.get(UrlAttributes.URL_PATH);
 
-    String url = String.format("%s://%s%s", scheme, host, target);
+    String url = attributes.get(UrlAttributes.URL_FULL);
+    if (url == null) {
+      StringBuilder builder = new StringBuilder();
+      if (scheme != null) {
+        builder.append(scheme).append("://");
+      }
+
+      if (host != null) {
+        builder.append(host);
+      }
+
+      if (path != null) {
+        builder.append(path);
+      }
+
+      url = builder.toString();
+    }
+
     logger.trace(String.format("Constructed url: %s", url));
     return url;
   }
