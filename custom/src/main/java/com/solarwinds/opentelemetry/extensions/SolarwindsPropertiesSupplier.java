@@ -32,6 +32,7 @@ public class SolarwindsPropertiesSupplier implements Supplier<Map<String, String
     if (isAgentEnabled()) {
       PROPERTIES.put("otel.metrics.exporter", "none");
       PROPERTIES.put("otel.logs.exporter", "none");
+      PROPERTIES.put("otel.exporter.otlp.compression", "gzip");
 
       PROPERTIES.put("otel.java.experimental.span-stacktrace.filter", SPAN_STACKTRACE_FILTER_CLASS);
       PROPERTIES.put("otel.propagators", String.format("tracecontext,baggage,%s", COMPONENT_NAME));
