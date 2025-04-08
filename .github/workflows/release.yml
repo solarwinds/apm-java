@@ -430,22 +430,21 @@ jobs:
             org.opencontainers.image.description=Solarwinds OTEL distro Java agent
             org.opencontainers.image.vendor=SolarWinds Worldwide, LLC
 
-      - name: Build and push -> linux/amd64
+      - name: Build and load -> linux/amd64
         uses: docker/build-push-action@v6
         with:
-          push: true
           context: agent
           platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           load: true
 
-      - name: Build and push -> linux/arm64,linux/s390x,linux/ppc64le
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
           push: true
           context: agent
-          platforms: linux/arm64,linux/s390x,linux/ppc64le
+          platforms: linux/amd64,linux/arm64,linux/s390x,linux/ppc64le
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
