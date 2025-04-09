@@ -49,7 +49,13 @@ public class InboundMeasurementMetricsGenerator implements ExtendedSpanProcessor
 
     Meter meter = MeterProvider.getRequestMetricsMeter();
     responseTime =
-        meter.histogramBuilder("trace.service.response_time").setUnit("ms").ofLongs().build();
+        meter
+            .histogramBuilder("trace.service.response_time")
+            .setDescription(
+                "Duration of each entry span for the service, typically meaning the time taken to process an inbound request.")
+            .setUnit("ms")
+            .ofLongs()
+            .build();
   }
 
   @Override
