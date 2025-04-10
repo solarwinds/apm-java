@@ -58,6 +58,8 @@ class TraceDecisionMetricCollectorTest {
   @Test
   void verifyThatAllGaugesCallbackIsExecutedExcludingQueueBasedOnes() {
     when(meterMock.gaugeBuilder(anyString())).thenReturn(doubleGaugeBuilderMock);
+    when(doubleGaugeBuilderMock.setDescription(anyString())).thenReturn(doubleGaugeBuilderMock);
+    when(doubleGaugeBuilderMock.setUnit(anyString())).thenReturn(doubleGaugeBuilderMock);
     when(doubleGaugeBuilderMock.ofLongs()).thenReturn(longGaugeBuilderMock);
 
     tested.collect(meterMock);
@@ -75,6 +77,9 @@ class TraceDecisionMetricCollectorTest {
 
       meterProviderMock.when(MeterProvider::getSamplingMetricsMeter).thenReturn(meterMock);
       when(meterMock.gaugeBuilder(anyString())).thenReturn(doubleGaugeBuilderMock);
+      when(doubleGaugeBuilderMock.setDescription(anyString())).thenReturn(doubleGaugeBuilderMock);
+
+      when(doubleGaugeBuilderMock.setUnit(anyString())).thenReturn(doubleGaugeBuilderMock);
       when(doubleGaugeBuilderMock.ofLongs()).thenReturn(longGaugeBuilderMock);
 
       tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);

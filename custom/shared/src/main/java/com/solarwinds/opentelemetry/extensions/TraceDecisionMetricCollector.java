@@ -30,9 +30,13 @@ public class TraceDecisionMetricCollector implements AutoCloseable, AgentListene
   private final List<ObservableLongGauge> gauges = new ArrayList<>();
 
   public void collect(Meter meter) {
+    String reqCountUnit = "{request}";
+    String traceCountUnit = "{trace}";
     gauges.add(
         meter
             .gaugeBuilder("trace.service.request_count")
+            .setDescription("Count of all requests.")
+            .setUnit(reqCountUnit)
             .ofLongs()
             .buildWithCallback(
                 observableLongMeasurement ->
@@ -43,6 +47,9 @@ public class TraceDecisionMetricCollector implements AutoCloseable, AgentListene
     gauges.add(
         meter
             .gaugeBuilder("trace.service.tokenbucket_exhaustion_count")
+            .setDescription(
+                "Count of requests that were not traced due to token bucket rate limiting.")
+            .setUnit(reqCountUnit)
             .ofLongs()
             .buildWithCallback(
                 observableLongMeasurement ->
@@ -53,6 +60,8 @@ public class TraceDecisionMetricCollector implements AutoCloseable, AgentListene
     gauges.add(
         meter
             .gaugeBuilder("trace.service.tracecount")
+            .setDescription("Count of all traces.")
+            .setUnit(traceCountUnit)
             .ofLongs()
             .buildWithCallback(
                 observableLongMeasurement ->
@@ -63,6 +72,9 @@ public class TraceDecisionMetricCollector implements AutoCloseable, AgentListene
     gauges.add(
         meter
             .gaugeBuilder("trace.service.samplecount")
+            .setDescription(
+                "Count of requests that went through sampling, which excludes those with a valid upstream decision or trigger traced.")
+            .setUnit(reqCountUnit)
             .ofLongs()
             .buildWithCallback(
                 observableLongMeasurement ->
@@ -73,6 +85,9 @@ public class TraceDecisionMetricCollector implements AutoCloseable, AgentListene
     gauges.add(
         meter
             .gaugeBuilder("trace.service.through_trace_count")
+            .setDescription(
+                "Count of requests with a valid upstream decision, thus passed through sampling.")
+            .setUnit(reqCountUnit)
             .ofLongs()
             .buildWithCallback(
                 observableLongMeasurement ->
@@ -83,6 +98,8 @@ public class TraceDecisionMetricCollector implements AutoCloseable, AgentListene
     gauges.add(
         meter
             .gaugeBuilder("trace.service.triggered_trace_count")
+            .setDescription("Count of triggered traces.")
+            .setUnit(traceCountUnit)
             .ofLongs()
             .buildWithCallback(
                 observableLongMeasurement ->
