@@ -22,6 +22,8 @@ dependencies {
   compileOnly("jakarta.servlet:jakarta.servlet-api:5.0.0")
   compileOnly(project(":custom"))
   compileOnly(project(":bootstrap"))
+
+  compileOnly("com.solarwinds.joboe:logging")
 }
 
 swoJava {
