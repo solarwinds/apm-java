@@ -13,7 +13,7 @@
 The Solarwinds Distribution of [OpenTelemetry Instrumentation for
 Java](https://github.com/open-telemetry/opentelemetry-java-instrumentation)
 provides a Java agent that automatically instruments your Java application to capture and report
-distributed traces and other telemetries to [Solarwinds Observability APM](https://documentation.solarwinds.com/en/success_center/observability/content/intro/services.htm).
+distributed traces and other telemetry to [Solarwinds Observability APM](https://documentation.solarwinds.com/en/success_center/observability/content/intro/services.htm).
 ---
 
 ## Requirements
