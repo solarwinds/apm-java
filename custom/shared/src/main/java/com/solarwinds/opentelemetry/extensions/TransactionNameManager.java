@@ -43,13 +43,11 @@ public class TransactionNameManager {
   private static final String[] DEFAULT_TRANSACTION_NAME_PATTERN = {"p1", "p2"};
   private static final String CUSTOM_TRANSACTION_NAME_PATTERN_SEPARATOR = ".";
   private static final String DEFAULT_TRANSACTION_NAME_PATTERN_SEPARATOR = "/";
-  private static final String DOMAIN_PREFIX_SEPARATOR = "/";
   public static final String OVER_LIMIT_TRANSACTION_NAME = "other";
   public static final String UNKNOWN_TRANSACTION_NAME = "unknown";
   public static final int DEFAULT_MAX_NAME_COUNT = 200;
   public static final int MAX_TRANSACTION_NAME_LENGTH = 255;
   public static final String TRANSACTION_NAME_ELLIPSIS = "...";
-  public static final Pattern REPLACE_PATTERN = Pattern.compile("[^-.:_\\\\/\\w? ]");
 
   private static final String[] customTransactionNamePattern;
   static final Cache<String, String> URL_TRANSACTION_NAME_CACHE =

@@ -22,5 +22,5 @@ FROM --platform=linux/amd64 ghcr.io/open-telemetry/opentelemetry-java-instrument
 WORKDIR /app
 COPY --from=agent /app/solarwinds-apm-agent.jar .
 
-ENV SERVER_PORT 8080
-CMD java -javaagent:solarwinds-apm-agent.jar -jar spring-petclinic-rest.jar
+ENV SERVER_PORT=8080
+CMD ["java", "-javaagent:solarwinds-apm-agent.jar", "-jar", "spring-petclinic-rest.jar"]
