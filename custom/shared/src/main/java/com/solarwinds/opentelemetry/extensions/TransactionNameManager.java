@@ -30,7 +30,6 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.semconv.HttpAttributes;
-import io.opentelemetry.semconv.ServerAttributes;
 import io.opentelemetry.semconv.UrlAttributes;
 import java.time.Duration;
 import java.util.HashMap;
@@ -124,34 +123,13 @@ public class TransactionNameManager {
     String transactionName = buildTransactionName(spanData);
 
     if (transactionName != null) {
-      Boolean domainPrefixedTransactionName =
-          ConfigManager.getConfigOptional(
-              ConfigProperty.AGENT_DOMAIN_PREFIXED_TRANSACTION_NAME, false);
-      if (domainPrefixedTransactionName) {
-        transactionName = prefixTransactionNameWithDomainName(transactionName, spanData);
-      }
-
-      transactionName = transformTransactionName(transactionName);
+      transactionName = truncateTransactionName(transactionName);
       return addTransactionName(transactionName)
           ? transactionName
           : OVER_LIMIT_TRANSACTION_NAME; // check the transaction name limit;
     } else {
       return UNKNOWN_TRANSACTION_NAME; // unable to build the transaction name
     }
-  }
-
-  private static String prefixTransactionNameWithDomainName(
-      String transactionName, SpanData spanData) {
-    String httpHostValue = spanData.getAttributes().get(ServerAttributes.SERVER_ADDRESS);
-    if (httpHostValue != null && !httpHostValue.isEmpty()) {
-      if (transactionName.startsWith("/")) {
-        return httpHostValue + transactionName;
-      } else {
-        return httpHostValue + DOMAIN_PREFIX_SEPARATOR + transactionName;
-      }
-    }
-
-    return transactionName;
   }
 
   /**
@@ -163,29 +141,22 @@ public class TransactionNameManager {
    * @param inputTransactionName raw transaction name
    * @return refined transaction name
    */
-  static String transformTransactionName(String inputTransactionName) {
+  static String truncateTransactionName(String inputTransactionName) {
     String transactionName = inputTransactionName;
-
     if (transactionName.length() > MAX_TRANSACTION_NAME_LENGTH) {
       transactionName =
           transactionName.substring(
                   0, MAX_TRANSACTION_NAME_LENGTH - TRANSACTION_NAME_ELLIPSIS.length())
               + TRANSACTION_NAME_ELLIPSIS;
-    } else if (transactionName.isEmpty()) {
-      transactionName = " "; // ensure that it at least has 1 character
     }
-
-    transactionName = REPLACE_PATTERN.matcher(transactionName).replaceAll("_");
-
-    transactionName = transactionName.toLowerCase();
 
     if (!transactionName.equalsIgnoreCase(inputTransactionName)) {
       logger.debug(
           "Transaction name ["
               + inputTransactionName
-              + "] has been transformed to ["
+              + "] was truncated to ["
               + transactionName
-              + "]");
+              + "] because it exceeds " + MAX_TRANSACTION_NAME_LENGTH + " characters.");
     }
 
     return transactionName;
