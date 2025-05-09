@@ -16,6 +16,7 @@
 
 package com.solarwinds.opentelemetry.instrumentation.servlet.v3_0;
 
+import com.solarwinds.joboe.logging.LoggerFactory;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
@@ -35,8 +36,12 @@ public class Servlet3Advice {
       @Advice.Argument(value = 1, readOnly = false) ServletResponse response) {
     if (response instanceof HttpServletResponse) {
       HttpServletResponse httpServletResponse = (HttpServletResponse) response;
-      if (!httpServletResponse.containsHeader(XTRACE_HEADER)) {
+      if (!response.isCommitted() && !httpServletResponse.containsHeader(XTRACE_HEADER)) {
         injectXtraceHeader(httpServletResponse);
+      } else if (response.isCommitted()) {
+        LoggerFactory.getLogger()
+            .info(
+                "[Servlet 3] Did not add x-trace header because ServletResponse has been committed");
       }
     }
   }
