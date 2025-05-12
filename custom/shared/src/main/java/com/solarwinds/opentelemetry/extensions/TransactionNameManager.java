@@ -36,7 +36,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 public class TransactionNameManager {
   private static final Logger logger = LoggerFactory.getLogger();
@@ -154,7 +153,9 @@ public class TransactionNameManager {
               + inputTransactionName
               + "] was truncated to ["
               + transactionName
-              + "] because it exceeds " + MAX_TRANSACTION_NAME_LENGTH + " characters.");
+              + "] because it exceeds "
+              + MAX_TRANSACTION_NAME_LENGTH
+              + " characters.");
     }
 
     return transactionName;
