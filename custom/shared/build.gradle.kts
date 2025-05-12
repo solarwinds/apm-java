@@ -44,6 +44,8 @@ dependencies {
   implementation("com.google.code.gson:gson")
   implementation("com.github.ben-manes.caffeine:caffeine")
 
+  compileOnly("io.opentelemetry:opentelemetry-api-incubator")
+  compileOnly("io.opentelemetry:opentelemetry-exporter-otlp")
   testImplementation("org.json:json")
   testImplementation("com.solarwinds.joboe:sampling")
 }

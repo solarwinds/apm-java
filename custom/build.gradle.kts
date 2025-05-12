@@ -35,6 +35,8 @@ dependencies {
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
 
+  compileOnly("io.opentelemetry:opentelemetry-api-incubator")
+
   testImplementation(project(":custom:shared"))
   testImplementation("org.json:json")
   testImplementation("com.solarwinds.joboe:core")
