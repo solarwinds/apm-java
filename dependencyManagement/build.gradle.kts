@@ -73,6 +73,9 @@ dependencies {
     api("com.google.code.findbugs:annotations:3.0.1u2")
     api("io.opentelemetry.contrib:opentelemetry-span-stacktrace:$otelJavaContribVersion")
     api("io.opentelemetry.semconv:opentelemetry-semconv-incubating:$opentelemetrySemconvAlpha")
+
+    api("io.opentelemetry:opentelemetry-api-incubator:$opentelemetryAlpha")
+    api("io.opentelemetry:opentelemetry-exporter-otlp:$otelSdkVersion")
     api("org.junit.jupiter:junit-jupiter-params:$junit5")
 
   }
