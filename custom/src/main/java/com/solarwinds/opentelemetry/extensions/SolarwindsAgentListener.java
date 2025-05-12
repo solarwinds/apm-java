@@ -54,6 +54,7 @@ import com.solarwinds.joboe.metrics.TracingReporterMetricsCollector;
 import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.opentelemetry.core.AgentState;
 import com.solarwinds.opentelemetry.extensions.initialize.ConfigurationLoader;
+import com.solarwinds.opentelemetry.extensions.initialize.ResourceComponentProvider;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.javaagent.extension.AgentListener;
@@ -241,7 +242,7 @@ public class SolarwindsAgentListener implements AgentListener {
     }
 
     // Capture OTel Resource attributes
-    Attributes attributes = ResourceCustomizer.getResource().getAttributes();
+    Attributes attributes = ResourceComponentProvider.getResource().getAttributes();
     logger.debug(
         "Resource attributes "
             + attributes.toString().replaceAll("(sw.apm.service.key=)\\S+", "$1****"));
