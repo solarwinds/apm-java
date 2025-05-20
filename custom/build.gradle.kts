@@ -36,6 +36,7 @@ dependencies {
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
 
   compileOnly("io.opentelemetry:opentelemetry-api-incubator")
+  compileOnly("io.opentelemetry:opentelemetry-sdk-extension-incubator")
 
   testImplementation(project(":custom:shared"))
   testImplementation("org.json:json")

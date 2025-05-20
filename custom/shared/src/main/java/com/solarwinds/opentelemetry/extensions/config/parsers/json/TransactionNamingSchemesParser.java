@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions;
+package com.solarwinds.opentelemetry.extensions.config.parsers.json;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -22,6 +22,7 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.solarwinds.joboe.config.ConfigParser;
 import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.opentelemetry.extensions.TransactionNamingScheme;
 import java.lang.reflect.Type;
 import java.util.List;
 
