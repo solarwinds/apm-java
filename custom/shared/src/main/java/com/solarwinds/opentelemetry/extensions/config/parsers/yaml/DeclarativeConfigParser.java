@@ -50,7 +50,9 @@ public final class DeclarativeConfigParser {
           parsed = configParser.convert(declarativeConfigProperties);
         }
 
-        configContainer.put(configProperty, parsed);
+        if (parsed != null) {
+          configContainer.put(configProperty, parsed);
+        }
       }
     }
   }
