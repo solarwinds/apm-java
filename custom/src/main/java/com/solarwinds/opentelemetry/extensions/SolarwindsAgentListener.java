@@ -27,12 +27,10 @@ import static io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes.PR
 import static io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes.PROCESS_RUNTIME_VERSION;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.config.ConfigContainer;
 import com.solarwinds.joboe.config.ConfigGroup;
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
-import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
 import com.solarwinds.joboe.core.ReporterFactory;
 import com.solarwinds.joboe.core.profiler.Profiler;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;
@@ -53,8 +51,6 @@ import com.solarwinds.joboe.metrics.SystemMonitorFactoryImpl;
 import com.solarwinds.joboe.metrics.TracingReporterMetricsCollector;
 import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.opentelemetry.core.AgentState;
-import com.solarwinds.opentelemetry.extensions.config.parsers.yaml.DeclarativeConfigParser;
-import com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl;
 import com.solarwinds.opentelemetry.extensions.initialize.ConfigurationLoader;
 import com.solarwinds.opentelemetry.extensions.initialize.config.HttpSettingsFetcher;
 import com.solarwinds.opentelemetry.extensions.initialize.config.HttpSettingsReader;
@@ -62,11 +58,8 @@ import com.solarwinds.opentelemetry.extensions.initialize.config.HttpSettingsRea
 import com.solarwinds.opentelemetry.extensions.initialize.ResourceComponentProvider;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.incubator.config.ConfigProvider;
-import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import io.opentelemetry.sdk.autoconfigure.internal.AutoConfigureUtil;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import java.util.Collections;
 import java.util.HashMap;
@@ -86,57 +79,6 @@ public class SolarwindsAgentListener implements AgentListener {
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk openTelemetrySdk) {
-    ConfigProvider configProvider = AutoConfigureUtil.getConfigProvider(openTelemetrySdk);
-
-    boolean jdkVersionSupported = JavaRuntimeVersionChecker.isJdkVersionSupported();
-    AutoConfigurationCustomizerProviderImpl.setAgentEnabled(jdkVersionSupported);
-
-    if (configProvider != null) {
-      DeclarativeConfigProperties instrumentationConfig = configProvider.getInstrumentationConfig();
-
-      if (instrumentationConfig != null) {
-        DeclarativeConfigProperties solarwinds =
-            instrumentationConfig
-                .getStructured("java", DeclarativeConfigProperties.empty())
-                .getStructured("solarwinds", DeclarativeConfigProperties.empty());
-
-        try {
-          ConfigContainer configContainer = new ConfigContainer();
-          new DeclarativeConfigParser(configContainer).parse(solarwinds);
-          ConfigurationLoader.processConfigs(configContainer);
-
-          ConfigContainer agentConfig = configContainer.subset(ConfigGroup.AGENT);
-          LoggerFactory.init(LoggingConfigProvider.getLoggerConfiguration(agentConfig));
-          logger.info("ConfigContainer: " + configContainer);
-
-        } catch (InvalidConfigException e) {
-          throw new RuntimeException(e);
-        }
-      }
-
-    } else {
-      try {
-        if (AutoConfigurationCustomizerProviderImpl.isAgentEnabled()) {
-          ConfigurationLoader.load();
-        }
-
-      } catch (InvalidConfigException invalidConfigException) {
-        logger.warn("Error loading agent config", invalidConfigException);
-        AutoConfigurationCustomizerProviderImpl.setAgentEnabled(false);
-      }
-    }
-
-    if (!jdkVersionSupported) {
-      logger.warn(
-          String.format(
-              "Unsupported Java runtime version: %s. The lowest Java version supported is %s.",
-              System.getProperty("java.version"), JavaRuntimeVersionChecker.minVersionSupported));
-    }
-
-    if (!AutoConfigurationCustomizerProviderImpl.isAgentEnabled()) {
-      logger.warn("Solarwinds' extension is disabled");
-    }
-
     if (isAgentEnabled() && isUsingSolarwindsSampler(openTelemetrySdk)) {
       executeStartupTasks();
       registerShutdownTasks();
