@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions;
+package com.solarwinds.opentelemetry.extensions.config.parsers.json;
 
 import com.solarwinds.joboe.sampling.ResourceMatcher;
 import java.util.Set;
 
-class ResourceExtensionsMatcher implements ResourceMatcher {
+public class ResourceExtensionsMatcher implements ResourceMatcher {
   private final Set<String> extensions;
 
-  ResourceExtensionsMatcher(Set<String> extensions) {
+  public ResourceExtensionsMatcher(Set<String> extensions) {
     super();
     this.extensions = extensions;
   }
