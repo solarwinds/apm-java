@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions;
+package com.solarwinds.opentelemetry.extensions.config.parsers.json;
 
 import com.solarwinds.joboe.sampling.ResourceMatcher;
 import java.util.regex.Pattern;
 
-class StringPatternMatcher implements ResourceMatcher {
+public class StringPatternMatcher implements ResourceMatcher {
   private final Pattern pattern;
 
-  StringPatternMatcher(Pattern pattern) {
+  public StringPatternMatcher(Pattern pattern) {
     this.pattern = pattern;
   }
 

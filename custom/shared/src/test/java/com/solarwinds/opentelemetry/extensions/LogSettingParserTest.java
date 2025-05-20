@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.logging.LogSetting;
 import com.solarwinds.joboe.logging.Logger;
+import com.solarwinds.opentelemetry.extensions.config.parsers.json.LogSettingParser;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
