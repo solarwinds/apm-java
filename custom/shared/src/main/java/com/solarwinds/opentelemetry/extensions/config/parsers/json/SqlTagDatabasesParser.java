@@ -14,32 +14,17 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions;
+package com.solarwinds.opentelemetry.extensions.config.parsers.json;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
 import com.solarwinds.joboe.config.ConfigParser;
 import com.solarwinds.joboe.config.InvalidConfigException;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public final class StacktraceFilterParser implements ConfigParser<String, Set<String>> {
-  private static final Gson gson = new GsonBuilder().create();
-
+public class SqlTagDatabasesParser implements ConfigParser<String, Set<String>> {
   @Override
-  public Set<String> convert(String input) throws InvalidConfigException {
-    try {
-      if (input.startsWith("[")) {
-        Type type = new TypeToken<Set<String>>() {}.getType();
-        return gson.fromJson(input, type);
-      }
-      return Arrays.stream(input.split(",")).map(String::trim).collect(Collectors.toSet());
-    } catch (JsonSyntaxException e) {
-      throw new InvalidConfigException(e);
-    }
+  public Set<String> convert(String databases) throws InvalidConfigException {
+    return Arrays.stream(databases.split(",")).map(String::toLowerCase).collect(Collectors.toSet());
   }
 }

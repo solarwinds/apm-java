@@ -152,7 +152,11 @@ instrumentation:
   java:
     common:
       default-enabled: true
-
-solarwinds:
-  hello:
-    data: world
+    solarwinds:
+      agent.logging:
+        level: trace
+      agent.sqlTag: ${SW_APM_SQL_TAG}
+      agent.serviceKey: ${SW_APM_SERVICE_KEY}
+      agent.sqlTagPrepared: ${SW_APM_SQL_TAG_PREPARED}
+      agent.sqlTagDatabases: ${SW_APM_SQL_TAG_DATABASES}
+      agent.collector: apm.collector.na-01.st-ssp.solarwinds.com
