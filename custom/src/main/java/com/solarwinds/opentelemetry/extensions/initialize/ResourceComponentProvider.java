@@ -4,7 +4,6 @@ import static com.solarwinds.opentelemetry.extensions.ApmResourceProvider.module
 import static com.solarwinds.opentelemetry.extensions.ApmResourceProvider.versionKey;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.opentelemetry.extensions.BuildConfig;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
@@ -29,7 +28,6 @@ public class ResourceComponentProvider implements ComponentProvider<Resource> {
 
   @Override
   public Resource create(DeclarativeConfigProperties declarativeConfigProperties) {
-    LoggerFactory.getLogger().info("swo/resource");
     Attributes resourceAttributes =
         Attributes.of(moduleKey, "apm", versionKey, BuildConfig.SOLARWINDS_AGENT_VERSION);
 
