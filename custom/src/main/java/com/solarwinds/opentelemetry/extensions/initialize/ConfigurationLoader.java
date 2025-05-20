@@ -33,22 +33,21 @@ import com.solarwinds.joboe.core.profiler.ProfilerSetting;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.TraceConfigs;
-import com.solarwinds.opentelemetry.extensions.BuildConfig;
 import com.solarwinds.opentelemetry.extensions.Constants;
-import com.solarwinds.opentelemetry.extensions.LogFileStringParser;
-import com.solarwinds.opentelemetry.extensions.LogSettingParser;
 import com.solarwinds.opentelemetry.extensions.LoggingConfigProvider;
-import com.solarwinds.opentelemetry.extensions.ModeStringToBooleanParser;
 import com.solarwinds.opentelemetry.extensions.NamingScheme;
-import com.solarwinds.opentelemetry.extensions.RangeValidationParser;
-import com.solarwinds.opentelemetry.extensions.SqlTagDatabasesParser;
-import com.solarwinds.opentelemetry.extensions.StacktraceFilterParser;
-import com.solarwinds.opentelemetry.extensions.TracingModeParser;
 import com.solarwinds.opentelemetry.extensions.TransactionNameManager;
 import com.solarwinds.opentelemetry.extensions.TransactionNamingScheme;
-import com.solarwinds.opentelemetry.extensions.TransactionNamingSchemesParser;
-import com.solarwinds.opentelemetry.extensions.TransactionSettingsConfigParser;
-import com.solarwinds.opentelemetry.extensions.UrlSampleRateConfigParser;
+import com.solarwinds.opentelemetry.extensions.config.parsers.json.LogFileStringParser;
+import com.solarwinds.opentelemetry.extensions.config.parsers.json.LogSettingParser;
+import com.solarwinds.opentelemetry.extensions.config.parsers.json.ModeStringToBooleanParser;
+import com.solarwinds.opentelemetry.extensions.config.parsers.json.RangeValidationParser;
+import com.solarwinds.opentelemetry.extensions.config.parsers.json.SqlTagDatabasesParser;
+import com.solarwinds.opentelemetry.extensions.config.parsers.json.StacktraceFilterParser;
+import com.solarwinds.opentelemetry.extensions.config.parsers.json.TracingModeParser;
+import com.solarwinds.opentelemetry.extensions.config.parsers.json.TransactionNamingSchemesParser;
+import com.solarwinds.opentelemetry.extensions.config.parsers.json.TransactionSettingsConfigParser;
+import com.solarwinds.opentelemetry.extensions.config.parsers.json.UrlSampleRateConfigParser;
 import com.solarwinds.opentelemetry.extensions.initialize.config.ProfilerSettingParser;
 import com.solarwinds.opentelemetry.extensions.initialize.config.ProxyConfigParser;
 import com.solarwinds.opentelemetry.extensions.initialize.config.livereload.ConfigurationFileWatcher;
@@ -107,13 +106,6 @@ public class ConfigurationLoader {
   }
 
   public static void load() throws InvalidConfigException {
-    logger.info(String.format("Otel agent version: %s", BuildConfig.OTEL_AGENT_VERSION));
-    logger.info(
-        String.format("Solarwinds extension version: %s", BuildConfig.SOLARWINDS_AGENT_VERSION));
-
-    logger.info(String.format("Solarwinds build datetime: %s", BuildConfig.BUILD_DATETIME));
-    logger.info(String.format("Your Java version: %s", System.getProperty("java.version")));
-
     loadConfigurations();
     String serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
     logger.info(

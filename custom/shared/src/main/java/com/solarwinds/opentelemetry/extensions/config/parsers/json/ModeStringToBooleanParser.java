@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions;
+package com.solarwinds.opentelemetry.extensions.config.parsers.json;
 
 import com.solarwinds.joboe.config.ConfigParser;
 import com.solarwinds.joboe.config.InvalidConfigException;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
-public class LogFileStringParser implements ConfigParser<String, Path> {
+public class ModeStringToBooleanParser implements ConfigParser<String, Boolean> {
+  public static final ModeStringToBooleanParser INSTANCE = new ModeStringToBooleanParser();
+
+  private ModeStringToBooleanParser() {}
 
   @Override
-  public Path convert(String pathString) throws InvalidConfigException {
-    try {
-      return Paths.get(pathString);
-    } catch (InvalidPathException e) {
+  public Boolean convert(String input) throws InvalidConfigException {
+    if ("enabled".equals(input)) {
+      return true;
+    } else if ("disabled".equals(input)) {
+      return false;
+    } else {
       throw new InvalidConfigException(
-          "Log file path [" + pathString + "] is invalid : " + e.getMessage(), e);
+          "Expected value [enabled] or [disabled] but found [" + input + "]");
     }
   }
 }

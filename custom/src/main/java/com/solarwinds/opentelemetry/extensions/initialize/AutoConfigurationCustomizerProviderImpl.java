@@ -17,8 +17,6 @@
 package com.solarwinds.opentelemetry.extensions.initialize;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.config.InvalidConfigException;
-import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
@@ -39,29 +37,7 @@ public class AutoConfigurationCustomizerProviderImpl
     implements AutoConfigurationCustomizerProvider {
   private static final Logger logger = LoggerFactory.getLogger();
 
-  private static boolean agentEnabled;
-
-  static {
-    try {
-      agentEnabled = JavaRuntimeVersionChecker.isJdkVersionSupported();
-      if (agentEnabled) {
-        ConfigurationLoader.load();
-      } else {
-        logger.warn(
-            String.format(
-                "Unsupported Java runtime version: %s. The lowest Java version supported is %s.",
-                System.getProperty("java.version"), JavaRuntimeVersionChecker.minVersionSupported));
-      }
-
-    } catch (InvalidConfigException invalidConfigException) {
-      logger.warn("Error loading agent config", invalidConfigException);
-      agentEnabled = false;
-    }
-
-    if (!agentEnabled) {
-      logger.warn("Solarwinds' extension is disabled");
-    }
-  }
+  private static boolean agentEnabled = true;
 
   public static boolean isAgentEnabled() {
     return agentEnabled;

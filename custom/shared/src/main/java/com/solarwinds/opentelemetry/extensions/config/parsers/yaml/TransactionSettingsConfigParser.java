@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions;
+package com.solarwinds.opentelemetry.extensions.config.parsers.yaml;
 
+import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigParser;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
@@ -24,7 +25,11 @@ import com.solarwinds.joboe.sampling.SampleRateSource;
 import com.solarwinds.joboe.sampling.TraceConfig;
 import com.solarwinds.joboe.sampling.TraceConfigs;
 import com.solarwinds.joboe.sampling.TracingMode;
+import com.solarwinds.opentelemetry.extensions.config.parsers.json.ResourceExtensionsMatcher;
+import com.solarwinds.opentelemetry.extensions.config.parsers.json.StringPatternMatcher;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,37 +37,29 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
-/**
- * Parses the json config value from `agent.transactionSettings` and produces a {@link TraceConfigs}
- *
- * @author pluk
- */
-public class TransactionSettingsConfigParser implements ConfigParser<String, TraceConfigs> {
+@AutoService(ConfigParser.class)
+public class TransactionSettingsConfigParser
+    implements ConfigParser<DeclarativeConfigProperties, TraceConfigs> {
   private static final String TRACING_KEY = "tracing";
   private static final String REGEX_KEY = "regex";
   private static final String EXTENSIONS_KEY = "com/solarwinds/opentelemetry/extensions";
 
   private static final List<String> KEYS = Arrays.asList(TRACING_KEY, EXTENSIONS_KEY, REGEX_KEY);
-
-  public static final TransactionSettingsConfigParser INSTANCE =
-      new TransactionSettingsConfigParser();
-
-  private TransactionSettingsConfigParser() {}
+  private static final String CONFIG_KEY = "agent.transactionSettings";
 
   @Override
-  public TraceConfigs convert(String transactionSettingValue) throws InvalidConfigException {
+  public TraceConfigs convert(DeclarativeConfigProperties declarativeConfigProperties)
+      throws InvalidConfigException {
     try {
-      JSONArray array = new JSONArray(transactionSettingValue);
-      Map<ResourceMatcher, TraceConfig> result = new LinkedHashMap<ResourceMatcher, TraceConfig>();
-      for (int i = 0; i < array.length(); i++) {
-        JSONObject entry = array.getJSONObject(i);
+      List<DeclarativeConfigProperties> transactionSettings =
+          declarativeConfigProperties.getStructuredList(CONFIG_KEY, Collections.emptyList());
 
-        ResourceMatcher matcher = parseMatcher(entry);
-        TraceConfig traceConfig = parseTraceConfig(entry);
+      Map<ResourceMatcher, TraceConfig> result = new LinkedHashMap<ResourceMatcher, TraceConfig>();
+      for (DeclarativeConfigProperties transactionSetting : transactionSettings) {
+        ResourceMatcher matcher = parseMatcher(transactionSetting);
+        TraceConfig traceConfig = parseTraceConfig(transactionSetting);
 
         result.put(matcher, traceConfig);
       }
@@ -79,25 +76,32 @@ public class TransactionSettingsConfigParser implements ConfigParser<String, Tra
     }
   }
 
-  private ResourceMatcher parseMatcher(JSONObject transactionSettingEntry)
-      throws InvalidConfigException, JSONException {
-    checkKeys(transactionSettingEntry.keySet());
+  @Override
+  public String configKey() {
+    return CONFIG_KEY;
+  }
 
-    if (transactionSettingEntry.has(REGEX_KEY) && transactionSettingEntry.has(EXTENSIONS_KEY)) {
+  private ResourceMatcher parseMatcher(DeclarativeConfigProperties declarativeConfigProperties)
+      throws InvalidConfigException, JSONException {
+    checkKeys(declarativeConfigProperties.getPropertyKeys());
+    String regex = declarativeConfigProperties.getString(REGEX_KEY);
+    List<String> extensions =
+        declarativeConfigProperties.getScalarList(EXTENSIONS_KEY, String.class);
+
+    if (regex != null && extensions != null) {
       throw new InvalidConfigException(
           "Multiple matchers found for \""
               + ConfigProperty.AGENT_TRANSACTION_SETTINGS.getConfigFileKey()
               + "\" entry "
-              + transactionSettingEntry);
-    } else if (transactionSettingEntry.has(REGEX_KEY)) {
-      String regexString = transactionSettingEntry.getString(REGEX_KEY);
-      Pattern pattern;
+              + declarativeConfigProperties);
+    } else if (regex != null) {
       try {
-        pattern = Pattern.compile(regexString, Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+        return new StringPatternMatcher(pattern);
       } catch (PatternSyntaxException e) {
         throw new InvalidConfigException(
             "Failed to compile pattern "
-                + regexString
+                + regex
                 + " defined in \""
                 + ConfigProperty.AGENT_TRANSACTION_SETTINGS.getConfigFileKey()
                 + "."
@@ -107,20 +111,16 @@ public class TransactionSettingsConfigParser implements ConfigParser<String, Tra
                 + "].",
             e);
       }
-      return new StringPatternMatcher(pattern);
-    } else if (transactionSettingEntry.has(EXTENSIONS_KEY)) {
-      JSONArray resourceExtensionsJson = transactionSettingEntry.getJSONArray(EXTENSIONS_KEY);
-      Set<String> resourceExtensions = new HashSet<String>();
-      for (int j = 0; j < resourceExtensionsJson.length(); j++) {
-        resourceExtensions.add(resourceExtensionsJson.getString(j));
-      }
+
+    } else if (extensions != null) {
+      Set<String> resourceExtensions = new HashSet<String>(extensions);
       return new ResourceExtensionsMatcher(resourceExtensions);
     } else {
       throw new InvalidConfigException(
           "Cannot find proper matcher for \""
               + ConfigProperty.AGENT_TRANSACTION_SETTINGS.getConfigFileKey()
               + "\" entry "
-              + transactionSettingEntry
+              + declarativeConfigProperties
               + ". Neither "
               + REGEX_KEY
               + " nor "
@@ -143,14 +143,12 @@ public class TransactionSettingsConfigParser implements ConfigParser<String, Tra
     }
   }
 
-  private TraceConfig parseTraceConfig(JSONObject transactionSettingEntry)
+  private TraceConfig parseTraceConfig(DeclarativeConfigProperties declarativeConfigProperties)
       throws InvalidConfigException, JSONException {
-    Set<?> keys = transactionSettingEntry.keySet();
-    TracingMode tracingMode;
+    String tracingModeString = declarativeConfigProperties.getString(TRACING_KEY);
 
-    if (keys.contains(TRACING_KEY)) {
-      String tracingModeString = transactionSettingEntry.getString(TRACING_KEY);
-      tracingMode = TracingMode.fromString(tracingModeString);
+    if (tracingModeString != null) {
+      TracingMode tracingMode = TracingMode.fromString(tracingModeString);
       if (tracingMode == null) {
         throw new InvalidConfigException(
             "Invalid \""

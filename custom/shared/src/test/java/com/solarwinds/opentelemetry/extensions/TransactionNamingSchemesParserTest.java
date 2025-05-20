@@ -19,6 +19,7 @@ package com.solarwinds.opentelemetry.extensions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.opentelemetry.extensions.config.parsers.json.TransactionNamingSchemesParser;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
