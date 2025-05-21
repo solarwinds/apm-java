@@ -1,4 +1,4 @@
-package com.solarwinds.opentelemetry.extensions.initialize.config;
+package com.solarwinds.opentelemetry.extensions.config;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -12,7 +12,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.solarwinds.joboe.sampling.Settings;
-import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReaderDelegate;
 import io.opentelemetry.api.internal.InstrumentationUtil;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
