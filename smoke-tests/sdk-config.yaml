@@ -77,7 +77,7 @@ meter_provider:
     - # Configure a periodic metric reader.
       periodic:
         # Configure delay interval (in milliseconds) between start of two consecutive exports.
-        interval: 60000
+        interval: 100
         # Configure maximum allowed time (in milliseconds) to export data.
         timeout: 30000
         # Configure exporter.
