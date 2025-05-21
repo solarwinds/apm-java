@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions.config.parsers.yaml;
+package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigParser;
@@ -26,9 +26,9 @@ import java.util.List;
 import java.util.Set;
 
 @AutoService(ConfigParser.class)
-public final class StacktraceFilterParser
+public class SqlTagDatabasesParser
     implements ConfigParser<DeclarativeConfigProperties, Set<String>> {
-  private static final String CONFIG_KEY = "agent.spanStacktraceFilters";
+  private static final String CONFIG_KEY = "agent.sqlTagDatabases";
 
   @Override
   public Set<String> convert(DeclarativeConfigProperties declarativeConfigProperties)

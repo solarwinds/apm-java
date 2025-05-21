@@ -54,7 +54,6 @@ import com.solarwinds.joboe.metrics.TracingReporterMetricsCollector;
 import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.opentelemetry.core.AgentState;
 import com.solarwinds.opentelemetry.extensions.config.ConfigurationLoader;
-import com.solarwinds.opentelemetry.extensions.provider.ResourceComponentProvider;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.javaagent.extension.AgentListener;

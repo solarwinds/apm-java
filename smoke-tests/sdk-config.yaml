@@ -59,12 +59,11 @@ tracer_provider:
             timeout: 10000
             # Configure headers. Entries have higher priority than entries from .headers_list.
             headers_list: ${OTEL_EXPORTER_OTLP_HEADERS}
-    -
-      swo/inboundMetricSpanProcessor:
-    -
-      swo/profilingSpanProcessor:
-    -
-      swo/inboundMeasurementMetrics:
+    - swo/inboundMetricSpanProcessor:
+    - swo/profilingSpanProcessor:
+    - swo/inboundMeasurementMetrics:
+    - swo/spanStacktrace:
+        duration: 2
 
   sampler:
     # Configure sampler.
