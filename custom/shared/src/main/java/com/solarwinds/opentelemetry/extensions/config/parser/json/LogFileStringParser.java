@@ -14,17 +14,23 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions.config.parsers.json;
+package com.solarwinds.opentelemetry.extensions.config.parser.json;
 
 import com.solarwinds.joboe.config.ConfigParser;
 import com.solarwinds.joboe.config.InvalidConfigException;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
-public class SqlTagDatabasesParser implements ConfigParser<String, Set<String>> {
+public class LogFileStringParser implements ConfigParser<String, Path> {
+
   @Override
-  public Set<String> convert(String databases) throws InvalidConfigException {
-    return Arrays.stream(databases.split(",")).map(String::toLowerCase).collect(Collectors.toSet());
+  public Path convert(String pathString) throws InvalidConfigException {
+    try {
+      return Paths.get(pathString);
+    } catch (InvalidPathException e) {
+      throw new InvalidConfigException(
+          "Log file path [" + pathString + "] is invalid : " + e.getMessage(), e);
+    }
   }
 }

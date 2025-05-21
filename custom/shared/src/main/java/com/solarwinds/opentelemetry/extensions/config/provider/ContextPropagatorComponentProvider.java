@@ -1,4 +1,4 @@
-package com.solarwinds.opentelemetry.extensions.config;
+package com.solarwinds.opentelemetry.extensions.config.provider;
 
 import com.google.auto.service.AutoService;
 import com.solarwinds.opentelemetry.extensions.SolarwindsContextPropagator;
