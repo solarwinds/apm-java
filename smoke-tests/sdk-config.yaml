@@ -155,8 +155,21 @@ instrumentation:
     solarwinds:
       agent.logging:
         level: trace
-      agent.sqlTag: ${SW_APM_SQL_TAG}
+      agent.sqlTag: true
+      agent.sqlTagPrepared: true
+      agent.sqlTagDatabases:
+        - postgresql
+      agent.transactionSettings:
+        -
+          regex: ".*/specialties"
+          tracing: "disabled"
+      agent.transactionNameSchemes:
+        -
+          scheme: "spanAttribute"
+          delimiter: ":"
+          attributes:
+            - HandlerName
+            - http.request.method
+            - http.method
       agent.serviceKey: ${SW_APM_SERVICE_KEY}
-      agent.sqlTagPrepared: ${SW_APM_SQL_TAG_PREPARED}
-      agent.sqlTagDatabases: ${SW_APM_SQL_TAG_DATABASES}
       agent.collector: apm.collector.na-01.st-ssp.solarwinds.com

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions.initialize.config;
+package com.solarwinds.opentelemetry.extensions.config.parser.json;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,8 +22,6 @@ import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.solarwinds.opentelemetry.extensions.config.parser.json.ProfilerSettingParser;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
