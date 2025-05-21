@@ -14,31 +14,25 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions.config.parsers.json;
+package com.solarwinds.opentelemetry.extensions.config.parser.json;
 
 import com.solarwinds.joboe.config.ConfigParser;
-import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
-import com.solarwinds.joboe.sampling.TracingMode;
 
-public class TracingModeParser implements ConfigParser<String, TracingMode> {
+public class ModeStringToBooleanParser implements ConfigParser<String, Boolean> {
+  public static final ModeStringToBooleanParser INSTANCE = new ModeStringToBooleanParser();
+
+  private ModeStringToBooleanParser() {}
 
   @Override
-  public TracingMode convert(String argVal) throws InvalidConfigException {
-    if (argVal != null) {
-      TracingMode tracingMode = TracingMode.fromString(argVal);
-      if (tracingMode != null) {
-        return tracingMode;
-      } else {
-        throw new InvalidConfigException(
-            "Invalid "
-                + ConfigProperty.AGENT_TRACING_MODE.getConfigFileKey()
-                + " : "
-                + argVal
-                + ", must be \"disabled\" or \"enabled\"");
-      }
+  public Boolean convert(String input) throws InvalidConfigException {
+    if ("enabled".equals(input)) {
+      return true;
+    } else if ("disabled".equals(input)) {
+      return false;
     } else {
-      return null;
+      throw new InvalidConfigException(
+          "Expected value [enabled] or [disabled] but found [" + input + "]");
     }
   }
 }

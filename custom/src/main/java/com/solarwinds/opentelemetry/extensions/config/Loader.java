@@ -8,7 +8,7 @@ import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.opentelemetry.extensions.LoggingConfigProvider;
-import com.solarwinds.opentelemetry.extensions.config.parsers.yaml.DeclarativeConfigParser;
+import com.solarwinds.opentelemetry.extensions.config.parser.yaml.DeclarativeConfigParser;
 import com.solarwinds.opentelemetry.extensions.provider.AutoConfigurationCustomizerProviderImpl;
 import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
