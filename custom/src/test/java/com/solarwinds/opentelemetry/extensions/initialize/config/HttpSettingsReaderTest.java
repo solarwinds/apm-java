@@ -13,6 +13,8 @@ import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.sampling.Settings;
 import com.solarwinds.opentelemetry.extensions.ResourceCustomizer;
+import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReader;
+import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReaderDelegate;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.incubating.HostIncubatingAttributes;
 import org.junit.jupiter.api.BeforeEach;

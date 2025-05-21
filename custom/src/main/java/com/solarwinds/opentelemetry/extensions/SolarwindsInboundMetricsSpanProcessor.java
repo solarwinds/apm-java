@@ -32,7 +32,7 @@ import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.metrics.SpanMetricsCollector;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.opentelemetry.core.Constants;
-import com.solarwinds.opentelemetry.extensions.initialize.ConfigurationLoader;
+import com.solarwinds.opentelemetry.extensions.config.ConfigurationLoader;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.StatusCode;

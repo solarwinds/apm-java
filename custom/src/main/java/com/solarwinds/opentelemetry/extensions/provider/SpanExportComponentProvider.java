@@ -1,4 +1,4 @@
-package com.solarwinds.opentelemetry.extensions.initialize;
+package com.solarwinds.opentelemetry.extensions.provider;
 
 import com.google.auto.service.AutoService;
 import com.solarwinds.opentelemetry.extensions.SolarwindsSpanExporter;
