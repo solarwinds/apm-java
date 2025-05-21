@@ -23,6 +23,8 @@ import java.nio.file.*;
 import java.util.Collections;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+
+import com.solarwinds.opentelemetry.extensions.config.livereload.ConfigurationFileWatcher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

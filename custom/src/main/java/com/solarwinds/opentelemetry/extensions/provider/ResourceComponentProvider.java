@@ -1,4 +1,4 @@
-package com.solarwinds.opentelemetry.extensions.initialize;
+package com.solarwinds.opentelemetry.extensions.provider;
 
 import static com.solarwinds.opentelemetry.extensions.ApmResourceProvider.moduleKey;
 import static com.solarwinds.opentelemetry.extensions.ApmResourceProvider.versionKey;
