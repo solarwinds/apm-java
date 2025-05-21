@@ -242,7 +242,7 @@ public class SolarwindsAgentListener implements AgentListener {
     }
 
     // Capture OTel Resource attributes
-    Attributes attributes = ResourceComponentProvider.getResource().getAttributes();
+    Attributes attributes = ResourceArbiter.resource().getAttributes();
     logger.debug(
         "Resource attributes "
             + attributes.toString().replaceAll("(sw.apm.service.key=)\\S+", "$1****"));
