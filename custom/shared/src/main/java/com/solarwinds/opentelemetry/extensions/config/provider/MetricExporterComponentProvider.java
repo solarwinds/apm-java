@@ -1,4 +1,4 @@
-package com.solarwinds.opentelemetry.extensions.config;
+package com.solarwinds.opentelemetry.extensions.config.provider;
 
 import static io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil.DATA_TYPE_METRICS;
 

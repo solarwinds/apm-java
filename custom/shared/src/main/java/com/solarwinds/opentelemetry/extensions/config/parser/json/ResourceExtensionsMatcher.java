@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions.config.parsers.json;
+package com.solarwinds.opentelemetry.extensions.config.parser.json;
 
 import com.solarwinds.joboe.sampling.ResourceMatcher;
 import java.util.Set;

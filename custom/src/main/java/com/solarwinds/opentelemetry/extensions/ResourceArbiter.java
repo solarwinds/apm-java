@@ -4,11 +4,10 @@ import com.solarwinds.opentelemetry.extensions.provider.ResourceComponentProvide
 import io.opentelemetry.sdk.resources.Resource;
 
 public final class ResourceArbiter {
-    private ResourceArbiter() {
-    }
+  private ResourceArbiter() {}
 
-    public static Resource resource() {
-        Resource resource = ResourceCustomizer.getResource();
-        return resource == null ? ResourceComponentProvider.getResource() : resource;
-    }
+  public static Resource resource() {
+    Resource resource = ResourceCustomizer.getResource();
+    return resource == null ? ResourceComponentProvider.getResource() : resource;
+  }
 }
