@@ -14,29 +14,38 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions.config.parsers.yaml;
+package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigParser;
+import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.sampling.TracingMode;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @AutoService(ConfigParser.class)
-public class SqlTagDatabasesParser
-    implements ConfigParser<DeclarativeConfigProperties, Set<String>> {
-  private static final String CONFIG_KEY = "agent.sqlTagDatabases";
+public class TracingModeParser implements ConfigParser<DeclarativeConfigProperties, TracingMode> {
+  private static final String CONFIG_KEY = "agent.tracingMode";
 
   @Override
-  public Set<String> convert(DeclarativeConfigProperties declarativeConfigProperties)
+  public TracingMode convert(DeclarativeConfigProperties declarativeConfigProperties)
       throws InvalidConfigException {
-    List<String> databases =
-        declarativeConfigProperties.getScalarList(
-            CONFIG_KEY, String.class, Collections.emptyList());
-    return new HashSet<>(databases);
+    String mode = declarativeConfigProperties.getString(CONFIG_KEY);
+    if (mode == null) {
+      return null;
+    }
+
+    TracingMode tracingMode = TracingMode.fromString(mode);
+    if (tracingMode != null) {
+      return tracingMode;
+    } else {
+      throw new InvalidConfigException(
+          "Invalid "
+              + ConfigProperty.AGENT_TRACING_MODE.getConfigFileKey()
+              + " : "
+              + mode
+              + ", must be \"disabled\" or \"enabled\"");
+    }
   }
 
   @Override

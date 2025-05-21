@@ -19,7 +19,7 @@ package com.solarwinds.opentelemetry.extensions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.solarwinds.joboe.config.InvalidConfigException;
-import com.solarwinds.opentelemetry.extensions.config.parsers.json.SqlTagDatabasesParser;
+import com.solarwinds.opentelemetry.extensions.config.parser.json.SqlTagDatabasesParser;
 import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.Test;

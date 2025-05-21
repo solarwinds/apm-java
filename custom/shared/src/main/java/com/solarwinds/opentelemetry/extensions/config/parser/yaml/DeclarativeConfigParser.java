@@ -1,4 +1,4 @@
-package com.solarwinds.opentelemetry.extensions.config.parsers.yaml;
+package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
 import com.solarwinds.joboe.config.ConfigContainer;
 import com.solarwinds.joboe.config.ConfigParser;
