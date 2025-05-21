@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions.initialize;
+package com.solarwinds.opentelemetry.extensions.config;
 
 import static com.solarwinds.opentelemetry.extensions.SharedNames.COMPONENT_NAME;
 
@@ -48,9 +48,9 @@ import com.solarwinds.opentelemetry.extensions.config.parsers.json.TracingModePa
 import com.solarwinds.opentelemetry.extensions.config.parsers.json.TransactionNamingSchemesParser;
 import com.solarwinds.opentelemetry.extensions.config.parsers.json.TransactionSettingsConfigParser;
 import com.solarwinds.opentelemetry.extensions.config.parsers.json.UrlSampleRateConfigParser;
-import com.solarwinds.opentelemetry.extensions.initialize.config.ProfilerSettingParser;
-import com.solarwinds.opentelemetry.extensions.initialize.config.ProxyConfigParser;
-import com.solarwinds.opentelemetry.extensions.initialize.config.livereload.ConfigurationFileWatcher;
+import com.solarwinds.opentelemetry.extensions.config.parser.json.ProfilerSettingParser;
+import com.solarwinds.opentelemetry.extensions.config.parser.json.ProxyConfigParser;
+import com.solarwinds.opentelemetry.extensions.config.livereload.ConfigurationFileWatcher;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

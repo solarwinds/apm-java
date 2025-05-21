@@ -1,4 +1,4 @@
-package com.solarwinds.opentelemetry.extensions.initialize.config;
+package com.solarwinds.opentelemetry.extensions.config;
 
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigContainer;
@@ -9,8 +9,7 @@ import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.opentelemetry.extensions.LoggingConfigProvider;
 import com.solarwinds.opentelemetry.extensions.config.parsers.yaml.DeclarativeConfigParser;
-import com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl;
-import com.solarwinds.opentelemetry.extensions.initialize.ConfigurationLoader;
+import com.solarwinds.opentelemetry.extensions.provider.AutoConfigurationCustomizerProviderImpl;
 import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
@@ -18,7 +17,7 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.internal.AutoConfigureUtil;
 
 @AutoService(BeforeAgentListener.class)
-public class ConfigLoader implements BeforeAgentListener {
+public class Loader implements BeforeAgentListener {
   private static final Logger logger = LoggerFactory.getLogger();
 
   @Override
