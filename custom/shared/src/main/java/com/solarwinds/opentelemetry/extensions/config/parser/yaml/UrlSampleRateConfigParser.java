@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions.config.parsers.yaml;
+package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigParser;
@@ -24,7 +24,7 @@ import com.solarwinds.joboe.sampling.SampleRateSource;
 import com.solarwinds.joboe.sampling.TraceConfig;
 import com.solarwinds.joboe.sampling.TraceConfigs;
 import com.solarwinds.joboe.sampling.TracingMode;
-import com.solarwinds.opentelemetry.extensions.config.parsers.json.StringPatternMatcher;
+import com.solarwinds.opentelemetry.extensions.config.parser.json.StringPatternMatcher;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import java.util.Collections;
 import java.util.LinkedHashMap;

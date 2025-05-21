@@ -55,7 +55,6 @@ import com.solarwinds.opentelemetry.extensions.config.ConfigurationLoader;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsFetcher;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReader;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReaderDelegate;
-import com.solarwinds.opentelemetry.extensions.provider.ResourceComponentProvider;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.javaagent.extension.AgentListener;

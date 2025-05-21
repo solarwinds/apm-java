@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions.config.parsers.yaml;
+package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigParser;
