@@ -35,6 +35,8 @@ import com.solarwinds.opentelemetry.extensions.TransactionNameManager;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
+
+import com.solarwinds.opentelemetry.extensions.config.ConfigurationLoader;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junitpioneer.jupiter.ClearSystemProperty;
