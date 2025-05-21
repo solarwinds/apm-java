@@ -17,7 +17,7 @@ resource:
   # Entries must contain .name nand .value, and may optionally include .type, which defaults ot "string" if not set. The value must match the type. Values for .type include: string, bool, int, double, string_array, bool_array, int_array, double_array.
   attributes:
     - name: service.name
-      value: java-apm-smoke-test-dc
+      value: java-apm-smoke-test
 
 # Configure general attribute limits. See also tracer_provider.limits, logger_provider.limits.
 attribute_limits:
