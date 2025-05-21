@@ -1,4 +1,4 @@
-package com.solarwinds.opentelemetry.extensions.initialize.config;
+package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigParser;

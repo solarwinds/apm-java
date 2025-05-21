@@ -1,12 +1,10 @@
-package com.solarwinds.opentelemetry.extensions.initialize.config;
+package com.solarwinds.opentelemetry.extensions.config;
 
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.Settings;
 import com.solarwinds.joboe.shaded.google.gson.Gson;
 import com.solarwinds.joboe.shaded.google.gson.GsonBuilder;
-import com.solarwinds.opentelemetry.extensions.config.JsonSetting;
-import com.solarwinds.opentelemetry.extensions.config.JsonSettingWrapper;
 import io.opentelemetry.api.internal.InstrumentationUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
