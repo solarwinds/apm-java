@@ -98,7 +98,6 @@ public class PetClinicRestContainer implements Container {
             .withFileSystemBind("./apm-config.json", "/app/apm-config.json")
             .withFileSystemBind("./sdk-config.yaml", "/app/sdk-config.yaml")
             .withEnv("SW_APM_CONFIG_FILE", "/app/apm-config.json")
-            .withEnv("SW_APM_CONFIG_FILE", "/app/apm-config.json")
             .withEnv("OTEL_JAVAAGENT_DEBUG", "true")
             .waitingFor(Wait.forHttp("/petclinic/actuator/health").withReadTimeout(Duration.ofMinutes(5)).forPort(PETCLINIC_PORT))
             .withEnv("spring_profiles_active", "postgresql,spring-data-jpa")

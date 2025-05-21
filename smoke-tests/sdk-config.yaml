@@ -159,5 +159,17 @@ instrumentation:
       agent.sqlTagPrepared: true
       agent.sqlTagDatabases:
         - postgresql
+      agent.transactionSettings:
+        -
+          regex: ".*/specialties"
+          tracing: "disabled"
+      agent.transactionNameSchemes:
+        -
+          scheme: "spanAttribute"
+          delimiter: ":"
+          attributes:
+            - HandlerName
+            - http.request.method
+            - http.method
       agent.serviceKey: ${SW_APM_SERVICE_KEY}
       agent.collector: apm.collector.na-01.st-ssp.solarwinds.com
