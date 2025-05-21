@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions.initialize;
+package com.solarwinds.opentelemetry.extensions.config;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,8 +35,7 @@ import com.solarwinds.opentelemetry.extensions.TransactionNameManager;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
-
-import com.solarwinds.opentelemetry.extensions.config.ConfigurationLoader;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junitpioneer.jupiter.ClearSystemProperty;
@@ -77,7 +76,7 @@ class ConfigurationLoaderTest {
             "-",
             Collections.singletonList("http.method"));
 
-    assertEquals(expected, TransactionNameManager.getNamingScheme());
+    Assertions.assertEquals(expected, TransactionNameManager.getNamingScheme());
   }
 
   @Test
