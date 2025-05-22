@@ -22,6 +22,7 @@ import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.logging.LogSetting;
 import com.solarwinds.joboe.logging.Logger;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -40,7 +41,11 @@ public class LogSettingParser implements ConfigParser<DeclarativeConfigPropertie
     Path filePath = null;
     String location = fileInfo.getString("location");
     if (location != null) {
-      filePath = Paths.get(location);
+      try {
+        filePath = Paths.get(location);
+      } catch (InvalidPathException e) {
+        throw new InvalidConfigException(e);
+      }
     }
 
     return new LogSetting(
