@@ -103,7 +103,7 @@ public class TransactionSettingsConfigParser
             "Failed to compile pattern "
                 + regex
                 + " defined in \""
-                + ConfigProperty.AGENT_TRANSACTION_SETTINGS.getConfigFileKey()
+                + configKey()
                 + "."
                 + REGEX_KEY
                 + "\", error message ["
@@ -118,7 +118,7 @@ public class TransactionSettingsConfigParser
     } else {
       throw new InvalidConfigException(
           "Cannot find proper matcher for \""
-              + ConfigProperty.AGENT_TRANSACTION_SETTINGS.getConfigFileKey()
+              + configKey()
               + "\" entry "
               + declarativeConfigProperties
               + ". Neither "
