@@ -36,15 +36,7 @@ tracer_provider:
   # Configure span processors.
   processors:
     - # Configure a batch span processor.
-      batch:
-        # Configure delay interval (in milliseconds) between two consecutive exports.
-        schedule_delay: 5000
-        # Configure maximum allowed time (in milliseconds) to export data.
-        export_timeout: 30000
-        # Configure maximum queue size.
-        max_queue_size: 2048
-        # Configure maximum batch size.
-        max_export_batch_size: 512
+      simple:
         # Configure exporter.
         exporter:
           # Configure exporter to be OTLP.
@@ -172,3 +164,28 @@ instrumentation:
             - http.method
       agent.serviceKey: ${SW_APM_SERVICE_KEY}
       agent.collector: apm.collector.na-01.st-ssp.solarwinds.com
+      monitor.jmx.enable: true
+      monitor.jmx.scopes: |
+        {
+          "java.lang:type=MemoryPool,*": [
+            "Usage"
+          ],
+          "java.lang:type=Memory": [
+            "HeapMemoryUsage",
+            "NonHeapMemoryUsage"
+          ],
+          "java.lang:type=GarbageCollector,*": [
+            "CollectionTime"
+          ],
+          "java.lang:type=Threading": [
+            "ThreadCount"
+          ],
+          "java.lang:type=OperatingSystem": [
+            "ProcessCpuTime",
+            "AvailableProcessors",
+            "ProcessCpuLoad"
+          ],
+          "java.lang:type=Runtime,*": [
+            "Uptime"
+          ]
+        }
