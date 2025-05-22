@@ -46,8 +46,12 @@ dependencies {
 
   compileOnly("io.opentelemetry:opentelemetry-api-incubator")
   compileOnly("io.opentelemetry:opentelemetry-exporter-otlp")
+  compileOnly("io.opentelemetry:opentelemetry-sdk-extension-incubator")
+
   testImplementation("org.json:json")
   testImplementation("com.solarwinds.joboe:sampling")
+  testImplementation("io.opentelemetry:opentelemetry-api-incubator")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-extension-incubator")
 }
 
 val otelAgentVersion: String by rootProject.extra

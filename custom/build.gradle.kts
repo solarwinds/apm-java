@@ -41,6 +41,9 @@ dependencies {
   testImplementation(project(":custom:shared"))
   testImplementation("org.json:json")
   testImplementation("com.solarwinds.joboe:core")
+
+  testImplementation("io.opentelemetry:opentelemetry-api-incubator")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-extension-incubator")
 }
 
 tasks.withType(Checkstyle::class).configureEach {

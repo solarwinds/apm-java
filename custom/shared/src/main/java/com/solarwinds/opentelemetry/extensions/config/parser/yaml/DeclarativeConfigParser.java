@@ -6,6 +6,7 @@ import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
@@ -28,11 +29,14 @@ public final class DeclarativeConfigParser {
   public void parse(DeclarativeConfigProperties declarativeConfigProperties)
       throws InvalidConfigException {
     Set<String> propertyKeys = declarativeConfigProperties.getPropertyKeys();
+    Set<String> unknownKeys = new HashSet<>();
 
     for (String key : propertyKeys) {
       ConfigProperty configProperty = ConfigProperty.fromConfigFileKey(key);
 
-      if (configProperty != null) {
+      if (configProperty == null) {
+        unknownKeys.add(key);
+      } else {
         Object parsed = null;
         Class<?> typeClass = configProperty.getTypeClass();
 
@@ -44,6 +48,9 @@ public final class DeclarativeConfigParser {
 
         } else if (typeClass == Integer.class) {
           parsed = declarativeConfigProperties.getInt(key);
+
+        } else if (typeClass == Long.class) {
+          parsed = declarativeConfigProperties.getLong(key);
         }
 
         if (register.containsKey(key)) {
@@ -55,6 +62,11 @@ public final class DeclarativeConfigParser {
           configContainer.put(configProperty, parsed);
         }
       }
+    }
+
+    if (!unknownKeys.isEmpty()) {
+      throw new InvalidConfigException(
+          String.format("Unknown keys found in solarwinds config. Keys -> %s", unknownKeys));
     }
   }
 }
