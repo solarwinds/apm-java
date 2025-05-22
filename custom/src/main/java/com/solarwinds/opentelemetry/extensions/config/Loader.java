@@ -44,7 +44,6 @@ public class Loader implements BeforeAgentListener {
 
           ConfigContainer agentConfig = configContainer.subset(ConfigGroup.AGENT);
           LoggerFactory.init(LoggingConfigProvider.getLoggerConfiguration(agentConfig));
-          logger.info("ConfigContainer: " + configContainer);
 
         } catch (InvalidConfigException e) {
           throw new RuntimeException(e);
