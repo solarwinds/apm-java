@@ -35,7 +35,7 @@ public class SpanStacktraceProvider implements ComponentProvider<SpanProcessor> 
     return new StackTraceSpanProcessor(duration, getFilterPredicate(declarativeConfigProperties));
   }
 
-  private Predicate<ReadableSpan> getFilterPredicate(
+  Predicate<ReadableSpan> getFilterPredicate(
       DeclarativeConfigProperties declarativeConfigProperties) {
     String filterClass =
         declarativeConfigProperties.getString("filterClass", SPAN_STACKTRACE_FILTER_CLASS);

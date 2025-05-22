@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import org.json.JSONException;
 
 @AutoService(ConfigParser.class)
 public class UrlSampleRateConfigParser
@@ -46,49 +45,41 @@ public class UrlSampleRateConfigParser
   @Override
   public TraceConfigs convert(DeclarativeConfigProperties declarativeConfigProperties)
       throws InvalidConfigException {
-    try {
-      List<DeclarativeConfigProperties> urlSampleRates =
-          declarativeConfigProperties.getStructuredList(CONFIG_KEY, Collections.emptyList());
-      Map<ResourceMatcher, TraceConfig> result = new LinkedHashMap<>();
-      for (DeclarativeConfigProperties urlSampleRate : urlSampleRates) {
+    List<DeclarativeConfigProperties> urlSampleRates =
+        declarativeConfigProperties.getStructuredList(CONFIG_KEY, Collections.emptyList());
+    Map<ResourceMatcher, TraceConfig> result = new LinkedHashMap<>();
+    for (DeclarativeConfigProperties urlSampleRate : urlSampleRates) {
 
-        Set<String> propertyKeys = urlSampleRate.getPropertyKeys();
-        if (propertyKeys.size() != 1) {
-          throw new InvalidConfigException("Invalid url sample rate config");
-        }
-
-        Pattern pattern;
-        String url = propertyKeys.iterator().next();
-        try {
-          pattern = Pattern.compile(url, Pattern.CASE_INSENSITIVE);
-        } catch (PatternSyntaxException e) {
-          throw new InvalidConfigException(
-              "Failed to compile the url sample rate of url pattern ["
-                  + url
-                  + "], error message ["
-                  + e.getMessage()
-                  + "].",
-              e);
-        }
-
-        DeclarativeConfigProperties urlConfig =
-            urlSampleRate.getStructured(url, DeclarativeConfigProperties.empty());
-        TraceConfig traceConfig = extractConfig(urlConfig, declarativeConfigProperties);
-        if (traceConfig != null) {
-          result.put(new StringPatternMatcher(pattern), traceConfig);
-        }
+      Set<String> propertyKeys = urlSampleRate.getPropertyKeys();
+      if (propertyKeys.size() != 1) {
+        throw new InvalidConfigException("Invalid url sample rate config");
       }
 
-      return new TraceConfigs(result);
-    } catch (JSONException e) {
-      throw new InvalidConfigException(
-          "Failed to parse the url sample rate string of ["
-              + declarativeConfigProperties
-              + "]. Error message is ["
-              + e.getMessage()
-              + "]",
-          e);
+      Pattern pattern;
+      String url = propertyKeys.iterator().next();
+      try {
+        pattern = Pattern.compile(url, Pattern.CASE_INSENSITIVE);
+
+      } catch (PatternSyntaxException e) {
+        throw new InvalidConfigException(
+            "Failed to compile the url sample rate of url pattern ["
+                + url
+                + "], error message ["
+                + e.getMessage()
+                + "].",
+            e);
+      }
+
+      DeclarativeConfigProperties urlConfig =
+          urlSampleRate.getStructured(url, DeclarativeConfigProperties.empty());
+      TraceConfig traceConfig = extractConfig(urlConfig, declarativeConfigProperties);
+
+      if (traceConfig != null) {
+        result.put(new StringPatternMatcher(pattern), traceConfig);
+      }
     }
+
+    return new TraceConfigs(result);
   }
 
   @Override
