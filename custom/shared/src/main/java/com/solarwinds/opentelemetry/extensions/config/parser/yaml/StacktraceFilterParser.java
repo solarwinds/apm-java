@@ -33,10 +33,10 @@ public final class StacktraceFilterParser
   @Override
   public Set<String> convert(DeclarativeConfigProperties declarativeConfigProperties)
       throws InvalidConfigException {
-    List<String> databases =
+    List<String> spanAttributes =
         declarativeConfigProperties.getScalarList(
             CONFIG_KEY, String.class, Collections.emptyList());
-    return new HashSet<>(databases);
+    return new HashSet<>(spanAttributes);
   }
 
   @Override

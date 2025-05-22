@@ -12,11 +12,13 @@ import java.util.List;
 @AutoService(ConfigParser.class)
 public class ProfilingSettingsParser
     implements ConfigParser<DeclarativeConfigProperties, ProfilerSetting> {
+  private static final String CONFIG_KEY = "profiler";
+
   @Override
   public ProfilerSetting convert(DeclarativeConfigProperties declarativeConfigProperties)
       throws InvalidConfigException {
     DeclarativeConfigProperties profilerSettings =
-        declarativeConfigProperties.getStructured("profiler");
+        declarativeConfigProperties.getStructured(CONFIG_KEY);
     if (profilerSettings == null) return null;
 
     boolean enabled = profilerSettings.getBoolean("enabled", false);
@@ -44,5 +46,10 @@ public class ProfilingSettingsParser
         interval,
         circuitBreakerDurationThreshold,
         circuitBreakerCountThreshold);
+  }
+
+  @Override
+  public String configKey() {
+    return CONFIG_KEY;
   }
 }
