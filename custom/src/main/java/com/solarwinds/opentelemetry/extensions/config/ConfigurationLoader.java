@@ -106,11 +106,13 @@ public class ConfigurationLoader {
   }
 
   public static void load() throws InvalidConfigException {
-    loadConfigurations();
-    String serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
-    logger.info(
-        "Successfully loaded SolarwindsAPM OpenTelemetry extensions configurations. Service key: "
-            + ServiceKeyUtils.maskServiceKey(serviceKey));
+    if (isDeclarativeConfigOff()) {
+      loadConfigurations();
+      String serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
+      logger.info(
+          "Successfully loaded SolarwindsAPM OpenTelemetry extensions configurations. Service key: "
+              + ServiceKeyUtils.maskServiceKey(serviceKey));
+    }
   }
 
   private static void attachConfigurationFileWatcher() {
@@ -655,5 +657,9 @@ public class ConfigurationLoader {
     }
 
     return propertyValue;
+  }
+
+  private static boolean isDeclarativeConfigOff() {
+    return getConfigValue("otel.experimental.config.files") == null;
   }
 }

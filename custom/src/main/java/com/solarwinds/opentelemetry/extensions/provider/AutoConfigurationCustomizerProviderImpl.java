@@ -17,6 +17,8 @@
 package com.solarwinds.opentelemetry.extensions.provider;
 
 import com.google.auto.service.AutoService;
+import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
@@ -24,6 +26,7 @@ import com.solarwinds.opentelemetry.extensions.MetricExporterCustomizer;
 import com.solarwinds.opentelemetry.extensions.ResourceCustomizer;
 import com.solarwinds.opentelemetry.extensions.SolarwindsPropertiesSupplier;
 import com.solarwinds.opentelemetry.extensions.SolarwindsTracerProviderCustomizer;
+import com.solarwinds.opentelemetry.extensions.config.ConfigurationLoader;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 
@@ -50,6 +53,27 @@ public class AutoConfigurationCustomizerProviderImpl
 
   @Override
   public void customize(@Nonnull AutoConfigurationCustomizer autoConfiguration) {
+    try {
+      agentEnabled = JavaRuntimeVersionChecker.isJdkVersionSupported();
+      if (agentEnabled) {
+        ConfigurationLoader.load();
+        logger.debug("Loaded via normal config");
+      } else {
+        logger.warn(
+            String.format(
+                "Unsupported Java runtime version: %s. The lowest Java version supported is %s.",
+                System.getProperty("java.version"), JavaRuntimeVersionChecker.minVersionSupported));
+      }
+
+    } catch (InvalidConfigException invalidConfigException) {
+      logger.warn("Error loading agent config", invalidConfigException);
+      agentEnabled = false;
+    }
+
+    if (!agentEnabled) {
+      logger.warn("Solarwinds' extension is disabled");
+    }
+
     autoConfiguration
         .addPropertiesSupplier(new SolarwindsPropertiesSupplier())
         .addTracerProviderCustomizer(new SolarwindsTracerProviderCustomizer())
