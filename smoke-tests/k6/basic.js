@@ -231,7 +231,7 @@ function verify_distributed_trace() {
 
         const traceContext = response.headers['X-Trace']
         const [_, traceId, __, flag] = traceContext.split("-")
-        console.log("Trace context -> ", traceContext)
+        console.log("[Distributed]Trace context -> ", traceContext)
         if (flag === '00') continue;
 
         const spanRawDataPayload = {
