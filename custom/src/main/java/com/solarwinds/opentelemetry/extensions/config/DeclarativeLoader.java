@@ -17,7 +17,7 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.internal.AutoConfigureUtil;
 
 @AutoService(BeforeAgentListener.class)
-public class Loader implements BeforeAgentListener {
+public class DeclarativeLoader implements BeforeAgentListener {
   private static final Logger logger = LoggerFactory.getLogger();
 
   @Override
@@ -25,12 +25,11 @@ public class Loader implements BeforeAgentListener {
     ConfigProvider configProvider =
         AutoConfigureUtil.getConfigProvider(autoConfiguredOpenTelemetrySdk);
 
-    boolean jdkVersionSupported = JavaRuntimeVersionChecker.isJdkVersionSupported();
-    AutoConfigurationCustomizerProviderImpl.setAgentEnabled(jdkVersionSupported);
-
     if (configProvider != null) {
-      DeclarativeConfigProperties instrumentationConfig = configProvider.getInstrumentationConfig();
+      boolean jdkVersionSupported = JavaRuntimeVersionChecker.isJdkVersionSupported();
+      AutoConfigurationCustomizerProviderImpl.setAgentEnabled(jdkVersionSupported);
 
+      DeclarativeConfigProperties instrumentationConfig = configProvider.getInstrumentationConfig();
       if (instrumentationConfig != null) {
         DeclarativeConfigProperties solarwinds =
             instrumentationConfig
@@ -44,34 +43,23 @@ public class Loader implements BeforeAgentListener {
 
           ConfigContainer agentConfig = configContainer.subset(ConfigGroup.AGENT);
           LoggerFactory.init(LoggingConfigProvider.getLoggerConfiguration(agentConfig));
-          logger.info("Loaded via declarative config");
+          logger.debug("Loaded via declarative config");
 
         } catch (InvalidConfigException e) {
           throw new RuntimeException(e);
         }
       }
 
-    } else {
-      try {
-        if (AutoConfigurationCustomizerProviderImpl.isAgentEnabled()) {
-          ConfigurationLoader.load();
-        }
-
-      } catch (InvalidConfigException invalidConfigException) {
-        logger.warn("Error loading agent config", invalidConfigException);
-        AutoConfigurationCustomizerProviderImpl.setAgentEnabled(false);
+      if (!jdkVersionSupported) {
+        logger.warn(
+            String.format(
+                "Unsupported Java runtime version: %s. The lowest Java version supported is %s.",
+                System.getProperty("java.version"), JavaRuntimeVersionChecker.minVersionSupported));
       }
-    }
 
-    if (!jdkVersionSupported) {
-      logger.warn(
-          String.format(
-              "Unsupported Java runtime version: %s. The lowest Java version supported is %s.",
-              System.getProperty("java.version"), JavaRuntimeVersionChecker.minVersionSupported));
-    }
-
-    if (!AutoConfigurationCustomizerProviderImpl.isAgentEnabled()) {
-      logger.warn("Solarwinds' extension is disabled");
+      if (!AutoConfigurationCustomizerProviderImpl.isAgentEnabled()) {
+        logger.warn("Solarwinds' extension is disabled");
+      }
     }
   }
 }
