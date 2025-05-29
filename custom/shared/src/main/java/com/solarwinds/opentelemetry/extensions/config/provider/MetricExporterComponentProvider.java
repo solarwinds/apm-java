@@ -17,6 +17,9 @@ import java.util.function.Consumer;
 
 @AutoService(ComponentProvider.class)
 public class MetricExporterComponentProvider implements ComponentProvider<MetricExporter> {
+
+  public static final String COMPONENT_NAME = "swo/metricExporter";
+
   @Override
   public Class<MetricExporter> getType() {
     return MetricExporter.class;
@@ -24,7 +27,7 @@ public class MetricExporterComponentProvider implements ComponentProvider<Metric
 
   @Override
   public String getName() {
-    return "swo/metricExporter";
+    return COMPONENT_NAME;
   }
 
   @Override

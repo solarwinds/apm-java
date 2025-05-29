@@ -16,7 +16,7 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
-import static com.solarwinds.opentelemetry.extensions.provider.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
+import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;

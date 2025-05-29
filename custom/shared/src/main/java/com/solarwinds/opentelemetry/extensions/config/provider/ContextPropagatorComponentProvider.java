@@ -8,6 +8,9 @@ import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 
 @AutoService(ComponentProvider.class)
 public class ContextPropagatorComponentProvider implements ComponentProvider<TextMapPropagator> {
+
+  public static final String COMPONENT_NAME = "swo/contextPropagator";
+
   @Override
   public Class<TextMapPropagator> getType() {
     return TextMapPropagator.class;
@@ -15,7 +18,7 @@ public class ContextPropagatorComponentProvider implements ComponentProvider<Tex
 
   @Override
   public String getName() {
-    return "swo/contextPropagator";
+    return COMPONENT_NAME;
   }
 
   @Override

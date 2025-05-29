@@ -2,6 +2,7 @@ package com.solarwinds.opentelemetry.extensions.provider;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.solarwinds.opentelemetry.extensions.config.provider.ProfilingSpanProcessorComponentProvider;
 import org.junit.jupiter.api.Test;
 
 class ProfilingSpanProcessorComponentProviderTest {

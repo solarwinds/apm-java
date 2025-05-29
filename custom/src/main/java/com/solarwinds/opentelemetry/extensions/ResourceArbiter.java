@@ -1,6 +1,6 @@
 package com.solarwinds.opentelemetry.extensions;
 
-import com.solarwinds.opentelemetry.extensions.provider.ResourceComponentProvider;
+import com.solarwinds.opentelemetry.extensions.config.provider.ResourceComponentProvider;
 import io.opentelemetry.sdk.resources.Resource;
 
 public final class ResourceArbiter {

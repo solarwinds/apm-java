@@ -1,4 +1,4 @@
-package com.solarwinds.opentelemetry.extensions.provider;
+package com.solarwinds.opentelemetry.extensions.config.provider;
 
 import static com.solarwinds.opentelemetry.extensions.ApmResourceProvider.moduleKey;
 import static com.solarwinds.opentelemetry.extensions.ApmResourceProvider.versionKey;
@@ -14,6 +14,8 @@ import lombok.Getter;
 @AutoService(ComponentProvider.class)
 public class ResourceComponentProvider implements ComponentProvider<Resource> {
 
+  public static final String COMPONENT_NAME = "swo/resource";
+
   @Getter private static Resource resource = null;
 
   @Override
@@ -23,7 +25,7 @@ public class ResourceComponentProvider implements ComponentProvider<Resource> {
 
   @Override
   public String getName() {
-    return "swo/resource";
+    return COMPONENT_NAME;
   }
 
   @Override
