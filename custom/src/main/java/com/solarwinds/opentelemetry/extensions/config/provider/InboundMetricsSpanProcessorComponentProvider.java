@@ -1,13 +1,17 @@
-package com.solarwinds.opentelemetry.extensions.provider;
+package com.solarwinds.opentelemetry.extensions.config.provider;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.opentelemetry.extensions.SolarwindsProfilingSpanProcessor;
+import com.solarwinds.opentelemetry.extensions.SolarwindsInboundMetricsSpanProcessor;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 
 @AutoService(ComponentProvider.class)
-public class ProfilingSpanProcessorComponentProvider implements ComponentProvider<SpanProcessor> {
+public class InboundMetricsSpanProcessorComponentProvider
+    implements ComponentProvider<SpanProcessor> {
+
+  public static final String COMPONENT_NAME = "swo/inboundMetricSpanProcessor";
+
   @Override
   public Class<SpanProcessor> getType() {
     return SpanProcessor.class;
@@ -15,11 +19,11 @@ public class ProfilingSpanProcessorComponentProvider implements ComponentProvide
 
   @Override
   public String getName() {
-    return "swo/profilingSpanProcessor";
+    return COMPONENT_NAME;
   }
 
   @Override
   public SpanProcessor create(DeclarativeConfigProperties declarativeConfigProperties) {
-    return new SolarwindsProfilingSpanProcessor();
+    return new SolarwindsInboundMetricsSpanProcessor();
   }
 }

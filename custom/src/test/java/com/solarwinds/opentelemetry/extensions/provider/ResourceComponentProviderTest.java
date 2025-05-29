@@ -3,6 +3,7 @@ package com.solarwinds.opentelemetry.extensions.provider;
 import static com.solarwinds.opentelemetry.extensions.ApmResourceProvider.moduleKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.solarwinds.opentelemetry.extensions.config.provider.ResourceComponentProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import org.junit.jupiter.api.Test;
