@@ -9,6 +9,9 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
 @AutoService(ComponentProvider.class)
 public class InboundMeasurementMetricsComponentProvider
     implements ComponentProvider<SpanProcessor> {
+
+  public static final String COMPONENT_NAME = "swo/inboundMeasurementMetrics";
+
   @Override
   public Class<SpanProcessor> getType() {
     return SpanProcessor.class;
@@ -16,7 +19,7 @@ public class InboundMeasurementMetricsComponentProvider
 
   @Override
   public String getName() {
-    return "swo/inboundMeasurementMetrics";
+    return COMPONENT_NAME;
   }
 
   @Override

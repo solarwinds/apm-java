@@ -26,10 +26,6 @@ attribute_limits:
   # Configure max attribute count.
   attribute_count_limit: 128
 
-# Configure text map context propagators.
-propagator:
-  # Configure the set of propagators to include in the composite text map propagator.
-  composite: [ tracecontext, baggage, swo/contextPropagator ]
 
 # Configure tracer provider.
 tracer_provider:
@@ -51,15 +47,6 @@ tracer_provider:
             timeout: 10000
             # Configure headers. Entries have higher priority than entries from .headers_list.
             headers_list: ${OTEL_EXPORTER_OTLP_HEADERS}
-    - swo/inboundMetricSpanProcessor:
-    - swo/profilingSpanProcessor:
-    - swo/inboundMeasurementMetrics:
-    - swo/spanStacktrace:
-        duration: 2
-
-  sampler:
-    # Configure sampler.
-    swo/sampler:
 
 # Configure meter provider.
 meter_provider:

@@ -7,6 +7,9 @@ import io.opentelemetry.sdk.trace.samplers.Sampler;
 
 @AutoService(ComponentProvider.class)
 public class SamplerComponentProvider implements ComponentProvider<Sampler> {
+
+  public static final String COMPONENT_NAME = "swo/sampler";
+
   @Override
   public Class<Sampler> getType() {
     return Sampler.class;
@@ -14,7 +17,7 @@ public class SamplerComponentProvider implements ComponentProvider<Sampler> {
 
   @Override
   public String getName() {
-    return "swo/sampler";
+    return COMPONENT_NAME;
   }
 
   @Override

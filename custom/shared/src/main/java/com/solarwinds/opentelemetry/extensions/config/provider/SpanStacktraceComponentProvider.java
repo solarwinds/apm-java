@@ -16,7 +16,10 @@ import java.util.function.Predicate;
 import javax.annotation.Nullable;
 
 @AutoService(ComponentProvider.class)
-public class SpanStacktraceProvider implements ComponentProvider<SpanProcessor> {
+public class SpanStacktraceComponentProvider implements ComponentProvider<SpanProcessor> {
+
+  public static final String COMPONENT_NAME = "swo/spanStacktrace";
+
   private final Logger logger = LoggerFactory.getLogger();
 
   @Override
@@ -26,7 +29,7 @@ public class SpanStacktraceProvider implements ComponentProvider<SpanProcessor> 
 
   @Override
   public String getName() {
-    return "swo/spanStacktrace";
+    return COMPONENT_NAME;
   }
 
   @Override
