@@ -16,8 +16,8 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
-import static com.solarwinds.opentelemetry.extensions.provider.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
-import static com.solarwinds.opentelemetry.extensions.provider.AutoConfigurationCustomizerProviderImpl.setAgentEnabled;
+import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
+import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.setAgentEnabled;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 import static io.opentelemetry.semconv.TelemetryAttributes.TELEMETRY_SDK_LANGUAGE;
 import static io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS;

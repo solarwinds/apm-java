@@ -18,8 +18,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SpanStacktraceProviderTest {
-  private final SpanStacktraceProvider tested = new SpanStacktraceProvider();
+class SpanStacktraceComponentProviderTest {
+  private final SpanStacktraceComponentProvider tested = new SpanStacktraceComponentProvider();
 
   @Mock private DeclarativeConfigProperties declarativeConfigPropertiesMock;
 

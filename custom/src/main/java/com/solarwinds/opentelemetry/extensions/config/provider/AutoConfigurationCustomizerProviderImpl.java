@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions.provider;
+package com.solarwinds.opentelemetry.extensions.config.provider;
 
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.InvalidConfigException;
