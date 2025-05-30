@@ -58,6 +58,8 @@ jobs:
         # The secrets are for publishing the build artifacts to the Maven Central.
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
         SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
+        CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+        CENTRAL_TOKEN: ${{ secrets.CENTRAL_TOKEN }}
         GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         GPG_PRIVATE_KEY_PASSPHRASE: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
 
