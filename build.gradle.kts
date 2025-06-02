@@ -99,11 +99,11 @@ allprojects {
 nexusPublishing {
     repositories {
         sonatype {
-            password = System.getenv("SONATYPE_TOKEN")
-            username = System.getenv("SONATYPE_USERNAME")
+            password = System.getenv("CENTRAL_TOKEN")
+            username = System.getenv("CENTRAL_USERNAME")
 
-            nexusUrl = uri("https://s01.oss.sonatype.org/service/local/")
-            snapshotRepositoryUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+            nexusUrl = uri("https://ossrh-staging-api.central.sonatype.com/service/local/")
+            snapshotRepositoryUrl = uri("https://central.sonatype.com/repository/maven-snapshots/")
         }
     }
 }

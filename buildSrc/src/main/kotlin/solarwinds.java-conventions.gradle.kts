@@ -28,11 +28,6 @@ repositories {
   }
 
   maven {
-    name = "sonatype"
-    url = uri("https://oss.sonatype.org/content/repositories/snapshots")
-  }
-
-  maven {
     url = uri("https://maven.pkg.github.com/solarwinds/joboe")
     credentials {
       username = System.getenv("GITHUB_USERNAME")

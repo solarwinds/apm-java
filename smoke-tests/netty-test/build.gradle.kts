@@ -34,6 +34,13 @@ repositories {
             password = System.getenv("SONATYPE_TOKEN")
         }
     }
+    maven {
+        url = URI.create("https://central.sonatype.com/repository/maven-snapshots/")
+        credentials {
+            password = System.getenv("CENTRAL_TOKEN")
+            username = System.getenv("CENTRAL_USERNAME")
+        }
+    }
 }
 
 val sdkVersion = System.getenv("AGENT_VERSION")?.also { println("Using SDK version: $it") } ?: "2.6.0"
