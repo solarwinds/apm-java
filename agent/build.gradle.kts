@@ -64,6 +64,10 @@ fun isolateClasses(jars: Iterable<File>): CopySpec {
 }
 
 tasks {
+  withType<ShadowJar>().configureEach {
+    // rewrite dependencies calling Logger.getLogger
+    relocate("java.util.logging.Logger", "io.opentelemetry.javaagent.bootstrap.PatchLogger")
+  }
   // building the final javaagent jar is done in 3 steps:
 
   // 1. all distro specific javaagent libs are relocated
