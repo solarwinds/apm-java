@@ -29,7 +29,7 @@ class TransactionSettingsConfigParserTest {
           DeclarativeConfiguration.toConfigProperties(resourceAsStream);
       DeclarativeConfigProperties declarativeConfigProperties =
           configProperties
-              .getStructured("instrumentation", DeclarativeConfigProperties.empty())
+              .getStructured("instrumentation/development", DeclarativeConfigProperties.empty())
               .getStructured("java", DeclarativeConfigProperties.empty())
               .getStructured("solarwinds", DeclarativeConfigProperties.empty());
 
@@ -50,7 +50,7 @@ class TransactionSettingsConfigParserTest {
 
       DeclarativeConfigProperties declarativeConfigProperties =
           configProperties
-              .getStructured("instrumentation", DeclarativeConfigProperties.empty())
+              .getStructured("instrumentation/development", DeclarativeConfigProperties.empty())
               .getStructured("java", DeclarativeConfigProperties.empty())
               .getStructured("solarwinds", DeclarativeConfigProperties.empty());
 
