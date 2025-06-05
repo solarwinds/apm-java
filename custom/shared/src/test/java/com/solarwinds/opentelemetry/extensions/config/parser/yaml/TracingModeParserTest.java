@@ -23,7 +23,7 @@ class TracingModeParserTest {
           DeclarativeConfiguration.toConfigProperties(resourceAsStream);
       declarativeConfigProperties =
           configProperties
-              .getStructured("instrumentation", DeclarativeConfigProperties.empty())
+              .getStructured("instrumentation/development", DeclarativeConfigProperties.empty())
               .getStructured("java", DeclarativeConfigProperties.empty())
               .getStructured("solarwinds");
     } catch (IOException e) {

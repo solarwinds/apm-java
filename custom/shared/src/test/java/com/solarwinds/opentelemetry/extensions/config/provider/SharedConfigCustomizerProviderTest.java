@@ -9,13 +9,13 @@ import com.solarwinds.joboe.config.ConfigProperty;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.AttributeLimitsModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.BatchLogRecordProcessorModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.InstrumentationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LanguageSpecificInstrumentationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordExporterModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LoggerProviderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OtlpModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OtlpGrpcExporterModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PeriodicMetricReaderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SamplerModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
@@ -45,10 +45,10 @@ class SharedConfigCustomizerProviderTest {
   void testCustomize() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
-            .withInstrumentation(
+            .withInstrumentationDevelopment(
                 new InstrumentationModel()
                     .withJava(
-                        new LanguageSpecificInstrumentationModel()
+                        new ExperimentalLanguageSpecificInstrumentationModel()
                             .withAdditionalProperty(
                                 "solarwinds",
                                 new HashMap<String, String>() {
@@ -82,7 +82,7 @@ class SharedConfigCustomizerProviderTest {
     assertTrue(
         openTelemetryConfigurationModel
             .getPropagator()
-            .getComposite()
+            .getCompositeList()
             .contains(ContextPropagatorComponentProvider.COMPONENT_NAME));
     PeriodicMetricReaderModel periodic =
         openTelemetryConfigurationModel.getMeterProvider().getReaders().get(0).getPeriodic();
@@ -100,24 +100,23 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(batch);
     LogRecordExporterModel exporter = batch.getExporter();
-    OtlpModel otlp = exporter.getOtlp();
+    OtlpGrpcExporterModel otlp = exporter.getOtlpGrpc();
 
     assertNotNull(otlp);
     assertEquals("https://otel.collector.com", otlp.getEndpoint());
     assertEquals("authorization=Bearer token", otlp.getHeadersList());
 
     assertEquals("gzip", otlp.getCompression());
-    assertEquals("grpc", otlp.getProtocol());
   }
 
   @Test
   void testCustomize1() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
-            .withInstrumentation(
+            .withInstrumentationDevelopment(
                 new InstrumentationModel()
                     .withJava(
-                        new LanguageSpecificInstrumentationModel()
+                        new ExperimentalLanguageSpecificInstrumentationModel()
                             .withAdditionalProperty(
                                 "solarwinds",
                                 new HashMap<String, String>() {
@@ -151,7 +150,7 @@ class SharedConfigCustomizerProviderTest {
     assertTrue(
         openTelemetryConfigurationModel
             .getPropagator()
-            .getComposite()
+            .getCompositeList()
             .contains(ContextPropagatorComponentProvider.COMPONENT_NAME));
     PeriodicMetricReaderModel periodic =
         openTelemetryConfigurationModel.getMeterProvider().getReaders().get(0).getPeriodic();
@@ -180,10 +179,10 @@ class SharedConfigCustomizerProviderTest {
   void testCustomize2() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
-            .withInstrumentation(
+            .withInstrumentationDevelopment(
                 new InstrumentationModel()
                     .withJava(
-                        new LanguageSpecificInstrumentationModel()
+                        new ExperimentalLanguageSpecificInstrumentationModel()
                             .withAdditionalProperty(
                                 "solarwinds",
                                 new HashMap<String, String>() {
@@ -210,7 +209,7 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(batch);
     LogRecordExporterModel exporter = batch.getExporter();
-    OtlpModel otlp = exporter.getOtlp();
+    OtlpGrpcExporterModel otlp = exporter.getOtlpGrpc();
 
     assertNotNull(otlp);
     assertEquals("https://otel.collector.com", otlp.getEndpoint());

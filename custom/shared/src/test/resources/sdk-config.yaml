@@ -6,7 +6,7 @@
 # vars defined in https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/.
 
 # The file format version.
-file_format: "0.3"
+file_format: "0.4"
 
 # Configure if the SDK is disabled or not. This is not required to be provided to ensure the SDK isn't disabled, the default value when this is not provided is for the SDK to be enabled.
 disabled: false
@@ -40,9 +40,7 @@ tracer_provider:
         # Configure exporter.
         exporter:
           # Configure exporter to be OTLP.
-          otlp:
-            # Configure protocol.
-            protocol: grpc
+          otlp_grpc:
             # Configure endpoint.
             endpoint: https://otel.collector.na-01.st-ssp.solarwinds.com
             # Configure compression.
@@ -75,16 +73,8 @@ meter_provider:
         exporter:
           # Configure exporter to be OTLP.
           swo/metricExporter:
-            # Configure protocol.
-            protocol: grpc
             # Configure endpoint.
             endpoint: https://otel.collector.na-01.st-ssp.solarwinds.com
-            # Configure certificate.
-            certificate:
-            # Configure mTLS private client key.
-            client_key:
-            # Configure mTLS client certificate.
-            client_certificate:
             # Configure compression.
             compression: gzip
             # Configure max time (in milliseconds) to wait for each export.
@@ -113,17 +103,9 @@ logger_provider:
         # Configure exporter.
         exporter:
           # Configure exporter to be OTLP.
-          otlp:
-            # Configure protocol.
-            protocol: grpc
+          otlp_grpc:
             # Configure endpoint.
             endpoint: https://otel.collector.na-01.st-ssp.solarwinds.com
-            # Configure certificate.
-            certificate:
-            # Configure mTLS private client key.
-            client_key:
-            # Configure mTLS client certificate.
-            client_certificate:
             # Configure compression.
             compression: gzip
             # Configure max time (in milliseconds) to wait for each export.
@@ -139,7 +121,7 @@ logger_provider:
     # Configure max attribute count. Overrides .attribute_limits.attribute_count_limit.
     attribute_count_limit: 128
 
-instrumentation:
+instrumentation/development:
   java:
     common:
       default-enabled: true
