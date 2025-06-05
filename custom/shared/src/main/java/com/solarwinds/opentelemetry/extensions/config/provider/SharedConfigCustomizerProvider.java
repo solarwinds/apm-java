@@ -16,7 +16,7 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.Logger
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.MeterProviderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.MetricReaderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OtlpModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OtlpGrpcExporterModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PeriodicMetricReaderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PropagatorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PushMetricExporterModel;
@@ -103,9 +103,9 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
   }
 
   private void addContextPropagators(PropagatorModel model) {
-    model.withComposite(
-        Arrays.asList(
-            "tracecontext", "baggage", ContextPropagatorComponentProvider.COMPONENT_NAME));
+    model.withCompositeList(
+        String.format(
+            "tracecontext,baggage, %s", ContextPropagatorComponentProvider.COMPONENT_NAME));
   }
 
   private void addSpanExporter(OpenTelemetryConfigurationModel model) {
@@ -126,7 +126,7 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
                     .withExportTimeout(60000)
                     .withMaxQueueSize(1024)
                     .withMaxExportBatchSize(512)
-                    .withExporter(new SpanExporterModel().withOtlp(createModel())));
+                    .withExporter(new SpanExporterModel().withOtlpGrpc(createModel())));
 
     ArrayList<SpanProcessorModel> spanProcessorModels = new ArrayList<>(processors);
     spanProcessorModels.add(spanProcessorModel);
@@ -181,7 +181,7 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
                     .withMaxExportBatchSize(512)
                     .withMaxQueueSize(1024)
                     .withExportTimeout(30000)
-                    .withExporter(new LogRecordExporterModel().withOtlp(createModel())));
+                    .withExporter(new LogRecordExporterModel().withOtlpGrpc(createModel())));
 
     ArrayList<LogRecordProcessorModel> logRecordProcessorModels = new ArrayList<>(processors);
     logRecordProcessorModels.add(logRecordProcessorModel);
@@ -193,7 +193,7 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
         DeclarativeConfiguration.toConfigProperties(model);
     DeclarativeConfigProperties solarwinds =
         configProperties
-            .getStructured("instrumentation", DeclarativeConfigProperties.empty())
+            .getStructured("instrumentation/development", DeclarativeConfigProperties.empty())
             .getStructured("java", DeclarativeConfigProperties.empty())
             .getStructured("solarwinds");
 
@@ -213,9 +213,8 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
     serviceKeyAndEndpoint[1] = endpoint;
   }
 
-  private OtlpModel createModel() {
-    return new OtlpModel()
-        .withProtocol("grpc")
+  private OtlpGrpcExporterModel createModel() {
+    return new OtlpGrpcExporterModel()
         .withCompression("gzip")
         .withEndpoint(serviceKeyAndEndpoint[1])
         .withTimeout(10000)
