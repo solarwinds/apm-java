@@ -48,7 +48,7 @@ public class TransactionNameManager {
   public static final int MAX_TRANSACTION_NAME_LENGTH = 255;
   public static final String TRANSACTION_NAME_ELLIPSIS = "...";
 
-  private static final String[] customTransactionNamePattern;
+  private static String[] customTransactionNamePattern = null;
   static final Cache<String, String> URL_TRANSACTION_NAME_CACHE =
       Caffeine.newBuilder().maximumSize(1000).expireAfterWrite(Duration.ofMinutes(20)).build();
 
@@ -59,7 +59,6 @@ public class TransactionNameManager {
   private static NamingScheme namingScheme = new DefaultNamingScheme(null);
 
   static {
-    customTransactionNamePattern = getTransactionNamePattern();
     addNameCountChangeListener();
   }
 
@@ -193,6 +192,11 @@ public class TransactionNameManager {
 
     // get transaction name from url
     String path = spanAttributes.get(UrlAttributes.URL_PATH);
+
+    if (customTransactionNamePattern == null) {
+      customTransactionNamePattern = getTransactionNamePattern();
+    }
+
     if (customTransactionNamePattern
         != null) { // try forming transaction name by the custom configured pattern
       String transactionName =
