@@ -3,11 +3,11 @@ plugins {
 }
 
 val otelAgentVersion = "2.16.0"
-val otelSdkVersion = "1.50.0"
+val otelSdkVersion = "1.51.0"
 
 val mockitoVersion = "4.11.0"
 val byteBuddyVersion = "1.15.10"
-val joboeVersion = "10.0.19"
+val joboeVersion = "10.0.20"
 
 val opentelemetryJavaagentAlpha = "$otelAgentVersion-alpha"
 val opentelemetryAlpha = "$otelSdkVersion-alpha"
@@ -72,6 +72,11 @@ dependencies {
     api("com.google.code.findbugs:annotations:3.0.1u2")
     api("io.opentelemetry.contrib:opentelemetry-span-stacktrace:$otelJavaContribVersion")
     api("io.opentelemetry.semconv:opentelemetry-semconv-incubating:$opentelemetrySemconv")
+
+    api("io.opentelemetry:opentelemetry-api-incubator:$opentelemetryAlpha")
+    api("io.opentelemetry:opentelemetry-exporter-otlp:$otelSdkVersion")
+    api("io.opentelemetry:opentelemetry-sdk-extension-incubator:$opentelemetryAlpha")
+
     api("org.junit.jupiter:junit-jupiter-params:$junit5")
 
   }
