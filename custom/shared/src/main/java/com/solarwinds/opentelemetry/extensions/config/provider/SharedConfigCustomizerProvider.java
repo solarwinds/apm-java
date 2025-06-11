@@ -87,8 +87,7 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
                     Collections.emptyMap()),
             new SpanProcessorModel()
                 .withAdditionalProperty(
-                    SpanStacktraceComponentProvider.COMPONENT_NAME,
-                    Collections.singletonMap("duration", 2)));
+                    SpanStacktraceComponentProvider.COMPONENT_NAME, Collections.emptyMap()));
 
     ArrayList<SpanProcessorModel> allProcessors = new ArrayList<>(model.getProcessors());
     allProcessors.addAll(processors);
@@ -105,7 +104,7 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
   private void addContextPropagators(PropagatorModel model) {
     model.withCompositeList(
         String.format(
-            "tracecontext,baggage, %s", ContextPropagatorComponentProvider.COMPONENT_NAME));
+            "tracecontext,baggage,%s", ContextPropagatorComponentProvider.COMPONENT_NAME));
   }
 
   private void addSpanExporter(OpenTelemetryConfigurationModel model) {

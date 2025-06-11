@@ -24,7 +24,7 @@ class ProfilingSettingsParserTest {
 
       DeclarativeConfigProperties declarativeConfigProperties =
           configProperties
-              .getStructured("instrumentation", DeclarativeConfigProperties.empty())
+              .getStructured("instrumentation/development", DeclarativeConfigProperties.empty())
               .getStructured("java", DeclarativeConfigProperties.empty())
               .getStructured("solarwinds", DeclarativeConfigProperties.empty());
 
@@ -45,7 +45,7 @@ class ProfilingSettingsParserTest {
 
       DeclarativeConfigProperties declarativeConfigProperties =
           configProperties
-              .getStructured("instrumentation", DeclarativeConfigProperties.empty())
+              .getStructured("instrumentation/development", DeclarativeConfigProperties.empty())
               .getStructured("java", DeclarativeConfigProperties.empty())
               .getStructured("solarwinds", DeclarativeConfigProperties.empty());
 
