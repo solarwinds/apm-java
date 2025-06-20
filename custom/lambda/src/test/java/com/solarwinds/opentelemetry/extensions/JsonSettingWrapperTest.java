@@ -21,19 +21,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.solarwinds.joboe.sampling.SamplingException;
 import com.solarwinds.joboe.sampling.SettingsArg;
+import com.solarwinds.opentelemetry.extensions.config.JsonSettingWrapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class FileSettingsTest {
-  private FileSettings tested;
+class JsonSettingWrapperTest {
+  private JsonSettingWrapper tested;
 
   private final FileSettingsReader reader =
       new FileSettingsReader(
-          FileSettingsTest.class.getResource("/solarwinds-apm-settings.json").getPath());
+          JsonSettingWrapperTest.class.getResource("/solarwinds-apm-settings.json").getPath());
 
   @BeforeEach
   void setup() throws SamplingException {
-    tested = (FileSettings) reader.getSettings();
+    tested = (JsonSettingWrapper) reader.getSettings();
   }
 
   @Test
