@@ -231,7 +231,7 @@ function verify_distributed_trace() {
 
         const traceContext = response.headers['X-Trace']
         const [_, traceId, __, flag] = traceContext.split("-")
-        console.log("Trace context -> ", traceContext)
+        console.log("[Distributed]Trace context -> ", traceContext)
         if (flag === '00') continue;
 
         const spanRawDataPayload = {
@@ -276,13 +276,13 @@ function verify_distributed_trace() {
                         const property = properties[k]
                         check(property, {
                             "check that remote service, java-apm-smoke-test, is path of the trace": prop => {
-                                contextCheck = prop.value === "java-apm-smoke-test"
+                                contextCheck = contextCheck || prop.value === "java-apm-smoke-test"
                                 return contextCheck
                             }
                         })
                         check(property, {
                             "sdk-trace": prop => {
-                                sdkCheck = prop.value === "SDK.trace.test"
+                                sdkCheck = sdkCheck || prop.value === "SDK.trace.test"
                                 return sdkCheck
                             }
                         })
