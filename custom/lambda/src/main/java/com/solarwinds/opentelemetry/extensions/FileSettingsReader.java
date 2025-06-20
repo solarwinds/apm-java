@@ -23,12 +23,13 @@ import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.SamplingException;
 import com.solarwinds.joboe.sampling.Settings;
+import com.solarwinds.opentelemetry.extensions.config.JsonSetting;
+import com.solarwinds.opentelemetry.extensions.config.JsonSettingWrapper;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FileSettingsReader {
   private final String settingsFilePath;
@@ -36,7 +37,7 @@ public class FileSettingsReader {
   private static final Logger logger = LoggerFactory.getLogger();
 
   private static final Gson gson = new GsonBuilder().create();
-  private final Type type = new TypeToken<List<JsonSettings>>() {}.getType();
+  private final Type type = new TypeToken<List<JsonSetting>>() {}.getType();
 
   public FileSettingsReader(String settingsFilePath) {
     this.settingsFilePath = settingsFilePath;
@@ -46,7 +47,8 @@ public class FileSettingsReader {
     Settings settings = null;
     try {
       byte[] bytes = Files.readAllBytes(Paths.get(settingsFilePath));
-      List<Settings> kvSetting = convertToSettingsMap(gson.fromJson(new String(bytes), type));
+      List<Settings> kvSetting =
+          JsonSettingWrapper.fromJsonSettings(gson.fromJson(new String(bytes), type));
       logger.debug(String.format("Got settings from file: %s", kvSetting));
 
       if (!kvSetting.isEmpty()) {
@@ -58,9 +60,5 @@ public class FileSettingsReader {
       throw new SamplingException("Error reading settings from file");
     }
     return settings;
-  }
-
-  private List<Settings> convertToSettingsMap(List<JsonSettings> jsonSettings) {
-    return jsonSettings.stream().map(FileSettings::new).collect(Collectors.toList());
   }
 }

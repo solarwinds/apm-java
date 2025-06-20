@@ -14,38 +14,40 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions;
+package com.solarwinds.opentelemetry.extensions.config;
 
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.Settings;
 import com.solarwinds.joboe.sampling.SettingsArg;
+import java.util.List;
+import java.util.stream.Collectors;
 
-public class FileSettings extends Settings {
-  private final JsonSettings jsonSettings;
+public class JsonSettingWrapper extends Settings {
+  private final JsonSetting jsonSetting;
 
-  public FileSettings(JsonSettings jsonSettings) {
-    this.jsonSettings = jsonSettings;
+  public JsonSettingWrapper(JsonSetting jsonSetting) {
+    this.jsonSetting = jsonSetting;
   }
 
   @Override
   public long getValue() {
-    return jsonSettings.getValue();
+    return jsonSetting.getValue();
   }
 
   @Override
   public long getTimestamp() {
-    return jsonSettings.getTimestamp();
+    return jsonSetting.getTimestamp();
   }
 
   @Override
   public short getType() {
-    return jsonSettings.getType();
+    return jsonSetting.getType();
   }
 
   @Override
   public short getFlags() {
     short flags = 0;
-    String[] flagTokens = jsonSettings.getFlags().split(",");
+    String[] flagTokens = jsonSetting.getFlags().split(",");
     for (String flagToken : flagTokens) {
       if ("OVERRIDE".equals(flagToken)) {
         flags |= OBOE_SETTINGS_FLAG_OVERRIDE;
@@ -68,13 +70,17 @@ public class FileSettings extends Settings {
 
   @Override
   public long getTtl() {
-    return jsonSettings.getTtl();
+    return jsonSetting.getTtl();
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public <T> T getArgValue(SettingsArg<T> settingsArg) {
-    Object value = jsonSettings.getArguments().get(settingsArg.getKey());
+    Object value = jsonSetting.getArguments().get(settingsArg.getKey());
     return settingsArg.readValue(value);
+  }
+
+  public static List<Settings> fromJsonSettings(List<JsonSetting> jsonSettings) {
+    return jsonSettings.stream().map(JsonSettingWrapper::new).collect(Collectors.toList());
   }
 }

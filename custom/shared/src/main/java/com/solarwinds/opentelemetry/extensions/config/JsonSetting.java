@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions;
+package com.solarwinds.opentelemetry.extensions.config;
 
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -24,7 +24,7 @@ import lombok.Data;
 @Data
 @Builder
 @AllArgsConstructor
-public class JsonSettings {
+public class JsonSetting {
   private Map<String, Object> arguments;
 
   private String flags;
