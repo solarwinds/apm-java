@@ -2,8 +2,8 @@ plugins {
   `java-platform`
 }
 
-val otelAgentVersion = "2.16.0"
-val otelSdkVersion = "1.50.0"
+val otelAgentVersion = "2.17.0"
+val otelSdkVersion = "1.51.0"
 
 val mockitoVersion = "4.11.0"
 val byteBuddyVersion = "1.15.10"
@@ -11,7 +11,7 @@ val joboeVersion = "10.0.20"
 
 val opentelemetryJavaagentAlpha = "$otelAgentVersion-alpha"
 val opentelemetryAlpha = "$otelSdkVersion-alpha"
-val opentelemetrySemconv = "1.29.0-alpha"
+val opentelemetrySemconv = "1.34.0-alpha"
 
 val autoservice = "1.0.1"
 val otelJavaContribVersion = "1.46.0-alpha"
