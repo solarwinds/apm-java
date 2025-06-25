@@ -18,7 +18,7 @@ package com.solarwinds.opentelemetry.extensions;
 
 import static com.solarwinds.opentelemetry.extensions.SharedNames.COMPONENT_NAME;
 import static com.solarwinds.opentelemetry.extensions.SharedNames.SPAN_STACKTRACE_FILTER_CLASS;
-import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
+import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 
 import java.util.HashMap;
 import java.util.Map;

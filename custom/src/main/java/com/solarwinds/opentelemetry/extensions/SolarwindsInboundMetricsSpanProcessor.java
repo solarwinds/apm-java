@@ -18,7 +18,6 @@ package com.solarwinds.opentelemetry.extensions;
 
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
-import com.solarwinds.joboe.config.ServiceKeyUtils;
 import com.solarwinds.joboe.core.MetricSpanReporter;
 import com.solarwinds.joboe.core.metrics.MetricKey;
 import com.solarwinds.joboe.core.metrics.MetricsEntry;
@@ -33,7 +32,7 @@ import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.metrics.SpanMetricsCollector;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.opentelemetry.core.Constants;
-import com.solarwinds.opentelemetry.extensions.initialize.ConfigurationLoader;
+import com.solarwinds.opentelemetry.extensions.config.ConfigurationLoader;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.StatusCode;
@@ -60,14 +59,6 @@ public class SolarwindsInboundMetricsSpanProcessor implements SpanProcessor {
       new OpenTelemetryInboundMeasurementReporter();
   static final OpenTelemetryInboundHistogramReporter HISTOGRAM_REPORTER =
       new OpenTelemetryInboundHistogramReporter();
-
-  public static final String serviceName;
-
-  static {
-    serviceName =
-        ServiceKeyUtils.getServiceName(
-            (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
-  }
 
   private static final Logger logger = LoggerFactory.getLogger();
 
