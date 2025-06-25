@@ -19,6 +19,7 @@ package com.solarwinds.opentelemetry.extensions;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.opentelemetry.extensions.config.parser.json.LogFileStringParser;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
