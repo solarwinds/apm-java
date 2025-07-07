@@ -17,10 +17,12 @@
 package com.solarwinds.opentelemetry.extensions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -28,12 +30,12 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongHistogram;
 import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.testing.trace.TestSpanData;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.data.StatusData;
 import io.opentelemetry.semconv.HttpAttributes;
+import java.util.List;
 import java.util.Objects;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +45,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@SuppressWarnings("all")
 @ExtendWith(MockitoExtension.class)
 class InboundMeasurementMetricsGeneratorTest {
 
@@ -55,7 +56,7 @@ class InboundMeasurementMetricsGeneratorTest {
 
   @Mock private ReadWriteSpan readWriteSpanMock;
 
-  @Captor private ArgumentCaptor<String> stringArgumentCaptor;
+  @Captor private ArgumentCaptor<AttributeKey<String>> attributeKeyArgumentCaptor;
 
   @Captor private ArgumentCaptor<Long> longArgumentCaptor;
 
@@ -63,12 +64,17 @@ class InboundMeasurementMetricsGeneratorTest {
 
   @Test
   void returnFalseForIsStartRequired() {
-    assertTrue(tested.isStartRequired());
+    assertFalse(tested.isStartRequired());
   }
 
   @Test
   void returnTrueForIsEndRequired() {
     assertTrue(tested.isEndRequired());
+  }
+
+  @Test
+  void returnTrueForIsOnEndingRequired() {
+    assertTrue(tested.isOnEndingRequired());
   }
 
   @Test
@@ -120,7 +126,8 @@ class InboundMeasurementMetricsGeneratorTest {
                     "get".equals(attributes.get(AttributeKey.stringKey("http.method")))
                         && Objects.equals(
                             200L, attributes.get(AttributeKey.longKey("http.status_code")))
-                        && !attributes.get(AttributeKey.booleanKey("sw.is_error"))
+                        && Boolean.FALSE.equals(
+                            attributes.get(AttributeKey.booleanKey("sw.is_error")))
                         && TransactionNameManager.getTransactionName(testSpanData)
                             .equals(
                                 attributes.get(
@@ -160,7 +167,8 @@ class InboundMeasurementMetricsGeneratorTest {
                     "get".equals(attributes.get(AttributeKey.stringKey("http.method")))
                         && Objects.equals(
                             500L, attributes.get(AttributeKey.longKey("http.status_code")))
-                        && attributes.get(AttributeKey.booleanKey("sw.is_error"))
+                        && Boolean.TRUE.equals(
+                            attributes.get(AttributeKey.booleanKey("sw.is_error")))
                         && TransactionNameManager.getTransactionName(testSpanData)
                             .equals(
                                 attributes.get(
@@ -216,10 +224,24 @@ class InboundMeasurementMetricsGeneratorTest {
             .build();
 
     when(readWriteSpanMock.toSpanData()).thenReturn(testSpanData);
-    tested.onStart(Context.root(), readWriteSpanMock);
+    when(readWriteSpanMock.setAttribute(attributeKeyArgumentCaptor.capture(), any()))
+        .thenReturn(readWriteSpanMock);
 
-    verify(readWriteSpanMock).setAttribute(stringArgumentCaptor.capture(), anyString());
+    when(readWriteSpanMock.setAttribute(attributeKeyArgumentCaptor.capture(), any()))
+        .thenReturn(readWriteSpanMock);
+    tested.onEnding(readWriteSpanMock);
 
-    assertEquals("sw.transaction", stringArgumentCaptor.getValue());
+    verify(readWriteSpanMock, atMost(2))
+        .setAttribute(attributeKeyArgumentCaptor.capture(), anyString());
+    List<AttributeKey<String>> attributeKeys = attributeKeyArgumentCaptor.getAllValues();
+
+    assertTrue(
+        attributeKeys.stream()
+            .filter(Objects::nonNull)
+            .anyMatch(key -> key.getKey().equals("sw.transaction")));
+    assertTrue(
+        attributeKeys.stream()
+            .filter(Objects::nonNull)
+            .anyMatch(key -> key.getKey().equals("TransactionName")));
   }
 }
