@@ -9,7 +9,6 @@ import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.opentelemetry.extensions.LoggingConfigProvider;
 import com.solarwinds.opentelemetry.extensions.config.parser.yaml.DeclarativeConfigParser;
-import com.solarwinds.opentelemetry.extensions.provider.AutoConfigurationCustomizerProviderImpl;
 import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
@@ -27,10 +26,9 @@ public class DeclarativeLoader implements BeforeAgentListener {
 
     if (configProvider != null) {
       boolean jdkVersionSupported = JavaRuntimeVersionChecker.isJdkVersionSupported();
-      AutoConfigurationCustomizerProviderImpl.setAgentEnabled(jdkVersionSupported);
-
       DeclarativeConfigProperties instrumentationConfig = configProvider.getInstrumentationConfig();
-      if (instrumentationConfig != null) {
+
+      if (instrumentationConfig != null && jdkVersionSupported) {
         DeclarativeConfigProperties solarwinds =
             instrumentationConfig
                 .getStructured("java", DeclarativeConfigProperties.empty())
@@ -43,7 +41,7 @@ public class DeclarativeLoader implements BeforeAgentListener {
 
           ConfigContainer agentConfig = configContainer.subset(ConfigGroup.AGENT);
           LoggerFactory.init(LoggingConfigProvider.getLoggerConfiguration(agentConfig));
-          logger.debug("Loaded via declarative config");
+          logger.info("Loaded via declarative config");
 
         } catch (InvalidConfigException e) {
           throw new RuntimeException(e);
@@ -55,11 +53,10 @@ public class DeclarativeLoader implements BeforeAgentListener {
             String.format(
                 "Unsupported Java runtime version: %s. The lowest Java version supported is %s.",
                 System.getProperty("java.version"), JavaRuntimeVersionChecker.minVersionSupported));
-      }
 
-      if (!AutoConfigurationCustomizerProviderImpl.isAgentEnabled()) {
         logger.warn("Solarwinds' extension is disabled");
       }
+
     }
   }
 }
