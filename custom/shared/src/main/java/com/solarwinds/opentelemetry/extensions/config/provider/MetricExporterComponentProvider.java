@@ -41,7 +41,8 @@ public class MetricExporterComponentProvider implements ComponentProvider<Metric
         builder::setTrustedCertificates,
         builder::setClientTls,
         builder::setRetryPolicy,
-        builder::setMemoryMode);
+        builder::setMemoryMode,
+        false);
 
     configureOtlpAggregationTemporality(config, builder::setAggregationTemporalitySelector);
 
