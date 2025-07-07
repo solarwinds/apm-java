@@ -660,6 +660,6 @@ public class ConfigurationLoader {
   }
 
   private static boolean isDeclarativeConfigOff() {
-    return getConfigValue("otel.experimental.config.files") == null;
+    return getConfigValue("otel.experimental.config.file") == null;
   }
 }
