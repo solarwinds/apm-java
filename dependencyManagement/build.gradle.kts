@@ -11,7 +11,8 @@ val joboeVersion = "10.0.20"
 
 val opentelemetryJavaagentAlpha = "$otelAgentVersion-alpha"
 val opentelemetryAlpha = "$otelSdkVersion-alpha"
-val opentelemetrySemconv = "1.34.0-alpha"
+val opentelemetrySemconv = "1.34.0"
+val opentelemetrySemconvAlpha = "1.34.0-alpha"
 
 val autoservice = "1.0.1"
 val otelJavaContribVersion = "1.46.0-alpha"
@@ -71,7 +72,7 @@ dependencies {
 
     api("com.google.code.findbugs:annotations:3.0.1u2")
     api("io.opentelemetry.contrib:opentelemetry-span-stacktrace:$otelJavaContribVersion")
-    api("io.opentelemetry.semconv:opentelemetry-semconv-incubating:$opentelemetrySemconv")
+    api("io.opentelemetry.semconv:opentelemetry-semconv-incubating:$opentelemetrySemconvAlpha")
 
     api("io.opentelemetry:opentelemetry-api-incubator:$opentelemetryAlpha")
     api("io.opentelemetry:opentelemetry-exporter-otlp:$otelSdkVersion")
