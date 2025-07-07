@@ -14,7 +14,7 @@ import java.util.Set;
 public final class DeclarativeConfigParser {
   private final ConfigContainer configContainer;
 
-  private final Map<String, ConfigParser<DeclarativeConfigProperties, Object>> register =
+  private final Map<String, ConfigParser<DeclarativeConfigProperties, Object>> registry =
       new HashMap<>();
 
   @SuppressWarnings("unchecked")
@@ -22,7 +22,7 @@ public final class DeclarativeConfigParser {
     this.configContainer = configContainer;
     for (ConfigParser<?, ?> parser :
         ServiceLoader.load(ConfigParser.class, DeclarativeConfigParser.class.getClassLoader())) {
-      register.put(parser.configKey(), (ConfigParser<DeclarativeConfigProperties, Object>) parser);
+      registry.put(parser.configKey(), (ConfigParser<DeclarativeConfigProperties, Object>) parser);
     }
   }
 
@@ -53,8 +53,8 @@ public final class DeclarativeConfigParser {
           parsed = declarativeConfigProperties.getLong(key);
         }
 
-        if (register.containsKey(key)) {
-          ConfigParser<DeclarativeConfigProperties, Object> configParser = register.get(key);
+        if (registry.containsKey(key)) {
+          ConfigParser<DeclarativeConfigProperties, Object> configParser = registry.get(key);
           parsed = configParser.convert(declarativeConfigProperties);
         }
 

@@ -56,7 +56,6 @@ public class DeclarativeLoader implements BeforeAgentListener {
 
         logger.warn("Solarwinds' extension is disabled");
       }
-
     }
   }
 }
