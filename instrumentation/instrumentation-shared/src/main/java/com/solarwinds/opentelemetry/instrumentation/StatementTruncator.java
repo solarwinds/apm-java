@@ -24,7 +24,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.semconv.incubating.DbIncubatingAttributes;
+import io.opentelemetry.semconv.DbAttributes;
 import java.lang.reflect.Method;
 
 public class StatementTruncator {
@@ -44,7 +44,7 @@ public class StatementTruncator {
          * */
         Method getAttribute = span.getClass().getDeclaredMethod("getAttribute", AttributeKey.class);
         getAttribute.setAccessible(true);
-        sql = (String) getAttribute.invoke(span, DbIncubatingAttributes.DB_QUERY_TEXT);
+        sql = (String) getAttribute.invoke(span, DbAttributes.DB_QUERY_TEXT);
       } catch (Throwable throwable) {
         logger.debug("Cannot execute method getAttribute: " + throwable);
       }
@@ -59,7 +59,7 @@ public class StatementTruncator {
       if (sql.length() > sqlMaxLength) {
         sql = sql.substring(0, sqlMaxLength);
         span.setAttribute(QueryTruncatedAttributeKey.KEY, true);
-        span.setAttribute(DbIncubatingAttributes.DB_QUERY_TEXT, sql);
+        span.setAttribute(DbAttributes.DB_QUERY_TEXT, sql);
         logger.debug(
             "SQL Query trimmed as its length ["
                 + sql.length()

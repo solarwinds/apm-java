@@ -18,7 +18,7 @@ plugins{
     id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
 }
 
-val swoAgentVersion = "2.16.0"
+val swoAgentVersion = "2.17.0"
 extra["swoAgentVersion"] = swoAgentVersion
 group = "io.github.appoptics"
 version = if (System.getenv("SNAPSHOT_BUILD").toBoolean()) "$swoAgentVersion-SNAPSHOT" else swoAgentVersion
