@@ -16,8 +16,7 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
-import static com.solarwinds.opentelemetry.extensions.SharedNames.LAYER_NAME_PLACEHOLDER;
-import static com.solarwinds.opentelemetry.extensions.SharedNames.TRANSACTION_NAME_KEY;
+import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
@@ -26,7 +25,6 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.metrics.LongHistogram;
 import io.opentelemetry.api.metrics.Meter;
-import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
@@ -39,6 +37,10 @@ import io.opentelemetry.semconv.HttpAttributes;
 
 public class InboundMeasurementMetricsGenerator implements ExtendedSpanProcessor {
   private LongHistogram responseTime;
+  private static final AttributeKey<String> TRANSACTION_NAME_KEY =
+      stringKey(SharedNames.TRANSACTION_NAME_KEY);
+  private static final AttributeKey<String> LEGACY_TRANSACTION_NAME_KEY =
+      stringKey("TransactionName");
 
   private static final Logger logger = LoggerFactory.getLogger();
 
@@ -60,19 +62,12 @@ public class InboundMeasurementMetricsGenerator implements ExtendedSpanProcessor
 
   @Override
   public void onStart(Context parentContext, ReadWriteSpan span) {
-    SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
-    if (!parentSpanContext.isValid()
-        || parentSpanContext.isRemote()) { // then a root span of this service
-      String transactionName = TransactionNameManager.getTransactionName(span.toSpanData());
-      span.setAttribute(TRANSACTION_NAME_KEY, transactionName);
-      logger.debug(
-          String.format("Transaction name derived on root span start: %s", transactionName));
-    }
+    // noop
   }
 
   @Override
   public boolean isStartRequired() {
-    return true;
+    return false;
   }
 
   @Override
@@ -117,15 +112,12 @@ public class InboundMeasurementMetricsGenerator implements ExtendedSpanProcessor
   public void onEnding(ReadWriteSpan span) {
     SpanData spanData = span.toSpanData();
     final SpanContext parentSpanContext = spanData.getParentSpanContext();
-    if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) {
-      span.setAttribute(TRANSACTION_NAME_KEY, TransactionNameManager.getTransactionName(spanData));
-      span.setAttribute(
-          AttributeKey.stringKey("TransactionName"),
-          TransactionNameManager.getTransactionName(spanData));
-    }
 
-    span.setAttribute(
-        "Layer", String.format(LAYER_NAME_PLACEHOLDER, span.getKind(), span.getName().trim()));
+    if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) {
+      String transactionName = TransactionNameManager.getTransactionName(spanData);
+      span.setAttribute(TRANSACTION_NAME_KEY, transactionName)
+          .setAttribute(LEGACY_TRANSACTION_NAME_KEY, transactionName);
+    }
   }
 
   @Override
