@@ -74,7 +74,6 @@ public class JsonSettingWrapper extends Settings {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public <T> T getArgValue(SettingsArg<T> settingsArg) {
     Object value = jsonSetting.getArguments().get(settingsArg.getKey());
     return settingsArg.readValue(value);
@@ -82,5 +81,9 @@ public class JsonSettingWrapper extends Settings {
 
   public static List<Settings> fromJsonSettings(List<JsonSetting> jsonSettings) {
     return jsonSettings.stream().map(JsonSettingWrapper::new).collect(Collectors.toList());
+  }
+
+  public static Settings wrap(JsonSetting jsonSettings) {
+    return new JsonSettingWrapper(jsonSettings);
   }
 }
