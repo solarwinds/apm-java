@@ -27,13 +27,6 @@ version = "unspecified"
 repositories {
     mavenCentral()
     maven {
-        url = URI.create("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-        credentials {
-            username = System.getenv("SONATYPE_USERNAME")
-            password = System.getenv("SONATYPE_TOKEN")
-        }
-    }
-    maven {
         url = URI.create("https://central.sonatype.com/repository/maven-snapshots/")
         credentials {
             password = System.getenv("CENTRAL_TOKEN")
