@@ -30,13 +30,6 @@ version = "0.0.1-SNAPSHOT"
 repositories {
   mavenCentral()
     maven {
-        url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-        credentials {
-            username = System.getenv("SONATYPE_USERNAME")
-            password = System.getenv("SONATYPE_TOKEN")
-        }
-    }
-    maven {
         url = "https://central.sonatype.com/repository/maven-snapshots/"
         credentials {
             password = System.getenv("CENTRAL_TOKEN")
