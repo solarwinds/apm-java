@@ -372,6 +372,64 @@ jobs:
               continue
             fi
 
+            if [ "$region" = "us-east-1" ]; then
+              functions=(
+              "apm-lambda-playground-java-complex"
+              "apm-playground-ec2-lambda-java"
+              "apm-playground-ec2-lambda-java-dev"
+              "apm-playground-ec2-lambda-java-dev-2"
+              "apm-playground-ec2-lambda-java-prod"
+              )
+            
+              for function in "${functions[@]}"; do
+                echo "Processing function: $function"
+                
+                # Get existing layers for the function
+                existing_layers=$(aws lambda get-function-configuration \
+                --function-name "$function" \
+                --query 'Layers[*].Arn' \
+                --output text 2>/dev/null)
+                
+                # Check if getting existing layers succeeded
+                if [ $? -ne 0 ]; then
+                  echo "FAILED: Could not get existing layers for function: $function"
+                fi
+                
+                # Filter out any existing layers containing 'solarwinds-apm-java' and prepare the layers array
+                if [ -n "$existing_layers" ]; then
+                  # Convert space-separated layers to array
+                  existing_layers_array=($existing_layers)
+                  filtered_layers=()
+                
+                  # Filter out layers containing 'solarwinds-apm-java'
+                  for layer in "${existing_layers_array[@]}"; do
+                    if [[ "$layer" != *"solarwinds-apm-java"* ]]; then
+                      filtered_layers+=("$layer")
+                    fi
+                  done
+                
+                  # Add the new layer to the filtered layers
+                  layers_array=("${filtered_layers[@]}" "$pub_versionarn")
+                else
+                  # No existing layers, just use the new one
+                  layers_array=("$pub_versionarn")
+                fi
+                
+                echo "Updating with layers: ${layers_array[*]}"
+                
+                # Update function configuration with all layers
+                aws lambda update-function-configuration \
+                --function-name "$function" \
+                --layers "${layers_array[@]}"
+                
+                if [ $? -ne 0 ]; then
+                  echo "FAILED: update function => layer: $pub_versionarn, function-name: $function"
+                else
+                  echo "SUCCESS: updated function => layer: $pub_versionarn, function-name: $function"
+                fi                                             
+              done
+            fi
+          
             echo "$pub_versionarn" >> arns.txt
           done
         env:
