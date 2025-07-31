@@ -1,0 +1,153 @@
+name: lambda-stage.yml
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  packages: read
+  id-token: write
+
+env:
+  GITHUB_USERNAME: ${{ github.actor }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  lambda-publish-stage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Aws setup
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_LAMBDA_ROLE_STAGE }}
+          aws-region: "us-east-1"
+
+      - name: Build agent
+        run: ./gradlew clean build -x test
+
+      - name: Create zip
+        run: ./gradlew :agent-lambda:lambdaLayer
+
+      - name: Set agent version
+        id: set_version
+        uses: ./.github/actions/version
+
+      - name: Create lambda layer
+        run: |
+          VERSION=$(echo "$AGENT_VERSION" | sed 's/[.]/_/g')
+          LAYER_NAME="solarwinds-apm-java-$VERSION"
+          touch arns.txt
+          layer_size=$(stat --printf=%s agent-lambda/build/lambda-layer/layer.zip)
+          
+          set +e
+          region="us-east-1"
+          aws lambda publish-layer-version \
+                      --layer-name $LAYER_NAME \
+                      --compatible-runtimes "java21" "java17" "java11" "java8.al2" \
+                      --compatible-architectures "x86_64" "arm64" \
+                      --description "Solarwinds' apm java lambda instrumentation layer, version: $AGENT_VERSION" \
+                      --region "$region" \
+                      --zip-file fileb://agent-lambda/build/lambda-layer/layer.zip \
+                      --output json > output.json
+
+          if [ $? -ne 0 ]; then
+            echo "FAILED: publish $region"
+            exit 1
+          fi
+
+          pub_versionarn=$(jq -r '.LayerVersionArn' output.json)
+          pub_arn=$(jq -r '.LayerArn' output.json)
+          pub_version=$(jq -r '.Version' output.json)
+          pub_size=$(jq -r '.Content.CodeSize' output.json)
+
+          echo '-- verifying published layer --'
+          if [ "$pub_size" != "$layer_size" ]; then
+            echo "FAILED: Region = $region, versonArn = $pub_versionarn published size = $pub_size, expected size = $layer_size"
+            exit 1
+          fi
+
+          aws lambda add-layer-version-permission \
+            --region "$region" \
+            --layer-name "$pub_arn" \
+            --version-number "$pub_version" \
+            --principal '*' \
+            --action lambda:GetLayerVersion \
+            --statement-id global-GetLayerVersion
+
+          if [ $? -ne 0 ]; then
+            echo "FAILED: add permission region = $region, versionArn = $pub_versionarn"
+          fi
+
+          functions=(
+          "apm-lambda-playground-java-complex"
+          "apm-playground-ec2-lambda-java"
+          "apm-playground-ec2-lambda-java-dev"
+          "apm-playground-ec2-lambda-java-dev-2"
+          "apm-playground-ec2-lambda-java-prod"
+          )
+      
+          for function in "${functions[@]}"; do
+            echo "Processing function: $function"
+      
+            # Get existing layers for the function
+            existing_layers=$(aws lambda get-function-configuration \
+            --function-name "$function" \
+            --query 'Layers[*].Arn' \
+            --output text 2>/dev/null)
+      
+            # Check if getting existing layers succeeded
+            if [ $? -ne 0 ]; then
+              echo "FAILED: Could not get existing layers for function: $function"
+            fi
+      
+            # Filter out any existing layers containing 'solarwinds-apm-java' and prepare the layers array
+            if [ -n "$existing_layers" ]; then
+              # Convert space-separated layers to array
+              existing_layers_array=($existing_layers)
+              filtered_layers=()
+      
+              # Filter out layers containing 'solarwinds-apm-java'
+              for layer in "${existing_layers_array[@]}"; do
+                if [[ "$layer" != *"solarwinds-apm-java"* ]]; then
+                  filtered_layers+=("$layer")
+                fi
+              done
+      
+              # Add the new layer to the filtered layers
+              layers_array=("${filtered_layers[@]}" "$pub_versionarn")
+            else
+              # No existing layers, just use the new one
+              layers_array=("$pub_versionarn")
+            fi
+      
+            echo "Updating with layers: ${layers_array[*]}"
+      
+            # Update function configuration with all layers
+            aws lambda update-function-configuration \
+            --function-name "$function" \
+            --layers "${layers_array[@]}"
+      
+            if [ $? -ne 0 ]; then
+              echo "FAILED: update function => layer: $pub_versionarn, function-name: $function"
+            else
+              echo "SUCCESS: updated function => layer: $pub_versionarn, function-name: $function"
+            fi                                             
+          done
+        
+          echo "$pub_versionarn" >> arns.txt
+
+        env:
+          AGENT_VERSION: ${{ steps.set_version.outputs.version }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          path: arns.txt
+          name: arns
