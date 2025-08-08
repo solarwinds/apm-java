@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 
 public class HttpSettingsReader implements SettingsReader {
 
-  private final Pattern regex = Pattern.compile("https?(.*)");
+  private final Pattern regex = Pattern.compile("^https?://(.*)");
 
   private static final Logger logger = LoggerFactory.getLogger();
 
@@ -52,7 +52,7 @@ public class HttpSettingsReader implements SettingsReader {
   private String constructSettingsEndpoint(String collectorUrl) {
     Matcher matcher = regex.matcher(collectorUrl);
     if (matcher.find()) {
-      return collectorUrl;
+      return String.format("https://%s", matcher.group(1));
     }
     return String.format("https://%s", collectorUrl);
   }

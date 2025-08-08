@@ -99,7 +99,7 @@ class HttpSettingsReaderTest {
     String hostname = "test-hostname";
 
     String expectedUrl =
-        "http://apm.collector.na-01.cloud.solarwinds.com/v1/settings/test-service/test-hostname";
+        "https://apm.collector.na-01.cloud.solarwinds.com/v1/settings/test-service/test-hostname";
     String expectedTokenHeader = "Bearer test-api-key";
     ConfigManager.setConfig(ConfigProperty.AGENT_COLLECTOR, collectorUrl);
 

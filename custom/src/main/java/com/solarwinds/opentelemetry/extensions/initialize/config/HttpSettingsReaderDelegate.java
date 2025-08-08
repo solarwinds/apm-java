@@ -36,19 +36,10 @@ public class HttpSettingsReaderDelegate {
                       "HTTP request failed with status code: %s and error: %s",
                       responseCode, errorResponse));
             } else {
-              String payload;
               try (BufferedReader reader =
                   new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-                StringBuilder responseBuilder = new StringBuilder();
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                  responseBuilder.append(line);
-                }
-                payload = responseBuilder.toString();
+                settings.set(JsonSettingWrapper.wrap(gson.fromJson(reader, JsonSetting.class)));
               }
-
-              settings.set(JsonSettingWrapper.wrap(gson.fromJson(payload, JsonSetting.class)));
             }
 
           } catch (IOException e) {
@@ -90,7 +81,7 @@ public class HttpSettingsReaderDelegate {
     connection.setRequestProperty("Content-Type", "application/json");
 
     connection.setRequestProperty("Accept", "application/json");
-    connection.setConnectTimeout(60000);
+    connection.setConnectTimeout(10000);
     connection.setReadTimeout(10000);
 
     return connection;

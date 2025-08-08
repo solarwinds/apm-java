@@ -179,7 +179,7 @@ class HttpSettingsReaderDelegateTest {
     verify(mockConnection).setRequestProperty("Content-Type", "application/json");
 
     verify(mockConnection).setRequestProperty("Accept", "application/json");
-    verify(mockConnection).setConnectTimeout(60000);
+    verify(mockConnection).setConnectTimeout(10000);
     verify(mockConnection).setReadTimeout(10000);
   }
 }
