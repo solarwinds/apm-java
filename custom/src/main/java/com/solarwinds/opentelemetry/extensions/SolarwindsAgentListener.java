@@ -39,8 +39,6 @@ import com.solarwinds.joboe.core.rpc.ClientException;
 import com.solarwinds.joboe.core.rpc.ClientLoggingCallback;
 import com.solarwinds.joboe.core.rpc.ClientManagerProvider;
 import com.solarwinds.joboe.core.rpc.RpcClientManager;
-import com.solarwinds.joboe.core.settings.PollingSettingsFetcher;
-import com.solarwinds.joboe.core.settings.RpcSettingsReader;
 import com.solarwinds.joboe.core.util.DaemonThreadFactory;
 import com.solarwinds.joboe.core.util.HostInfoUtils;
 import com.solarwinds.joboe.logging.Logger;
@@ -54,6 +52,9 @@ import com.solarwinds.joboe.metrics.TracingReporterMetricsCollector;
 import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.opentelemetry.core.AgentState;
 import com.solarwinds.opentelemetry.extensions.initialize.ConfigurationLoader;
+import com.solarwinds.opentelemetry.extensions.initialize.config.HttpSettingsFetcher;
+import com.solarwinds.opentelemetry.extensions.initialize.config.HttpSettingsReader;
+import com.solarwinds.opentelemetry.extensions.initialize.config.HttpSettingsReaderDelegate;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.javaagent.extension.AgentListener;
@@ -111,30 +112,24 @@ public class SolarwindsAgentListener implements AgentListener {
                 CountDownLatch settingsLatch = null;
 
                 logger.debug("Initializing HostUtils");
-                try {
-                  HostInfoUtils.NetworkAddressInfo networkAddressInfo =
-                      HostInfoUtils.getNetworkAddressInfo();
-                  List<String> ipAddresses =
-                      networkAddressInfo != null
-                          ? networkAddressInfo.getIpAddresses()
-                          : Collections.<String>emptyList();
+                HostInfoUtils.NetworkAddressInfo networkAddressInfo =
+                    HostInfoUtils.getNetworkAddressInfo();
+                List<String> ipAddresses =
+                    networkAddressInfo != null
+                        ? networkAddressInfo.getIpAddresses()
+                        : Collections.<String>emptyList();
 
-                  logger.debug(
-                      "Detected host id: "
-                          + HostInfoUtils.getHostId()
-                          + " ip addresses: "
-                          + ipAddresses);
+                logger.debug(
+                    "Detected host id: "
+                        + HostInfoUtils.getHostId()
+                        + " ip addresses: "
+                        + ipAddresses);
 
-                  settingsLatch =
-                      SettingsManager.initialize(
-                          new PollingSettingsFetcher(
-                              new RpcSettingsReader(
-                                  RpcClientManager.getClient(
-                                      RpcClientManager.OperationType.SETTINGS))),
-                          SamplingConfigProvider.getSamplingConfiguration());
-                } catch (ClientException e) {
-                  logger.warn("Failed to initialize RpcSettingsReader : " + e.getMessage());
-                }
+                settingsLatch =
+                    SettingsManager.initialize(
+                        new HttpSettingsFetcher(
+                            new HttpSettingsReader(new HttpSettingsReaderDelegate()), 60),
+                        SamplingConfigProvider.getSamplingConfiguration());
                 logger.debug("Initialized HostUtils");
 
                 logger.debug("Sending init message");
