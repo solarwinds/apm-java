@@ -1,4 +1,4 @@
-name: lambda-stage.yml
+name: Lambda Layer stage
 on:
   push:
     branches:
