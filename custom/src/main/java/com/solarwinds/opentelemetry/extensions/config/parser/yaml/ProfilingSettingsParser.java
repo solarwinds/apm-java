@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
+@SuppressWarnings("rawtypes")
 @AutoService(ConfigParser.class)
 public class ProfilingSettingsParser
     implements ConfigParser<DeclarativeConfigProperties, ProfilerSetting> {

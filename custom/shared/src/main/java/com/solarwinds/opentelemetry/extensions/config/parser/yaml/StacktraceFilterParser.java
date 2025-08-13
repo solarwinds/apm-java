@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@SuppressWarnings("rawtypes")
 @AutoService(ConfigParser.class)
 public final class StacktraceFilterParser
     implements ConfigParser<DeclarativeConfigProperties, Set<String>> {

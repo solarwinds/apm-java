@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("rawtypes")
 @AutoService(ConfigParser.class)
 public final class TransactionNamingSchemesParser
     implements ConfigParser<DeclarativeConfigProperties, List<TransactionNamingScheme>> {
