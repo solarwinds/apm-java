@@ -15,6 +15,7 @@ import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import java.util.Locale;
 import java.util.function.Consumer;
 
+@SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
 public class MetricExporterComponentProvider implements ComponentProvider<MetricExporter> {
 

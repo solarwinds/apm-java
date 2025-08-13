@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@SuppressWarnings("rawtypes")
 @AutoService(ConfigParser.class)
 public class SqlTagDatabasesParser
     implements ConfigParser<DeclarativeConfigProperties, Set<String>> {

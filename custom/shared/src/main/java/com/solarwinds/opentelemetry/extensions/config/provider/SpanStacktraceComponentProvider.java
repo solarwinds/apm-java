@@ -15,6 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 
+@SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
 public class SpanStacktraceComponentProvider implements ComponentProvider<SpanProcessor> {
 

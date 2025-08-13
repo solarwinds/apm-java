@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import org.json.JSONException;
 
+@SuppressWarnings("rawtypes")
 @AutoService(ConfigParser.class)
 public class TransactionSettingsConfigParser
     implements ConfigParser<DeclarativeConfigProperties, TraceConfigs> {

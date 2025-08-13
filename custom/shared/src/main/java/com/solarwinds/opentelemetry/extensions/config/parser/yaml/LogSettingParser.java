@@ -26,6 +26,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+@SuppressWarnings("rawtypes")
 @AutoService(ConfigParser.class)
 public class LogSettingParser implements ConfigParser<DeclarativeConfigProperties, LogSetting> {
   private static final String CONFIG_KEY = "agent.logging";

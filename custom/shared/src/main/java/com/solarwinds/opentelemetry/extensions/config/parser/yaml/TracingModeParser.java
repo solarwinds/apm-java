@@ -23,6 +23,7 @@ import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.sampling.TracingMode;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 
+@SuppressWarnings("rawtypes")
 @AutoService(ConfigParser.class)
 public class TracingModeParser implements ConfigParser<DeclarativeConfigProperties, TracingMode> {
   private static final String CONFIG_KEY = "agent.tracingMode";

@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+@SuppressWarnings("rawtypes")
 @AutoService(ConfigParser.class)
 public class UrlSampleRateConfigParser
     implements ConfigParser<DeclarativeConfigProperties, TraceConfigs> {

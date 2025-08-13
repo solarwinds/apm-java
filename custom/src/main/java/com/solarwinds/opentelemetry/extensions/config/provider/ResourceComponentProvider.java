@@ -11,6 +11,7 @@ import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.resources.Resource;
 import lombok.Getter;
 
+@SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
 public class ResourceComponentProvider implements ComponentProvider<Resource> {
 

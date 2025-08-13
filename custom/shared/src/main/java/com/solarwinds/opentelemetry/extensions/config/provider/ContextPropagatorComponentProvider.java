@@ -6,6 +6,7 @@ import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 
+@SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
 public class ContextPropagatorComponentProvider implements ComponentProvider<TextMapPropagator> {
 
