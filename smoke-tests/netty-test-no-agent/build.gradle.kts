@@ -38,7 +38,7 @@ repositories {
 val sdkVersion = System.getenv("AGENT_VERSION")?.also { println("Using SDK version: $it") } ?: "2.6.0"
 dependencies {
     implementation("io.netty:netty-common:4.1.94.Final")
-    implementation("io.github.appoptics:solarwinds-otel-sdk:$sdkVersion-SNAPSHOT")
+    implementation("com.solarwinds:solarwinds-otel-sdk:$sdkVersion-SNAPSHOT")
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
