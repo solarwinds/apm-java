@@ -72,6 +72,7 @@ public class AutoConfigurationCustomizerProviderImpl
 
     if (!agentEnabled) {
       logger.warn("Solarwinds' extension is disabled");
+      return;
     }
 
     autoConfiguration

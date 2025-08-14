@@ -109,7 +109,6 @@ public class SolarwindsAgentListener implements AgentListener {
               try {
                 logger.info("Starting startup task");
                 // trigger init on the Settings reader
-                CountDownLatch settingsLatch = null;
 
                 logger.debug("Initializing HostUtils");
                 HostInfoUtils.NetworkAddressInfo networkAddressInfo =
@@ -125,7 +124,7 @@ public class SolarwindsAgentListener implements AgentListener {
                         + " ip addresses: "
                         + ipAddresses);
 
-                settingsLatch =
+                CountDownLatch settingsLatch =
                     SettingsManager.initialize(
                         new HttpSettingsFetcher(
                             new HttpSettingsReader(new HttpSettingsReaderDelegate()), 60),

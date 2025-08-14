@@ -10,6 +10,7 @@ import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.resources.Resource;
 import lombok.Getter;
+import lombok.Setter;
 
 @SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
@@ -17,7 +18,7 @@ public class ResourceComponentProvider implements ComponentProvider<Resource> {
 
   public static final String COMPONENT_NAME = "swo/resource";
 
-  @Getter private static Resource resource = null;
+  @Getter @Setter private static Resource resource = null;
 
   @Override
   public Class<Resource> getType() {
