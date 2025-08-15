@@ -34,7 +34,8 @@ class ApmResourceProviderTest {
   @Test
   void testCreateResource() {
     Resource resource =
-        apmResourceProvider.createResource(DefaultConfigProperties.create(Collections.emptyMap()));
+        apmResourceProvider.createResource(
+            DefaultConfigProperties.createFromMap(Collections.emptyMap()));
     String module = resource.getAttribute(moduleKey);
     String version = resource.getAttribute(moduleKey);
 

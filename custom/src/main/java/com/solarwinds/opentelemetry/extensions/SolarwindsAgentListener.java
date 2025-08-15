@@ -16,8 +16,8 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
-import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
-import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.setAgentEnabled;
+import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
+import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.setAgentEnabled;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 import static io.opentelemetry.semconv.TelemetryAttributes.TELEMETRY_SDK_LANGUAGE;
 import static io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS;
@@ -51,10 +51,10 @@ import com.solarwinds.joboe.metrics.SystemMonitorFactoryImpl;
 import com.solarwinds.joboe.metrics.TracingReporterMetricsCollector;
 import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.opentelemetry.core.AgentState;
-import com.solarwinds.opentelemetry.extensions.initialize.ConfigurationLoader;
-import com.solarwinds.opentelemetry.extensions.initialize.config.HttpSettingsFetcher;
-import com.solarwinds.opentelemetry.extensions.initialize.config.HttpSettingsReader;
-import com.solarwinds.opentelemetry.extensions.initialize.config.HttpSettingsReaderDelegate;
+import com.solarwinds.opentelemetry.extensions.config.ConfigurationLoader;
+import com.solarwinds.opentelemetry.extensions.config.HttpSettingsFetcher;
+import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReader;
+import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReaderDelegate;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.javaagent.extension.AgentListener;
@@ -109,7 +109,6 @@ public class SolarwindsAgentListener implements AgentListener {
               try {
                 logger.info("Starting startup task");
                 // trigger init on the Settings reader
-                CountDownLatch settingsLatch = null;
 
                 logger.debug("Initializing HostUtils");
                 HostInfoUtils.NetworkAddressInfo networkAddressInfo =
@@ -125,7 +124,7 @@ public class SolarwindsAgentListener implements AgentListener {
                         + " ip addresses: "
                         + ipAddresses);
 
-                settingsLatch =
+                CountDownLatch settingsLatch =
                     SettingsManager.initialize(
                         new HttpSettingsFetcher(
                             new HttpSettingsReader(new HttpSettingsReaderDelegate()), 60),
@@ -236,7 +235,7 @@ public class SolarwindsAgentListener implements AgentListener {
     }
 
     // Capture OTel Resource attributes
-    Attributes attributes = ResourceCustomizer.getResource().getAttributes();
+    Attributes attributes = ResourceArbiter.resource().getAttributes();
     logger.debug(
         "Resource attributes "
             + attributes.toString().replaceAll("(sw.apm.service.key=)\\S+", "$1****"));
