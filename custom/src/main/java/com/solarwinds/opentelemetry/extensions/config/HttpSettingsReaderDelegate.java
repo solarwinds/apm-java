@@ -25,7 +25,7 @@ public class HttpSettingsReaderDelegate {
         () -> {
           HttpURLConnection connection = null;
           try {
-            connection = getHttpURLConnection(new URL(url), authorizationHeader);
+            connection = getHttpUrlConnection(new URL(url), authorizationHeader);
             int responseCode = connection.getResponseCode();
             if (responseCode != HttpURLConnection.HTTP_OK) {
               String errorResponse = getErrorMessage(connection);
@@ -71,7 +71,7 @@ public class HttpSettingsReaderDelegate {
     return errorResponse;
   }
 
-  HttpURLConnection getHttpURLConnection(URL url, String authorizationHeader) throws IOException {
+  HttpURLConnection getHttpUrlConnection(URL url, String authorizationHeader) throws IOException {
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
     connection.setRequestMethod("GET");

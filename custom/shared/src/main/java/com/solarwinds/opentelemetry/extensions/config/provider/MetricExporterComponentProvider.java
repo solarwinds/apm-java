@@ -38,6 +38,7 @@ public class MetricExporterComponentProvider implements ComponentProvider<Metric
     OtlpDeclarativeConfigUtil.configureOtlpExporterBuilder(
         DATA_TYPE_METRICS,
         config,
+        builder::setComponentLoader,
         builder::setEndpoint,
         builder::addHeader,
         builder::setCompression,

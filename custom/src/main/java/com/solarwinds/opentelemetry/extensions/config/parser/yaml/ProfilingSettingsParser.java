@@ -20,7 +20,9 @@ public class ProfilingSettingsParser
       throws InvalidConfigException {
     DeclarativeConfigProperties profilerSettings =
         declarativeConfigProperties.getStructured(CONFIG_KEY);
-    if (profilerSettings == null) return null;
+    if (profilerSettings == null) {
+      return null;
+    }
 
     boolean enabled = profilerSettings.getBoolean("enabled", false);
     int circuitBreakerDurationThreshold =

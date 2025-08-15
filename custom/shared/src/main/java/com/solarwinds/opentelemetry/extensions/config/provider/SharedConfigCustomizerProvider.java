@@ -117,7 +117,9 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
                     spanProcessorModel.getBatch() != null
                         || spanProcessorModel.getSimple() != null);
 
-    if (hasExporter) return;
+    if (hasExporter) {
+      return;
+    }
     SpanProcessorModel spanProcessorModel =
         new SpanProcessorModel()
             .withBatch(
@@ -135,7 +137,9 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
   private void addMetricExporter(OpenTelemetryConfigurationModel model) {
     MeterProviderModel meterProvider = model.getMeterProvider();
     List<MetricReaderModel> readers = Objects.requireNonNull(meterProvider).getReaders();
-    if (!readers.isEmpty()) return;
+    if (!readers.isEmpty()) {
+      return;
+    }
 
     Map<String, Object> configs = new HashMap<>();
     configs.put("timeout", 10000);

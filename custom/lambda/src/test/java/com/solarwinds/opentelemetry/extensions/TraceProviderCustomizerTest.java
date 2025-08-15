@@ -51,7 +51,8 @@ class TraceProviderCustomizerTest {
         .thenReturn(sdkTracerProviderBuilderMock);
 
     tested.apply(
-        sdkTracerProviderBuilderMock, DefaultConfigProperties.create(Collections.emptyMap()));
+        sdkTracerProviderBuilderMock,
+        DefaultConfigProperties.createFromMap(Collections.emptyMap()));
     verify(sdkTracerProviderBuilderMock).setSampler(samplerArgumentCaptor.capture());
     verify(sdkTracerProviderBuilderMock).addSpanProcessor(processorArgumentCaptor.capture());
 

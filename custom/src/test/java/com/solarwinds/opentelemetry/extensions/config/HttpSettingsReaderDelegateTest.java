@@ -64,7 +64,7 @@ class HttpSettingsReaderDelegateTest {
 
     doReturn(mockConnection)
         .when(tested)
-        .getHttpURLConnection(any(URL.class), eq(TEST_AUTH_HEADER));
+        .getHttpUrlConnection(any(URL.class), eq(TEST_AUTH_HEADER));
     when(mockConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
     when(mockConnection.getInputStream()).thenReturn(inputStream);
 
@@ -84,7 +84,7 @@ class HttpSettingsReaderDelegateTest {
       assertEquals(1741301987, result.getTimestamp());
       assertEquals(1000000, result.getValue());
 
-      verify(tested).getHttpURLConnection(any(URL.class), eq(TEST_AUTH_HEADER));
+      verify(tested).getHttpUrlConnection(any(URL.class), eq(TEST_AUTH_HEADER));
       verify(mockConnection).disconnect();
     }
   }
@@ -96,7 +96,7 @@ class HttpSettingsReaderDelegateTest {
 
     doReturn(mockConnection)
         .when(tested)
-        .getHttpURLConnection(any(URL.class), eq(TEST_AUTH_HEADER));
+        .getHttpUrlConnection(any(URL.class), eq(TEST_AUTH_HEADER));
     when(mockConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
     when(mockConnection.getErrorStream()).thenReturn(errorStream);
 
@@ -122,7 +122,7 @@ class HttpSettingsReaderDelegateTest {
   void testFetchSettings_IOException() throws IOException {
     doThrow(new IOException("Connection failed"))
         .when(tested)
-        .getHttpURLConnection(any(URL.class), eq(TEST_AUTH_HEADER));
+        .getHttpUrlConnection(any(URL.class), eq(TEST_AUTH_HEADER));
 
     try (MockedStatic<InstrumentationUtil> instrumentationUtil =
         mockStatic(InstrumentationUtil.class)) {
@@ -145,7 +145,7 @@ class HttpSettingsReaderDelegateTest {
   void testFetchSettings_RuntimeException() throws IOException {
     doReturn(mockConnection)
         .when(tested)
-        .getHttpURLConnection(any(URL.class), eq(TEST_AUTH_HEADER));
+        .getHttpUrlConnection(any(URL.class), eq(TEST_AUTH_HEADER));
     when(mockConnection.getResponseCode()).thenThrow(new RuntimeException("Unexpected error"));
 
     try (MockedStatic<InstrumentationUtil> instrumentationUtil =
@@ -167,10 +167,10 @@ class HttpSettingsReaderDelegateTest {
   }
 
   @Test
-  void testGetHttpURLConnection_Configuration() throws IOException {
+  void testGetHttpUrlConnection_Configuration() throws IOException {
     when(mockUrl.openConnection()).thenReturn(mockConnection);
 
-    HttpURLConnection result = tested.getHttpURLConnection(mockUrl, TEST_AUTH_HEADER);
+    HttpURLConnection result = tested.getHttpUrlConnection(mockUrl, TEST_AUTH_HEADER);
 
     assertEquals(mockConnection, result);
 
