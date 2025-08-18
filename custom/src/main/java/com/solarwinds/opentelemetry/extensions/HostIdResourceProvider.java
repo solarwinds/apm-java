@@ -49,87 +49,16 @@
 package com.solarwinds.opentelemetry.extensions;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.core.HostId;
-import com.solarwinds.joboe.core.util.ServerHostInfoReader;
-import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.common.AttributesBuilder;
+import com.solarwinds.opentelemetry.extensions.config.HostIdResourceUtil;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ResourceProvider;
 import io.opentelemetry.sdk.resources.Resource;
-import io.opentelemetry.semconv.incubating.CloudIncubatingAttributes;
-import io.opentelemetry.semconv.incubating.ContainerIncubatingAttributes;
-import io.opentelemetry.semconv.incubating.HostIncubatingAttributes;
-import io.opentelemetry.semconv.incubating.K8sIncubatingAttributes;
-import io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes;
 
 @AutoService(ResourceProvider.class)
 public class HostIdResourceProvider implements ResourceProvider {
 
   @Override
   public Resource createResource(ConfigProperties configProperties) {
-    AttributesBuilder builder = Attributes.builder();
-
-    HostId hostId = ServerHostInfoReader.INSTANCE.getHostId();
-    builder.put(ContainerIncubatingAttributes.CONTAINER_ID, hostId.getDockerContainerId());
-    builder.put(ProcessIncubatingAttributes.PROCESS_PID, (long) hostId.getPid());
-    builder.put(AttributeKey.stringArrayKey("mac.addresses"), hostId.getMacAddresses());
-
-    builder.put(
-        AttributeKey.stringKey("azure.app.service.instance.id"),
-        hostId.getAzureAppServiceInstanceId());
-    builder.put(HostIncubatingAttributes.HOST_ID, hostId.getHerokuDynoId());
-    builder.put(AttributeKey.stringKey("sw.uams.client.id"), hostId.getUamsClientId());
-    builder.put(AttributeKey.stringKey("uuid"), hostId.getUuid());
-
-    HostId.K8sMetadata k8sMetadata = hostId.getK8sMetadata();
-    if (k8sMetadata != null) {
-      builder.put(K8sIncubatingAttributes.K8S_POD_UID, k8sMetadata.getPodUid());
-      builder.put(K8sIncubatingAttributes.K8S_NAMESPACE_NAME, k8sMetadata.getNamespace());
-      builder.put(K8sIncubatingAttributes.K8S_POD_NAME, k8sMetadata.getPodName());
-    }
-
-    HostId.AwsMetadata awsMetadata = hostId.getAwsMetadata();
-    if (awsMetadata != null) {
-      builder.put(HostIncubatingAttributes.HOST_ID, awsMetadata.getHostId());
-      builder.put(HostIncubatingAttributes.HOST_NAME, awsMetadata.getHostName());
-      builder.put(CloudIncubatingAttributes.CLOUD_PROVIDER, awsMetadata.getCloudProvider());
-
-      builder.put(CloudIncubatingAttributes.CLOUD_ACCOUNT_ID, awsMetadata.getCloudAccountId());
-      builder.put(CloudIncubatingAttributes.CLOUD_PLATFORM, awsMetadata.getCloudPlatform());
-      builder.put(
-          CloudIncubatingAttributes.CLOUD_AVAILABILITY_ZONE,
-          awsMetadata.getCloudAvailabilityZone());
-
-      builder.put(CloudIncubatingAttributes.CLOUD_REGION, awsMetadata.getCloudRegion());
-      builder.put(HostIncubatingAttributes.HOST_IMAGE_ID, awsMetadata.getHostImageId());
-      builder.put(HostIncubatingAttributes.HOST_TYPE, awsMetadata.getHostType());
-    }
-
-    HostId.AzureVmMetadata azureVmMetadata = hostId.getAzureVmMetadata();
-    if (azureVmMetadata != null) {
-      builder.put(HostIncubatingAttributes.HOST_ID, azureVmMetadata.getHostId());
-      builder.put(HostIncubatingAttributes.HOST_NAME, azureVmMetadata.getHostName());
-      builder.put(CloudIncubatingAttributes.CLOUD_PROVIDER, azureVmMetadata.getCloudProvider());
-
-      builder.put(CloudIncubatingAttributes.CLOUD_ACCOUNT_ID, azureVmMetadata.getCloudAccountId());
-      builder.put(CloudIncubatingAttributes.CLOUD_PLATFORM, azureVmMetadata.getCloudPlatform());
-      builder.put(CloudIncubatingAttributes.CLOUD_REGION, azureVmMetadata.getCloudRegion());
-
-      builder.put(AttributeKey.stringKey("azure.vm.name"), azureVmMetadata.getAzureVmName());
-      builder.put(AttributeKey.stringKey("azure.vm.size"), azureVmMetadata.getAzureVmSize());
-      builder.put(
-          AttributeKey.stringKey("azure.resourcegroup.name"),
-          azureVmMetadata.getAzureResourceGroupName());
-
-      builder.put(
-          AttributeKey.stringKey("azure.vm.scaleset.name"),
-          azureVmMetadata.getAzureVmScaleSetName());
-    }
-
-    builder.put(HostIncubatingAttributes.HOST_NAME, hostId.getHostname());
-    builder.put(CloudIncubatingAttributes.CLOUD_AVAILABILITY_ZONE, hostId.getEc2AvailabilityZone());
-    builder.put(HostIncubatingAttributes.HOST_ID, hostId.getEc2InstanceId());
-    return Resource.create(builder.build());
+    return Resource.create(HostIdResourceUtil.createAttribute());
   }
 }

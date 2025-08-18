@@ -17,7 +17,7 @@
 package com.solarwinds.opentelemetry.extensions;
 
 import static com.solarwinds.opentelemetry.extensions.SharedNames.LAYER_NAME_PLACEHOLDER;
-import static com.solarwinds.opentelemetry.extensions.initialize.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
+import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 
 import com.solarwinds.joboe.core.Context;
 import com.solarwinds.joboe.core.Event;

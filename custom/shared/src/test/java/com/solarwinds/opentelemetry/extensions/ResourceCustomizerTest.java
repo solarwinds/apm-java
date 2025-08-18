@@ -49,14 +49,14 @@ class ResourceCustomizerTest {
 
   @Test
   void verifyThatAutoConfiguredResourceIsCached() {
-    tested.apply(resource, DefaultConfigProperties.create(Collections.emptyMap()));
+    tested.apply(resource, DefaultConfigProperties.createFromMap(Collections.emptyMap()));
     assertNotNull(ResourceCustomizer.getResource());
   }
 
   @Test
   void verifyThatServiceKeyIsMaskedWhenPresentInProcessCommandLine() {
     Resource actual =
-        tested.apply(resource, DefaultConfigProperties.create(Collections.emptyMap()));
+        tested.apply(resource, DefaultConfigProperties.createFromMap(Collections.emptyMap()));
     assertEquals(
         "-Dsw.apm.service.key=****",
         actual.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE));
@@ -72,7 +72,7 @@ class ResourceCustomizerTest {
                     "-Duser.country=US -Duser.language=en")
                 .build());
     Resource actual =
-        tested.apply(resource, DefaultConfigProperties.create(Collections.emptyMap()));
+        tested.apply(resource, DefaultConfigProperties.createFromMap(Collections.emptyMap()));
     assertEquals(
         "-Duser.country=US -Duser.language=en",
         actual.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE));
@@ -81,7 +81,7 @@ class ResourceCustomizerTest {
   @Test
   void verifyThatServiceKeyIsMaskedWhenPresentInProcessCommandArgs() {
     Resource actual =
-        tested.apply(resource, DefaultConfigProperties.create(Collections.emptyMap()));
+        tested.apply(resource, DefaultConfigProperties.createFromMap(Collections.emptyMap()));
     assertEquals(
         "-Dsw.apm.service.key=****",
         Objects.requireNonNull(
@@ -99,7 +99,7 @@ class ResourceCustomizerTest {
                     Arrays.asList("-Duser.country=US", "-Duser.language=en"))
                 .build());
     Resource actual =
-        tested.apply(resource, DefaultConfigProperties.create(Collections.emptyMap()));
+        tested.apply(resource, DefaultConfigProperties.createFromMap(Collections.emptyMap()));
     assertEquals(
         Arrays.asList("-Duser.country=US", "-Duser.language=en"),
         actual.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS));
