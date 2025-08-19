@@ -16,8 +16,6 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
-import static com.solarwinds.opentelemetry.core.Constants.SW_KEY_PREFIX;
-
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.core.profiler.Profiler;
@@ -32,12 +30,10 @@ import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 
+import static com.solarwinds.opentelemetry.core.Constants.SW_KEY_PREFIX;
+
 /** Span process to perform code profiling */
 public class SolarwindsProfilingSpanProcessor implements SpanProcessor {
-  private static final ProfilerSetting profilerSetting =
-      (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);
-  private static final boolean PROFILER_ENABLED =
-      profilerSetting != null && profilerSetting.isEnabled();
 
   @Override
   public void onStart(@Nonnull Context parentContext, ReadWriteSpan span) {
@@ -45,7 +41,7 @@ public class SolarwindsProfilingSpanProcessor implements SpanProcessor {
       SpanContext parentSpanContext = Span.fromContext(parentContext).getSpanContext();
       if (!parentSpanContext.isValid()
           || parentSpanContext.isRemote()) { // then a root span of this service
-        if (PROFILER_ENABLED) {
+        if (isProfilingEnabled()) {
           SpanContext spanContext = span.getSpanContext();
           Metadata metadata = Util.buildMetadata(spanContext);
           if (metadata.isValid()) {
@@ -67,7 +63,7 @@ public class SolarwindsProfilingSpanProcessor implements SpanProcessor {
 
   @Override
   public void onEnd(ReadableSpan span) {
-    if (span.getSpanContext().isSampled() && PROFILER_ENABLED) { // only profile on sampled spans
+    if (span.getSpanContext().isSampled() && isProfilingEnabled()) { // only profile on sampled spans
       SpanContext parentSpanContext = span.toSpanData().getParentSpanContext();
       if (!parentSpanContext.isValid()
           || parentSpanContext.isRemote()) { // then a root span of this service
@@ -79,5 +75,11 @@ public class SolarwindsProfilingSpanProcessor implements SpanProcessor {
   @Override
   public boolean isEndRequired() {
     return true;
+  }
+
+  private boolean isProfilingEnabled() {
+    final ProfilerSetting profilerSetting =
+            (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);
+    return profilerSetting != null && profilerSetting.isEnabled();
   }
 }
