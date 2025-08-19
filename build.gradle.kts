@@ -20,7 +20,7 @@ plugins{
 
 val swoAgentVersion = "2.18.0"
 extra["swoAgentVersion"] = swoAgentVersion
-group = "io.github.appoptics"
+group = "com.solarwinds"
 version = if (System.getenv("SNAPSHOT_BUILD").toBoolean()) "$swoAgentVersion-SNAPSHOT" else swoAgentVersion
 
 subprojects {
