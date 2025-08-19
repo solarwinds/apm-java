@@ -16,8 +16,6 @@
 
 package com.solarwinds.opentelemetry.extensions.config;
 
-import static com.solarwinds.opentelemetry.extensions.SharedNames.COMPONENT_NAME;
-
 import com.solarwinds.joboe.config.ConfigContainer;
 import com.solarwinds.joboe.config.ConfigGroup;
 import com.solarwinds.joboe.config.ConfigManager;
@@ -192,7 +190,7 @@ public class ConfigurationLoader {
     }
   }
 
-  static void configureOtelLogExport(ConfigContainer container) {
+  static void configureOtelLogExport(ConfigContainer container) throws InvalidConfigException {
     Boolean exportLog = (Boolean) container.get(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED);
     if (exportLog != null && exportLog) {
       String serviceKey = (String) container.get(ConfigProperty.AGENT_SERVICE_KEY);
@@ -204,7 +202,7 @@ public class ConfigurationLoader {
 
       if (collectorEndpoint != null) {
         if (collectorEndpoint.contains("appoptics.com")) {
-          return;
+          throw new InvalidConfigException("Appoptics is not supported");
         }
         collectorEndpoint = collectorEndpoint.split(":")[0];
         String[] fragments = collectorEndpoint.split("\\.");
@@ -230,7 +228,7 @@ public class ConfigurationLoader {
     }
   }
 
-  static void configureOtelMetricExport(ConfigContainer container) {
+  static void configureOtelMetricExport(ConfigContainer container) throws InvalidConfigException {
     String serviceKey = (String) container.get(ConfigProperty.AGENT_SERVICE_KEY);
     String apiKey = ServiceKeyUtils.getApiKey(serviceKey);
     String dataCell = "na-01";
@@ -239,7 +237,7 @@ public class ConfigurationLoader {
     String collectorEndpoint = (String) container.get(ConfigProperty.AGENT_COLLECTOR);
     if (collectorEndpoint != null) {
       if (collectorEndpoint.contains("appoptics.com")) {
-        return;
+        throw new InvalidConfigException("Appoptics is not supported");
       }
 
       collectorEndpoint = collectorEndpoint.split(":")[0];
@@ -265,7 +263,7 @@ public class ConfigurationLoader {
         String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env));
   }
 
-  static void configureOtelTraceExport(ConfigContainer container) {
+  static void configureOtelTraceExport(ConfigContainer container) throws InvalidConfigException {
     String serviceKey = (String) container.get(ConfigProperty.AGENT_SERVICE_KEY);
     String apiKey = ServiceKeyUtils.getApiKey(serviceKey);
 
@@ -275,8 +273,7 @@ public class ConfigurationLoader {
 
     if (collectorEndpoint != null) {
       if (collectorEndpoint.contains("appoptics.com")) {
-        setSystemProperty("otel.traces.exporter", COMPONENT_NAME);
-        return;
+        throw new InvalidConfigException("Appoptics is not supported");
       }
 
       collectorEndpoint = collectorEndpoint.split(":")[0];
