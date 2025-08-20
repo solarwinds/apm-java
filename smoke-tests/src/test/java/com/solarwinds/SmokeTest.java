@@ -25,7 +25,7 @@ import com.solarwinds.agents.Agent;
 import com.solarwinds.agents.SwoAgentResolver;
 import com.solarwinds.config.Configs;
 import com.solarwinds.config.TestConfig;
-import com.solarwinds.containers.AoContainer;
+import com.solarwinds.containers.ExtensionContainer;
 import com.solarwinds.containers.K6Container;
 import com.solarwinds.containers.PetClinicRestContainer;
 import com.solarwinds.containers.PostgresContainer;
@@ -55,8 +55,9 @@ public class SmokeTest {
 
     private static final LogStreamAnalyzer<Slf4jLogConsumer> logStreamAnalyzer = new LogStreamAnalyzer<>(
             List.of("hostId:.*i-[0-9a-z]+",
+                    "hostId:.*[0-9a-z-]+",
+                    "Extension attached!",
                     "Completed operation \\[post init message\\] with Result code \\[OK\\] arg",
-                    "hostId:.*[0-9a-z-]+", "Extension attached!","Created collector client  : collector.appoptics.com:443",
                     "trace_id=[a-z0-9]+\\s+span_id=[a-z0-9]+\\s+trace_flags=(01|00)",
                     "This log line is used for validation only: service.name: java-apm-smoke-test",
                     "Applying instrumentation: sw-jdbc",
@@ -84,7 +85,7 @@ public class SmokeTest {
         webMvc.start();
         webMvc.followOutput(logStreamAnalyzer);
 
-        GenericContainer<?> webMvcAo = new AoContainer(new SwoAgentResolver(), NETWORK, agent).build();
+        GenericContainer<?> webMvcAo = new ExtensionContainer(new SwoAgentResolver(), NETWORK, agent).build();
         webMvcAo.start();
         webMvcAo.followOutput(logStreamAnalyzer);
 
@@ -168,12 +169,6 @@ public class SmokeTest {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['check that remote service, java-apm-smoke-test, is path of the trace'].passes");
         assertTrue(passes > 0, "context propagation is broken");
-    }
-
-    @Test
-    void assertConnectionToAo() {
-        Boolean actual = logStreamAnalyzer.getAnswer().get("Created collector client  : collector.appoptics.com:443");
-        assertTrue(actual, "connectivity to appoptics is broken");
     }
 
     @Test
