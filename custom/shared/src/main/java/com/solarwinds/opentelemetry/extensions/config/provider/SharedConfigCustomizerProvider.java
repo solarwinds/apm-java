@@ -205,12 +205,7 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
             .getString(ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(), "");
 
     String endpoint = solarwinds.getString(ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(), "");
-    if (endpoint.startsWith("http")) {
-      endpoint = endpoint.replaceAll("https?://apm", "https://otel");
-
-    } else {
-      endpoint = String.format("https://%s", endpoint.replace("apm", "otel"));
-    }
+    endpoint = endpoint.replaceAll("https?://apm|^apm", "https://otel");
 
     serviceKeyAndEndpoint[0] = ServiceKeyUtils.getApiKey(serviceKeyAndEndpoint[0]);
     serviceKeyAndEndpoint[1] = endpoint;

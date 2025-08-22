@@ -76,7 +76,7 @@ publishing {
     }
 
     // FIXME: remove because it's only needed once
-    if(!System.getenv("SNAPSHOT_BUILD").toBoolean()){
+    if (!System.getenv("SNAPSHOT_BUILD").toBoolean()) {
       register<MavenPublication>("relocation") {
         pom {
           groupId = "io.github.appoptics"

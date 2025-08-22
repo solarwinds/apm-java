@@ -215,4 +215,86 @@ class SharedConfigCustomizerProviderTest {
     assertEquals("https://otel.collector.com", otlp.getEndpoint());
     assertEquals("authorization=Bearer token", otlp.getHeadersList());
   }
+
+  @Test
+  void UrlShouldNotChangeWhenNotApm() {
+    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+        new OpenTelemetryConfigurationModel()
+            .withInstrumentationDevelopment(
+                new InstrumentationModel()
+                    .withJava(
+                        new ExperimentalLanguageSpecificInstrumentationModel()
+                            .withAdditionalProperty(
+                                "solarwinds",
+                                new HashMap<String, String>() {
+                                  {
+                                    put(
+                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                        "token:service");
+                                    put(
+                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                        "http://example.com");
+                                  }
+                                })));
+
+    doNothing()
+        .when(declarativeConfigurationCustomizerMock)
+        .addModelCustomizer(functionArgumentCaptor.capture());
+
+    tested.customize(declarativeConfigurationCustomizerMock);
+    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+
+    LoggerProviderModel loggerProvider = openTelemetryConfigurationModel.getLoggerProvider();
+    LogRecordProcessorModel logRecordProcessorModel = loggerProvider.getProcessors().get(0);
+    BatchLogRecordProcessorModel batch = logRecordProcessorModel.getBatch();
+
+    assertNotNull(batch);
+    LogRecordExporterModel exporter = batch.getExporter();
+    OtlpGrpcExporterModel otlp = exporter.getOtlpGrpc();
+
+    assertNotNull(otlp);
+    assertEquals("http://example.com", otlp.getEndpoint());
+    assertEquals("authorization=Bearer token", otlp.getHeadersList());
+  }
+
+  @Test
+  void UrlShouldNotChangeWhenNotApm2() {
+    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+        new OpenTelemetryConfigurationModel()
+            .withInstrumentationDevelopment(
+                new InstrumentationModel()
+                    .withJava(
+                        new ExperimentalLanguageSpecificInstrumentationModel()
+                            .withAdditionalProperty(
+                                "solarwinds",
+                                new HashMap<String, String>() {
+                                  {
+                                    put(
+                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                        "token:service");
+                                    put(
+                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                        "http://localhost:4317");
+                                  }
+                                })));
+
+    doNothing()
+        .when(declarativeConfigurationCustomizerMock)
+        .addModelCustomizer(functionArgumentCaptor.capture());
+
+    tested.customize(declarativeConfigurationCustomizerMock);
+    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+
+    LoggerProviderModel loggerProvider = openTelemetryConfigurationModel.getLoggerProvider();
+    LogRecordProcessorModel logRecordProcessorModel = loggerProvider.getProcessors().get(0);
+    BatchLogRecordProcessorModel batch = logRecordProcessorModel.getBatch();
+
+    assertNotNull(batch);
+    LogRecordExporterModel exporter = batch.getExporter();
+    OtlpGrpcExporterModel otlp = exporter.getOtlpGrpc();
+
+    assertNotNull(otlp);
+    assertEquals("http://localhost:4317", otlp.getEndpoint());
+    assertEquals("authorization=Bearer token", otlp.getHeadersList());
+  }
 }
