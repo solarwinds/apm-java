@@ -117,11 +117,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build xk6 container
+      - name: Build xk6 image
         uses: docker/build-push-action@v6
         with:
           context: long-running-test-arch/xk6
-          platforms: linux/arm64,linux/amd64
+          platforms: linux/amd64
           push: true
           tags: "ghcr.io/${{github.repository_owner}}/xk6:latest"
           cache-from: type=gha

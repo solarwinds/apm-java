@@ -14,13 +14,11 @@
 # limitations under the License.
 #
 
-FROM golang:1.24.0 AS build
+FROM grafana/xk6 AS build
 WORKDIR /app
 COPY go.mod go.mod
 COPY k6_otel.go k6_otel.go
 
-RUN go get .
-RUN go install go.k6.io/xk6/cmd/xk6@latest
 RUN xk6 build --with xk6-otel-output=.
 
 FROM  debian:12-slim
