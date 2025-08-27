@@ -37,18 +37,20 @@ public class DelegatingMetricExporter implements MetricExporter {
   @Override
   public CompletableResultCode export(@NonNull Collection<MetricData> metrics) {
     if (ConfigManager.getConfigOptional(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, true)) {
-      return delegate.export(metrics);
+      return delegate.export(metrics).whenComplete(TransactionNameManager::clearTransactionNames);
     }
 
-    return delegate.export(
-        metrics.stream()
-            .filter(
-                metricData ->
-                    MeterProvider.samplingMeterScopeName.equals(
-                            metricData.getInstrumentationScopeInfo().getName())
-                        || MeterProvider.requestMeterScopeName.equals(
-                            metricData.getInstrumentationScopeInfo().getName()))
-            .collect(Collectors.toList()));
+    return delegate
+        .export(
+            metrics.stream()
+                .filter(
+                    metricData ->
+                        MeterProvider.samplingMeterScopeName.equals(
+                                metricData.getInstrumentationScopeInfo().getName())
+                            || MeterProvider.requestMeterScopeName.equals(
+                                metricData.getInstrumentationScopeInfo().getName()))
+                .collect(Collectors.toList()))
+        .whenComplete(TransactionNameManager::clearTransactionNames);
   }
 
   @Override

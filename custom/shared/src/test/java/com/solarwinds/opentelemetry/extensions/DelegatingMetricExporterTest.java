@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
+import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.common.InstrumentationScopeInfo;
 import io.opentelemetry.sdk.metrics.InstrumentType;
 import io.opentelemetry.sdk.metrics.data.AggregationTemporality;
@@ -57,13 +58,16 @@ class DelegatingMetricExporterTest {
 
   @Test
   void verifyThatAllMetricDataAreExported() {
+    when(metricExporterMock.export(any())).thenReturn(CompletableResultCode.ofSuccess());
     tested.export(Collections.singleton(metricDataMock));
+
     verify(metricExporterMock).export(any());
   }
 
   @Test
   void verifyThatOnlySwoMetricDataAreExported() throws InvalidConfigException {
     ConfigManager.setConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, false);
+    when(metricExporterMock.export(any())).thenReturn(CompletableResultCode.ofFailure());
 
     when(metricDataMock.getInstrumentationScopeInfo())
         .thenReturn(InstrumentationScopeInfo.create(MeterProvider.requestMeterScopeName));
