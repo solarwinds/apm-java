@@ -49,10 +49,5 @@ class CustomConfigCustomizerProviderTest {
             .get(0)
             .getAdditionalProperties()
             .get(ProfilingSpanProcessorComponentProvider.COMPONENT_NAME));
-    assertNotNull(
-        processors
-            .get(1)
-            .getAdditionalProperties()
-            .get(InboundMetricsSpanProcessorComponentProvider.COMPONENT_NAME));
   }
 }

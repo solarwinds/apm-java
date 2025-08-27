@@ -625,11 +625,6 @@ public class ConfigurationLoader {
     ConfigManager.initialize(configs);
   }
 
-  public static boolean shouldUseOtlpForMetrics() {
-    String collectorEndpoint = (String) ConfigManager.getConfig(ConfigProperty.AGENT_COLLECTOR);
-    return collectorEndpoint == null || !collectorEndpoint.contains("appoptics.com");
-  }
-
   private static void setSystemProperty(String key, String value) {
     String propertyValue = getConfigValue(key);
     if (propertyValue == null) {

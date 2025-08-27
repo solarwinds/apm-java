@@ -333,12 +333,4 @@ public class TransactionNameManager {
       limitExceeded = false;
     }
   }
-
-  /** For internal testing usage only */
-  @SuppressWarnings("unused")
-  static void reset() {
-    clearTransactionNames();
-    URL_TRANSACTION_NAME_CACHE.invalidateAll();
-    maxNameCount = DEFAULT_MAX_NAME_COUNT;
-  }
 }

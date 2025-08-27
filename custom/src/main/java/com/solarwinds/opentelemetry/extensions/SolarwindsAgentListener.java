@@ -43,15 +43,12 @@ import com.solarwinds.joboe.core.util.DaemonThreadFactory;
 import com.solarwinds.joboe.core.util.HostInfoUtils;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
-import com.solarwinds.joboe.metrics.MetricsCategory;
 import com.solarwinds.joboe.metrics.MetricsCollector;
 import com.solarwinds.joboe.metrics.MetricsMonitor;
 import com.solarwinds.joboe.metrics.SystemMonitorController;
 import com.solarwinds.joboe.metrics.SystemMonitorFactoryImpl;
-import com.solarwinds.joboe.metrics.TracingReporterMetricsCollector;
 import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.opentelemetry.core.AgentState;
-import com.solarwinds.opentelemetry.extensions.config.ConfigurationLoader;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsFetcher;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReader;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReaderDelegate;
@@ -143,19 +140,7 @@ public class SolarwindsAgentListener implements AgentListener {
                           protected MetricsMonitor buildMetricsMonitor() {
                             try {
                               MetricsCollector metricsCollector =
-                                  new MetricsCollector(
-                                      configs,
-                                      SolarwindsInboundMetricsSpanProcessor
-                                          .buildSpanMetricsCollector());
-
-                              if (ConfigurationLoader.shouldUseOtlpForMetrics()) {
-                                metricsCollector.removeCollector(MetricsCategory.LAYER_COUNT);
-                              } else {
-                                metricsCollector.addCollector(
-                                    MetricsCategory.TRACING_REPORTER,
-                                    new TracingReporterMetricsCollector(
-                                        ReporterProvider.getEventReporter()));
-                              }
+                                  new MetricsCollector(configs, null);
 
                               return MetricsMonitor.buildInstance(configs, metricsCollector);
                             } catch (InvalidConfigException | ClientException e) {
