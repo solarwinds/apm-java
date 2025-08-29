@@ -29,7 +29,6 @@ This directory contains the test machinery code and the machinery is held togeth
 - `SWO_LOGIN_URL`: This the login URL used to get temporary credentials. The default is `https://swo.cloud.solarwinds.com/v1/login`.
 - `SW_APM_COLLECTOR`: The collector endpoint. The default is `apm.collector.na-01.cloud.solarwinds.com`
 - `SW_APM_SERVICE_KEY`: The SWO collector service key without the service name. So the API token only. The service name is set in the test.
-- `SW_APM_SERVICE_KEY_AO`: Same as above, however for AppOptics
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: The SWO otel collector endpoint. The default is `https://otel.collector.na-01.cloud.solarwinds.com`
 - `SWO_EMAIL`: The swo user email used to get temporary login credentials.
 - `SWO_PWORD`: The swo user password.

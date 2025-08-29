@@ -18,10 +18,9 @@ package com.solarwinds.opentelemetry.extensions.config;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.solarwinds.joboe.config.ConfigContainer;
 import com.solarwinds.joboe.config.ConfigManager;
@@ -242,15 +241,30 @@ class ConfigurationLoaderTest {
   @ClearSystemProperty(key = "otel.exporter.otlp.logs.protocol")
   @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
   @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
-  void verifyOtelLogExportEndpointIsNullForAO() throws InvalidConfigException {
+  void verifyConfigureOtelLogExportThrowsForAO() throws InvalidConfigException {
     ConfigContainer configContainer = new ConfigContainer();
     configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
     configContainer.putByStringValue(ConfigProperty.AGENT_COLLECTOR, "collector.appoptics.com:443");
 
     configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED, "true");
-    ConfigurationLoader.configureOtelLogExport(configContainer);
+    assertThrows(
+        InvalidConfigException.class,
+        () -> ConfigurationLoader.configureOtelLogExport(configContainer));
+  }
 
-    assertNull(System.getProperty("otel.exporter.otlp.logs.endpoint"));
+  @Test
+  @ClearSystemProperty(key = "otel.logs.exporter")
+  @ClearSystemProperty(key = "otel.exporter.otlp.logs.protocol")
+  @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
+  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
+  void verifyConfigureOtelTraceExportThrowsForAO() throws InvalidConfigException {
+    ConfigContainer configContainer = new ConfigContainer();
+    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
+    configContainer.putByStringValue(ConfigProperty.AGENT_COLLECTOR, "collector.appoptics.com:443");
+
+    assertThrows(
+        InvalidConfigException.class,
+        () -> ConfigurationLoader.configureOtelTraceExport(configContainer));
   }
 
   @Test
@@ -357,15 +371,15 @@ class ConfigurationLoaderTest {
   @ClearSystemProperty(key = "otel.exporter.otlp.metrics.protocol")
   @ClearSystemProperty(key = "otel.exporter.otlp.metrics.headers")
   @ClearSystemProperty(key = "otel.exporter.otlp.metrics.endpoint")
-  void verifyOtelMetricExportEndpointIsNullForAO() throws InvalidConfigException {
+  void verifyConfigureOtelMetricExportThrowsForAO() throws InvalidConfigException {
     ConfigContainer configContainer = new ConfigContainer();
     configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
     configContainer.putByStringValue(ConfigProperty.AGENT_COLLECTOR, "collector.appoptics.com:443");
 
     configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, "true");
-    ConfigurationLoader.configureOtelMetricExport(configContainer);
-
-    assertNull(System.getProperty("otel.exporter.otlp.metrics.endpoint"));
+    assertThrows(
+        InvalidConfigException.class,
+        () -> ConfigurationLoader.configureOtelMetricExport(configContainer));
   }
 
   @Test
@@ -383,18 +397,6 @@ class ConfigurationLoaderTest {
     assertEquals(
         "https://otel.collector.na-01.cloud.solarwinds.com",
         System.getProperty("otel.exporter.otlp.metrics.endpoint"));
-  }
-
-  @Test
-  void returnTrueWhenOtlpMetricExportIsNotDisabled() {
-    assertTrue(ConfigurationLoader.shouldUseOtlpForMetrics());
-  }
-
-  @Test
-  void returnFalseWhenCollectorIsAOForMetric() throws InvalidConfigException {
-    ConfigManager.setConfig(ConfigProperty.AGENT_COLLECTOR, "collector.appoptics.com:443");
-    assertFalse(ConfigurationLoader.shouldUseOtlpForMetrics());
-    ConfigManager.removeConfig(ConfigProperty.AGENT_COLLECTOR);
   }
 
   @Test

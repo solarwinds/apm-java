@@ -33,15 +33,15 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AoContainer implements Container{
-    private static final Logger logger = LoggerFactory.getLogger(AoContainer.class);
+public class ExtensionContainer implements Container{
+    private static final Logger logger = LoggerFactory.getLogger(ExtensionContainer.class);
     private static final int SERVER_PORT = 8081;
     private final AgentResolver agentResolver;
 
     private final Network network;
     private final Agent agent;
 
-    public AoContainer(AgentResolver agentResolver, Network network, Agent agent) {
+    public ExtensionContainer(AgentResolver agentResolver, Network network, Agent agent) {
         this.agentResolver = agentResolver;
         this.network = network;
         this.agent = agent;
@@ -52,14 +52,13 @@ public class AoContainer implements Container{
         Path agentPath = agentResolver.resolve(this.agent).orElseThrow();
         return new GenericContainer<>(DockerImageName.parse("smt:webmvc"))
                 .withNetwork(network)
-                .withNetworkAliases("webmvc-ao")
+                .withNetworkAliases("webmvc-ext")
                 .withLogConsumer(new Slf4jLogConsumer(logger))
                 .withExposedPorts(SERVER_PORT)
                 .waitingFor(Wait.forHttp("/actuator/health").withReadTimeout(Duration.ofMinutes(5)).forPort(SERVER_PORT))
                 .withEnv("SERVER_PORT", String.format("%d", SERVER_PORT))
                 .withEnv("SW_APM_DEBUG_LEVEL", "trace")
-                .withEnv("SW_APM_COLLECTOR", "collector.appoptics.com")
-                .withEnv("SW_APM_SERVICE_KEY", System.getenv("SW_APM_SERVICE_KEY_AO") + ":java-apm-smoke-test-webmvc")
+                .withEnv("SW_APM_SERVICE_KEY", System.getenv("SW_APM_SERVICE_KEY") + ":java-apm-smoke-test-webmvc-ext")
                 .withStartupTimeout(Duration.ofMinutes(5))
                 .withCopyFileToContainer(
                         MountableFile.forHostPath(agentPath),

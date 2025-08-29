@@ -32,8 +32,7 @@ public class SolarwindsTracerProviderCustomizer
       tracerProvider
           .setSampler(new SolarwindsSampler())
           .addSpanProcessor(new SolarwindsProfilingSpanProcessor())
-          .addSpanProcessor(new InboundMeasurementMetricsGenerator())
-          .addSpanProcessor(new SolarwindsInboundMetricsSpanProcessor());
+          .addSpanProcessor(new InboundMeasurementMetricsGenerator());
     }
 
     return tracerProvider;
