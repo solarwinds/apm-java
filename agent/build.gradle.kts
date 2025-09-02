@@ -88,6 +88,7 @@ tasks {
       exclude("io.opentelemetry:opentelemetry-api-logs")
       exclude("io.opentelemetry:opentelemetry-context")
       exclude("io.opentelemetry:opentelemetry-semconv")
+      exclude("io.opentelemetry:opentelemetry-common")
     }
   }
 
