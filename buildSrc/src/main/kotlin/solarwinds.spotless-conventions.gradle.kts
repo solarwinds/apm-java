@@ -64,14 +64,6 @@ spotless {
 }
 
 
-tasks.withType(SpotlessTask::class).configureEach {
-  dependsOn(tasks.withType(BuildConfigTask::class.java))
-}
-
-tasks.withType<JavaCompile>().configureEach {
-  dependsOn(tasks.named("spotlessApply"))
-}
-
 tasks.named("check").configure {
   dependsOn(tasks.named("spotlessCheck"))
 }
