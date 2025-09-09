@@ -18,6 +18,8 @@ resource:
   attributes:
     - name: service.name
       value: java-apm-smoke-test
+    - name: test.app
+      value: java-apm-smoke-test-v2
 
 # Configure general attribute limits. See also tracer_provider.limits, logger_provider.limits.
 attribute_limits:
@@ -115,6 +117,15 @@ instrumentation/development:
     common:
       default-enabled: true
     solarwinds:
+      profiler:
+        enabled: true
+        interval: 20
+        excludePackages:
+          - java
+          - javax
+          - com.sun
+          - sun
+          - sunw
       agent.logging:
         level: trace
       agent.sqlTag: true
@@ -135,6 +146,10 @@ instrumentation/development:
             - http.method
       agent.serviceKey: ${SW_APM_SERVICE_KEY}
       agent.collector: apm.collector.na-01.st-ssp.solarwinds.com
+      agent.spanStacktraceFilters:
+        - http.request.method
+        - process.pid
+      # All `monitor.xxx` is now DEPRECATED and will be removed in a future version
       monitor.jmx.enable: true
       monitor.jmx.scopes: |
         {
