@@ -74,26 +74,6 @@ publishing {
         from(components["java"])
       }
     }
-
-    // FIXME: remove because it's only needed once
-    if (!System.getenv("SNAPSHOT_BUILD").toBoolean()) {
-      register<MavenPublication>("relocation") {
-        pom {
-          groupId = "io.github.appoptics"
-          artifactId = base.archivesName.get()
-          version = swoAgentVersion
-
-          distributionManagement {
-            relocation {
-              groupId = rootProject.group.toString()
-              artifactId = base.archivesName.get()
-              version = swoAgentVersion
-              message = "groupId has been changed"
-            }
-          }
-        }
-      }
-    }
   }
 }
 
