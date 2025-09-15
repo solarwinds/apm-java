@@ -16,8 +16,17 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
+import static com.solarwinds.opentelemetry.extensions.SharedNames.SW_OTEL_PROXY_HOST_KEY;
+import static com.solarwinds.opentelemetry.extensions.SharedNames.SW_OTEL_PROXY_PORT_KEY;
+
+import com.solarwinds.opentelemetry.extensions.config.ProxyHelper;
+import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
+import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.common.export.ProxyOptions;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
+import java.net.InetSocketAddress;
+import java.util.Objects;
 import java.util.function.BiFunction;
 
 public class MetricExporterCustomizer
@@ -25,6 +34,20 @@ public class MetricExporterCustomizer
 
   @Override
   public MetricExporter apply(MetricExporter metricExporter, ConfigProperties configProperties) {
+    if (ProxyHelper.isProxyConfigured(configProperties)
+        && metricExporter instanceof OtlpHttpMetricExporter) {
+      OtlpHttpMetricExporterBuilder builder = ((OtlpHttpMetricExporter) metricExporter).toBuilder();
+      return new DelegatingMetricExporter(
+          builder
+              .setProxyOptions(
+                  ProxyOptions.create(
+                      new InetSocketAddress(
+                          Objects.requireNonNull(
+                              configProperties.getString(SW_OTEL_PROXY_HOST_KEY)),
+                          Objects.requireNonNull(configProperties.getInt(SW_OTEL_PROXY_PORT_KEY)))))
+              .build());
+    }
+
     return new DelegatingMetricExporter(metricExporter);
   }
 }

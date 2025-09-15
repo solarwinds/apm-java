@@ -29,4 +29,8 @@ public final class SharedNames {
   // This is visible to customer via span layer and can be used to configure transaction
   // filtering setting.
   public static final String LAYER_NAME_PLACEHOLDER = "%s:%s";
+
+  public static final String SW_OTEL_PROXY_HOST_KEY = "sw.otel.exporter.proxy.host";
+
+  public static final String SW_OTEL_PROXY_PORT_KEY = "sw.otel.exporter.proxy.port";
 }

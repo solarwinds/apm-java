@@ -37,6 +37,7 @@ dependencies {
 
   compileOnly("io.opentelemetry:opentelemetry-api-incubator")
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-incubator")
+  compileOnly("io.opentelemetry:opentelemetry-exporter-otlp")
 
   testImplementation(project(":custom:shared"))
   testImplementation("org.json:json")
@@ -44,6 +45,7 @@ dependencies {
 
   testImplementation("io.opentelemetry:opentelemetry-api-incubator")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-incubator")
+  testImplementation("io.opentelemetry:opentelemetry-exporter-otlp")
 }
 
 tasks.withType(Checkstyle::class).configureEach {
