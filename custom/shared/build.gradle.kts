@@ -50,6 +50,8 @@ dependencies {
 
   testImplementation("org.json:json")
   testImplementation("com.solarwinds.joboe:sampling")
+  testImplementation("io.opentelemetry:opentelemetry-exporter-otlp")
+
   testImplementation("io.opentelemetry:opentelemetry-api-incubator")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-incubator")
 }

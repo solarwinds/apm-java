@@ -62,6 +62,12 @@ class AutoConfigurationCustomizerProviderImplTest {
     when(autoConfigurationCustomizerMock.addMetricExporterCustomizer(any()))
         .thenReturn(autoConfigurationCustomizerMock);
 
+    when(autoConfigurationCustomizerMock.addLogRecordExporterCustomizer(any()))
+        .thenReturn(autoConfigurationCustomizerMock);
+
+    when(autoConfigurationCustomizerMock.addSpanExporterCustomizer(any()))
+        .thenReturn(autoConfigurationCustomizerMock);
+
     tested.customize(autoConfigurationCustomizerMock);
 
     verify(autoConfigurationCustomizerMock, atMostOnce()).addPropertiesCustomizer(any());
@@ -69,5 +75,8 @@ class AutoConfigurationCustomizerProviderImplTest {
 
     verify(autoConfigurationCustomizerMock, atMostOnce()).addResourceCustomizer(any());
     verify(autoConfigurationCustomizerMock, atMostOnce()).addMetricExporterCustomizer(any());
+
+    verify(autoConfigurationCustomizerMock, atMostOnce()).addSpanExporterCustomizer(any());
+    verify(autoConfigurationCustomizerMock, atMostOnce()).addLogRecordExporterCustomizer(any());
   }
 }

@@ -77,6 +77,8 @@ public class ConfigurationLoader {
   private static final String CONFIG_FILE = "solarwinds-apm-config.json";
   private static final String SYS_PROPERTIES_PREFIX = "sw.apm";
 
+  private static final String PROTOCOL = "http/protobuf";
+
   @Getter private static String configurationFileDir = null;
 
   @Getter private static String runtimeConfigFilename = null;
@@ -217,14 +219,15 @@ public class ConfigurationLoader {
         }
       }
 
-      setSystemProperty("otel.exporter.otlp.logs.protocol", "grpc");
+      setSystemProperty("otel.exporter.otlp.logs.protocol", PROTOCOL);
       setSystemProperty("otel.logs.exporter", "otlp");
       setSystemProperty(
           "otel.exporter.otlp.logs.headers", String.format("authorization=Bearer %s", apiKey));
 
       setEndpoint(
           "otel.exporter.otlp.logs.endpoint",
-          String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env));
+          String.format("https://otel.collector.%s.%s.solarwinds.com/v1/logs", dataCell, env),
+          "/v1/logs");
     }
   }
 
@@ -253,14 +256,15 @@ public class ConfigurationLoader {
       }
     }
 
-    setSystemProperty("otel.exporter.otlp.metrics.protocol", "grpc");
+    setSystemProperty("otel.exporter.otlp.metrics.protocol", PROTOCOL);
     setSystemProperty("otel.metrics.exporter", "otlp");
     setSystemProperty(
         "otel.exporter.otlp.metrics.headers", String.format("authorization=Bearer %s", apiKey));
 
     setEndpoint(
         "otel.exporter.otlp.metrics.endpoint",
-        String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env));
+        String.format("https://otel.collector.%s.%s.solarwinds.com/v1/metrics", dataCell, env),
+        "/v1/metrics");
   }
 
   static void configureOtelTraceExport(ConfigContainer container) throws InvalidConfigException {
@@ -289,13 +293,14 @@ public class ConfigurationLoader {
       }
     }
 
-    setSystemProperty("otel.exporter.otlp.traces.protocol", "grpc");
+    setSystemProperty("otel.exporter.otlp.traces.protocol", PROTOCOL);
     setSystemProperty(
         "otel.exporter.otlp.traces.headers", String.format("authorization=Bearer %s", apiKey));
 
     setEndpoint(
         "otel.exporter.otlp.traces.endpoint",
-        String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env));
+        String.format("https://otel.collector.%s.%s.solarwinds.com/v1/traces", dataCell, env),
+        "/v1/traces");
   }
 
   static Map<String, String> mergeEnvWithSysProperties(Map<String, String> env, Properties props) {
@@ -632,9 +637,12 @@ public class ConfigurationLoader {
     }
   }
 
-  private static void setEndpoint(String key, String value) {
-    if (getConfigValue("otel.exporter.otlp.endpoint") == null) {
+  private static void setEndpoint(String key, String value, String path) {
+    String endpoint = getConfigValue("otel.exporter.otlp.endpoint");
+    if (endpoint == null) {
       setSystemProperty(key, value);
+    } else {
+      setSystemProperty(key, String.format("%s%s", endpoint, path));
     }
   }
 

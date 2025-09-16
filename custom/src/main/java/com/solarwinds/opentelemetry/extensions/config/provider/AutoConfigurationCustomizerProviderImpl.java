@@ -27,6 +27,8 @@ import com.solarwinds.opentelemetry.extensions.ResourceCustomizer;
 import com.solarwinds.opentelemetry.extensions.SolarwindsPropertiesSupplier;
 import com.solarwinds.opentelemetry.extensions.SolarwindsTracerProviderCustomizer;
 import com.solarwinds.opentelemetry.extensions.config.ConfigurationLoader;
+import com.solarwinds.opentelemetry.extensions.config.LogRecordExporterCustomizer;
+import com.solarwinds.opentelemetry.extensions.config.SpanExporterCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 
@@ -79,6 +81,8 @@ public class AutoConfigurationCustomizerProviderImpl
         .addPropertiesSupplier(new SolarwindsPropertiesSupplier())
         .addTracerProviderCustomizer(new SolarwindsTracerProviderCustomizer())
         .addMetricExporterCustomizer(new MetricExporterCustomizer())
+        .addSpanExporterCustomizer(new SpanExporterCustomizer())
+        .addLogRecordExporterCustomizer(new LogRecordExporterCustomizer())
         .addResourceCustomizer(new ResourceCustomizer());
   }
 

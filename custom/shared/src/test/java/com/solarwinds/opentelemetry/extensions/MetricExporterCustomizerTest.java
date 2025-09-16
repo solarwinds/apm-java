@@ -16,8 +16,14 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
+import static com.solarwinds.opentelemetry.extensions.SharedNames.SW_OTEL_PROXY_HOST_KEY;
+import static com.solarwinds.opentelemetry.extensions.SharedNames.SW_OTEL_PROXY_PORT_KEY;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.mockito.Mockito.when;
 
+import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import java.util.Collections;
@@ -33,11 +39,30 @@ class MetricExporterCustomizerTest {
 
   @Mock private MetricExporter metricExporterMock;
 
+  @Mock private ConfigProperties configProperties;
+
   @Test
   void verifyThatDelegatingMetricExporterIsReturned() {
     assertInstanceOf(
         DelegatingMetricExporter.class,
         tested.apply(
             metricExporterMock, DefaultConfigProperties.createFromMap(Collections.emptyMap())));
+  }
+
+  @Test
+  void shouldReturnDelegatingExporterWhenProxyNotConfigured() {
+    MetricExporter result = tested.apply(metricExporterMock, configProperties);
+    assertInstanceOf(DelegatingMetricExporter.class, result);
+  }
+
+  @Test
+  void shouldReturnNewExporterWhenProxyConfigured() {
+    when(configProperties.getString(SW_OTEL_PROXY_HOST_KEY)).thenReturn("localhost");
+    when(configProperties.getInt(SW_OTEL_PROXY_PORT_KEY)).thenReturn(8080);
+
+    OtlpHttpMetricExporter originalExporter = OtlpHttpMetricExporter.builder().build();
+    MetricExporter result = tested.apply(originalExporter, configProperties);
+
+    assertNotSame(originalExporter, result);
   }
 }
