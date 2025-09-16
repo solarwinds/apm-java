@@ -27,6 +27,10 @@ spotless {
   java {
     target("src/*/java/**/*.java")
     googleJavaFormat()
+    licenseHeaderFile(
+      rootProject.file("spotless.license.java"),
+      "(package|import|public)"
+    )
     formatAnnotations()
   }
 
