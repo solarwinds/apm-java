@@ -19,9 +19,12 @@ package com.solarwinds.opentelemetry.extensions;
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import io.opentelemetry.sdk.common.CompletableResultCode;
+import io.opentelemetry.sdk.common.export.MemoryMode;
+import io.opentelemetry.sdk.metrics.Aggregation;
 import io.opentelemetry.sdk.metrics.InstrumentType;
 import io.opentelemetry.sdk.metrics.data.AggregationTemporality;
 import io.opentelemetry.sdk.metrics.data.MetricData;
+import io.opentelemetry.sdk.metrics.export.DefaultAggregationSelector;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -65,9 +68,26 @@ public class DelegatingMetricExporter implements MetricExporter {
 
   @Override
   public AggregationTemporality getAggregationTemporality(@NonNull InstrumentType instrumentType) {
-    if (instrumentType == InstrumentType.HISTOGRAM) {
-      return AggregationTemporality.DELTA;
-    }
     return delegate.getAggregationTemporality(instrumentType);
+  }
+
+  @Override
+  public Aggregation getDefaultAggregation(InstrumentType instrumentType) {
+    return delegate.getDefaultAggregation(instrumentType);
+  }
+
+  @Override
+  public MemoryMode getMemoryMode() {
+    return delegate.getMemoryMode();
+  }
+
+  @Override
+  public void close() {
+    delegate.close();
+  }
+
+  @Override
+  public DefaultAggregationSelector with(InstrumentType instrumentType, Aggregation aggregation) {
+    return delegate.with(instrumentType, aggregation);
   }
 }
