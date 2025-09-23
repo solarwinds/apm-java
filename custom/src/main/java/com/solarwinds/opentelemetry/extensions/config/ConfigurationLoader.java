@@ -219,10 +219,18 @@ public class ConfigurationLoader {
         }
       }
 
-      setSystemProperty("otel.exporter.otlp.logs.protocol", PROTOCOL);
+      String protocol = setProtocol("otel.exporter.otlp.logs.protocol");
       setSystemProperty("otel.logs.exporter", "otlp");
       setSystemProperty(
           "otel.exporter.otlp.logs.headers", String.format("authorization=Bearer %s", apiKey));
+
+      if (protocol.equalsIgnoreCase("grpc")) {
+        setEndpoint(
+            "otel.exporter.otlp.logs.endpoint",
+            String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env),
+            "");
+        return;
+      }
 
       setEndpoint(
           "otel.exporter.otlp.logs.endpoint",
@@ -256,10 +264,18 @@ public class ConfigurationLoader {
       }
     }
 
-    setSystemProperty("otel.exporter.otlp.metrics.protocol", PROTOCOL);
+    String protocol = setProtocol("otel.exporter.otlp.metrics.protocol");
     setSystemProperty("otel.metrics.exporter", "otlp");
     setSystemProperty(
         "otel.exporter.otlp.metrics.headers", String.format("authorization=Bearer %s", apiKey));
+
+    if (protocol.equalsIgnoreCase("grpc")) {
+      setEndpoint(
+          "otel.exporter.otlp.metrics.endpoint",
+          String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env),
+          "");
+      return;
+    }
 
     setEndpoint(
         "otel.exporter.otlp.metrics.endpoint",
@@ -293,9 +309,17 @@ public class ConfigurationLoader {
       }
     }
 
-    setSystemProperty("otel.exporter.otlp.traces.protocol", PROTOCOL);
+    String protocol = setProtocol("otel.exporter.otlp.traces.protocol");
     setSystemProperty(
         "otel.exporter.otlp.traces.headers", String.format("authorization=Bearer %s", apiKey));
+
+    if (protocol.equalsIgnoreCase("grpc")) {
+      setEndpoint(
+          "otel.exporter.otlp.traces.endpoint",
+          String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env),
+          "");
+      return;
+    }
 
     setEndpoint(
         "otel.exporter.otlp.traces.endpoint",
@@ -630,11 +654,14 @@ public class ConfigurationLoader {
     ConfigManager.initialize(configs);
   }
 
-  private static void setSystemProperty(String key, String value) {
+  private static String setSystemProperty(String key, String value) {
     String propertyValue = getConfigValue(key);
     if (propertyValue == null) {
       System.setProperty(key, value);
+      return value;
     }
+
+    return propertyValue;
   }
 
   private static void setEndpoint(String key, String value, String path) {
@@ -644,6 +671,14 @@ public class ConfigurationLoader {
     } else {
       setSystemProperty(key, String.format("%s%s", endpoint, path));
     }
+  }
+
+  private static String setProtocol(String key) {
+    String protocol = getConfigValue("otel.exporter.otlp.protocol");
+    if (protocol == null) {
+      return setSystemProperty(key, ConfigurationLoader.PROTOCOL);
+    }
+    return protocol;
   }
 
   static String normalize(String key) {

@@ -469,6 +469,56 @@ class ConfigurationLoaderTest {
   }
 
   @Test
+  @SetSystemProperty(
+      key = "otel.exporter.otlp.endpoint",
+      value = "https://otel.collector.na-01.cloud.solarwinds.com")
+  @SetSystemProperty(key = "otel.exporter.otlp.metrics.protocol", value = "grpc")
+  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.endpoint")
+  void verifyMetricsEndpointIsProperlyConfiguredForGRPC() throws InvalidConfigException {
+    ConfigContainer configContainer = new ConfigContainer();
+    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
+
+    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, "true");
+    ConfigurationLoader.configureOtelMetricExport(configContainer);
+    assertEquals(
+        "https://otel.collector.na-01.cloud.solarwinds.com",
+        System.getProperty("otel.exporter.otlp.metrics.endpoint"));
+  }
+
+  @Test
+  @SetSystemProperty(
+      key = "otel.exporter.otlp.endpoint",
+      value = "https://otel.collector.na-01.cloud.solarwinds.com")
+  @SetSystemProperty(key = "otel.exporter.otlp.traces.protocol", value = "grpc")
+  @ClearSystemProperty(key = "otel.exporter.otlp.traces.endpoint")
+  void verifyTracesEndpointIsProperlyConfiguredForGRPC() throws InvalidConfigException {
+    ConfigContainer configContainer = new ConfigContainer();
+    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
+
+    ConfigurationLoader.configureOtelTraceExport(configContainer);
+    assertEquals(
+        "https://otel.collector.na-01.cloud.solarwinds.com",
+        System.getProperty("otel.exporter.otlp.traces.endpoint"));
+  }
+
+  @Test
+  @SetSystemProperty(
+      key = "otel.exporter.otlp.endpoint",
+      value = "https://otel.collector.na-01.cloud.solarwinds.com")
+  @SetSystemProperty(key = "otel.exporter.otlp.logs.protocol", value = "grpc")
+  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
+  void verifyLogsEndpointIsProperlyConfiguredForGRPC() throws InvalidConfigException {
+    ConfigContainer configContainer = new ConfigContainer();
+    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
+
+    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED, "true");
+    ConfigurationLoader.configureOtelLogExport(configContainer);
+    assertEquals(
+        "https://otel.collector.na-01.cloud.solarwinds.com",
+        System.getProperty("otel.exporter.otlp.logs.endpoint"));
+  }
+
+  @Test
   void returnEnvironmentVariableEquivalent() {
     assertEquals(
         "OTEL_EXPORTER_OTLP_ENDPOINT",
