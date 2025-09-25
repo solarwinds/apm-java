@@ -24,12 +24,9 @@ import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.exporter.otlp.internal.OtlpDeclarativeConfigUtil;
 import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
 import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporterBuilder;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigurationException;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.metrics.export.AggregationTemporalitySelector;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
-import java.util.Locale;
-import java.util.function.Consumer;
 
 @SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
@@ -65,32 +62,7 @@ public class MetricExporterComponentProvider implements ComponentProvider<Metric
         builder::setMemoryMode,
         false);
 
-    configureOtlpAggregationTemporality(config, builder::setAggregationTemporalitySelector);
-
+    builder.setAggregationTemporalitySelector(AggregationTemporalitySelector.deltaPreferred());
     return new DelegatingMetricExporter(builder.build());
-  }
-
-  public static void configureOtlpAggregationTemporality(
-      DeclarativeConfigProperties config,
-      Consumer<AggregationTemporalitySelector> aggregationTemporalitySelectorConsumer) {
-    String temporalityStr = config.getString("temporality_preference");
-    if (temporalityStr == null) {
-      return;
-    }
-    AggregationTemporalitySelector temporalitySelector;
-    switch (temporalityStr.toLowerCase(Locale.ROOT)) {
-      case "cumulative":
-        temporalitySelector = AggregationTemporalitySelector.alwaysCumulative();
-        break;
-      case "delta":
-        temporalitySelector = AggregationTemporalitySelector.deltaPreferred();
-        break;
-      case "lowmemory":
-        temporalitySelector = AggregationTemporalitySelector.lowMemory();
-        break;
-      default:
-        throw new ConfigurationException("Unrecognized temporality_preference: " + temporalityStr);
-    }
-    aggregationTemporalitySelectorConsumer.accept(temporalitySelector);
   }
 }

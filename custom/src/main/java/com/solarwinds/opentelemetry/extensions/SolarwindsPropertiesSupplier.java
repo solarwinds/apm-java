@@ -37,6 +37,10 @@ public class SolarwindsPropertiesSupplier implements Supplier<Map<String, String
       PROPERTIES.put("otel.java.experimental.span-stacktrace.filter", SPAN_STACKTRACE_FILTER_CLASS);
       PROPERTIES.put("otel.propagators", String.format("tracecontext,baggage,%s", COMPONENT_NAME));
       PROPERTIES.put("otel.semconv-stability.opt-in", "database/dup");
+      PROPERTIES.put("otel.exporter.otlp.metrics.temporality.preference", "delta");
+      PROPERTIES.put(
+          "otel.exporter.otlp.metrics.default.histogram.aggregation",
+          "base2_exponential_bucket_histogram");
     } else {
       PROPERTIES.put("otel.sdk.disabled", "true");
     }

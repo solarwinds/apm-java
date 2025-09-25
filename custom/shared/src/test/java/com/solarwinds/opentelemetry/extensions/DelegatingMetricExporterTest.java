@@ -26,8 +26,9 @@ import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.common.InstrumentationScopeInfo;
+import io.opentelemetry.sdk.common.export.MemoryMode;
+import io.opentelemetry.sdk.metrics.Aggregation;
 import io.opentelemetry.sdk.metrics.InstrumentType;
-import io.opentelemetry.sdk.metrics.data.AggregationTemporality;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import java.util.Arrays;
@@ -55,6 +56,38 @@ class DelegatingMetricExporterTest {
   @Mock private MetricData metricDataMock1;
 
   @Captor private ArgumentCaptor<List<MetricData>> metricData;
+
+  @Mock private Aggregation aggregationMock;
+
+  @Test
+  void verifyGetDefaultAggregationIsDelegated() {
+    when(metricExporterMock.getDefaultAggregation(any())).thenReturn(aggregationMock);
+
+    assertEquals(aggregationMock, tested.getDefaultAggregation(InstrumentType.COUNTER));
+    verify(metricExporterMock).getDefaultAggregation(InstrumentType.COUNTER);
+  }
+
+  @Test
+  void verifyGetMemoryModeIsDelegated() {
+    when(metricExporterMock.getMemoryMode()).thenReturn(MemoryMode.REUSABLE_DATA);
+
+    assertEquals(MemoryMode.REUSABLE_DATA, tested.getMemoryMode());
+    verify(metricExporterMock).getMemoryMode();
+  }
+
+  @Test
+  void verifyCloseIsDelegated() {
+    tested.close();
+    verify(metricExporterMock).close();
+  }
+
+  @Test
+  void verifyWithIsDelegated() {
+    when(metricExporterMock.with(any(), any())).thenReturn(metricExporterMock);
+
+    assertEquals(metricExporterMock, tested.with(InstrumentType.COUNTER, aggregationMock));
+    verify(metricExporterMock).with(InstrumentType.COUNTER, aggregationMock);
+  }
 
   @Test
   void verifyThatAllMetricDataAreExported() {
@@ -96,13 +129,7 @@ class DelegatingMetricExporterTest {
   }
 
   @Test
-  void verifyThatDeltaAggregationTemporalityIsReturnedForHistogram() {
-    AggregationTemporality actual = tested.getAggregationTemporality(InstrumentType.HISTOGRAM);
-    assertEquals(AggregationTemporality.DELTA, actual);
-  }
-
-  @Test
-  void verifyGetAggregationTemporalityForNonHistogramIsDelegated() {
+  void verifyGetAggregationTemporalityIsDelegated() {
     tested.getAggregationTemporality(InstrumentType.COUNTER);
     verify(metricExporterMock).getAggregationTemporality(InstrumentType.COUNTER);
   }
