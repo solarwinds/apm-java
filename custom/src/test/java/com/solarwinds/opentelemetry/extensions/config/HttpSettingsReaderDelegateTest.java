@@ -27,6 +27,10 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.solarwinds.joboe.config.ConfigManager;
+import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.config.ProxyConfig;
 import com.solarwinds.joboe.sampling.Settings;
 import io.opentelemetry.api.internal.InstrumentationUtil;
 import java.io.ByteArrayInputStream;
@@ -185,6 +189,25 @@ class HttpSettingsReaderDelegateTest {
   @Test
   void testGetHttpUrlConnection_Configuration() throws IOException {
     when(mockUrl.openConnection()).thenReturn(mockConnection);
+
+    HttpURLConnection result = tested.getHttpUrlConnection(mockUrl, TEST_AUTH_HEADER);
+
+    assertEquals(mockConnection, result);
+
+    verify(mockConnection).setRequestMethod("GET");
+    verify(mockConnection).setRequestProperty("Authorization", TEST_AUTH_HEADER);
+    verify(mockConnection).setRequestProperty("Content-Type", "application/json");
+
+    verify(mockConnection).setRequestProperty("Accept", "application/json");
+    verify(mockConnection).setConnectTimeout(10000);
+    verify(mockConnection).setReadTimeout(10000);
+  }
+
+  @Test
+  void testGetHttpUrlConnectionConfigurationProxy() throws IOException, InvalidConfigException {
+    ConfigManager.setConfig(
+        ConfigProperty.AGENT_PROXY, new ProxyConfig("localhost", 1000, "test", "test"));
+    when(mockUrl.openConnection(any())).thenReturn(mockConnection);
 
     HttpURLConnection result = tested.getHttpUrlConnection(mockUrl, TEST_AUTH_HEADER);
 
