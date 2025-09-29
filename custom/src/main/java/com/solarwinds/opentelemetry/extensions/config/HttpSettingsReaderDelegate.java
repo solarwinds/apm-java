@@ -16,6 +16,9 @@
 
 package com.solarwinds.opentelemetry.extensions.config;
 
+import com.solarwinds.joboe.config.ConfigManager;
+import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.config.ProxyConfig;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.Settings;
@@ -26,6 +29,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -88,7 +93,16 @@ public class HttpSettingsReaderDelegate {
   }
 
   HttpURLConnection getHttpUrlConnection(URL url, String authorizationHeader) throws IOException {
-    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    HttpURLConnection connection;
+    ProxyConfig proxyConfig = (ProxyConfig) ConfigManager.getConfig(ConfigProperty.AGENT_PROXY);
+    if (proxyConfig != null) {
+      Proxy proxy =
+          new Proxy(
+              Proxy.Type.HTTP, new InetSocketAddress(proxyConfig.getHost(), proxyConfig.getPort()));
+      connection = (HttpURLConnection) url.openConnection(proxy);
+    } else {
+      connection = (HttpURLConnection) url.openConnection();
+    }
 
     connection.setRequestMethod("GET");
     connection.setRequestProperty("Authorization", authorizationHeader);
