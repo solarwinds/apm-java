@@ -16,6 +16,8 @@
 
 package com.solarwinds.opentelemetry.extensions.config.provider;
 
+import static com.solarwinds.opentelemetry.extensions.SharedNames.SPAN_STACKTRACE_FILTER_CLASS;
+
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.ServiceKeyUtils;
@@ -41,12 +43,12 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanEx
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
 public class SharedConfigCustomizerProvider implements DeclarativeConfigurationCustomizerProvider {
@@ -95,18 +97,39 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
   }
 
   private void addProcessors(TracerProviderModel model) {
-    List<SpanProcessorModel> processors =
-        Arrays.asList(
-            new SpanProcessorModel()
-                .withAdditionalProperty(
-                    InboundMeasurementMetricsComponentProvider.COMPONENT_NAME,
-                    Collections.emptyMap()),
-            new SpanProcessorModel()
-                .withAdditionalProperty(
-                    SpanStacktraceComponentProvider.COMPONENT_NAME, Collections.emptyMap()));
-
     ArrayList<SpanProcessorModel> allProcessors = new ArrayList<>(model.getProcessors());
-    allProcessors.addAll(processors);
+    allProcessors.add(
+        new SpanProcessorModel()
+            .withAdditionalProperty(
+                InboundMeasurementMetricsComponentProvider.COMPONENT_NAME, Collections.emptyMap()));
+
+    String experimentalStacktrace = "experimental_stacktrace";
+    Optional<SpanProcessorModel> modelOptional =
+        model.getProcessors().stream()
+            .filter(
+                processorModel ->
+                    processorModel.getAdditionalProperties().containsKey(experimentalStacktrace))
+            .findFirst();
+
+    if (!modelOptional.isPresent()) {
+      Map<String, Object> properties = new HashMap<>();
+      properties.put("filter", SPAN_STACKTRACE_FILTER_CLASS);
+      allProcessors.add(
+          new SpanProcessorModel().withAdditionalProperty(experimentalStacktrace, properties));
+    } else {
+      SpanProcessorModel spanProcessorModel = modelOptional.get();
+      @SuppressWarnings("unchecked")
+      Map<String, Object> additionalProperties =
+          (Map<String, Object>)
+              spanProcessorModel.getAdditionalProperties().get(experimentalStacktrace);
+
+      if (!additionalProperties.containsKey("filter")) {
+        Map<String, Object> newProperties = new HashMap<>(additionalProperties);
+        newProperties.put("filter", SPAN_STACKTRACE_FILTER_CLASS);
+        spanProcessorModel.setAdditionalProperty(experimentalStacktrace, newProperties);
+      }
+    }
+
     model.withProcessors(allProcessors);
   }
 

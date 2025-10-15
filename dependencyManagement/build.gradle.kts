@@ -15,7 +15,7 @@ val opentelemetrySemconv = "1.34.0"
 val opentelemetrySemconvAlpha = "1.34.0-alpha"
 
 val autoservice = "1.1.1"
-val otelJavaContribVersion = "1.48.0-alpha"
+val otelJavaContribVersion = "1.50.0-alpha"
 val junit5 = "5.9.2"
 
 rootProject.extra["otelAgentVersion"] = otelAgentVersion

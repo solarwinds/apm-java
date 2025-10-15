@@ -34,9 +34,12 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTe
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OtlpGrpcExporterModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PeriodicMetricReaderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SamplerModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -189,6 +192,76 @@ class SharedConfigCustomizerProviderTest {
     assertEquals("explicit_bucket_histogram", configs.get("default_histogram_aggregation"));
 
     assertEquals("authorization=Bearer token", configs.get("headers_list"));
+  }
+
+  @Test
+  void testCustomizeSetsExperimentalStacktraceWhenNotSet() {
+    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+        new OpenTelemetryConfigurationModel()
+            .withInstrumentationDevelopment(
+                new InstrumentationModel()
+                    .withJava(
+                        new ExperimentalLanguageSpecificInstrumentationModel()
+                            .withAdditionalProperty("solarwinds", Collections.emptyMap())));
+
+    doNothing()
+        .when(declarativeConfigurationCustomizerMock)
+        .addModelCustomizer(functionArgumentCaptor.capture());
+
+    tested.customize(declarativeConfigurationCustomizerMock);
+    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+    TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
+
+    assertNotNull(tracerProvider);
+    assertTrue(
+        tracerProvider.getProcessors().stream()
+            .anyMatch(
+                processorModel ->
+                    processorModel
+                        .getAdditionalProperties()
+                        .containsKey("experimental_stacktrace")));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void testCustomizeSetExperimentalStacktraceFilterWhenNotSet() {
+    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+        new OpenTelemetryConfigurationModel()
+            .withTracerProvider(
+                new TracerProviderModel()
+                    .withProcessors(
+                        Collections.singletonList(
+                            new SpanProcessorModel()
+                                .withAdditionalProperty(
+                                    "experimental_stacktrace", Collections.emptyMap()))))
+            .withInstrumentationDevelopment(
+                new InstrumentationModel()
+                    .withJava(
+                        new ExperimentalLanguageSpecificInstrumentationModel()
+                            .withAdditionalProperty("solarwinds", Collections.emptyMap())));
+
+    doNothing()
+        .when(declarativeConfigurationCustomizerMock)
+        .addModelCustomizer(functionArgumentCaptor.capture());
+
+    tested.customize(declarativeConfigurationCustomizerMock);
+    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+    TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
+
+    assertNotNull(tracerProvider);
+    Optional<Map<String, Object>> map =
+        tracerProvider.getProcessors().stream()
+            .filter(
+                processorModel ->
+                    processorModel.getAdditionalProperties().containsKey("experimental_stacktrace"))
+            .map(
+                processorModel ->
+                    (Map<String, Object>)
+                        processorModel.getAdditionalProperties().get("experimental_stacktrace"))
+            .findFirst();
+
+    assertTrue(map.isPresent());
+    assertNotNull(map.get().get("filter"));
   }
 
   @Test
