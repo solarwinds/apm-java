@@ -22,6 +22,8 @@ import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.core.profiler.Profiler;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;
+import com.solarwinds.joboe.logging.Logger;
+import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.Metadata;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.opentelemetry.core.Util;
@@ -30,10 +32,11 @@ import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
-import io.opentelemetry.sdk.trace.SpanProcessor;
+import io.opentelemetry.sdk.trace.internal.ExtendedSpanProcessor;
 
 /** Span process to perform code profiling */
-public class SolarwindsProfilingSpanProcessor implements SpanProcessor {
+public class SolarwindsProfilingSpanProcessor implements ExtendedSpanProcessor {
+  private final Logger logger = LoggerFactory.getLogger();
 
   @Override
   public void onStart(@Nonnull Context parentContext, ReadWriteSpan span) {
@@ -47,10 +50,9 @@ public class SolarwindsProfilingSpanProcessor implements SpanProcessor {
           if (metadata.isValid()) {
             Profiler.addProfiledThread(
                 Thread.currentThread(), metadata, Metadata.bytesToHex(metadata.getTaskID()));
-            span.setAttribute(SW_KEY_PREFIX + "ProfileSpans", 1);
           }
         } else {
-          span.setAttribute(SW_KEY_PREFIX + "ProfileSpans", -1); // profiler disabled
+          span.setAttribute(SW_KEY_PREFIX + "profile.spans", -1); // profiler disabled
         }
       }
     }
@@ -62,25 +64,46 @@ public class SolarwindsProfilingSpanProcessor implements SpanProcessor {
   }
 
   @Override
-  public void onEnd(ReadableSpan span) {
-    if (span.getSpanContext().isSampled()
-        && isProfilingEnabled()) { // only profile on sampled spans
-      SpanContext parentSpanContext = span.toSpanData().getParentSpanContext();
-      if (!parentSpanContext.isValid()
-          || parentSpanContext.isRemote()) { // then a root span of this service
-        Profiler.stopProfile(span.getSpanContext().getTraceId());
-      }
-    }
-  }
+  public void onEnd(ReadableSpan span) {}
 
   @Override
   public boolean isEndRequired() {
-    return true;
+    return false;
   }
 
   private boolean isProfilingEnabled() {
     final ProfilerSetting profilerSetting =
         (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);
     return profilerSetting != null && profilerSetting.isEnabled();
+  }
+
+  @Override
+  public void onEnding(ReadWriteSpan readWriteSpan) {
+    SpanContext spanContext = readWriteSpan.getSpanContext();
+    if (spanContext.isSampled() && isProfilingEnabled()) { // only profile on sampled spans
+      SpanContext parentSpanContext = readWriteSpan.toSpanData().getParentSpanContext();
+      if (!parentSpanContext.isValid()
+          || parentSpanContext.isRemote()) { // then a root span of this service
+        Profiler.Profile profile = Profiler.stopProfile(spanContext.getTraceId());
+        if (profile.isSampled()) {
+          readWriteSpan.setAttribute(SW_KEY_PREFIX + "profile.spans", 1);
+          logger.debug(
+              String.format(
+                  "Profiling stopped with sw.profile.spans=1, trace_id=%s span_id=%s",
+                  spanContext.getTraceId(), spanContext.getSpanId()));
+        } else {
+          readWriteSpan.setAttribute(SW_KEY_PREFIX + "profile.spans", 0);
+          logger.debug(
+              String.format(
+                  "Profiling stopped with sw.profile.spans=0, trace_id=%s span_id=%s",
+                  spanContext.getTraceId(), spanContext.getSpanId()));
+        }
+      }
+    }
+  }
+
+  @Override
+  public boolean isOnEndingRequired() {
+    return true;
   }
 }
