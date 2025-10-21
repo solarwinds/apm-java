@@ -28,16 +28,16 @@ import java.util.function.Predicate;
 public class SpanStacktraceFilter implements Predicate<ReadableSpan> {
   private static final Set<String> filterAttributes = new HashSet<>();
 
-  static {
-    filterAttributes.add("db.system");
-    Set<String> configuredFilterAttributes =
-        ConfigManager.getConfigOptional(
-            ConfigProperty.AGENT_SPAN_STACKTRACE_FILTERS, filterAttributes);
-    filterAttributes.addAll(configuredFilterAttributes);
-  }
-
   @Override
   public boolean test(ReadableSpan readableSpan) {
+    if (filterAttributes.isEmpty()) {
+      filterAttributes.add("db.system");
+      Set<String> configuredFilterAttributes =
+          ConfigManager.getConfigOptional(
+              ConfigProperty.AGENT_SPAN_STACKTRACE_FILTERS, filterAttributes);
+      filterAttributes.addAll(configuredFilterAttributes);
+    }
+
     return filterAttributes.stream()
         .anyMatch(attr -> readableSpan.getAttribute(stringKey(attr)) != null);
   }
