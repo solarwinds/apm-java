@@ -28,14 +28,14 @@ muzzle {
     skip("1.2.1", "1.2.2", "1.2.3", "1.2.4")
     // 3.2.1.RELEASE has transitive dependencies like spring-web as "provided" instead of "compile"
     skip("3.2.1.RELEASE")
-    extraDependency("jakarta.servlet:jakarta.servlet-api:5.0.0")
+    extraDependency("jakarta.servlet:jakarta.servlet-api:6.1.0")
     assertInverse.set(true)
   }
 }
 
 dependencies {
   compileOnly("org.springframework:spring-webmvc:6.0.0")
-  compileOnly("jakarta.servlet:jakarta.servlet-api:5.0.0")
+  compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator")
 }
 

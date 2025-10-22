@@ -19,7 +19,7 @@ plugins {
 }
 
 dependencies {
-  compileOnly("jakarta.servlet:jakarta.servlet-api:5.0.0")
+  compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
   compileOnly(project(":custom"))
   compileOnly(project(":bootstrap"))
 
