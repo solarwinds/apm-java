@@ -6,11 +6,11 @@ dependencies {
   implementation(project(":instrumentation:hibernate:hibernate-shared"))
   implementation(project(":instrumentation:instrumentation-shared"))
 
-  compileOnly("org.hibernate:hibernate-core:4.0.0.Final")
+  compileOnly("org.hibernate:hibernate-core:7.1.4.Final")
   compileOnly("io.opentelemetry:opentelemetry-sdk-trace")
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")
 
-  testImplementation("org.hibernate:hibernate-core:4.0.0.Final")
+  testImplementation("org.hibernate:hibernate-core:7.1.4.Final")
   testImplementation("com.h2database:h2:2.3.232")
 }
 
