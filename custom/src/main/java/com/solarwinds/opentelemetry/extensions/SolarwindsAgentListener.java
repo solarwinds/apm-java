@@ -18,13 +18,6 @@ package com.solarwinds.opentelemetry.extensions;
 
 import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.setAgentEnabled;
-import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
-import static io.opentelemetry.semconv.TelemetryAttributes.TELEMETRY_SDK_LANGUAGE;
-import static io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS;
-import static io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes.PROCESS_COMMAND_LINE;
-import static io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes.PROCESS_RUNTIME_DESCRIPTION;
-import static io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes.PROCESS_RUNTIME_NAME;
-import static io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes.PROCESS_RUNTIME_VERSION;
 
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigGroup;
@@ -34,9 +27,7 @@ import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.core.ReporterFactory;
 import com.solarwinds.joboe.core.profiler.Profiler;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;
-import com.solarwinds.joboe.core.rpc.Client;
 import com.solarwinds.joboe.core.rpc.ClientException;
-import com.solarwinds.joboe.core.rpc.ClientLoggingCallback;
 import com.solarwinds.joboe.core.rpc.ClientManagerProvider;
 import com.solarwinds.joboe.core.rpc.RpcClientManager;
 import com.solarwinds.joboe.core.util.DaemonThreadFactory;
@@ -52,15 +43,11 @@ import com.solarwinds.opentelemetry.core.AgentState;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsFetcher;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReader;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReaderDelegate;
-import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -128,9 +115,6 @@ public class SolarwindsAgentListener implements AgentListener {
                         SamplingConfigProvider.getSamplingConfiguration());
                 logger.debug("Initialized HostUtils");
 
-                logger.debug("Sending init message");
-                reportInit();
-
                 logger.info("Starting System monitor");
                 SystemMonitorController.startWithBuilder(
                     () ->
@@ -180,98 +164,6 @@ public class SolarwindsAgentListener implements AgentListener {
               logger.info("Startup task completed");
             }));
     service.shutdown();
-  }
-
-  /**
-   * Reports the agent init message.
-   *
-   * <p>Only the first call to this method will have effect, all other subsequent invocations will
-   * be ignored.
-   *
-   * <p>If timeout (default as 10 seconds, configurable) is non-zero, block until either the init
-   * message is sent or timeout elapsed. Otherwise submit the message to the client and return
-   * without blocking.
-   */
-  private void reportInit() {
-    try {
-      reportLayerInit();
-    } catch (Exception e) {
-      logger.warn("Failed to post init message: " + (e.getMessage() != null ? e.getMessage() : e));
-    }
-  }
-
-  private void reportLayerInit() throws ClientException {
-    // Must call buildInitMessage before initializing RPC client, otherwise it might deadlock
-    // as discussed in https://github.com/librato/joboe/pull/767
-    Map<String, Object> initMessage = buildInitMessage();
-
-    Client rpcClient = RpcClientManager.getClient(RpcClientManager.OperationType.STATUS);
-    rpcClient.postStatus(
-        Collections.singletonList(initMessage), new ClientLoggingCallback<>("post init message"));
-  }
-
-  Map<String, Object> buildInitMessage() {
-    Map<String, Object> initMessage = new HashMap<>();
-    initMessage.put("__Init", true);
-
-    String version = SolarwindsAgentListener.class.getPackage().getImplementationVersion();
-    if (version != null) {
-      initMessage.put("APM.Version", version);
-    }
-
-    // Capture OTel Resource attributes
-    Attributes attributes = ResourceArbiter.resource().getAttributes();
-    logger.debug(
-        "Resource attributes "
-            + attributes.toString().replaceAll("(sw.apm.service.key=)\\S+", "$1****"));
-
-    for (Map.Entry<AttributeKey<?>, Object> keyValue : attributes.asMap().entrySet()) {
-      AttributeKey<?> attributeKey = keyValue.getKey();
-      String attrName = attributeKey.getKey();
-      Object attrValue = keyValue.getValue();
-
-      // Do not set service name in __Init message
-      if (attrName.equals(SERVICE_NAME.getKey())) {
-        continue;
-      }
-      // Mask service key if captured in process command line or arg
-      if ((attrName.equals(PROCESS_COMMAND_LINE.getKey())
-              || attrName.equals(PROCESS_COMMAND_ARGS.getKey()))
-          && attrValue.toString().contains("sw.apm.service.key=")) {
-        attrValue = attrValue.toString().replaceAll("(sw.apm.service.key=)\\S+", "$1****");
-      }
-      initMessage.put(attrName, attrValue);
-    }
-
-    // Ensure required keys are set
-    if (!initMessage.containsKey(TELEMETRY_SDK_LANGUAGE.getKey())) {
-      initMessage.put(TELEMETRY_SDK_LANGUAGE.getKey(), "java");
-    }
-    try {
-      if (!initMessage.containsKey(PROCESS_RUNTIME_DESCRIPTION.getKey())) {
-        // these three java.vm properties are always available
-        initMessage.put(
-            PROCESS_RUNTIME_DESCRIPTION.getKey(),
-            System.getProperty("java.vm.vendor")
-                + " "
-                + System.getProperty("java.vm.name")
-                + " "
-                + System.getProperty("java.vm.version"));
-      }
-      if (!initMessage.containsKey(PROCESS_RUNTIME_NAME.getKey())) {
-        initMessage.put(
-            PROCESS_RUNTIME_NAME.getKey(), System.getProperty("java.runtime.name", "unavailable"));
-      }
-      if (!initMessage.containsKey(PROCESS_RUNTIME_VERSION.getKey())) {
-        initMessage.put(
-            PROCESS_RUNTIME_VERSION.getKey(),
-            System.getProperty("java.runtime.version", "unavailable"));
-      }
-    } catch (SecurityException exp) {
-      logger.warn("Cannot get process runtime information.", exp);
-    }
-
-    return initMessage;
   }
 
   private void registerShutdownTasks() {
