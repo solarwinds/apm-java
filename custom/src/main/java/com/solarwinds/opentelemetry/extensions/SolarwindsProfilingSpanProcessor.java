@@ -27,6 +27,7 @@ import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.Metadata;
 import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.opentelemetry.core.Util;
+import com.solarwinds.opentelemetry.extensions.profile.SampleEmitter;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
@@ -49,7 +50,10 @@ public class SolarwindsProfilingSpanProcessor implements ExtendedSpanProcessor {
           Metadata metadata = Util.buildMetadata(spanContext);
           if (metadata.isValid()) {
             Profiler.addProfiledThread(
-                Thread.currentThread(), metadata, Metadata.bytesToHex(metadata.getTaskID()));
+                Thread.currentThread(),
+                metadata,
+                Metadata.bytesToHex(metadata.getTaskID()),
+                new SampleEmitter(span));
           }
         } else {
           span.setAttribute(SW_KEY_PREFIX + "profile.spans", -1); // profiler disabled

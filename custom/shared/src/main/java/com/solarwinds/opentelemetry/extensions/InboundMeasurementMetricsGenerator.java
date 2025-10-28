@@ -100,6 +100,9 @@ public class InboundMeasurementMetricsGenerator implements ExtendedSpanProcessor
       responseTimeAttr.put(errorKey, hasError);
       responseTime.record(
           duration, responseTimeAttr.put(TRANSACTION_NAME_KEY, transactionName).build());
+      logger.debug(
+          String.format(
+              "Inbound measurement metrics generated with context: %s", Context.current()));
     }
   }
 

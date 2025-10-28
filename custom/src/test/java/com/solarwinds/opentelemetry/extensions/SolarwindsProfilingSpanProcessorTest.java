@@ -161,7 +161,8 @@ class SolarwindsProfilingSpanProcessorTest {
 
     processor.onStart(mockParentContext, mockSpan);
     profilerMock.verify(
-        () -> Profiler.addProfiledThread(eq(Thread.currentThread()), any(), eq(traceId)), times(1));
+        () -> Profiler.addProfiledThread(eq(Thread.currentThread()), any(), eq(traceId), any()),
+        times(1));
     verify(mockSpan, never()).setAttribute(anyString(), anyInt());
   }
 
