@@ -18,11 +18,13 @@ package com.solarwinds.opentelemetry.extensions;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.samplers.Sampler;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -38,6 +40,8 @@ class SolarwindsAgentListenerTest {
   @Mock private OpenTelemetrySdk openTelemetrySdkMock;
 
   @Mock private SdkTracerProvider sdkTracerProviderMock;
+
+  @Mock private Sampler samplerMock;
 
   @Test
   void returnFalseWhenOurSamplerIsNotAttached() {
@@ -55,5 +59,15 @@ class SolarwindsAgentListenerTest {
     when(sdkTracerProviderMock.getSampler()).thenReturn(new SolarwindsSampler());
 
     assertTrue(tested.isUsingSolarwindsSampler(autoConfiguredOpenTelemetrySdkMock));
+  }
+
+  @Test
+  void verifySDKIsShutdownWhenBranchIsNotTaken() {
+    when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk()).thenReturn(openTelemetrySdkMock);
+    when(openTelemetrySdkMock.getSdkTracerProvider()).thenReturn(sdkTracerProviderMock);
+    when(sdkTracerProviderMock.getSampler()).thenReturn(samplerMock);
+
+    tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
+    verify(openTelemetrySdkMock).shutdown();
   }
 }
