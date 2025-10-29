@@ -74,12 +74,14 @@ public class SolarwindsAgentListener implements AgentListener {
   private static final Logger logger = LoggerFactory.getLogger();
 
   @Override
-  public void afterAgent(AutoConfiguredOpenTelemetrySdk openTelemetrySdk) {
-    if (isAgentEnabled() && isUsingSolarwindsSampler(openTelemetrySdk)) {
+  public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
+    if (isAgentEnabled() && isUsingSolarwindsSampler(autoConfiguredOpenTelemetrySdk)) {
       executeStartupTasks();
       registerShutdownTasks();
       logger.info(
           "Successfully submitted SolarwindsAPM OpenTelemetry extensions initialization tasks");
+    } else {
+      autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk().shutdown();
     }
   }
 

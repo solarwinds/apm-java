@@ -36,13 +36,14 @@ public class LambdaAgentListener implements AgentListener {
   private static final Logger logger = LoggerFactory.getLogger();
 
   @Override
-  public void afterAgent(AutoConfiguredOpenTelemetrySdk openTelemetrySdk) {
-    if (isAgentEnabled() && isUsingSolarwindsSampler(openTelemetrySdk)) {
+  public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
+    if (isAgentEnabled() && isUsingSolarwindsSampler(autoConfiguredOpenTelemetrySdk)) {
       SettingsManager.initialize(
           new AwsLambdaSettingsFetcher(new FileSettingsReader("/tmp/solarwinds-apm-settings.json")),
           SamplingConfigProvider.getSamplingConfiguration());
       logger.info("Successfully submitted SolarwindsAPM OpenTelemetry extensions settings");
     } else {
+      autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk().shutdown();
       logger.info("SolarwindsAPM OpenTelemetry extensions is disabled");
     }
   }

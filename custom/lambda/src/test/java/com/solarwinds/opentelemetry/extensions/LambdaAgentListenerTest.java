@@ -19,6 +19,7 @@ package com.solarwinds.opentelemetry.extensions;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.solarwinds.joboe.sampling.SettingsManager;
@@ -85,5 +86,15 @@ class LambdaAgentListenerTest {
       tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
       settingsManagerMock.verify(() -> SettingsManager.initialize(any(), any()), never());
     }
+  }
+
+  @Test
+  void verifySDKIsShutdownWhenBranchIsNotTaken() {
+    when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk()).thenReturn(openTelemetrySdkMock);
+    when(openTelemetrySdkMock.getSdkTracerProvider()).thenReturn(sdkTracerProviderMock);
+    when(sdkTracerProviderMock.getSampler()).thenReturn(samplerMock);
+
+    tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
+    verify(openTelemetrySdkMock).shutdown();
   }
 }
