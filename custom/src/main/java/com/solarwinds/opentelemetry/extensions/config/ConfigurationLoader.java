@@ -28,6 +28,7 @@ import com.solarwinds.joboe.config.InvalidConfigServiceKeyException;
 import com.solarwinds.joboe.config.JsonConfigReader;
 import com.solarwinds.joboe.config.ServiceKeyUtils;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;
+import com.solarwinds.joboe.core.util.DaemonThreadFactory;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.TraceConfigs;
@@ -122,7 +123,9 @@ public class ConfigurationLoader {
       try {
         if (watchService == null) {
           watchService = FileSystems.getDefault().newWatchService();
-          watchScheduler = Executors.newSingleThreadScheduledExecutor();
+          watchScheduler =
+              Executors.newSingleThreadScheduledExecutor(
+                  DaemonThreadFactory.newInstance("config-watcher"));
         }
 
         ConfigurationFileWatcher.restartWatch(
