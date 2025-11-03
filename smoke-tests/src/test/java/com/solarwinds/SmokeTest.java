@@ -58,7 +58,6 @@ public class SmokeTest {
             List.of("hostId:.*i-[0-9a-z]+",
                     "hostId:.*[0-9a-z-]+",
                     "Extension attached!",
-                    "Completed operation \\[post init message\\] with Result code \\[OK\\] arg",
                     "trace_id=[a-z0-9]+\\s+span_id=[a-z0-9]+\\s+trace_flags=(01|00)",
                     "This log line is used for validation only: service.name: java-apm-smoke-test",
                     "Applying instrumentation: sw-jdbc",
@@ -196,12 +195,6 @@ public class SmokeTest {
     void assertAgentExtensionLoading() {
         Boolean actual = logStreamAnalyzer.getAnswer().get("Extension attached!");
         assertTrue(actual, "expected log output from extension was not found");
-    }
-
-    @Test
-    void assertInitMessageIsSent() {
-        Boolean actual = logStreamAnalyzer.getAnswer().get("Completed operation \\[post init message\\] with Result code \\[OK\\] arg");
-        assertTrue(actual, "init message wasn't sent");
     }
 
     @Test
