@@ -58,6 +58,8 @@ public class TransactionNameManager {
 
   private static NamingScheme namingScheme = new DefaultNamingScheme(null);
 
+  private static final AttributeKey<String> handlerNameKey = AttributeKey.stringKey("HandlerName");
+
   static {
     addNameCountChangeListener();
   }
@@ -177,7 +179,7 @@ public class TransactionNameManager {
 
     // use HandlerName which may be injected by some MVC instrumentations (currently only Spring
     // MVC)
-    String handlerName = spanAttributes.get(AttributeKey.stringKey("HandlerName"));
+    String handlerName = spanAttributes.get(handlerNameKey);
     if (handlerName != null) {
       logger.trace(String.format("Using HandlerName(%s) as the transaction name", handlerName));
       return handlerName;
