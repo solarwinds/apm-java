@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 # syntax=docker/dockerfile:1
-FROM openjdk:17 AS agent
+FROM amazoncorretto:17 AS agent
 WORKDIR /app
 RUN curl -sSO https://agent-binaries.cloud.solarwinds.com/apm/java/latest/solarwinds-apm-agent.jar
 
