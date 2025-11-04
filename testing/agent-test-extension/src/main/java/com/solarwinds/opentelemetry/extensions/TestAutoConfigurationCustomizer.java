@@ -19,7 +19,6 @@ package com.solarwinds.opentelemetry.extensions;
 import com.google.auto.service.AutoService;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
-import io.opentelemetry.sdk.trace.samplers.Sampler;
 
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class TestAutoConfigurationCustomizer implements AutoConfigurationCustomizerProvider {
@@ -28,7 +27,7 @@ public class TestAutoConfigurationCustomizer implements AutoConfigurationCustomi
   public void customize(AutoConfigurationCustomizer autoConfiguration) {
     autoConfiguration.addTracerProviderCustomizer(
         (tracerProviderBuilder, configProperties) ->
-            tracerProviderBuilder.setSampler(Sampler.alwaysOn()));
+            tracerProviderBuilder.setSampler(new TestSampler()));
   }
 
   @Override
