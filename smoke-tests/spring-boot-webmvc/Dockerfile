@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-FROM openjdk:17
+FROM amazoncorretto:17
 WORKDIR /app
 
 COPY apm-config.json ./apm-config.json
