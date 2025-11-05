@@ -14,8 +14,8 @@ Every successful push to any branch builds and publishes the agent artifact to
 We plan to release all unreleased changes in the `main` branch on the 3rd week of the month.
 
 ## Making the release
+> ⓘ Take a look at [generate-release-notes.sh](.github/scripts/generate-release-notes.sh) to know how release note is generated.
 
 - Update the version in project's `build.gradle` file to the appropriate version
 - Make PR with version change to `main` branch
-- After the pull request is merged, approve the CI's release steps
-- Release the SDK by closing and releasing the snapshot in sonatype repo
+- Run the release workflow
