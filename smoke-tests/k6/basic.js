@@ -618,6 +618,18 @@ export default function () {
       check_property(check_code_stack_trace)
     })
 
+      silence(function () {
+          verify_that_metrics_are_reported("trace.jvm.Runtime.Uptime",
+              (measurement) => check(measurement, {"trace.jvm-metrics": mrs => mrs.value === 0})
+          )
+      })
+
+      silence(function () {
+          verify_that_metrics_are_reported("trace.jvm.Threading.ThreadCount",
+              (measurement) => check(measurement, {"trace.jvm-metrics": mrs => mrs.value === 0})
+          )
+      })
+
   } else {
       const service = "java-apm-smoke-test"
       silence(function () {
@@ -643,6 +655,19 @@ export default function () {
           )
       })
 
+      silence(function () {
+          verify_that_metrics_are_reported("trace.jvm.Runtime.Uptime",
+              (measurement) => check(measurement, {"trace.jvm-metrics": mrs => mrs.value === 0}),
+              service
+          )
+      })
+
+      silence(function () {
+          verify_that_metrics_are_reported("trace.jvm.Threading.ThreadCount",
+              (measurement) => check(measurement, {"trace.jvm-metrics": mrs => mrs.value === 0}),
+              service
+          )
+      })
     silence(verify_logs_export)
     silence(verify_that_specialty_path_is_not_sampled)
     silence(function () {

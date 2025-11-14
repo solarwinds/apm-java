@@ -16,11 +16,7 @@
 
 package com.solarwinds;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
+import com.jayway.jsonpath.PathNotFoundException;
 import com.solarwinds.agents.Agent;
 import com.solarwinds.agents.SwoAgentResolver;
 import com.solarwinds.config.Configs;
@@ -34,9 +30,6 @@ import com.solarwinds.containers.SquidContainer;
 import com.solarwinds.results.ResultsCollector;
 import com.solarwinds.util.LogStreamAnalyzer;
 import com.solarwinds.util.NamingConventions;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -47,6 +40,15 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @EnabledIfEnvironmentVariable(named = "LAMBDA", matches = "false")
 public class SmokeTest {
@@ -305,5 +307,12 @@ public class SmokeTest {
 
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['code.stacktrace'].passes");
         assertTrue(passes > 0, "Expects a count > 0");
+    }
+
+    @Test
+    void assertThatTraceJvmMetricsAreNotCollected() throws IOException {
+        String resultJson = new String(
+                Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        assertThrows(PathNotFoundException.class, () -> ResultsCollector.read(resultJson, "$.root_group.checks.['trace.jvm-metrics'].fails"));
     }
 }

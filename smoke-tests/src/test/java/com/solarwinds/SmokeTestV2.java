@@ -16,6 +16,7 @@
 
 package com.solarwinds;
 
+import com.jayway.jsonpath.PathNotFoundException;
 import com.solarwinds.agents.Agent;
 import com.solarwinds.agents.SwoAgentResolver;
 import com.solarwinds.config.Configs;
@@ -44,6 +45,7 @@ import java.nio.file.Files;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -285,5 +287,12 @@ public class SmokeTestV2 {
 
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['code.stacktrace'].passes");
         assertTrue(passes > 0, "Expects a count > 0");
+    }
+
+    @Test
+    void assertThatTraceJvmMetricsAreNotCollected() throws IOException {
+        String resultJson = new String(
+                Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        assertThrows(PathNotFoundException.class, () -> ResultsCollector.read(resultJson, "$.root_group.checks.['trace.jvm-metrics'].fails"));
     }
 }
