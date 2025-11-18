@@ -50,6 +50,8 @@ public class SolarwindsProfilingSpanProcessor implements ExtendedSpanProcessor {
           if (metadata.isValid()) {
             Profiler.addProfiledThread(
                 Thread.currentThread(), metadata, Metadata.bytesToHex(metadata.getTaskID()));
+          } else {
+            span.setAttribute(SW_KEY_PREFIX + "profile.spans", 0); // no samples
           }
         } else {
           span.setAttribute(SW_KEY_PREFIX + "profile.spans", -1); // profiler disabled
@@ -85,18 +87,21 @@ public class SolarwindsProfilingSpanProcessor implements ExtendedSpanProcessor {
       if (!parentSpanContext.isValid()
           || parentSpanContext.isRemote()) { // then a root span of this service
         Profiler.Profile profile = Profiler.stopProfile(spanContext.getTraceId());
-        if (profile.isSampled()) {
-          readWriteSpan.setAttribute(SW_KEY_PREFIX + "profile.spans", 1);
-          logger.debug(
-              String.format(
-                  "Profiling stopped with sw.profile.spans=1, trace_id=%s span_id=%s",
-                  spanContext.getTraceId(), spanContext.getSpanId()));
-        } else {
-          readWriteSpan.setAttribute(SW_KEY_PREFIX + "profile.spans", 0);
-          logger.debug(
-              String.format(
-                  "Profiling stopped with sw.profile.spans=0, trace_id=%s span_id=%s",
-                  spanContext.getTraceId(), spanContext.getSpanId()));
+        if (profile
+            != null) { // can be null when metadata is invalid which is possible for PropagatedSpan
+          if (profile.isSampled()) {
+            readWriteSpan.setAttribute(SW_KEY_PREFIX + "profile.spans", 1);
+            logger.debug(
+                String.format(
+                    "Profiling stopped with sw.profile.spans=1, trace_id=%s span_id=%s",
+                    spanContext.getTraceId(), spanContext.getSpanId()));
+          } else {
+            readWriteSpan.setAttribute(SW_KEY_PREFIX + "profile.spans", 0);
+            logger.debug(
+                String.format(
+                    "Profiling stopped with sw.profile.spans=0, trace_id=%s span_id=%s",
+                    spanContext.getTraceId(), spanContext.getSpanId()));
+          }
         }
       }
     }
