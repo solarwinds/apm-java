@@ -17,6 +17,7 @@
 package com.solarwinds.opentelemetry.extensions;
 
 import static com.solarwinds.opentelemetry.core.Constants.SW_KEY_PREFIX;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -185,6 +186,26 @@ class SolarwindsProfilingSpanProcessorTest {
   }
 
   @Test
+  @DisplayName("onStart should set attribute to 0 on root span when metadata is invalid")
+  void onStartWhenMetadataIsInvalidSpanShouldSetAttributeToZero() throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.PROFILER, new ProfilerSetting(true, 1));
+    when(mockSpan.getSpanContext()).thenReturn(mockSpanContext);
+    when(mockSpanContext.isSampled()).thenReturn(true);
+
+    when(mockSpanContext.getSpanId()).thenReturn("0000000000000000");
+    when(mockSpanContext.getTraceId()).thenReturn("00000000000000000000000000000000");
+    when(mockSpanContext.getTraceFlags()).thenReturn(TraceFlags.getDefault());
+
+    Span mockParentSpan = mock(Span.class);
+    spanMock.when(() -> Span.fromContext(mockParentContext)).thenReturn(mockParentSpan);
+    when(mockParentSpan.getSpanContext()).thenReturn(mockSpanContext);
+
+    processor.onStart(mockParentContext, mockSpan);
+    verify(mockSpan).setAttribute(SW_KEY_PREFIX + "profile.spans", 0);
+    profilerMock.verify(() -> Profiler.addProfiledThread(any(), any(), any()), never());
+  }
+
+  @Test
   @DisplayName("onEnding should not profile when span is not sampled")
   void onEndingWhenSpanNotSampledShouldNotProfile() {
     when(mockSpan.getSpanContext()).thenReturn(mockSpanContext);
@@ -264,6 +285,22 @@ class SolarwindsProfilingSpanProcessorTest {
     processor.onEnding(mockSpan);
     verify(mockSpan).setAttribute(SW_KEY_PREFIX + "profile.spans", 0);
     profilerMock.verify(() -> Profiler.stopProfile(traceId), times(1));
+  }
+
+  @Test
+  @DisplayName("onEnding should not throw when profile is null")
+  void onEndingShouldNotThrowWhenProfileIsNull() throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.PROFILER, new ProfilerSetting(true, 1));
+    when(mockSpan.getSpanContext()).thenReturn(mockSpanContext);
+    when(mockSpanContext.isSampled()).thenReturn(true);
+
+    when(mockSpanContext.getTraceId()).thenReturn(traceId);
+    when(mockSpan.toSpanData()).thenReturn(mockSpanData);
+
+    when(mockSpanData.getParentSpanContext()).thenReturn(mockParentSpanContext);
+    profilerMock.when(() -> Profiler.stopProfile(traceId)).thenReturn(null);
+
+    assertDoesNotThrow(() -> processor.onEnding(mockSpan));
   }
 
   @Test
