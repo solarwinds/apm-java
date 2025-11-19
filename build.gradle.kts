@@ -18,7 +18,7 @@ plugins{
     id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
 }
 
-val swoAgentVersion = "3.0.4"
+val swoAgentVersion = "3.1.0"
 extra["swoAgentVersion"] = swoAgentVersion
 group = "com.solarwinds"
 version = if (System.getenv("SNAPSHOT_BUILD").toBoolean()) "$swoAgentVersion-SNAPSHOT" else swoAgentVersion
