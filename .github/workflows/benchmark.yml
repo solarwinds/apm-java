@@ -17,9 +17,9 @@ jobs:
   run-overhead-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
     # check out the branch `benchmark-results` for staging the benchmark data and summary.
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
       with:
         ref: benchmark-results
         path: benchmark-results
