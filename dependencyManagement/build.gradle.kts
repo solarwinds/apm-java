@@ -3,7 +3,7 @@ plugins {
 }
 
 val otelAgentVersion = "2.21.0"
-val otelSdkVersion = "1.55.0"
+val otelSdkVersion = "1.56.0"
 
 val mockitoVersion = "4.11.0"
 val byteBuddyVersion = "1.15.10"
