@@ -44,7 +44,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.AWS_S3_ROLE_ARN_SSP_STAGE }}
           aws-region: "us-east-1"
