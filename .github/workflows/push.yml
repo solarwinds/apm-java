@@ -570,6 +570,7 @@ jobs:
         run: docker logout
 
   maven_snapshot_release:
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     env:
       SNAPSHOT_BUILD: true
