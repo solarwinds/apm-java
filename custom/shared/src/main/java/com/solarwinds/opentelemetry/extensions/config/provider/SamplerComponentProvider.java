@@ -21,9 +21,8 @@ import com.solarwinds.opentelemetry.extensions.SolarwindsSampler;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 
-@SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class SamplerComponentProvider implements ComponentProvider<Sampler> {
+public class SamplerComponentProvider implements ComponentProvider {
 
   public static final String COMPONENT_NAME = "swo/sampler";
 
