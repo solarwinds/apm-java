@@ -66,7 +66,7 @@ dependencies {
     api("com.solarwinds.joboe:logging:$joboeVersion")
     api("com.solarwinds.joboe:sampling:$joboeVersion")
 
-    api("org.json:json:20231013")
+    api("org.json:json:20250517")
     api("com.google.code.gson:gson:2.10.1")
     api("com.github.ben-manes.caffeine:caffeine:2.9.3")
 
