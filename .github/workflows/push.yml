@@ -449,7 +449,7 @@ jobs:
 
   release-test-v2:
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && github.actor != 'dependabot[bot]'
     env:
       SMOKEV2: "true"
     needs:
@@ -599,6 +599,7 @@ jobs:
         run: ./gradlew publishToSonatype
 
   docker_hub:
+    if: github.actor != 'dependabot[bot]'
     name: run scan on commit without pushing image
     runs-on: ubuntu-latest
     steps:
