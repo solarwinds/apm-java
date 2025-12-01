@@ -28,9 +28,8 @@ import io.opentelemetry.sdk.resources.Resource;
 import lombok.Getter;
 import lombok.Setter;
 
-@SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class ResourceComponentProvider implements ComponentProvider<Resource> {
+public class ResourceComponentProvider implements ComponentProvider {
 
   public static final String COMPONENT_NAME = "swo/resource";
 

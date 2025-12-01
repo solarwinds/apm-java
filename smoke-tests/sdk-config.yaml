@@ -33,7 +33,7 @@ attribute_limits:
 tracer_provider:
   # Configure span processors.
   processors:
-    - experimental_stacktrace:
+    - stacktrace/development:
         min_duration: 0
     - # Configure a batch span processor.
       simple:
