@@ -21,8 +21,8 @@ import names from "./names.js";
 const baseUri = `http://petclinic:9966/petclinic/api`;
 const webMvcUri = `http://webmvc:8080`;
 export const options = {
-  duration: "15m",
-  minIterationDuration: "3m",
+  duration: "30m",
+  minIterationDuration: "5m",
   vus: 10,
   iterations: 200,
 };

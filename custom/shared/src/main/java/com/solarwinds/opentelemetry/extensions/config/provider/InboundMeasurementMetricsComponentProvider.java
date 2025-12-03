@@ -22,10 +22,8 @@ import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 
-@SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class InboundMeasurementMetricsComponentProvider
-    implements ComponentProvider<SpanProcessor> {
+public class InboundMeasurementMetricsComponentProvider implements ComponentProvider {
 
   public static final String COMPONENT_NAME = "swo/inboundMeasurementMetrics";
 

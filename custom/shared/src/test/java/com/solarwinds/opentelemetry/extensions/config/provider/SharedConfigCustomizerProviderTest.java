@@ -219,7 +219,7 @@ class SharedConfigCustomizerProviderTest {
                 processorModel ->
                     processorModel
                         .getAdditionalProperties()
-                        .containsKey("experimental_stacktrace")));
+                        .containsKey("stacktrace/development")));
   }
 
   @Test
@@ -233,7 +233,7 @@ class SharedConfigCustomizerProviderTest {
                         Collections.singletonList(
                             new SpanProcessorModel()
                                 .withAdditionalProperty(
-                                    "experimental_stacktrace", Collections.emptyMap()))))
+                                    "stacktrace/development", Collections.emptyMap()))))
             .withInstrumentationDevelopment(
                 new InstrumentationModel()
                     .withJava(
@@ -253,11 +253,11 @@ class SharedConfigCustomizerProviderTest {
         tracerProvider.getProcessors().stream()
             .filter(
                 processorModel ->
-                    processorModel.getAdditionalProperties().containsKey("experimental_stacktrace"))
+                    processorModel.getAdditionalProperties().containsKey("stacktrace/development"))
             .map(
                 processorModel ->
                     (Map<String, Object>)
-                        processorModel.getAdditionalProperties().get("experimental_stacktrace"))
+                        processorModel.getAdditionalProperties().get("stacktrace/development"))
             .findFirst();
 
     assertTrue(map.isPresent());

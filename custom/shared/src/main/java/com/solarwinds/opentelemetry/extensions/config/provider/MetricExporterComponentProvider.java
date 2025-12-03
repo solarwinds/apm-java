@@ -28,9 +28,8 @@ import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.metrics.export.AggregationTemporalitySelector;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 
-@SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class MetricExporterComponentProvider implements ComponentProvider<MetricExporter> {
+public class MetricExporterComponentProvider implements ComponentProvider {
 
   public static final String COMPONENT_NAME = "swo/metricExporter";
 

@@ -84,6 +84,10 @@ public class SmokeTest {
     }
 
     static void runAppOnce(Agent agent) throws Exception {
+        GenericContainer<?> squid = new SquidContainer(NETWORK).build();
+        squid.start();
+        squid.followOutput(logStreamAnalyzer);
+
         GenericContainer<?> webMvc = new SpringBootWebMvcContainer(new SwoAgentResolver(), NETWORK, agent).build();
         webMvc.start();
         webMvc.followOutput(logStreamAnalyzer);
@@ -98,10 +102,6 @@ public class SmokeTest {
         GenericContainer<?> petClinic = new PetClinicRestContainer(new SwoAgentResolver(), NETWORK, agent).build();
         petClinic.start();
         petClinic.followOutput(logStreamAnalyzer);
-
-        GenericContainer<?> squid = new SquidContainer(NETWORK).build();
-        squid.start();
-        squid.followOutput(logStreamAnalyzer);
 
         GenericContainer<?> k6 = new K6Container(NETWORK, agent, namingConventions).build();
         k6.start();

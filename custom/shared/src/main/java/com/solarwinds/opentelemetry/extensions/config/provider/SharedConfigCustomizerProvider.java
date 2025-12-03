@@ -103,7 +103,7 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
             .withAdditionalProperty(
                 InboundMeasurementMetricsComponentProvider.COMPONENT_NAME, Collections.emptyMap()));
 
-    String experimentalStacktrace = "experimental_stacktrace";
+    String experimentalStacktrace = "stacktrace/development";
     Optional<SpanProcessorModel> modelOptional =
         model.getProcessors().stream()
             .filter(
