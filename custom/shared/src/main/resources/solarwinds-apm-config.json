@@ -1,30 +1,6 @@
 {
   "agent.serviceKey": "",
   "agent.logging": "info",
-  "monitor.jmx.scopes": {
-    "java.lang:type=MemoryPool,*": [
-      "Usage"
-    ],
-    "java.lang:type=Memory": [
-      "HeapMemoryUsage",
-      "NonHeapMemoryUsage"
-    ],
-    "java.lang:type=GarbageCollector,*": [
-      "CollectionTime"
-    ],
-    "java.lang:type=Threading": [
-      "ThreadCount"
-    ],
-    "java.lang:type=OperatingSystem": [
-      "ProcessCpuTime",
-      "AvailableProcessors",
-      "ProcessCpuLoad"
-    ],
-    "java.lang:type=Runtime,*": [
-      "Uptime"
-    ]
-  },
-  "monitor.jmx.enable": true,
   "profiler": {
     "enabled": false,
     "excludePackages": [
