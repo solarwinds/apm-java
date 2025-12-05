@@ -8,7 +8,7 @@ See [README.md](README.md) for more details.
 
 ## Dev tips
 - Run `./gradlew spotlessApply` to format files after making a change.
-- Use comments sparingly and reserve them for obtuse codes only.
+- Use comments sparingly and reserve them for obtuse code only.
 
 ## Testing instructions
 - Write unit tests for any non-trivial change you make.
