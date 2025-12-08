@@ -43,5 +43,5 @@ dependencies {
 
   implementation("io.opentelemetry.instrumentation:gradle-plugins:2.10.0-alpha")
   implementation("com.gradleup.shadow:shadow-gradle-plugin:8.3.5")
-  implementation("com.github.gmazzo.buildconfig:com.github.gmazzo.buildconfig.gradle.plugin:5.5.1")
+  implementation("com.github.gmazzo.buildconfig:com.github.gmazzo.buildconfig.gradle.plugin:6.0.6")
 }
