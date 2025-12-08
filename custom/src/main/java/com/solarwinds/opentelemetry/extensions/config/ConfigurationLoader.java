@@ -510,11 +510,6 @@ public class ConfigurationLoader {
     Set<ConfigProperty> requiredKeys = new HashSet<ConfigProperty>();
 
     requiredKeys.add(ConfigProperty.AGENT_SERVICE_KEY);
-    requiredKeys.add(ConfigProperty.AGENT_LOGGING);
-
-    requiredKeys.add(ConfigProperty.MONITOR_JMX_ENABLE);
-    requiredKeys.add(ConfigProperty.MONITOR_JMX_SCOPES);
-
     Set<ConfigProperty> missingKeys = new HashSet<ConfigProperty>();
 
     for (ConfigProperty requiredKey : requiredKeys) {
