@@ -36,17 +36,16 @@ public class SpanStacktraceFilter implements Predicate<ReadableSpan> {
           ConfigManager.getConfigOptional(
               ConfigProperty.AGENT_SPAN_STACKTRACE_FILTERS, Collections.singleton("db.system"));
 
-      if (configuredFilterAttributes.size() > 1) {
-        configuredFilterAttributes.add("db.system");
-      }
-      filterAttributes = configuredFilterAttributes;
+      Set<String> effectiveFilterAttributes = new HashSet<>(configuredFilterAttributes);
+      effectiveFilterAttributes.add("db.system");
+      filterAttributes = effectiveFilterAttributes;
     }
 
     Set<String> attributes =
         readableSpan.getAttributes().asMap().keySet().stream()
             .map(AttributeKey::getKey)
             .collect(Collectors.toSet());
-    attributes.retainAll(filterAttributes);
-    return !attributes.isEmpty();
+
+    return filterAttributes.stream().anyMatch(attributes::contains);
   }
 }

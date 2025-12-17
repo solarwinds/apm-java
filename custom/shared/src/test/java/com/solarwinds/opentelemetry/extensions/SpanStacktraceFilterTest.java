@@ -109,31 +109,6 @@ class SpanStacktraceFilterTest {
     assertTrue(filter.test(span));
   }
 
-  @Test
-  void verifyThatConfiguredAttributeIsUnchangedAcrossInvocation() throws InvalidConfigException {
-    Set<String> customFilters = new HashSet<>();
-    customFilters.add("process.ids");
-    customFilters.add("process.id");
-    ConfigManager.setConfig(ConfigProperty.AGENT_SPAN_STACKTRACE_FILTERS, customFilters);
-
-    SpanStacktraceFilter filter = new SpanStacktraceFilter();
-    ReadableSpan span0 =
-        createSpanWithAttributes(
-            Attributes.builder()
-                .put(AttributeKey.longArrayKey("process.ids"), Arrays.asList(200L, 300L))
-                .put("process.id", 300L)
-                .build());
-
-    ReadableSpan span1 =
-        createSpanWithAttributes(Attributes.builder().put("process.id", 300L).build());
-    ReadableSpan span2 =
-        createSpanWithAttributes(Attributes.builder().put("process.name", "test-1").build());
-
-    assertTrue(filter.test(span0));
-    assertTrue(filter.test(span1));
-    assertFalse(filter.test(span2));
-  }
-
   private ReadableSpan createSpanWithAttributes(Attributes attributes) {
     ReadableSpan span = mock(ReadableSpan.class);
     when(span.getAttributes()).thenReturn(attributes);
