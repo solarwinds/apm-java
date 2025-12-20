@@ -116,6 +116,8 @@ logger_provider:
 
 instrumentation/development:
   java:
+    runtime-telemetry-java17:
+      enable-all: true
     common:
       default-enabled: true
     solarwinds:

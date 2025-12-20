@@ -256,6 +256,15 @@ public class SmokeTest {
   }
 
   @Test
+  void assertThatRuntimeMetrics17AreExported() throws IOException {
+    String resultJson = new String(
+        Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+    double passes = ResultsCollector.read(resultJson,
+        "$.root_group.checks.['otel-metrics-17'].passes");
+    assertTrue(passes > 0, "JVM 17+ runtime metric export is broken");
+  }
+
+  @Test
   void assertThatSdkTracingIsWorking() throws IOException {
     String resultJson = new String(
         Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));

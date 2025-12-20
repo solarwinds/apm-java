@@ -656,6 +656,13 @@ export default function () {
       })
 
       silence(function () {
+          verify_that_metrics_are_reported("jvm.network.time",
+              (measurement) => check(measurement, {"otel-metrics-17": mrs => mrs.value > 0}),
+              service
+          )
+      })
+
+      silence(function () {
           verify_that_metrics_are_reported("trace.jvm.Runtime.Uptime",
               (measurement) => check(measurement, {"trace.jvm-metrics": mrs => mrs.value === 0}),
               service
