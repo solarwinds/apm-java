@@ -34,7 +34,7 @@ muzzle {
 }
 
 dependencies {
-  compileOnly("org.springframework:spring-webmvc:6.0.0")
+  compileOnly("org.springframework:spring-webmvc:7.0.2")
   compileOnly("jakarta.servlet:jakarta.servlet-api:5.0.0")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator")
 }
