@@ -32,7 +32,7 @@ dependencies {
 
   testImplementation(project(":instrumentation:jdbc"))
   testImplementation(project(":instrumentation:instrumentation-shared"))
-  testImplementation(platform("org.testcontainers:testcontainers-bom:1.20.4"))
+  testImplementation(platform("org.testcontainers:testcontainers-bom:2.0.3"))
 
   testImplementation("org.testcontainers:mysql")
   testImplementation("org.testcontainers:junit-jupiter")
