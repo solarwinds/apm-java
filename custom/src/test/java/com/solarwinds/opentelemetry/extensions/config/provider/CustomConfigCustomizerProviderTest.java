@@ -16,9 +16,13 @@
 
 package com.solarwinds.opentelemetry.extensions.config.provider;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mockStatic;
 
+import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
@@ -31,6 +35,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,25 +50,87 @@ class CustomConfigCustomizerProviderTest {
       functionArgumentCaptor;
 
   @Test
-  void testCustomize() {
-    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel();
+  void verifyThatProfilingProcessorIsAddedWhenJdkVersionIsSupported() {
+    try (MockedStatic<JavaRuntimeVersionChecker> javaRuntimeVersionCheckerMockedStatic =
+        mockStatic(JavaRuntimeVersionChecker.class)) {
+      javaRuntimeVersionCheckerMockedStatic
+          .when(JavaRuntimeVersionChecker::isJdkVersionSupported)
+          .thenReturn(true);
 
-    doNothing()
-        .when(declarativeConfigurationCustomizerMock)
-        .addModelCustomizer(functionArgumentCaptor.capture());
+      OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+          new OpenTelemetryConfigurationModel();
 
-    tested.customize(declarativeConfigurationCustomizerMock);
-    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+      doNothing()
+          .when(declarativeConfigurationCustomizerMock)
+          .addModelCustomizer(functionArgumentCaptor.capture());
 
-    TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
-    assertNotNull(tracerProvider);
+      tested.customize(declarativeConfigurationCustomizerMock);
+      functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
 
-    List<SpanProcessorModel> processors = tracerProvider.getProcessors();
-    assertNotNull(
-        processors
-            .get(0)
-            .getAdditionalProperties()
-            .get(ProfilingSpanProcessorComponentProvider.COMPONENT_NAME));
+      TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
+      assertNotNull(tracerProvider);
+
+      List<SpanProcessorModel> processors = tracerProvider.getProcessors();
+      assertNotNull(
+          processors
+              .get(0)
+              .getAdditionalProperties()
+              .get(ProfilingSpanProcessorComponentProvider.COMPONENT_NAME));
+    }
+  }
+
+  @Test
+  void verifyThatProfilingProcessorIsNotAddedWhenJdkVersionIsNotSupported() {
+    try (MockedStatic<JavaRuntimeVersionChecker> javaRuntimeVersionCheckerMockedStatic =
+        mockStatic(JavaRuntimeVersionChecker.class)) {
+      javaRuntimeVersionCheckerMockedStatic
+          .when(JavaRuntimeVersionChecker::isJdkVersionSupported)
+          .thenReturn(false);
+
+      OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+          new OpenTelemetryConfigurationModel();
+
+      doNothing()
+          .when(declarativeConfigurationCustomizerMock)
+          .addModelCustomizer(functionArgumentCaptor.capture());
+
+      tested.customize(declarativeConfigurationCustomizerMock);
+      functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+
+      TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
+      assertNotNull(tracerProvider);
+
+      List<SpanProcessorModel> processors = tracerProvider.getProcessors();
+      assertTrue(processors.isEmpty());
+    }
+  }
+
+  @Test
+  void verifyThatResourceDetectorIsAlwaysAdded() {
+    try (MockedStatic<JavaRuntimeVersionChecker> javaRuntimeVersionCheckerMockedStatic =
+        mockStatic(JavaRuntimeVersionChecker.class)) {
+      javaRuntimeVersionCheckerMockedStatic
+          .when(JavaRuntimeVersionChecker::isJdkVersionSupported)
+          .thenReturn(false);
+
+      OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+          new OpenTelemetryConfigurationModel();
+
+      doNothing()
+          .when(declarativeConfigurationCustomizerMock)
+          .addModelCustomizer(functionArgumentCaptor.capture());
+
+      tested.customize(declarativeConfigurationCustomizerMock);
+      functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+
+      assertNotNull(openTelemetryConfigurationModel.getResource());
+      assertNotNull(openTelemetryConfigurationModel.getResource().getDetectionDevelopment());
+      assertFalse(
+          openTelemetryConfigurationModel
+              .getResource()
+              .getDetectionDevelopment()
+              .getDetectors()
+              .isEmpty());
+    }
   }
 }

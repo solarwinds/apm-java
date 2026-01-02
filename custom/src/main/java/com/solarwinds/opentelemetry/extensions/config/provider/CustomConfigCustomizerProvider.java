@@ -17,6 +17,7 @@
 package com.solarwinds.opentelemetry.extensions.config.provider;
 
 import com.google.auto.service.AutoService;
+import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalResourceDetectionModel;
@@ -80,15 +81,17 @@ public class CustomConfigCustomizerProvider implements DeclarativeConfigurationC
   }
 
   private void addProcessors(TracerProviderModel model) {
-    List<SpanProcessorModel> processors =
-        Collections.singletonList(
-            new SpanProcessorModel()
-                .withAdditionalProperty(
-                    ProfilingSpanProcessorComponentProvider.COMPONENT_NAME,
-                    Collections.emptyMap()));
+    if (JavaRuntimeVersionChecker.isJdkVersionSupported()) {
+      List<SpanProcessorModel> processors =
+          Collections.singletonList(
+              new SpanProcessorModel()
+                  .withAdditionalProperty(
+                      ProfilingSpanProcessorComponentProvider.COMPONENT_NAME,
+                      Collections.emptyMap()));
 
-    ArrayList<SpanProcessorModel> allProcessors = new ArrayList<>(model.getProcessors());
-    allProcessors.addAll(processors);
-    model.withProcessors(allProcessors);
+      ArrayList<SpanProcessorModel> allProcessors = new ArrayList<>(model.getProcessors());
+      allProcessors.addAll(processors);
+      model.withProcessors(allProcessors);
+    }
   }
 }

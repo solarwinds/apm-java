@@ -56,14 +56,12 @@ public class AutoConfigurationCustomizerProviderImpl
   @Override
   public void customize(@Nonnull AutoConfigurationCustomizer autoConfiguration) {
     try {
-      agentEnabled = JavaRuntimeVersionChecker.isJdkVersionSupported();
-      if (agentEnabled) {
-        ConfigurationLoader.load();
-        logger.debug("Loaded via normal config");
-      } else {
+      ConfigurationLoader.load();
+      logger.debug("Loaded via normal config");
+      if (!JavaRuntimeVersionChecker.isJdkVersionSupported()) {
         logger.warn(
             String.format(
-                "Unsupported Java runtime version: %s. The lowest Java version supported is %s.",
+                "Profiling is not supported for Java runtime version: %s . The lowest Java version supported for profiling is %s.",
                 System.getProperty("java.version"), JavaRuntimeVersionChecker.minVersionSupported));
       }
 

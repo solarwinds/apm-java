@@ -20,24 +20,19 @@ import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfig
 import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.setAgentEnabled;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.config.ConfigGroup;
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
-import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
 import com.solarwinds.joboe.core.ReporterFactory;
 import com.solarwinds.joboe.core.profiler.Profiler;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;
-import com.solarwinds.joboe.core.rpc.ClientException;
 import com.solarwinds.joboe.core.rpc.ClientManagerProvider;
 import com.solarwinds.joboe.core.rpc.RpcClientManager;
 import com.solarwinds.joboe.core.util.DaemonThreadFactory;
 import com.solarwinds.joboe.core.util.HostInfoUtils;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
-import com.solarwinds.joboe.metrics.MetricsCollector;
-import com.solarwinds.joboe.metrics.MetricsMonitor;
 import com.solarwinds.joboe.metrics.SystemMonitorController;
-import com.solarwinds.joboe.metrics.SystemMonitorFactoryImpl;
 import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.opentelemetry.core.AgentState;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsFetcher;
@@ -117,29 +112,11 @@ public class SolarwindsAgentListener implements AgentListener {
                         SamplingConfigProvider.getSamplingConfiguration());
                 logger.debug("Initialized HostUtils");
 
-                logger.info("Starting System monitor");
-                SystemMonitorController.startWithBuilder(
-                    () ->
-                        new SystemMonitorFactoryImpl(
-                            ConfigManager.getConfigs(ConfigGroup.MONITOR)) {
-                          @Override
-                          protected MetricsMonitor buildMetricsMonitor() {
-                            try {
-                              MetricsCollector metricsCollector =
-                                  new MetricsCollector(configs, null);
-
-                              return MetricsMonitor.buildInstance(configs, metricsCollector);
-                            } catch (InvalidConfigException | ClientException e) {
-                              logger.debug(String.format("Error creating MetricsCollector: %s", e));
-                            }
-                            return null;
-                          }
-                        }.buildMonitors());
-                logger.debug("Started System monitor");
-
                 ProfilerSetting profilerSetting =
                     (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);
-                if (profilerSetting != null && profilerSetting.isEnabled()) {
+                if (JavaRuntimeVersionChecker.isJdkVersionSupported()
+                    && profilerSetting != null
+                    && profilerSetting.isEnabled()) {
                   logger.debug("Profiler is enabled, local settings : " + profilerSetting);
                   Profiler.initialize(
                       profilerSetting,
@@ -148,7 +125,7 @@ public class SolarwindsAgentListener implements AgentListener {
                               RpcClientManager.getClient(
                                   RpcClientManager.OperationType.PROFILING)));
                 } else {
-                  logger.debug("Profiler is disabled, local settings : " + profilerSetting);
+                  logger.info("Profiler is disabled, local settings : " + profilerSetting);
                 }
 
                 // now wait for all the latches (for now there's only one for settings)
