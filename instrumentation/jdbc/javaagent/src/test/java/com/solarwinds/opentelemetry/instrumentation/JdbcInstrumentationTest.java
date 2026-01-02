@@ -35,8 +35,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
+@SuppressWarnings("all")
 @ExtendWith(MockitoExtension.class)
 class JdbcInstrumentationTest {
 
@@ -44,7 +46,8 @@ class JdbcInstrumentationTest {
   private static final AgentInstrumentationExtension testing =
       AgentInstrumentationExtension.create();
 
-  @Container public MySQLContainer<?> mysql = new MySQLContainer<>("mysql:9.2.0");
+  @Container
+  public MySQLContainer<?> mysql = new MySQLContainer<>(DockerImageName.parse("mysql:9.2.0"));
 
   private Connection connection;
 

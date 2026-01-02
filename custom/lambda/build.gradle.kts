@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+plugins {
+  id("solarwinds.java-conventions")
+}
+
 dependencies {
   compileOnly(project(":custom:shared"))
   compileOnly("com.google.code.gson:gson")

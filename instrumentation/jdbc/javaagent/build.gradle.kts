@@ -30,17 +30,25 @@ dependencies {
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")
   compileOnly("com.github.ben-manes.caffeine:caffeine")
 
-  testImplementation(project(":instrumentation:jdbc"))
+  testImplementation(project(":instrumentation:jdbc:javaagent"))
   testImplementation(project(":instrumentation:instrumentation-shared"))
-  testImplementation(platform("org.testcontainers:testcontainers-bom:1.20.4"))
+  testImplementation(platform("org.testcontainers:testcontainers-bom:2.0.3"))
 
-  testImplementation("org.testcontainers:mysql")
-  testImplementation("org.testcontainers:junit-jupiter")
-  testImplementation("com.mysql:mysql-connector-j:9.2.0")
+  testImplementation("org.testcontainers:testcontainers-mysql")
+  testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+  testImplementation("com.mysql:mysql-connector-j:9.5.0")
 }
 
 tasks.withType<JavaCompile>().configureEach {
   dependsOn(":instrumentation:instrumentation-shared:byteBuddyJava")
+  with(options) {
+    val args = mutableListOf<String>()
+    args.addAll(options.compilerArgs)
+
+    // remove -Werror added by solarwinds.java-conventions because of deprecation that's a false positive in this case
+    args.remove("-Werror")
+    compilerArgs = args
+  }
 }
 
 swoJava {

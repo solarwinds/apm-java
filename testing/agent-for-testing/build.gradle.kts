@@ -18,6 +18,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.io.File
 
 plugins {
+  id("solarwinds.java-conventions")
   id("solarwinds.shadow-conventions")
 }
 

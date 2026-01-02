@@ -18,6 +18,7 @@ import com.solarwinds.instrumentation.gradle.SolarwindsJavaExtension
 plugins {
   java
   checkstyle
+  id("solarwinds.spotless-conventions")
 }
 
 repositories {

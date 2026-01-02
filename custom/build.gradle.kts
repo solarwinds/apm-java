@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+plugins {
+  id("solarwinds.java-conventions")
+}
+
 dependencies {
   compileOnly(project(":bootstrap"))
   compileOnly(project(":custom:shared"))

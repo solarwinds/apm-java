@@ -18,6 +18,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
   id("signing")
+  id("solarwinds.java-conventions")
   id("solarwinds.shadow-conventions")
 }
 
