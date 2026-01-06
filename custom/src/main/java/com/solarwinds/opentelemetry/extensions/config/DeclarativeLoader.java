@@ -41,10 +41,9 @@ public class DeclarativeLoader implements BeforeAgentListener {
         AutoConfigureUtil.getConfigProvider(autoConfiguredOpenTelemetrySdk);
 
     if (configProvider != null) {
-      boolean jdkVersionSupported = JavaRuntimeVersionChecker.isJdkVersionSupported();
       DeclarativeConfigProperties instrumentationConfig = configProvider.getInstrumentationConfig();
 
-      if (instrumentationConfig != null && jdkVersionSupported) {
+      if (instrumentationConfig != null) {
         DeclarativeConfigProperties solarwinds =
             instrumentationConfig
                 .getStructured("java", DeclarativeConfigProperties.empty())
@@ -64,13 +63,11 @@ public class DeclarativeLoader implements BeforeAgentListener {
         }
       }
 
-      if (!jdkVersionSupported) {
+      if (!JavaRuntimeVersionChecker.isJdkVersionSupported()) {
         logger.warn(
             String.format(
-                "Unsupported Java runtime version: %s. The lowest Java version supported is %s.",
+                "Profiling is not supported for Java runtime version: %s . The lowest Java version supported for profiling is %s.",
                 System.getProperty("java.version"), JavaRuntimeVersionChecker.minVersionSupported));
-
-        logger.warn("Solarwinds' extension is disabled");
       }
     }
   }

@@ -18,6 +18,7 @@ package com.solarwinds.opentelemetry.extensions;
 
 import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 
+import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import java.util.function.BiFunction;
@@ -29,9 +30,12 @@ public class SolarwindsTracerProviderCustomizer
   public SdkTracerProviderBuilder apply(
       SdkTracerProviderBuilder tracerProvider, ConfigProperties config) {
     if (isAgentEnabled()) {
+      if (JavaRuntimeVersionChecker.isJdkVersionSupported()) {
+        tracerProvider.addSpanProcessor(new SolarwindsProfilingSpanProcessor());
+      }
+
       tracerProvider
           .setSampler(new SolarwindsSampler())
-          .addSpanProcessor(new SolarwindsProfilingSpanProcessor())
           .addSpanProcessor(new InboundMeasurementMetricsGenerator());
     }
 
