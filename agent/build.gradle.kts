@@ -43,7 +43,7 @@ val upstreamAgent: Configuration by configurations.creating {
 
 dependencies {
   javaagentLibs(project(":custom"))
-  javaagentLibs(project(":custom:shared"))
+  javaagentLibs(project(":libs:shared"))
   javaagentLibs(project(":instrumentation"))
 
   bootstrapLibs(project(":bootstrap"))
