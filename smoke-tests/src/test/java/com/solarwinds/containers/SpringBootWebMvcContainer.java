@@ -55,7 +55,6 @@ public class SpringBootWebMvcContainer implements Container {
       return new GenericContainer<>(DockerImageName.parse("smt:webmvc"))
               .withNetwork(network)
               .withNetworkAliases("webmvc")
-              .withLogConsumer(new Slf4jLogConsumer(logger))
               .withExposedPorts(SERVER_PORT)
               .waitingFor(Wait.forHttp("/actuator/health").withReadTimeout(Duration.ofMinutes(5)).forPort(SERVER_PORT))
               .withFileSystemBind("./solarwinds-apm-settings.json", "/tmp/solarwinds-apm-settings.json")
