@@ -206,6 +206,7 @@ jobs:
         run: |
           echo "Disk space before pre-build cleanup:"
           df -h
+          docker system prune -af
           sudo rm -rf /usr/local/.ghcup
           sudo rm -rf /opt/hostedtoolcache/CodeQL
           sudo rm -rf /usr/local/lib/android/sdk/ndk
@@ -251,7 +252,7 @@ jobs:
       - name: Execute smoke tests
         run: |
           cd smoke-tests
-          ./gradlew test
+          ./gradlew test --tests "com.solarwinds.LambdaTest" -Pno-reports
 
       - uses: actions/upload-artifact@v6
         if: always()
@@ -421,7 +422,7 @@ jobs:
       - name: Execute smoke tests
         run: |
           cd smoke-tests
-          ./gradlew test
+          ./gradlew test --tests "com.solarwinds.SmokeTest"
 
       - uses: actions/upload-artifact@v6
         if: always()
@@ -506,7 +507,7 @@ jobs:
       - name: Execute smoke tests
         run: |
           cd smoke-tests
-          ./gradlew test
+          ./gradlew test --tests "com.solarwinds.SmokeTestV2"
 
       - uses: actions/upload-artifact@v6
         if: always()

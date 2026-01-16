@@ -141,6 +141,13 @@ static Map<String, Object> addAuth(Map<String, Object> envs) {
   }
 }
 
+tasks.withType(Test).configureEach {
+    if (project.hasProperty("no-reports")) {
+        reports.html.required = false
+        reports.junitXml.required = false
+    }
+}
+
 test {
   String cloud = "NONE"
   if (aws()) {
