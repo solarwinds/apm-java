@@ -566,6 +566,8 @@ jobs:
 
   maven_snapshot_release:
     if: github.actor != 'dependabot[bot]'
+    needs:
+      - cache-prune
     runs-on: ubuntu-latest
     env:
       SNAPSHOT_BUILD: true
@@ -681,3 +683,12 @@ jobs:
           ./gradlew build -x test
           .github/scripts/detect-duplicate-classes.sh agent/build/libs/solarwinds-apm-agent.jar
           .github/scripts/detect-duplicate-classes.sh agent-lambda/build/libs/solarwinds-apm-agent-lambda.jar
+
+  cache-prune:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - uses: actions/checkout@v6
+      - name: clean gh cache
+        run: gh cache delete --all
