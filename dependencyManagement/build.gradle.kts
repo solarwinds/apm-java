@@ -58,7 +58,7 @@ dependencies {
     api("net.bytebuddy:byte-buddy:${byteBuddyVersion}")
     api("com.google.auto.service:auto-service:$autoservice")
 
-    api("org.projectlombok:lombok:1.18.28")
+    api("org.projectlombok:lombok:1.18.42")
     api("com.solarwinds.joboe:core:$joboeVersion")
     api("com.solarwinds.joboe:metrics:$joboeVersion")
 
