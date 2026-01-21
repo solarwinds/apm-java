@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation platform("org.testcontainers:testcontainers-bom:2.0.2")
+    testImplementation platform("org.testcontainers:testcontainers-bom:2.0.3")
     testImplementation("org.testcontainers:testcontainers")
     testImplementation platform('org.junit:junit-bom:5.9.1')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -139,6 +139,13 @@ static Map<String, Object> addAuth(Map<String, Object> envs) {
     System.out.println("Error -> ${exception}")
     return envs
   }
+}
+
+tasks.withType(Test).configureEach {
+    if (project.hasProperty("no-reports")) {
+        reports.html.required = false
+        reports.junitXml.required = false
+    }
 }
 
 test {

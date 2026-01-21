@@ -28,8 +28,9 @@ This is a **multi-module Gradle project** with the following architecture:
 - **agent-lambda/** - Lambda-specific agent (exports via OTLP)
 - **bootstrap/** - Bootstrap classes loaded early in JVM lifecycle
 - **custom/** - Custom SolarWinds extensions and configurations
-  - `custom/shared/` - Shared code between agent and agent-lambda
-  - `custom/lambda/` - Lambda-specific extensions
+- **libs/** - Custom SolarWinds libraries
+  - `libs/shared/` - Shared code between agent and agent-lambda
+  - `libs/lambda/` - Lambda-specific extensions
 - **instrumentation/** - Custom instrumentation modules
   - `jdbc/` - JDBC instrumentation
   - `spring-webmvc/` - Spring WebMVC instrumentation

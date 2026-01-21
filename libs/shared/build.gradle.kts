@@ -17,6 +17,10 @@ import java.time.format.DateTimeFormatter
  * limitations under the License.
  */
 
+plugins {
+  id("solarwinds.java-conventions")
+}
+
 dependencies {
   compileOnly(project(":bootstrap"))
   compileOnly("org.projectlombok:lombok")

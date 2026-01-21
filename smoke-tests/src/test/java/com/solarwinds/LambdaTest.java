@@ -87,7 +87,6 @@ public class LambdaTest {
 
     GenericContainer<?> k6 = new K6Container(NETWORK, agent, namingConventions).build();
     k6.start();
-    k6.followOutput(new Slf4jLogConsumer(LoggerFactory.getLogger("k6")));
 
     petClinic.execInContainer("kill", "1");
     webMvc.execInContainer("kill", "1");

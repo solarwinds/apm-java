@@ -66,7 +66,7 @@ jobs:
           s3://$STAGE_BUCKET/apm/java/$AGENT_VERSION/solarwinds-apm-agent-lambda.jar \
           --acl public-read
           
-          aws s3 cp custom/shared/src/main/resources/solarwinds-apm-config.json \
+          aws s3 cp libs/shared/src/main/resources/solarwinds-apm-config.json \
           s3://$STAGE_BUCKET/apm/java/$AGENT_VERSION/solarwinds-apm-config.json \
           --acl public-read
         env:
@@ -124,8 +124,6 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: "ghcr.io/${{github.repository_owner}}/xk6:latest"
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Build rc image
         uses: docker/build-push-action@v6
@@ -135,8 +133,6 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: "ghcr.io/${{github.repository_owner}}/petclinic:agent-rc"
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Build stable image
         uses: docker/build-push-action@v6
@@ -145,8 +141,6 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: "ghcr.io/${{github.repository_owner}}/petclinic:agent-latest"
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
   test:
     runs-on: ubuntu-latest
@@ -191,91 +185,6 @@ jobs:
             fi
           done
           exit $lambda
-
-  lambda-release-test:
-    runs-on: ubuntu-latest
-    needs:
-      - s3-stage-upload
-    env:
-      LAMBDA: "true"
-      OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Free Disk Space before Build
-        run: |
-          echo "Disk space before pre-build cleanup:"
-          df -h
-          sudo rm -rf /usr/local/.ghcup
-          sudo rm -rf /opt/hostedtoolcache/CodeQL
-          sudo rm -rf /usr/local/lib/android/sdk/ndk
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          echo "Disk space after pre-build cleanup:"
-          df -h
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v5
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Set agent version
-        id: set_version
-        uses: ./.github/actions/version
-
-      - name: Set snapshot version
-        run: |
-          GIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
-          echo "AGENT_VERSION=${{ steps.set_version.outputs.version }}.$GIT_HASH" >> $GITHUB_ENV
-
-      - name: Build smoke-test
-        run: |
-          cd smoke-tests
-          ./gradlew build -x test
-
-      - name: Build webmvc jar
-        run: |
-          cd smoke-tests
-          ./gradlew :spring-boot-webmvc:build
-
-      - name: Build webmvc image
-        run: |
-          cd smoke-tests/spring-boot-webmvc
-          docker image build --tag smt:webmvc .
-
-      - name: Docker login
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
-
-      - name: Execute smoke tests
-        run: |
-          cd smoke-tests
-          ./gradlew test
-
-      - uses: actions/upload-artifact@v6
-        if: always()
-        with:
-          path: smoke-tests/build/reports/tests/test
-          name: lambda-release-test
-
-      - name: Free Disk Space After Build
-        run: |
-          echo "Disk space before post-build cleanup:"
-          df -h
-          sudo rm -rf /usr/local/.ghcup
-          sudo rm -rf /opt/hostedtoolcache/CodeQL
-          sudo rm -rf /usr/local/lib/android/sdk/ndk
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          sudo rm -rf smoke-tests/build/
-          echo "Disk space after post-build cleanup:"
-          df -h
-
-      - name: Docker logout
-        if: always()
-        run: docker logout
 
   smoke-test-linux:
     runs-on: ubuntu-latest
@@ -421,7 +330,7 @@ jobs:
       - name: Execute smoke tests
         run: |
           cd smoke-tests
-          ./gradlew test
+          ./gradlew test --tests "com.solarwinds.SmokeTest"
 
       - uses: actions/upload-artifact@v6
         if: always()
@@ -506,7 +415,7 @@ jobs:
       - name: Execute smoke tests
         run: |
           cd smoke-tests
-          ./gradlew test
+          ./gradlew test --tests "com.solarwinds.SmokeTestV2"
 
       - uses: actions/upload-artifact@v6
         if: always()
@@ -571,6 +480,8 @@ jobs:
 
   maven_snapshot_release:
     if: github.actor != 'dependabot[bot]'
+    needs:
+      - cache-prune
     runs-on: ubuntu-latest
     env:
       SNAPSHOT_BUILD: true
@@ -650,8 +561,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -688,3 +597,12 @@ jobs:
           ./gradlew build -x test
           .github/scripts/detect-duplicate-classes.sh agent/build/libs/solarwinds-apm-agent.jar
           .github/scripts/detect-duplicate-classes.sh agent-lambda/build/libs/solarwinds-apm-agent-lambda.jar
+
+  cache-prune:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - uses: actions/checkout@v6
+      - name: clean gh cache
+        run: gh cache delete --all || true

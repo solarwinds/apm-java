@@ -23,13 +23,6 @@ extra["swoAgentVersion"] = swoAgentVersion
 group = "com.solarwinds"
 version = if (System.getenv("SNAPSHOT_BUILD").toBoolean()) "$swoAgentVersion-SNAPSHOT" else swoAgentVersion
 
-subprojects {
-    if (this.name != "dependencyManagement") {
-        apply(plugin = "solarwinds.spotless-conventions")
-        apply(plugin = "solarwinds.java-conventions")
-    }
-}
-
 allprojects {
     plugins.withId("java"){
         val cleanListedDependencies by tasks.registering {

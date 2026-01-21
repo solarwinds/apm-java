@@ -105,7 +105,6 @@ public class SmokeTest {
 
         GenericContainer<?> k6 = new K6Container(NETWORK, agent, namingConventions).build();
         k6.start();
-        k6.followOutput(new Slf4jLogConsumer(LoggerFactory.getLogger("k6")), OutputFrame.OutputType.STDOUT);
 
         petClinic.execInContainer("kill", "1");
         webMvc.execInContainer("kill", "1");

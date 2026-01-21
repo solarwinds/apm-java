@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
+plugins {
+  id("solarwinds.java-conventions")
+}
+
 dependencies {
-  compileOnly(project(":custom:shared"))
+  compileOnly(project(":libs:shared"))
   compileOnly("com.google.code.gson:gson")
   compileOnly("org.projectlombok:lombok")
 
@@ -36,7 +40,7 @@ dependencies {
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
 
   compileOnly(project(":bootstrap"))
-  testImplementation(project(":custom:shared"))
+  testImplementation(project(":libs:shared"))
 }
 
 swoJava {

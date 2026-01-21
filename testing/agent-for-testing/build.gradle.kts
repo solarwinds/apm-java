@@ -18,6 +18,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.io.File
 
 plugins {
+  id("solarwinds.java-conventions")
   id("solarwinds.shadow-conventions")
 }
 
@@ -39,7 +40,7 @@ val upstreamAgent: Configuration by configurations.creating {
 
 dependencies {
   javaagentLibs(project(":custom"))
-  javaagentLibs(project(":custom:shared"))
+  javaagentLibs(project(":libs:shared"))
   javaagentLibs(project(":testing:agent-test-extension"))
   javaagentLibs(project(":instrumentation:instrumentation-shared"))
   javaagentLibs(project(":instrumentation:hibernate:hibernate-shared"))

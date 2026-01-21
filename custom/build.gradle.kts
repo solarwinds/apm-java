@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
+plugins {
+  id("solarwinds.java-conventions")
+}
+
 dependencies {
   compileOnly(project(":bootstrap"))
-  compileOnly(project(":custom:shared"))
+  compileOnly(project(":libs:shared"))
   compileOnly("com.solarwinds.joboe:core")
 
   compileOnly("org.projectlombok:lombok")
@@ -39,7 +43,7 @@ dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-incubator")
   compileOnly("io.opentelemetry:opentelemetry-exporter-otlp")
 
-  testImplementation(project(":custom:shared"))
+  testImplementation(project(":libs:shared"))
   testImplementation("org.json:json")
   testImplementation("com.solarwinds.joboe:core")
 

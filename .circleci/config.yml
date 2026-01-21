@@ -398,7 +398,7 @@ jobs:
             upload_file_to_release "$release_id" "checksum.txt"
             
             upload_file_to_release "$release_id" "agent/build/libs/solarwinds-apm-agent.jar"
-            upload_file_to_release "$release_id" "custom/shared/src/main/resources/solarwinds-apm-config.json"
+            upload_file_to_release "$release_id" "libs/shared/src/main/resources/solarwinds-apm-config.json"
             
             source /ci-scripts/bin/helpers.sh
             send_to_slack "A new release is ready \`$VERSION\`"
@@ -426,7 +426,7 @@ jobs:
             s3://ssp-stage-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-agent-lambda.jar \
             --acl public-read
             
-            aws s3 cp custom/shared/src/main/resources/solarwinds-apm-config.json \
+            aws s3 cp libs/shared/src/main/resources/solarwinds-apm-config.json \
             s3://ssp-stage-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-config.json \
             --acl public-read
       - run:
@@ -480,7 +480,7 @@ jobs:
             s3://ssp-prod-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-agent.jar \
             --acl public-read
 
-            aws s3 cp custom/shared/src/main/resources/solarwinds-apm-config.json \
+            aws s3 cp libs/shared/src/main/resources/solarwinds-apm-config.json \
             s3://ssp-prod-global-agent-binaries/apm/java/$AGENTVERSION/solarwinds-apm-config.json \
             --acl public-read
       - run:

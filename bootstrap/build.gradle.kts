@@ -1,3 +1,7 @@
+plugins {
+  id("solarwinds.java-conventions")
+}
+
 dependencies {
   compileOnly("com.solarwinds.joboe:config")
   compileOnly("com.solarwinds.joboe:logging")

@@ -31,7 +31,6 @@ import java.nio.file.Path;
 import java.time.Duration;
 
 public class K6Container {
-  private static final Logger logger = LoggerFactory.getLogger(K6Container.class);
   private final Network network;
   private final Agent agent;
   private final NamingConventions namingConventions;
@@ -48,7 +47,6 @@ public class K6Container {
     return new GenericContainer<>(DockerImageName.parse("grafana/k6"))
         .withNetwork(network)
         .withNetworkAliases("k6")
-        .withLogConsumer(new Slf4jLogConsumer(logger))
         .withCopyFileToContainer(MountableFile.forHostPath("./k6"), "/app")
         .withFileSystemBind(namingConventions.localResults(), namingConventions.containerResults())
         .withCreateContainerCmdModifier(cmd -> cmd.withUser("root"))

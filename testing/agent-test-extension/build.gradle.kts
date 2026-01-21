@@ -3,6 +3,6 @@ plugins {
 }
 
 dependencies {
-  compileOnly(project(":custom:shared"))
+  compileOnly(project(":libs:shared"))
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
 }

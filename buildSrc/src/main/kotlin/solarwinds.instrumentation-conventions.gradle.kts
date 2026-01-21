@@ -23,6 +23,10 @@ plugins {
   id("io.opentelemetry.instrumentation.muzzle-check")
 }
 
+if (projectDir.name == "javaagent") {
+  base.archivesName.set(projectDir.parentFile.name)
+}
+
 evaluationDependsOn(":testing:agent-for-testing")
 dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk")
@@ -94,7 +98,7 @@ tasks.withType<Test>().configureEach {
 }
 
 tasks.register("generateInstrumentationVersionFile") {
-  val name = "com.solarwinds.${project.name}"
+  val name = "com.solarwinds.${computeInstrumentationName()}"
   val version = rootProject.version.toString()
   inputs.property("instrumentation.name", name)
 
@@ -111,6 +115,13 @@ tasks.register("generateInstrumentationVersionFile") {
 sourceSets {
   main {
     output.dir("build/generated/instrumentationVersion", "builtBy" to "generateInstrumentationVersionFile")
+  }
+}
+
+fun computeInstrumentationName(): String {
+  return when (projectDir.name) {
+    "javaagent" -> projectDir.parentFile.name
+    else -> project.name
   }
 }
 
