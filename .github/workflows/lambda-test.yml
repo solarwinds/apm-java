@@ -25,6 +25,8 @@ env:
   SWO_EMAIL: ${{ secrets.SWO_EMAIL }}
   SWO_PWORD: ${{ secrets.SWO_PWORD }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+  CENTRAL_TOKEN: ${{ secrets.CENTRAL_TOKEN }}
 
 jobs:
   lambda-release-test:
