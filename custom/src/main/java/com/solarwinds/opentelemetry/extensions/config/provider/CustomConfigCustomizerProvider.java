@@ -22,8 +22,10 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurat
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalResourceDetectionModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalResourceDetectorModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalResourceDetectorPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ResourceModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -71,12 +73,14 @@ public class CustomConfigCustomizerProvider implements DeclarativeConfigurationC
     newDetectors.add(
         new ExperimentalResourceDetectorModel()
             .withAdditionalProperty(
-                ResourceComponentProvider.COMPONENT_NAME, Collections.emptyMap()));
+                ResourceComponentProvider.COMPONENT_NAME,
+                new ExperimentalResourceDetectorPropertyModel()));
 
     newDetectors.add(
         new ExperimentalResourceDetectorModel()
             .withAdditionalProperty(
-                HostIdResourceComponentProvider.COMPONENT_NAME, Collections.emptyMap()));
+                HostIdResourceComponentProvider.COMPONENT_NAME,
+                new ExperimentalResourceDetectorPropertyModel()));
     detectionDevelopment.withDetectors(newDetectors);
   }
 
@@ -87,7 +91,7 @@ public class CustomConfigCustomizerProvider implements DeclarativeConfigurationC
               new SpanProcessorModel()
                   .withAdditionalProperty(
                       ProfilingSpanProcessorComponentProvider.COMPONENT_NAME,
-                      Collections.emptyMap()));
+                      new SpanProcessorPropertyModel()));
 
       ArrayList<SpanProcessorModel> allProcessors = new ArrayList<>(model.getProcessors());
       allProcessors.addAll(processors);

@@ -18,12 +18,16 @@ package com.solarwinds.opentelemetry.extensions.config;
 
 import static com.solarwinds.opentelemetry.extensions.SharedNames.SW_OTEL_PROXY_HOST_KEY;
 import static com.solarwinds.opentelemetry.extensions.SharedNames.SW_OTEL_PROXY_PORT_KEY;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
+import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.common.export.ProxyOptions;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,12 +50,19 @@ class LogRecordExporterCustomizerTest {
   }
 
   @Test
-  void shouldReturnNewExporterWhenProxyConfigured() {
+  void shouldCallSetProxyWhenProxyConfigured() {
     when(configProperties.getString(SW_OTEL_PROXY_HOST_KEY)).thenReturn("localhost");
     when(configProperties.getInt(SW_OTEL_PROXY_PORT_KEY)).thenReturn(8080);
 
-    OtlpHttpLogRecordExporter originalExporter = OtlpHttpLogRecordExporter.builder().build();
-    LogRecordExporter result = tested.apply(originalExporter, configProperties);
-    assertNotSame(originalExporter, result);
+    OtlpHttpLogRecordExporter originalExporter = mock(OtlpHttpLogRecordExporter.class);
+    OtlpHttpLogRecordExporterBuilder builder = mock(OtlpHttpLogRecordExporterBuilder.class);
+
+    when(originalExporter.toBuilder()).thenReturn(builder);
+    when(builder.setProxyOptions(any(ProxyOptions.class))).thenReturn(builder);
+    when(builder.build()).thenReturn(mock(OtlpHttpLogRecordExporter.class));
+
+    tested.apply(originalExporter, configProperties);
+
+    verify(builder).setProxyOptions(any(ProxyOptions.class));
   }
 }
