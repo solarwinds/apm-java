@@ -38,13 +38,15 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OtlpGr
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PeriodicMetricReaderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PropagatorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PushMetricExporterModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PushMetricExporterPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SamplerModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SamplerPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanExporterModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -101,7 +103,8 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
     allProcessors.add(
         new SpanProcessorModel()
             .withAdditionalProperty(
-                InboundMeasurementMetricsComponentProvider.COMPONENT_NAME, Collections.emptyMap()));
+                InboundMeasurementMetricsComponentProvider.COMPONENT_NAME,
+                new SpanProcessorPropertyModel()));
 
     String experimentalStacktrace = "stacktrace/development";
     Optional<SpanProcessorModel> modelOptional =
@@ -112,21 +115,24 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
             .findFirst();
 
     if (!modelOptional.isPresent()) {
-      Map<String, Object> properties = new HashMap<>();
-      properties.put("filter", SPAN_STACKTRACE_FILTER_CLASS);
       allProcessors.add(
-          new SpanProcessorModel().withAdditionalProperty(experimentalStacktrace, properties));
+          new SpanProcessorModel()
+              .withAdditionalProperty(
+                  experimentalStacktrace,
+                  new SpanProcessorPropertyModel()
+                      .withAdditionalProperty("filter", SPAN_STACKTRACE_FILTER_CLASS)));
     } else {
       SpanProcessorModel spanProcessorModel = modelOptional.get();
-      @SuppressWarnings("unchecked")
-      Map<String, Object> additionalProperties =
-          (Map<String, Object>)
-              spanProcessorModel.getAdditionalProperties().get(experimentalStacktrace);
+      SpanProcessorPropertyModel spanProcessorPropertyModel =
+          spanProcessorModel.getAdditionalProperties().get(experimentalStacktrace);
 
+      Map<String, Object> additionalProperties =
+          spanProcessorPropertyModel.getAdditionalProperties();
       if (!additionalProperties.containsKey("filter")) {
-        Map<String, Object> newProperties = new HashMap<>(additionalProperties);
-        newProperties.put("filter", SPAN_STACKTRACE_FILTER_CLASS);
-        spanProcessorModel.setAdditionalProperty(experimentalStacktrace, newProperties);
+        spanProcessorModel.setAdditionalProperty(
+            experimentalStacktrace,
+            spanProcessorPropertyModel.withAdditionalProperty(
+                "filter", SPAN_STACKTRACE_FILTER_CLASS));
       }
     }
 
@@ -137,7 +143,7 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
     model.withSampler(
         new SamplerModel()
             .withAdditionalProperty(
-                SamplerComponentProvider.COMPONENT_NAME, Collections.emptyMap()));
+                SamplerComponentProvider.COMPONENT_NAME, new SamplerPropertyModel()));
   }
 
   private void addContextPropagators(PropagatorModel model) {
@@ -180,16 +186,6 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
       return;
     }
 
-    Map<String, Object> configs = new HashMap<>();
-    configs.put("timeout", 10000);
-    configs.put("protocol", "grpc");
-
-    configs.put("compression", "gzip");
-    configs.put("endpoint", serviceKeyAndEndpoint[1]);
-    configs.put("temporality_preference", "cumulative");
-
-    configs.put("default_histogram_aggregation", "explicit_bucket_histogram");
-    configs.put("headers_list", String.format("authorization=Bearer %s", serviceKeyAndEndpoint[0]));
     model.withMeterProvider(
         new MeterProviderModel()
             .withReaders(
@@ -203,7 +199,22 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
                                     new PushMetricExporterModel()
                                         .withAdditionalProperty(
                                             MetricExporterComponentProvider.COMPONENT_NAME,
-                                            configs))))));
+                                            new PushMetricExporterPropertyModel()
+                                                .withAdditionalProperty("timeout", 10000)
+                                                .withAdditionalProperty("protocol", "grpc")
+                                                .withAdditionalProperty("compression", "gzip")
+                                                .withAdditionalProperty(
+                                                    "endpoint", serviceKeyAndEndpoint[1])
+                                                .withAdditionalProperty(
+                                                    "temporality_preference", "delta")
+                                                .withAdditionalProperty(
+                                                    "default_histogram_aggregation",
+                                                    "base2_exponential_bucket_histogram")
+                                                .withAdditionalProperty(
+                                                    "headers_list",
+                                                    String.format(
+                                                        "authorization=Bearer %s",
+                                                        serviceKeyAndEndpoint[0]))))))));
   }
 
   private void addLogExporter(OpenTelemetryConfigurationModel model) {
@@ -214,7 +225,10 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
         processors.stream()
             .anyMatch(logRecordProcessorModel -> logRecordProcessorModel.getBatch() != null);
 
-    if (hasExporter) return;
+    if (hasExporter) {
+      return;
+    }
+
     LogRecordProcessorModel logRecordProcessorModel =
         new LogRecordProcessorModel()
             .withBatch(
@@ -233,6 +247,7 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
   private void setServiceKeyAndEndpoint(OpenTelemetryConfigurationModel model) {
     DeclarativeConfigProperties configProperties =
         DeclarativeConfiguration.toConfigProperties(model);
+
     DeclarativeConfigProperties solarwinds =
         configProperties
             .getStructured("instrumentation/development", DeclarativeConfigProperties.empty())

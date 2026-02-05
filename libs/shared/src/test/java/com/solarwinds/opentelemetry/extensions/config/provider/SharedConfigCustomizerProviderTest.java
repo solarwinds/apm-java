@@ -25,8 +25,9 @@ import com.solarwinds.joboe.config.ConfigProperty;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.AttributeLimitsModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.BatchLogRecordProcessorModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalInstrumentationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.InstrumentationModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordExporterModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LoggerProviderModel;
@@ -35,9 +36,9 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OtlpGr
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PeriodicMetricReaderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SamplerModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -65,21 +66,18 @@ class SharedConfigCustomizerProviderTest {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
             .withInstrumentationDevelopment(
-                new InstrumentationModel()
+                new ExperimentalInstrumentationModel()
                     .withJava(
                         new ExperimentalLanguageSpecificInstrumentationModel()
                             .withAdditionalProperty(
                                 "solarwinds",
-                                new HashMap<String, String>() {
-                                  {
-                                    put(
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                    .withAdditionalProperty(
                                         ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service");
-                                    put(
+                                        "token:service")
+                                    .withAdditionalProperty(
                                         ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "apm.collector.com");
-                                  }
-                                })));
+                                        "apm.collector.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -133,21 +131,18 @@ class SharedConfigCustomizerProviderTest {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
             .withInstrumentationDevelopment(
-                new InstrumentationModel()
+                new ExperimentalInstrumentationModel()
                     .withJava(
                         new ExperimentalLanguageSpecificInstrumentationModel()
                             .withAdditionalProperty(
                                 "solarwinds",
-                                new HashMap<String, String>() {
-                                  {
-                                    put(
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                    .withAdditionalProperty(
                                         ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service");
-                                    put(
+                                        "token:service")
+                                    .withAdditionalProperty(
                                         ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "apm.collector.com");
-                                  }
-                                })));
+                                        "apm.collector.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -174,22 +169,22 @@ class SharedConfigCustomizerProviderTest {
     PeriodicMetricReaderModel periodic =
         openTelemetryConfigurationModel.getMeterProvider().getReaders().get(0).getPeriodic();
 
-    @SuppressWarnings("unchecked")
     Map<String, Object> configs =
-        (Map<String, Object>)
-            periodic
-                .getExporter()
-                .getAdditionalProperties()
-                .get(MetricExporterComponentProvider.COMPONENT_NAME);
-    assertNotNull(configs);
+        periodic
+            .getExporter()
+            .getAdditionalProperties()
+            .get(MetricExporterComponentProvider.COMPONENT_NAME)
+            .getAdditionalProperties();
 
+    assertNotNull(configs);
     assertEquals(10000, configs.get("timeout"));
     assertEquals("grpc", configs.get("protocol"));
     assertEquals("gzip", configs.get("compression"));
 
     assertEquals("https://otel.collector.com", configs.get("endpoint"));
-    assertEquals("cumulative", configs.get("temporality_preference"));
-    assertEquals("explicit_bucket_histogram", configs.get("default_histogram_aggregation"));
+    assertEquals("delta", configs.get("temporality_preference"));
+    assertEquals(
+        "base2_exponential_bucket_histogram", configs.get("default_histogram_aggregation"));
 
     assertEquals("authorization=Bearer token", configs.get("headers_list"));
   }
@@ -199,10 +194,12 @@ class SharedConfigCustomizerProviderTest {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
             .withInstrumentationDevelopment(
-                new InstrumentationModel()
+                new ExperimentalInstrumentationModel()
                     .withJava(
                         new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty("solarwinds", Collections.emptyMap())));
+                            .withAdditionalProperty(
+                                "solarwinds",
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel())));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -233,12 +230,14 @@ class SharedConfigCustomizerProviderTest {
                         Collections.singletonList(
                             new SpanProcessorModel()
                                 .withAdditionalProperty(
-                                    "stacktrace/development", Collections.emptyMap()))))
+                                    "stacktrace/development", new SpanProcessorPropertyModel()))))
             .withInstrumentationDevelopment(
-                new InstrumentationModel()
+                new ExperimentalInstrumentationModel()
                     .withJava(
                         new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty("solarwinds", Collections.emptyMap())));
+                            .withAdditionalProperty(
+                                "solarwinds",
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel())));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -256,8 +255,10 @@ class SharedConfigCustomizerProviderTest {
                     processorModel.getAdditionalProperties().containsKey("stacktrace/development"))
             .map(
                 processorModel ->
-                    (Map<String, Object>)
-                        processorModel.getAdditionalProperties().get("stacktrace/development"))
+                    processorModel
+                        .getAdditionalProperties()
+                        .get("stacktrace/development")
+                        .getAdditionalProperties())
             .findFirst();
 
     assertTrue(map.isPresent());
@@ -269,21 +270,18 @@ class SharedConfigCustomizerProviderTest {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
             .withInstrumentationDevelopment(
-                new InstrumentationModel()
+                new ExperimentalInstrumentationModel()
                     .withJava(
                         new ExperimentalLanguageSpecificInstrumentationModel()
                             .withAdditionalProperty(
                                 "solarwinds",
-                                new HashMap<String, String>() {
-                                  {
-                                    put(
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                    .withAdditionalProperty(
                                         ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service");
-                                    put(
+                                        "token:service")
+                                    .withAdditionalProperty(
                                         ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "http://apm.collector.com");
-                                  }
-                                })));
+                                        "http://apm.collector.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -310,21 +308,18 @@ class SharedConfigCustomizerProviderTest {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
             .withInstrumentationDevelopment(
-                new InstrumentationModel()
+                new ExperimentalInstrumentationModel()
                     .withJava(
                         new ExperimentalLanguageSpecificInstrumentationModel()
                             .withAdditionalProperty(
                                 "solarwinds",
-                                new HashMap<String, String>() {
-                                  {
-                                    put(
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                    .withAdditionalProperty(
                                         ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service");
-                                    put(
+                                        "token:service")
+                                    .withAdditionalProperty(
                                         ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "http://example.com");
-                                  }
-                                })));
+                                        "http://example.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -351,21 +346,18 @@ class SharedConfigCustomizerProviderTest {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
             .withInstrumentationDevelopment(
-                new InstrumentationModel()
+                new ExperimentalInstrumentationModel()
                     .withJava(
                         new ExperimentalLanguageSpecificInstrumentationModel()
                             .withAdditionalProperty(
                                 "solarwinds",
-                                new HashMap<String, String>() {
-                                  {
-                                    put(
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                    .withAdditionalProperty(
                                         ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service");
-                                    put(
+                                        "token:service")
+                                    .withAdditionalProperty(
                                         ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "http://localhost:4317");
-                                  }
-                                })));
+                                        "http://localhost:4317"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
