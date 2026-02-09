@@ -36,7 +36,7 @@ dependencies {
 
   testImplementation("org.testcontainers:testcontainers-mysql")
   testImplementation("org.testcontainers:testcontainers-junit-jupiter")
-  testImplementation("com.mysql:mysql-connector-j:9.5.0")
+  testImplementation("com.mysql:mysql-connector-j:9.6.0")
 }
 
 tasks.withType<JavaCompile>().configureEach {
