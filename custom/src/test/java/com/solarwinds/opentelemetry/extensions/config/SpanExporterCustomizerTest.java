@@ -18,12 +18,16 @@ package com.solarwinds.opentelemetry.extensions.config;
 
 import static com.solarwinds.opentelemetry.extensions.SharedNames.SW_OTEL_PROXY_HOST_KEY;
 import static com.solarwinds.opentelemetry.extensions.SharedNames.SW_OTEL_PROXY_PORT_KEY;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.opentelemetry.exporter.otlp.http.trace.OtlpHttpSpanExporter;
+import io.opentelemetry.exporter.otlp.http.trace.OtlpHttpSpanExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.common.export.ProxyOptions;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,12 +50,18 @@ class SpanExporterCustomizerTest {
   }
 
   @Test
-  void shouldReturnNewExporterWhenProxyConfigured() {
+  void shouldCallSetProxyWhenProxyConfigured() {
     when(configProperties.getString(SW_OTEL_PROXY_HOST_KEY)).thenReturn("localhost");
     when(configProperties.getInt(SW_OTEL_PROXY_PORT_KEY)).thenReturn(8080);
 
-    OtlpHttpSpanExporter originalExporter = OtlpHttpSpanExporter.builder().build();
-    SpanExporter result = tested.apply(originalExporter, configProperties);
-    assertNotSame(originalExporter, result);
+    OtlpHttpSpanExporter originalExporter = mock(OtlpHttpSpanExporter.class);
+    OtlpHttpSpanExporterBuilder builder = mock(OtlpHttpSpanExporterBuilder.class);
+
+    when(originalExporter.toBuilder()).thenReturn(builder);
+    when(builder.setProxy(any(ProxyOptions.class))).thenReturn(builder);
+    when(builder.build()).thenReturn(mock(OtlpHttpSpanExporter.class));
+
+    tested.apply(originalExporter, configProperties);
+    verify(builder).setProxy(any(ProxyOptions.class));
   }
 }

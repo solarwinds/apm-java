@@ -1,5 +1,5 @@
 [![Status](https://img.shields.io/badge/status-stable-informational?style=for-the-badge)](https://github.com/solarwinds/apm-java)
-[![OTEL](https://img.shields.io/badge/otel-2.3.0-blueviolet?style=for-the-badge)](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.3.0)
+[![OTEL](https://img.shields.io/badge/otel-2.24.0-blueviolet?style=for-the-badge)](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.24.0)
 [![SWO](https://img.shields.io/github/v/release/solarwinds/apm-java?include_prereleases&style=for-the-badge)](https://github.com/solarwinds/apm-java/releases)
 [![SWO SDK](https://img.shields.io/maven-central/v/io.github.appoptics/solarwinds-otel-sdk?style=for-the-badge)](https://maven-badges.herokuapp.com/maven-central/io.github.appoptics/solarwinds-otel-sdk)
 [![License](https://img.shields.io/badge/License-Apache_2.0-red.svg?style=for-the-badge)](https://github.com/solarwinds/apm-java/blob/main/LICENSE)

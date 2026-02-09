@@ -19,12 +19,16 @@ package com.solarwinds.opentelemetry.extensions;
 import static com.solarwinds.opentelemetry.extensions.SharedNames.SW_OTEL_PROXY_HOST_KEY;
 import static com.solarwinds.opentelemetry.extensions.SharedNames.SW_OTEL_PROXY_PORT_KEY;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
+import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
+import io.opentelemetry.sdk.common.export.ProxyOptions;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
@@ -56,13 +60,19 @@ class MetricExporterCustomizerTest {
   }
 
   @Test
-  void shouldReturnNewExporterWhenProxyConfigured() {
+  void shouldCallSetProxyOptionsWhenProxyConfigured() {
     when(configProperties.getString(SW_OTEL_PROXY_HOST_KEY)).thenReturn("localhost");
     when(configProperties.getInt(SW_OTEL_PROXY_PORT_KEY)).thenReturn(8080);
 
-    OtlpHttpMetricExporter originalExporter = OtlpHttpMetricExporter.builder().build();
-    MetricExporter result = tested.apply(originalExporter, configProperties);
+    OtlpHttpMetricExporter originalExporter = mock(OtlpHttpMetricExporter.class);
+    OtlpHttpMetricExporterBuilder builder = mock(OtlpHttpMetricExporterBuilder.class);
 
-    assertNotSame(originalExporter, result);
+    when(originalExporter.toBuilder()).thenReturn(builder);
+    when(builder.setProxyOptions(any(ProxyOptions.class))).thenReturn(builder);
+    when(builder.build()).thenReturn(mock(OtlpHttpMetricExporter.class));
+
+    MetricExporter result = tested.apply(originalExporter, configProperties);
+    verify(builder).setProxyOptions(any(ProxyOptions.class));
+    assertInstanceOf(DelegatingMetricExporter.class, result);
   }
 }
