@@ -29,10 +29,10 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.Experi
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordExporterModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordExporterPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LoggerProviderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OtlpGrpcExporterModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PeriodicMetricReaderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SamplerModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
@@ -117,13 +117,14 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(batch);
     LogRecordExporterModel exporter = batch.getExporter();
-    OtlpGrpcExporterModel otlp = exporter.getOtlpGrpc();
+    LogRecordExporterPropertyModel logExporterProperty =
+        exporter.getAdditionalProperties().get(LogExporterComponentProvider.COMPONENT_NAME);
 
-    assertNotNull(otlp);
-    assertEquals("https://otel.collector.com", otlp.getEndpoint());
-    assertEquals("authorization=Bearer token", otlp.getHeadersList());
-
-    assertEquals("gzip", otlp.getCompression());
+    assertNotNull(logExporterProperty);
+    Map<String, Object> logConfigs = logExporterProperty.getAdditionalProperties();
+    assertEquals("https://otel.collector.com/v1/logs", logConfigs.get("endpoint"));
+    assertEquals("authorization=Bearer token", logConfigs.get("headers_list"));
+    assertEquals("gzip", logConfigs.get("compression"));
   }
 
   @Test
@@ -178,10 +179,10 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(configs);
     assertEquals(10000, configs.get("timeout"));
-    assertEquals("grpc", configs.get("protocol"));
+    assertEquals("http/protobuf", configs.get("protocol"));
     assertEquals("gzip", configs.get("compression"));
 
-    assertEquals("https://otel.collector.com", configs.get("endpoint"));
+    assertEquals("https://otel.collector.com/v1/metrics", configs.get("endpoint"));
     assertEquals("delta", configs.get("temporality_preference"));
     assertEquals(
         "base2_exponential_bucket_histogram", configs.get("default_histogram_aggregation"));
@@ -296,11 +297,13 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(batch);
     LogRecordExporterModel exporter = batch.getExporter();
-    OtlpGrpcExporterModel otlp = exporter.getOtlpGrpc();
+    LogRecordExporterPropertyModel logExporterProperty =
+        exporter.getAdditionalProperties().get(LogExporterComponentProvider.COMPONENT_NAME);
 
-    assertNotNull(otlp);
-    assertEquals("https://otel.collector.com", otlp.getEndpoint());
-    assertEquals("authorization=Bearer token", otlp.getHeadersList());
+    assertNotNull(logExporterProperty);
+    Map<String, Object> logConfigs = logExporterProperty.getAdditionalProperties();
+    assertEquals("https://otel.collector.com/v1/logs", logConfigs.get("endpoint"));
+    assertEquals("authorization=Bearer token", logConfigs.get("headers_list"));
   }
 
   @Test
@@ -334,11 +337,13 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(batch);
     LogRecordExporterModel exporter = batch.getExporter();
-    OtlpGrpcExporterModel otlp = exporter.getOtlpGrpc();
+    LogRecordExporterPropertyModel logExporterProperty =
+        exporter.getAdditionalProperties().get(LogExporterComponentProvider.COMPONENT_NAME);
 
-    assertNotNull(otlp);
-    assertEquals("http://example.com", otlp.getEndpoint());
-    assertEquals("authorization=Bearer token", otlp.getHeadersList());
+    assertNotNull(logExporterProperty);
+    Map<String, Object> logConfigs = logExporterProperty.getAdditionalProperties();
+    assertEquals("http://example.com/v1/logs", logConfigs.get("endpoint"));
+    assertEquals("authorization=Bearer token", logConfigs.get("headers_list"));
   }
 
   @Test
@@ -372,10 +377,12 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(batch);
     LogRecordExporterModel exporter = batch.getExporter();
-    OtlpGrpcExporterModel otlp = exporter.getOtlpGrpc();
+    LogRecordExporterPropertyModel logExporterProperty =
+        exporter.getAdditionalProperties().get(LogExporterComponentProvider.COMPONENT_NAME);
 
-    assertNotNull(otlp);
-    assertEquals("http://localhost:4317", otlp.getEndpoint());
-    assertEquals("authorization=Bearer token", otlp.getHeadersList());
+    assertNotNull(logExporterProperty);
+    Map<String, Object> logConfigs = logExporterProperty.getAdditionalProperties();
+    assertEquals("http://localhost:4317/v1/logs", logConfigs.get("endpoint"));
+    assertEquals("authorization=Bearer token", logConfigs.get("headers_list"));
   }
 }

@@ -18,19 +18,19 @@ package com.solarwinds.opentelemetry.extensions.config.provider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import io.opentelemetry.sdk.metrics.export.MetricExporter;
+import io.opentelemetry.sdk.trace.export.SpanExporter;
 import org.junit.jupiter.api.Test;
 
-class MetricExporterComponentProviderTest {
-  private final MetricExporterComponentProvider tested = new MetricExporterComponentProvider();
+class SpanExporterComponentProviderTest {
+  private final SpanExporterComponentProvider tested = new SpanExporterComponentProvider();
 
   @Test
   void testName() {
-    assertEquals("swo/metricExporter", tested.getName());
+    assertEquals("swo/spanExporter", tested.getName());
   }
 
   @Test
   void testGetType() {
-    assertEquals(MetricExporter.class, tested.getType());
+    assertEquals(SpanExporter.class, tested.getType());
   }
 }

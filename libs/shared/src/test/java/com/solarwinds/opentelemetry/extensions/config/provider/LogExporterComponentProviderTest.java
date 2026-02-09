@@ -18,19 +18,19 @@ package com.solarwinds.opentelemetry.extensions.config.provider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import io.opentelemetry.sdk.metrics.export.MetricExporter;
+import io.opentelemetry.sdk.logs.export.LogRecordExporter;
 import org.junit.jupiter.api.Test;
 
-class MetricExporterComponentProviderTest {
-  private final MetricExporterComponentProvider tested = new MetricExporterComponentProvider();
+class LogExporterComponentProviderTest {
+  private final LogExporterComponentProvider tested = new LogExporterComponentProvider();
 
   @Test
   void testName() {
-    assertEquals("swo/metricExporter", tested.getName());
+    assertEquals("swo/logExporter", tested.getName());
   }
 
   @Test
   void testGetType() {
-    assertEquals(MetricExporter.class, tested.getType());
+    assertEquals(LogRecordExporter.class, tested.getType());
   }
 }

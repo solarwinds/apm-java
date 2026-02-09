@@ -19,8 +19,12 @@ package com.solarwinds.opentelemetry.extensions.config.provider;
 import static com.solarwinds.opentelemetry.extensions.SharedNames.SPAN_STACKTRACE_FILTER_CLASS;
 
 import com.google.auto.service.AutoService;
+import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.config.ProxyConfig;
 import com.solarwinds.joboe.config.ServiceKeyUtils;
+import com.solarwinds.opentelemetry.extensions.config.parser.yaml.ProxyParser;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfiguration;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
@@ -29,12 +33,12 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.Attrib
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.BatchLogRecordProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.BatchSpanProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordExporterModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordExporterPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LoggerProviderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.MeterProviderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.MetricReaderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OtlpGrpcExporterModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PeriodicMetricReaderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PropagatorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PushMetricExporterModel;
@@ -42,6 +46,7 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PushMe
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SamplerModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SamplerPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanExporterModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanExporterPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
@@ -57,11 +62,15 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
 
   private final String[] serviceKeyAndEndpoint = new String[2];
 
+  private final ProxyParser parser = new ProxyParser();
+
   @Override
   public void customize(DeclarativeConfigurationCustomizer customizer) {
     customizer.addModelCustomizer(
         configurationModel -> {
           setServiceKeyAndEndpoint(configurationModel);
+          parseProxyConfig(configurationModel);
+
           configurationModel.withAttributeLimits(
               new AttributeLimitsModel().withAttributeCountLimit(128));
 
@@ -172,7 +181,21 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
                     .withExportTimeout(60000)
                     .withMaxQueueSize(1024)
                     .withMaxExportBatchSize(512)
-                    .withExporter(new SpanExporterModel().withOtlpGrpc(createModel())));
+                    .withExporter(
+                        new SpanExporterModel()
+                            .withAdditionalProperty(
+                                SpanExporterComponentProvider.COMPONENT_NAME,
+                                new SpanExporterPropertyModel()
+                                    .withAdditionalProperty("timeout", 10000)
+                                    .withAdditionalProperty("protocol", "http/protobuf")
+                                    .withAdditionalProperty("compression", "gzip")
+                                    .withAdditionalProperty(
+                                        "endpoint", serviceKeyAndEndpoint[1] + "/v1/traces")
+                                    .withAdditionalProperty(
+                                        "headers_list",
+                                        String.format(
+                                            "authorization=Bearer %s",
+                                            serviceKeyAndEndpoint[0])))));
 
     ArrayList<SpanProcessorModel> spanProcessorModels = new ArrayList<>(processors);
     spanProcessorModels.add(spanProcessorModel);
@@ -201,10 +224,11 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
                                             MetricExporterComponentProvider.COMPONENT_NAME,
                                             new PushMetricExporterPropertyModel()
                                                 .withAdditionalProperty("timeout", 10000)
-                                                .withAdditionalProperty("protocol", "grpc")
+                                                .withAdditionalProperty("protocol", "http/protobuf")
                                                 .withAdditionalProperty("compression", "gzip")
                                                 .withAdditionalProperty(
-                                                    "endpoint", serviceKeyAndEndpoint[1])
+                                                    "endpoint",
+                                                    serviceKeyAndEndpoint[1] + "/v1/metrics")
                                                 .withAdditionalProperty(
                                                     "temporality_preference", "delta")
                                                 .withAdditionalProperty(
@@ -237,7 +261,21 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
                     .withMaxExportBatchSize(512)
                     .withMaxQueueSize(1024)
                     .withExportTimeout(30000)
-                    .withExporter(new LogRecordExporterModel().withOtlpGrpc(createModel())));
+                    .withExporter(
+                        new LogRecordExporterModel()
+                            .withAdditionalProperty(
+                                LogExporterComponentProvider.COMPONENT_NAME,
+                                new LogRecordExporterPropertyModel()
+                                    .withAdditionalProperty("timeout", 10000)
+                                    .withAdditionalProperty("protocol", "http/protobuf")
+                                    .withAdditionalProperty("compression", "gzip")
+                                    .withAdditionalProperty(
+                                        "endpoint", serviceKeyAndEndpoint[1] + "/v1/logs")
+                                    .withAdditionalProperty(
+                                        "headers_list",
+                                        String.format(
+                                            "authorization=Bearer %s",
+                                            serviceKeyAndEndpoint[0])))));
 
     ArrayList<LogRecordProcessorModel> logRecordProcessorModels = new ArrayList<>(processors);
     logRecordProcessorModels.add(logRecordProcessorModel);
@@ -245,18 +283,10 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
   }
 
   private void setServiceKeyAndEndpoint(OpenTelemetryConfigurationModel model) {
-    DeclarativeConfigProperties configProperties =
-        DeclarativeConfiguration.toConfigProperties(model);
-
-    DeclarativeConfigProperties solarwinds =
-        configProperties
-            .getStructured("instrumentation/development", DeclarativeConfigProperties.empty())
-            .getStructured("java", DeclarativeConfigProperties.empty())
-            .getStructured("solarwinds");
+    DeclarativeConfigProperties solarwinds = getSolarwindsConfig(model);
 
     serviceKeyAndEndpoint[0] =
-        Objects.requireNonNull(solarwinds, "Solarwinds configuration cannot be null.")
-            .getString(ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(), "");
+        solarwinds.getString(ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(), "");
 
     String endpoint = solarwinds.getString(ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(), "");
     endpoint = endpoint.replaceAll("https?://apm|^apm", "https://otel");
@@ -265,11 +295,27 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
     serviceKeyAndEndpoint[1] = endpoint;
   }
 
-  private OtlpGrpcExporterModel createModel() {
-    return new OtlpGrpcExporterModel()
-        .withCompression("gzip")
-        .withEndpoint(serviceKeyAndEndpoint[1])
-        .withTimeout(10000)
-        .withHeadersList(String.format("authorization=Bearer %s", serviceKeyAndEndpoint[0]));
+  private void parseProxyConfig(OpenTelemetryConfigurationModel model) {
+    DeclarativeConfigProperties solarwinds = getSolarwindsConfig(model);
+    try {
+      ProxyConfig proxyConfig = parser.convert(solarwinds);
+      if (proxyConfig != null) {
+        ConfigManager.setConfig(ConfigProperty.AGENT_PROXY, proxyConfig);
+      }
+    } catch (InvalidConfigException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private DeclarativeConfigProperties getSolarwindsConfig(OpenTelemetryConfigurationModel model) {
+    DeclarativeConfigProperties configProperties =
+        DeclarativeConfiguration.toConfigProperties(model);
+
+    return Objects.requireNonNull(
+        configProperties
+            .getStructured("instrumentation/development", DeclarativeConfigProperties.empty())
+            .getStructured("java", DeclarativeConfigProperties.empty())
+            .getStructured("solarwinds"),
+        "Solarwinds configuration cannot be null.");
   }
 }
