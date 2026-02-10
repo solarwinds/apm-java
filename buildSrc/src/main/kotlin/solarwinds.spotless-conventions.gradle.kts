@@ -61,7 +61,7 @@ spotless {
       "*.md",
       "*.sh"
     )
-    indentWithSpaces()
+    leadingTabsToSpaces()
     trimTrailingWhitespace()
     endWithNewline()
   }

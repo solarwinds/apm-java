@@ -35,7 +35,7 @@ dependencies {
 
 tasks {
   shadowJar {
-    archiveClassifier = null
+    archiveClassifier.set("")
   }
 }
 

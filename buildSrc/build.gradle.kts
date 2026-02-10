@@ -39,9 +39,9 @@ repositories {
 
 dependencies {
   implementation(gradleApi())
-  implementation("com.diffplug.spotless:spotless-plugin-gradle:6.25.0")
+  implementation("com.diffplug.spotless:spotless-plugin-gradle:8.2.1")
 
-  implementation("io.opentelemetry.instrumentation:gradle-plugins:2.10.0-alpha")
-  implementation("com.gradleup.shadow:shadow-gradle-plugin:8.3.5")
-  implementation("com.github.gmazzo.buildconfig:com.github.gmazzo.buildconfig.gradle.plugin:5.5.1")
+  implementation("io.opentelemetry.instrumentation:gradle-plugins:2.24.0-alpha")
+  implementation("com.gradleup.shadow:shadow-gradle-plugin:9.3.1")
+  implementation("com.github.gmazzo.buildconfig:com.github.gmazzo.buildconfig.gradle.plugin:6.0.7")
 }
