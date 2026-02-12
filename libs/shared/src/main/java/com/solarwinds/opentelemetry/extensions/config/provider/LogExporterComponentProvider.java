@@ -16,31 +16,29 @@
 
 package com.solarwinds.opentelemetry.extensions.config.provider;
 
-import static io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil.DATA_TYPE_METRICS;
+import static io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil.DATA_TYPE_LOGS;
 
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.ProxyConfig;
-import com.solarwinds.opentelemetry.extensions.DelegatingMetricExporter;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
-import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporterBuilder;
+import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
+import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporterBuilder;
 import io.opentelemetry.exporter.otlp.internal.OtlpDeclarativeConfigUtil;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.common.export.ProxyOptions;
-import io.opentelemetry.sdk.metrics.export.AggregationTemporalitySelector;
-import io.opentelemetry.sdk.metrics.export.MetricExporter;
+import io.opentelemetry.sdk.logs.export.LogRecordExporter;
 import java.net.InetSocketAddress;
 
 @AutoService(ComponentProvider.class)
-public class MetricExporterComponentProvider implements ComponentProvider {
+public class LogExporterComponentProvider implements ComponentProvider {
 
-  public static final String COMPONENT_NAME = "swo/metricExporter";
+  public static final String COMPONENT_NAME = "swo/logExporter";
 
   @Override
-  public Class<MetricExporter> getType() {
-    return MetricExporter.class;
+  public Class<LogRecordExporter> getType() {
+    return LogRecordExporter.class;
   }
 
   @Override
@@ -49,11 +47,11 @@ public class MetricExporterComponentProvider implements ComponentProvider {
   }
 
   @Override
-  public MetricExporter create(DeclarativeConfigProperties config) {
-    OtlpHttpMetricExporterBuilder builder = OtlpHttpMetricExporter.builder();
+  public LogRecordExporter create(DeclarativeConfigProperties config) {
+    OtlpHttpLogRecordExporterBuilder builder = OtlpHttpLogRecordExporter.builder();
 
     OtlpDeclarativeConfigUtil.configureOtlpExporterBuilder(
-        DATA_TYPE_METRICS,
+        DATA_TYPE_LOGS,
         config,
         builder::setComponentLoader,
         builder::setEndpoint,
@@ -66,14 +64,12 @@ public class MetricExporterComponentProvider implements ComponentProvider {
         builder::setMemoryMode,
         true);
 
-    builder.setAggregationTemporalitySelector(AggregationTemporalitySelector.deltaPreferred());
-
     ProxyConfig proxyConfig = (ProxyConfig) ConfigManager.getConfig(ConfigProperty.AGENT_PROXY);
     if (proxyConfig != null) {
       builder.setProxyOptions(
           ProxyOptions.create(new InetSocketAddress(proxyConfig.getHost(), proxyConfig.getPort())));
     }
 
-    return new DelegatingMetricExporter(builder.build());
+    return builder.build();
   }
 }
