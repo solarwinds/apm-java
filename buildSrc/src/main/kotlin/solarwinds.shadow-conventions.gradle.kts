@@ -21,6 +21,12 @@ plugins {
 }
 
 tasks.withType<ShadowJar>().configureEach {
+  mergeServiceFiles()
+  // mergeServiceFiles requires that duplicate strategy is set to include
+  filesMatching("META-INF/services/**") {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+  }
+
   // Prevents conflict with other SLF4J instances. Important for premain.
   relocate("org.slf4j", "io.opentelemetry.javaagent.slf4j")
 
@@ -38,7 +44,7 @@ tasks.withType<ShadowJar>().configureEach {
   relocate("io.opentelemetry.common", "io.opentelemetry.javaagent.shaded.io.opentelemetry.common")
 
   // relocate the OpenTelemetry extensions that are used by instrumentation modules
-  // these extensions live in the AgentClassLoader, and are injected into the user"s class loader
+  // these extensions live in the AgentClassLoader, and are injected into the user's class loader
   // by the instrumentation modules that use them
   relocate("io.opentelemetry.extension.aws", "io.opentelemetry.javaagent.shaded.io.opentelemetry.extension.aws")
   relocate("io.opentelemetry.extension.kotlin", "io.opentelemetry.javaagent.shaded.io.opentelemetry.extension.kotlin")

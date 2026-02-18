@@ -53,13 +53,11 @@ dependencies {
   upstreamAgent("io.opentelemetry.javaagent:opentelemetry-javaagent")
 }
 
-fun isolateClasses(jars: Iterable<File>): CopySpec {
-  return copySpec {
-    jars.forEach {
-      from(zipTree(it)) {
-        into("inst")
-        rename("^(.*)\\.class\$", "\$1.classdata")
-      }
+fun isolateClasses(jars: Iterable<File>): CopySpec = copySpec {
+  jars.forEach {
+    from(zipTree(it)) {
+      into("inst")
+      rename("^(.*)\\.class\$", "\$1.classdata")
     }
   }
 }
@@ -80,9 +78,12 @@ tasks {
     archiveFileName.set("javaagentLibs-relocated.jar")
 
     mergeServiceFiles()
+    filesMatching("META-INF/services/**") {
+      duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
     exclude("**/module-info.class")
 
-    // exclude known bootstrap dependencies - they can"t appear in the inst/ directory
+    // exclude known bootstrap dependencies - they can't appear in the inst/ directory
     dependencies {
       exclude("org.slf4j:slf4j-api")
       exclude("io.opentelemetry:opentelemetry-api")
@@ -90,6 +91,8 @@ tasks {
       exclude("io.opentelemetry:opentelemetry-context")
       exclude("io.opentelemetry:opentelemetry-semconv")
       exclude("io.opentelemetry:opentelemetry-common")
+      exclude("io.opentelemetry.semconv:opentelemetry-semconv-incubating")
+      exclude("io.opentelemetry:opentelemetry-api-incubator")
     }
   }
 
@@ -111,10 +114,12 @@ tasks {
     dependsOn(isolateJavaagentLibs)
     from(isolateJavaagentLibs.get().outputs)
 
-    archiveClassifier = null
+    archiveClassifier.set("")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    mergeServiceFiles {
-      include("inst/META-INF/services/*")
+    mergeServiceFiles("inst/META-INF/services")
+
+    filesMatching("inst/META-INF/services/**") {
+      duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 
     exclude("**/module-info.class")
@@ -122,13 +127,17 @@ tasks {
     exclude("com/solarwinds/joboe/shaded/google/errorprone/annotations/**")
 
     manifest {
-      attributes["Main-Class"] = "io.opentelemetry.javaagent.OpenTelemetryAgent"
-      attributes["Agent-Class"] = "io.opentelemetry.javaagent.OpenTelemetryAgent"
-      attributes["Premain-Class"] = "io.opentelemetry.javaagent.OpenTelemetryAgent"
-      attributes["Can-Redefine-Classes"] = "true"
-      attributes["Can-Retransform-Classes"] = "true"
-      attributes["Implementation-Vendor"] = "SolarWinds Inc."
-      attributes["Implementation-Version"] = swoAgentVersion
+      attributes(
+        mapOf(
+          "Main-Class" to "io.opentelemetry.javaagent.OpenTelemetryAgent",
+          "Agent-Class" to "io.opentelemetry.javaagent.OpenTelemetryAgent",
+          "Premain-Class" to "io.opentelemetry.javaagent.OpenTelemetryAgent",
+          "Can-Redefine-Classes" to "true",
+          "Can-Retransform-Classes" to "true",
+          "Implementation-Vendor" to "SolarWinds Inc.",
+          "Implementation-Version" to swoAgentVersion
+        )
+      )
     }
   }
 

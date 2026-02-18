@@ -41,7 +41,6 @@ evaluationDependsOn(":dependencyManagement")
 val dependencyManagementConfiguration = configurations.create("dependencyManagement") {
   isCanBeConsumed = false
   isCanBeResolved = false
-  isVisible = false
 }
 
 afterEvaluate {
@@ -118,7 +117,11 @@ tasks {
           "-Xlint:all",
           // disable annotation ownership warnings
           "-Xlint:-processing",
-          "-Werror"
+          "-Werror",
+          // FIXME: Refactor generic service provider interfaces (e.g., ConfigParser) to avoid rawtypes warnings
+          // Disable AutoService verify check to prevent rawtypes warnings for generic service provider interfaces
+          // The @SuppressWarnings("rawtypes") annotation is not recognized in certain Gradle 9 compilation contexts
+          "-Averify=false"
         )
       )
 

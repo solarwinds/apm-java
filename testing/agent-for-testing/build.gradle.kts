@@ -15,7 +15,6 @@
  */
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import java.io.File
 
 plugins {
   id("solarwinds.java-conventions")
@@ -52,13 +51,11 @@ dependencies {
   upstreamAgent("io.opentelemetry.javaagent:opentelemetry-agent-for-testing")
 }
 
-fun isolateClasses(jars: Iterable<File>): CopySpec {
-  return copySpec {
-    jars.forEach {
-      from(zipTree(it)) {
-        into("inst")
-        rename("^(.*)\\.class\$", "\$1.classdata")
-      }
+fun isolateClasses(jars: Iterable<File>): CopySpec = copySpec {
+  jars.forEach {
+    from(zipTree(it)) {
+      into("inst")
+      rename("^(.*)\\.class\$", "\$1.classdata")
     }
   }
 }
@@ -72,27 +69,30 @@ tasks {
   // 1. all distro specific javaagent libs are relocated
   val relocateJavaagentLibs by registering(ShadowJar::class) {
     configurations = listOf(javaagentLibs)
-
     duplicatesStrategy = DuplicatesStrategy.FAIL
-
     archiveFileName.set("javaagentLibs-relocated.jar")
 
     mergeServiceFiles()
+    filesMatching("META-INF/services/**") {
+      duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
     exclude("**/module-info.class")
 
-    // exclude known bootstrap dependencies - they can"t appear in the inst/ directory
+    // exclude known bootstrap dependencies - they can't appear in the inst/ directory
     dependencies {
       exclude("org.slf4j:slf4j-api")
       exclude("io.opentelemetry:opentelemetry-api")
       exclude("io.opentelemetry:opentelemetry-api-logs")
       exclude("io.opentelemetry:opentelemetry-context")
       exclude("io.opentelemetry:opentelemetry-semconv")
+      exclude("io.opentelemetry.semconv:opentelemetry-semconv-incubating")
+      exclude("io.opentelemetry:opentelemetry-api-incubator")
     }
   }
 
   // 2. the distro javaagent libs are then isolated - moved to the inst/ directory
   // having a separate task for isolating javaagent libs is required to avoid duplicates with the upstream javaagent
-  // duplicatesStrategy in shadowJar won"t be applied when adding files with with(CopySpec) because each CopySpec has
+  // duplicatesStrategy in shadowJar won't be applied when adding files with with(CopySpec) because each CopySpec has
   // its own duplicatesStrategy
   val isolateJavaagentLibs by registering(Copy::class) {
     dependsOn(relocateJavaagentLibs)
@@ -108,21 +108,27 @@ tasks {
     dependsOn(isolateJavaagentLibs)
     from(isolateJavaagentLibs.get().outputs)
 
-    archiveClassifier = null
+    archiveClassifier.set("")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    mergeServiceFiles {
-      include("inst/META-INF/services/*")
+    mergeServiceFiles("inst/META-INF/services")
+
+    filesMatching("inst/META-INF/services/**") {
+      duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
     exclude("**/module-info.class")
     exclude("inst/com/solarwinds/opentelemetry/core/**")
     exclude("com/solarwinds/joboe/shaded/google/errorprone/annotations/**")
 
     manifest {
-      attributes["Main-Class"] = "io.opentelemetry.javaagent.OpenTelemetryAgent"
-      attributes["Agent-Class"] = "io.opentelemetry.javaagent.OpenTelemetryAgent"
-      attributes["Premain-Class"] = "io.opentelemetry.javaagent.OpenTelemetryAgent"
-      attributes["Can-Redefine-Classes"] = "true"
-      attributes["Can-Retransform-Classes"] = "true"
+      attributes(
+        mapOf(
+          "Main-Class" to "io.opentelemetry.javaagent.OpenTelemetryAgent",
+          "Agent-Class" to "io.opentelemetry.javaagent.OpenTelemetryAgent",
+          "Premain-Class" to "io.opentelemetry.javaagent.OpenTelemetryAgent",
+          "Can-Redefine-Classes" to "true",
+          "Can-Retransform-Classes" to "true"
+        )
+      )
     }
   }
 
