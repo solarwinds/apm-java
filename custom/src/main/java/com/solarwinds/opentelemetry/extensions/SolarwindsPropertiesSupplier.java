@@ -30,7 +30,6 @@ public class SolarwindsPropertiesSupplier implements Supplier<Map<String, String
 
   static {
     if (isAgentEnabled()) {
-      PROPERTIES.put("otel.metrics.exporter", "none");
       PROPERTIES.put("otel.logs.exporter", "none");
       PROPERTIES.put("otel.exporter.otlp.compression", "gzip");
 

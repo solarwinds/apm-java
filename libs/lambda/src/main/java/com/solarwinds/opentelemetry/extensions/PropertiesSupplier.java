@@ -33,7 +33,6 @@ public class PropertiesSupplier implements Supplier<Map<String, String>> {
     defaultProperties.put("otel.instrumentation.runtime-telemetry.enabled", "false");
     defaultProperties.put(
         "otel.java.experimental.span-stacktrace.filter", SPAN_STACKTRACE_FILTER_CLASS);
-    defaultProperties.put("otel.exporter.otlp.protocol", "grpc");
     defaultProperties.put("otel.semconv-stability.opt-in", "database/dup");
     defaultProperties.put("otel.exporter.otlp.metrics.temporality.preference", "delta");
     defaultProperties.put(
