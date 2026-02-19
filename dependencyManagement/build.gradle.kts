@@ -5,7 +5,7 @@ plugins {
 val otelAgentVersion = "2.25.0"
 val otelSdkVersion = "1.59.0"
 
-val mockitoVersion = "4.11.0"
+val mockitoVersion = "5.2.0"
 val byteBuddyVersion = "1.18.4"
 val joboeVersion = "10.0.27"
 
