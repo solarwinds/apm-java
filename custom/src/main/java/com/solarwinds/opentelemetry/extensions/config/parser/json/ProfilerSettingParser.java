@@ -21,11 +21,11 @@ import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
-import com.solarwinds.joboe.shaded.org.json.JSONArray;
-import com.solarwinds.joboe.shaded.org.json.JSONException;
-import com.solarwinds.joboe.shaded.org.json.JSONObject;
 import java.util.HashSet;
 import java.util.Set;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class ProfilerSettingParser implements ConfigParser<String, ProfilerSetting> {
   private static final Logger logger = LoggerFactory.getLogger();
