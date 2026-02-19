@@ -23,6 +23,10 @@ dependencies {
   compileOnly(project(":libs:shared"))
   compileOnly("com.solarwinds.joboe:core")
 
+  compileOnly("com.solarwinds.joboe:config")
+  compileOnly("com.solarwinds.joboe:sampling")
+  compileOnly("com.solarwinds.joboe:logging")
+
   compileOnly("org.projectlombok:lombok")
   compileOnly("com.solarwinds.joboe:metrics")
   annotationProcessor("org.projectlombok:lombok")
@@ -43,8 +47,10 @@ dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-incubator")
   compileOnly("io.opentelemetry:opentelemetry-exporter-otlp")
 
+  compileOnly("com.google.code.gson:gson")
+  implementation("org.json:json")
+
   testImplementation(project(":libs:shared"))
-  testImplementation("org.json:json")
   testImplementation("com.solarwinds.joboe:core")
 
   testImplementation("io.opentelemetry:opentelemetry-api-incubator")
