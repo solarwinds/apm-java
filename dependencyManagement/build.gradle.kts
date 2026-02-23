@@ -53,7 +53,7 @@ dependencies {
 
     api("io.opentelemetry:opentelemetry-sdk:$otelSdkVersion")
     api("io.opentelemetry.semconv:opentelemetry-semconv:$opentelemetrySemconv")
-    api("org.junit-pioneer:junit-pioneer:2.1.0")
+    api("org.junit-pioneer:junit-pioneer:2.3.0")
 
     api("net.bytebuddy:byte-buddy:${byteBuddyVersion}")
     api("com.google.auto.service:auto-service:$autoservice")
