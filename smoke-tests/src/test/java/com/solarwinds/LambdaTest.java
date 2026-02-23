@@ -25,6 +25,7 @@ import com.solarwinds.containers.K6Container;
 import com.solarwinds.containers.PetClinicRestContainer;
 import com.solarwinds.containers.PostgresContainer;
 import com.solarwinds.containers.SpringBootWebMvcContainer;
+import com.solarwinds.containers.SquidContainer;
 import com.solarwinds.results.ResultsCollector;
 import com.solarwinds.util.LogStreamAnalyzer;
 import com.solarwinds.util.NamingConventions;
@@ -75,6 +76,9 @@ public class LambdaTest {
   }
 
   static void runAppOnce(Agent agent) throws Exception {
+    GenericContainer<?> squid = new SquidContainer(NETWORK).build();
+    squid.start();
+
     GenericContainer<?> postgres = new PostgresContainer(NETWORK).build();
     postgres.start();
 
@@ -87,9 +91,10 @@ public class LambdaTest {
 
     GenericContainer<?> k6 = new K6Container(NETWORK, agent, namingConventions).build();
     k6.start();
-
     petClinic.execInContainer("kill", "1");
+
     webMvc.execInContainer("kill", "1");
+    squid.execInContainer("kill", "1");
     postgres.stop();
   }
 
