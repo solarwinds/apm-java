@@ -78,8 +78,6 @@ public class ConfigurationLoader {
   private static final String CONFIG_FILE = "solarwinds-apm-config.json";
   private static final String SYS_PROPERTIES_PREFIX = "sw.apm";
 
-  private static final String PROTOCOL = "http/protobuf";
-
   @Getter private static String configurationFileDir = null;
 
   @Getter private static String runtimeConfigFilename = null;
@@ -178,7 +176,7 @@ public class ConfigurationLoader {
       if (serviceKey != null) {
         String name = ServiceKeyUtils.getServiceName(serviceKey);
         if (name != null) {
-          setSystemProperty("otel.service.name", name);
+          System.setProperty("otel.service.name", name);
         }
       }
 
@@ -195,54 +193,7 @@ public class ConfigurationLoader {
     }
   }
 
-  static void configureOtelLogExport(ConfigContainer container) throws InvalidConfigException {
-    Boolean exportLog = (Boolean) container.get(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED);
-    if (exportLog != null && exportLog) {
-      String serviceKey = (String) container.get(ConfigProperty.AGENT_SERVICE_KEY);
-      String apiKey = ServiceKeyUtils.getApiKey(serviceKey);
-
-      String dataCell = "na-01";
-      String env = "cloud";
-      String collectorEndpoint = (String) container.get(ConfigProperty.AGENT_COLLECTOR);
-
-      if (collectorEndpoint != null) {
-        if (collectorEndpoint.contains("appoptics.com")) {
-          throw new InvalidConfigException("Appoptics is not supported");
-        }
-        collectorEndpoint = collectorEndpoint.split(":")[0];
-        String[] fragments = collectorEndpoint.split("\\.");
-        if (fragments.length > 2) {
-          // This is based on knowledge of the SWO url format where the third name from the left in
-          // the domain is the data-cell name and assumes this format will stay stable.
-          dataCell = fragments[2];
-        }
-
-        if (fragments.length > 3) {
-          env = fragments[3];
-        }
-      }
-
-      String protocol = setProtocol("otel.exporter.otlp.logs.protocol");
-      setSystemProperty("otel.logs.exporter", "otlp");
-      setSystemProperty(
-          "otel.exporter.otlp.logs.headers", String.format("authorization=Bearer %s", apiKey));
-
-      if (protocol.equalsIgnoreCase("grpc")) {
-        setEndpoint(
-            "otel.exporter.otlp.logs.endpoint",
-            String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env),
-            "");
-        return;
-      }
-
-      setEndpoint(
-          "otel.exporter.otlp.logs.endpoint",
-          String.format("https://otel.collector.%s.%s.solarwinds.com/v1/logs", dataCell, env),
-          "/v1/logs");
-    }
-  }
-
-  static void configureOtelMetricExport(ConfigContainer container) throws InvalidConfigException {
+  static void configureOtel(ConfigContainer container) throws InvalidConfigException {
     String serviceKey = (String) container.get(ConfigProperty.AGENT_SERVICE_KEY);
     String apiKey = ServiceKeyUtils.getApiKey(serviceKey);
     String dataCell = "na-01";
@@ -267,67 +218,16 @@ public class ConfigurationLoader {
       }
     }
 
-    String protocol = setProtocol("otel.exporter.otlp.metrics.protocol");
-    setSystemProperty("otel.metrics.exporter", "otlp");
-    setSystemProperty(
-        "otel.exporter.otlp.metrics.headers", String.format("authorization=Bearer %s", apiKey));
-
-    if (protocol.equalsIgnoreCase("grpc")) {
-      setEndpoint(
-          "otel.exporter.otlp.metrics.endpoint",
-          String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env),
-          "");
-      return;
+    if (isConfigNotSet("otel.exporter.otlp.headers")) {
+      System.setProperty(
+          "otel.exporter.otlp.headers", String.format("authorization=Bearer %s", apiKey));
     }
 
-    setEndpoint(
-        "otel.exporter.otlp.metrics.endpoint",
-        String.format("https://otel.collector.%s.%s.solarwinds.com/v1/metrics", dataCell, env),
-        "/v1/metrics");
-  }
-
-  static void configureOtelTraceExport(ConfigContainer container) throws InvalidConfigException {
-    String serviceKey = (String) container.get(ConfigProperty.AGENT_SERVICE_KEY);
-    String apiKey = ServiceKeyUtils.getApiKey(serviceKey);
-
-    String dataCell = "na-01";
-    String env = "cloud";
-    String collectorEndpoint = (String) container.get(ConfigProperty.AGENT_COLLECTOR);
-
-    if (collectorEndpoint != null) {
-      if (collectorEndpoint.contains("appoptics.com")) {
-        throw new InvalidConfigException("Appoptics is not supported");
-      }
-
-      collectorEndpoint = collectorEndpoint.split(":")[0];
-      String[] fragments = collectorEndpoint.split("\\.");
-      if (fragments.length > 2) {
-        // This is based on knowledge of the SWO url format where the third name from the left in
-        // the domain is the data-cell name and assumes this format will stay stable.
-        dataCell = fragments[2];
-      }
-
-      if (fragments.length > 3) {
-        env = fragments[3];
-      }
+    if (isConfigNotSet("otel.exporter.otlp.endpoint")) {
+      System.setProperty(
+          "otel.exporter.otlp.endpoint",
+          String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env));
     }
-
-    String protocol = setProtocol("otel.exporter.otlp.traces.protocol");
-    setSystemProperty(
-        "otel.exporter.otlp.traces.headers", String.format("authorization=Bearer %s", apiKey));
-
-    if (protocol.equalsIgnoreCase("grpc")) {
-      setEndpoint(
-          "otel.exporter.otlp.traces.endpoint",
-          String.format("https://otel.collector.%s.%s.solarwinds.com", dataCell, env),
-          "");
-      return;
-    }
-
-    setEndpoint(
-        "otel.exporter.otlp.traces.endpoint",
-        String.format("https://otel.collector.%s.%s.solarwinds.com/v1/traces", dataCell, env),
-        "/v1/traces");
   }
 
   static Map<String, String> mergeEnvWithSysProperties(Map<String, String> env, Properties props) {
@@ -381,9 +281,7 @@ public class ConfigurationLoader {
                 config)); // initialize the logger factory as soon as the config is available
         try {
           processConfigs(configs);
-          configureOtelLogExport(configs);
-          configureOtelMetricExport(configs);
-          configureOtelTraceExport(configs);
+          configureOtel(configs);
         } catch (InvalidConfigException e) {
           // if there was a config read exception then processConfigs might throw exception due to
           // incomplete config container.
@@ -652,47 +550,19 @@ public class ConfigurationLoader {
     ConfigManager.initialize(configs);
   }
 
-  private static String setSystemProperty(String key, String value) {
-    String propertyValue = getConfigValue(key);
-    if (propertyValue == null) {
-      System.setProperty(key, value);
-      return value;
-    }
-
-    return propertyValue;
-  }
-
-  private static void setEndpoint(String key, String value, String path) {
-    String endpoint = getConfigValue("otel.exporter.otlp.endpoint");
-    if (endpoint == null) {
-      setSystemProperty(key, value);
-    } else {
-      setSystemProperty(key, String.format("%s%s", endpoint, path));
-    }
-  }
-
-  private static String setProtocol(String key) {
-    String protocol = getConfigValue("otel.exporter.otlp.protocol");
-    if (protocol == null) {
-      return setSystemProperty(key, ConfigurationLoader.PROTOCOL);
-    }
-    return protocol;
-  }
-
   static String normalize(String key) {
     return key.toUpperCase().replace(".", "_");
   }
 
-  private static String getConfigValue(String key) {
+  private static boolean isConfigNotSet(String key) {
     String propertyValue = System.getProperty(key);
     if (propertyValue == null) {
       propertyValue = System.getenv(normalize(key));
     }
-
-    return propertyValue;
+    return propertyValue == null;
   }
 
   private static boolean isDeclarativeConfigOff() {
-    return getConfigValue("otel.experimental.config.file") == null;
+    return isConfigNotSet("otel.experimental.config.file");
   }
 }

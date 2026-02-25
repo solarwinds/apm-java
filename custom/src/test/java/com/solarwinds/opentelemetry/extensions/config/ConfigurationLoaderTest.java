@@ -155,367 +155,112 @@ class ConfigurationLoaderTest {
   }
 
   @Test
-  @ClearSystemProperty(key = "otel.logs.exporter")
-  @ClearSystemProperty(key = "otel.exporter.otlp.protocol")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
-  void verifySettingOtelLogExportSystemVariablesWhenEnabled() throws InvalidConfigException {
-    ConfigContainer configContainer = new ConfigContainer();
-    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
-    configContainer.putByStringValue(
-        ConfigProperty.AGENT_COLLECTOR, "apm.collector.na-02.cloud.solarwinds.com");
-
-    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED, "true");
-    ConfigurationLoader.configureOtelLogExport(configContainer);
-
-    assertEquals("otlp", System.getProperty("otel.logs.exporter"));
-    assertEquals("http/protobuf", System.getProperty("otel.exporter.otlp.logs.protocol"));
-
-    assertEquals(
-        "https://otel.collector.na-02.cloud.solarwinds.com/v1/logs",
-        System.getProperty("otel.exporter.otlp.logs.endpoint"));
-    assertEquals(
-        "authorization=Bearer token", System.getProperty("otel.exporter.otlp.logs.headers"));
-  }
-
-  @Test
-  @ClearSystemProperty(key = "otel.logs.exporter")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.protocol")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
-  void verifyOtelLogExportSystemVariablesAreNotSetWhenNotEnabled() throws InvalidConfigException {
-    ConfigContainer configContainer = new ConfigContainer();
-    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
-    configContainer.putByStringValue(
-        ConfigProperty.AGENT_COLLECTOR, "apm.collector.na-02.cloud.solarwinds.com");
-
-    ConfigurationLoader.configureOtelLogExport(configContainer);
-
-    assertNull(System.getProperty("otel.logs.exporter"));
-    assertNull(System.getProperty("otel.exporter.otlp.logs.protocol"));
-
-    assertNull(System.getProperty("otel.exporter.otlp.logs.endpoint"));
-    assertNull(System.getProperty("otel.exporter.otlp.logs.headers"));
-  }
-
-  @Test
-  @ClearSystemProperty(key = "otel.logs.exporter")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.protocol")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
-  void verifyOtelLogExportEndpointIsProperlyFormed() throws InvalidConfigException {
+  @ClearSystemProperty(key = "otel.exporter.otlp.endpoint")
+  @ClearSystemProperty(key = "otel.exporter.otlp.headers")
+  void verifyOtelEndpointIsProperlyFormed() throws InvalidConfigException {
     ConfigContainer configContainer = new ConfigContainer();
     configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
     configContainer.putByStringValue(
         ConfigProperty.AGENT_COLLECTOR, "apm.collector.na-02.staging.solarwinds.com");
 
-    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED, "true");
-    ConfigurationLoader.configureOtelLogExport(configContainer);
+    ConfigurationLoader.configureOtel(configContainer);
 
     assertEquals(
-        "https://otel.collector.na-02.staging.solarwinds.com/v1/logs",
-        System.getProperty("otel.exporter.otlp.logs.endpoint"));
+        "https://otel.collector.na-02.staging.solarwinds.com",
+        System.getProperty("otel.exporter.otlp.endpoint"));
   }
 
   @Test
-  @ClearSystemProperty(key = "otel.logs.exporter")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.protocol")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
-  void verifyOtelLogExportEndpointIsProperlyFormedWithPort() throws InvalidConfigException {
+  @ClearSystemProperty(key = "otel.exporter.otlp.endpoint")
+  @ClearSystemProperty(key = "otel.exporter.otlp.headers")
+  void verifyOtelEndpointIsProperlyFormedWithPort() throws InvalidConfigException {
     ConfigContainer configContainer = new ConfigContainer();
     configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
     configContainer.putByStringValue(
         ConfigProperty.AGENT_COLLECTOR, "otel.collector.na-01.cloud.solarwinds.com:443");
 
-    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED, "true");
-    ConfigurationLoader.configureOtelLogExport(configContainer);
+    ConfigurationLoader.configureOtel(configContainer);
 
     assertEquals(
-        "https://otel.collector.na-01.cloud.solarwinds.com/v1/logs",
-        System.getProperty("otel.exporter.otlp.logs.endpoint"));
+        "https://otel.collector.na-01.cloud.solarwinds.com",
+        System.getProperty("otel.exporter.otlp.endpoint"));
   }
 
   @Test
-  @ClearSystemProperty(key = "otel.logs.exporter")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.protocol")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
-  void verifyConfigureOtelLogExportThrowsForAO() throws InvalidConfigException {
-    ConfigContainer configContainer = new ConfigContainer();
-    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
-    configContainer.putByStringValue(ConfigProperty.AGENT_COLLECTOR, "collector.appoptics.com:443");
-
-    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED, "true");
-    assertThrows(
-        InvalidConfigException.class,
-        () -> ConfigurationLoader.configureOtelLogExport(configContainer));
-  }
-
-  @Test
-  @ClearSystemProperty(key = "otel.logs.exporter")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.protocol")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
-  void verifyConfigureOtelTraceExportThrowsForAO() throws InvalidConfigException {
+  @ClearSystemProperty(key = "otel.exporter.otlp.endpoint")
+  @ClearSystemProperty(key = "otel.exporter.otlp.headers")
+  void verifyConfigureOtelThrowsForAoUrl() throws InvalidConfigException {
     ConfigContainer configContainer = new ConfigContainer();
     configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
     configContainer.putByStringValue(ConfigProperty.AGENT_COLLECTOR, "collector.appoptics.com:443");
 
     assertThrows(
-        InvalidConfigException.class,
-        () -> ConfigurationLoader.configureOtelTraceExport(configContainer));
+        InvalidConfigException.class, () -> ConfigurationLoader.configureOtel(configContainer));
   }
 
   @Test
-  @ClearSystemProperty(key = "otel.logs.exporter")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.protocol")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.headers")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
+  @ClearSystemProperty(key = "otel.exporter.otlp.endpoint")
+  @ClearSystemProperty(key = "otel.exporter.otlp.headers")
   void verifyDefaultEndpointIsUsed() throws InvalidConfigException {
     ConfigContainer configContainer = new ConfigContainer();
     configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
 
     configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED, "true");
-    ConfigurationLoader.configureOtelLogExport(configContainer);
+    ConfigurationLoader.configureOtel(configContainer);
 
     assertEquals(
-        "https://otel.collector.na-01.cloud.solarwinds.com/v1/logs",
-        System.getProperty("otel.exporter.otlp.logs.endpoint"));
+        "https://otel.collector.na-01.cloud.solarwinds.com",
+        System.getProperty("otel.exporter.otlp.endpoint"));
   }
 
   @Test
-  @ClearSystemProperty(key = "otel.metrics.exporter")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.protocol")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.headers")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.endpoint")
-  void verifySettingOtelMetricExportSystemVariablesWhenEnabled() throws InvalidConfigException {
+  @ClearSystemProperty(key = "otel.exporter.otlp.headers")
+  @ClearSystemProperty(key = "otel.exporter.otlp.endpoint")
+  void verifyGlobalHeadersAreSetWhenNotConfigured() throws InvalidConfigException {
     ConfigContainer configContainer = new ConfigContainer();
     configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
-    configContainer.putByStringValue(
-        ConfigProperty.AGENT_COLLECTOR, "apm.collector.na-02.cloud.solarwinds.com");
 
-    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, "true");
-    ConfigurationLoader.configureOtelMetricExport(configContainer);
-
-    assertEquals("otlp", System.getProperty("otel.metrics.exporter"));
-    assertEquals("http/protobuf", System.getProperty("otel.exporter.otlp.metrics.protocol"));
-
-    assertEquals(
-        "https://otel.collector.na-02.cloud.solarwinds.com/v1/metrics",
-        System.getProperty("otel.exporter.otlp.metrics.endpoint"));
-    assertEquals(
-        "authorization=Bearer token", System.getProperty("otel.exporter.otlp.metrics.headers"));
+    ConfigurationLoader.configureOtel(configContainer);
+    assertEquals("authorization=Bearer token", System.getProperty("otel.exporter.otlp.headers"));
   }
 
   @Test
-  @ClearSystemProperty(key = "otel.metrics.exporter")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.protocol")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.headers")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.endpoint")
-  void verifyOtelMetricExportSystemVariablesAreSetByDefault() throws InvalidConfigException {
+  @SetSystemProperty(key = "otel.exporter.otlp.headers", value = "custom=header")
+  @ClearSystemProperty(key = "otel.exporter.otlp.endpoint")
+  void verifyGlobalHeadersAreNotClobberedWhenAlreadySet() throws InvalidConfigException {
     ConfigContainer configContainer = new ConfigContainer();
     configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
-    configContainer.putByStringValue(
-        ConfigProperty.AGENT_COLLECTOR, "apm.collector.na-02.cloud.solarwinds.com");
 
-    ConfigurationLoader.configureOtelMetricExport(configContainer);
-
-    assertNotNull(System.getProperty("otel.metrics.exporter"));
-    assertNotNull(System.getProperty("otel.exporter.otlp.metrics.protocol"));
-
-    assertNotNull(System.getProperty("otel.exporter.otlp.metrics.endpoint"));
-    assertNotNull(System.getProperty("otel.exporter.otlp.metrics.headers"));
+    ConfigurationLoader.configureOtel(configContainer);
+    assertEquals("custom=header", System.getProperty("otel.exporter.otlp.headers"));
   }
 
   @Test
-  @ClearSystemProperty(key = "otel.metrics.exporter")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.protocol")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.headers")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.endpoint")
-  void verifyOtelMetricExportEndpointIsProperlyFormed() throws InvalidConfigException {
+  @SetSystemProperty(
+      key = "otel.exporter.otlp.endpoint",
+      value = "https://custom.endpoint.example.com")
+  @ClearSystemProperty(key = "otel.exporter.otlp.headers")
+  void verifyGlobalEndpointIsNotClobberedWhenAlreadySet() throws InvalidConfigException {
+    ConfigContainer configContainer = new ConfigContainer();
+    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
+
+    ConfigurationLoader.configureOtel(configContainer);
+    assertEquals(
+        "https://custom.endpoint.example.com", System.getProperty("otel.exporter.otlp.endpoint"));
+  }
+
+  @Test
+  @ClearSystemProperty(key = "otel.exporter.otlp.endpoint")
+  @ClearSystemProperty(key = "otel.exporter.otlp.headers")
+  void verifyOtelHeadersIsProperlyFormed() throws InvalidConfigException {
     ConfigContainer configContainer = new ConfigContainer();
     configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
     configContainer.putByStringValue(
         ConfigProperty.AGENT_COLLECTOR, "apm.collector.na-02.staging.solarwinds.com");
 
-    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, "true");
-    ConfigurationLoader.configureOtelMetricExport(configContainer);
+    ConfigurationLoader.configureOtel(configContainer);
 
-    assertEquals(
-        "https://otel.collector.na-02.staging.solarwinds.com/v1/metrics",
-        System.getProperty("otel.exporter.otlp.metrics.endpoint"));
-  }
-
-  @Test
-  @ClearSystemProperty(key = "otel.metrics.exporter")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.protocol")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.headers")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.endpoint")
-  void verifyOtelMetricExportEndpointIsProperlyFormedWithPort() throws InvalidConfigException {
-    ConfigContainer configContainer = new ConfigContainer();
-    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
-    configContainer.putByStringValue(
-        ConfigProperty.AGENT_COLLECTOR, "otel.collector.na-01.cloud.solarwinds.com:443");
-
-    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, "true");
-    ConfigurationLoader.configureOtelMetricExport(configContainer);
-
-    assertEquals(
-        "https://otel.collector.na-01.cloud.solarwinds.com/v1/metrics",
-        System.getProperty("otel.exporter.otlp.metrics.endpoint"));
-  }
-
-  @Test
-  @ClearSystemProperty(key = "otel.metrics.exporter")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.protocol")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.headers")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.endpoint")
-  void verifyConfigureOtelMetricExportThrowsForAO() throws InvalidConfigException {
-    ConfigContainer configContainer = new ConfigContainer();
-    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
-    configContainer.putByStringValue(ConfigProperty.AGENT_COLLECTOR, "collector.appoptics.com:443");
-
-    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, "true");
-    assertThrows(
-        InvalidConfigException.class,
-        () -> ConfigurationLoader.configureOtelMetricExport(configContainer));
-  }
-
-  @Test
-  @ClearSystemProperty(key = "otel.metrics.exporter")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.protocol")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.headers")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.endpoint")
-  void verifyDefaultEndpointIsUsedForMetric() throws InvalidConfigException {
-    ConfigContainer configContainer = new ConfigContainer();
-    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
-
-    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, "true");
-    ConfigurationLoader.configureOtelMetricExport(configContainer);
-
-    assertEquals(
-        "https://otel.collector.na-01.cloud.solarwinds.com/v1/metrics",
-        System.getProperty("otel.exporter.otlp.metrics.endpoint"));
-  }
-
-  @Test
-  @ClearSystemProperty(key = "otel.traces.exporter")
-  @ClearSystemProperty(key = "otel.exporter.otlp.traces.protocol")
-  @ClearSystemProperty(key = "otel.exporter.otlp.traces.headers")
-  @ClearSystemProperty(key = "otel.exporter.otlp.traces.endpoint")
-  void verifyDefaultEndpointIsUsedForTrace() throws InvalidConfigException {
-    ConfigContainer configContainer = new ConfigContainer();
-    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
-
-    ConfigurationLoader.configureOtelTraceExport(configContainer);
-    assertEquals(
-        "https://otel.collector.na-01.cloud.solarwinds.com/v1/traces",
-        System.getProperty("otel.exporter.otlp.traces.endpoint"));
-  }
-
-  @Test
-  @SetSystemProperty(
-      key = "otel.exporter.otlp.endpoint",
-      value = "https://otel.collector.na-01.cloud.solarwinds.com")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.endpoint")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
-  @ClearSystemProperty(key = "otel.exporter.otlp.traces.endpoint")
-  void verifyMetricEndpointIsProperlyConfigured() throws InvalidConfigException {
-    ConfigContainer configContainer = new ConfigContainer();
-    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
-
-    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, "true");
-    ConfigurationLoader.configureOtelMetricExport(configContainer);
-
-    assertEquals(
-        "https://otel.collector.na-01.cloud.solarwinds.com/v1/metrics",
-        System.getProperty("otel.exporter.otlp.metrics.endpoint"));
-  }
-
-  @Test
-  @SetSystemProperty(
-      key = "otel.exporter.otlp.endpoint",
-      value = "https://otel.collector.na-01.cloud.solarwinds.com")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.endpoint")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
-  @ClearSystemProperty(key = "otel.exporter.otlp.traces.endpoint")
-  void verifyLogsEndpointIsProperlyConfigured() throws InvalidConfigException {
-    ConfigContainer configContainer = new ConfigContainer();
-    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
-
-    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED, "true");
-    ConfigurationLoader.configureOtelLogExport(configContainer);
-    assertEquals(
-        "https://otel.collector.na-01.cloud.solarwinds.com/v1/logs",
-        System.getProperty("otel.exporter.otlp.logs.endpoint"));
-  }
-
-  @Test
-  @SetSystemProperty(
-      key = "otel.exporter.otlp.endpoint",
-      value = "https://otel.collector.na-01.cloud.solarwinds.com")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.endpoint")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
-  @ClearSystemProperty(key = "otel.exporter.otlp.traces.endpoint")
-  void verifyTraceEndpointIsProperlyConfigured() throws InvalidConfigException {
-    ConfigContainer configContainer = new ConfigContainer();
-    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
-
-    ConfigurationLoader.configureOtelTraceExport(configContainer);
-    assertEquals(
-        "https://otel.collector.na-01.cloud.solarwinds.com/v1/traces",
-        System.getProperty("otel.exporter.otlp.traces.endpoint"));
-  }
-
-  @Test
-  @SetSystemProperty(
-      key = "otel.exporter.otlp.endpoint",
-      value = "https://otel.collector.na-01.cloud.solarwinds.com")
-  @SetSystemProperty(key = "otel.exporter.otlp.metrics.protocol", value = "grpc")
-  @ClearSystemProperty(key = "otel.exporter.otlp.metrics.endpoint")
-  void verifyMetricsEndpointIsProperlyConfiguredForGRPC() throws InvalidConfigException {
-    ConfigContainer configContainer = new ConfigContainer();
-    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
-
-    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, "true");
-    ConfigurationLoader.configureOtelMetricExport(configContainer);
-    assertEquals(
-        "https://otel.collector.na-01.cloud.solarwinds.com",
-        System.getProperty("otel.exporter.otlp.metrics.endpoint"));
-  }
-
-  @Test
-  @SetSystemProperty(
-      key = "otel.exporter.otlp.endpoint",
-      value = "https://otel.collector.na-01.cloud.solarwinds.com")
-  @SetSystemProperty(key = "otel.exporter.otlp.traces.protocol", value = "grpc")
-  @ClearSystemProperty(key = "otel.exporter.otlp.traces.endpoint")
-  void verifyTracesEndpointIsProperlyConfiguredForGRPC() throws InvalidConfigException {
-    ConfigContainer configContainer = new ConfigContainer();
-    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
-
-    ConfigurationLoader.configureOtelTraceExport(configContainer);
-    assertEquals(
-        "https://otel.collector.na-01.cloud.solarwinds.com",
-        System.getProperty("otel.exporter.otlp.traces.endpoint"));
-  }
-
-  @Test
-  @SetSystemProperty(
-      key = "otel.exporter.otlp.endpoint",
-      value = "https://otel.collector.na-01.cloud.solarwinds.com")
-  @SetSystemProperty(key = "otel.exporter.otlp.logs.protocol", value = "grpc")
-  @ClearSystemProperty(key = "otel.exporter.otlp.logs.endpoint")
-  void verifyLogsEndpointIsProperlyConfiguredForGRPC() throws InvalidConfigException {
-    ConfigContainer configContainer = new ConfigContainer();
-    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
-
-    configContainer.putByStringValue(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED, "true");
-    ConfigurationLoader.configureOtelLogExport(configContainer);
-    assertEquals(
-        "https://otel.collector.na-01.cloud.solarwinds.com",
-        System.getProperty("otel.exporter.otlp.logs.endpoint"));
+    assertEquals("authorization=Bearer token", System.getProperty("otel.exporter.otlp.headers"));
   }
 
   @Test
