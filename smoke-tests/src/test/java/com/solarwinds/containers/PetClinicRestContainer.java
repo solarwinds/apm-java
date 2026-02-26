@@ -85,7 +85,7 @@ public class PetClinicRestContainer implements Container {
           .withCopyFileToContainer(
               MountableFile.forHostPath(agentPath),
               "/app/" + agentPath.getFileName())
-          .withCommand(buildCommandline(agentPath));
+          .withCommand(buildCommandlineLambda(agentPath));
     }
 
     if (Objects.equals(System.getenv("SMOKEV2"), "true")){
@@ -162,6 +162,20 @@ public class PetClinicRestContainer implements Container {
     result.add("-Dotel.metric.export.interval=100ms");
     result.add("-Dsw.otel.exporter.proxy.host=squid-proxy");
     result.add("-Dsw.otel.exporter.proxy.port=3128");
+
+    result.add("-jar");
+    result.add("/app/spring-petclinic-rest.jar");
+    return result.toArray(new String[] {});
+  }
+
+  @NotNull
+  private String[] buildCommandlineLambda(Path agentJarPath) {
+    List<String> result = new ArrayList<>();
+    result.add("java");
+
+    result.addAll(this.agent.getAdditionalJvmArgs());
+    result.add("-javaagent:/app/" + agentJarPath.getFileName());
+    result.add("-Dotel.metric.export.interval=100ms");
 
     result.add("-jar");
     result.add("/app/spring-petclinic-rest.jar");
