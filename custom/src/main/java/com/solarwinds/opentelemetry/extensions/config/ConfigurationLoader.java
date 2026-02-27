@@ -433,6 +433,13 @@ public class ConfigurationLoader {
       configs.put(ConfigProperty.AGENT_LOGGING, false);
     }
 
+    if (configs.containsProperty(ConfigProperty.AGENT_EXPORT_LOGS_ENABLED)) {
+      logger.warn(
+          String.format(
+              "%s is deprecated and noop. Use system property -Dotel.logs.exporter=otlp or environment variable equivalent.",
+              ConfigProperty.AGENT_EXPORT_LOGS_ENABLED.getEnvironmentVariableKey()));
+    }
+
     if (configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)
         && !((String) configs.get(ConfigProperty.AGENT_SERVICE_KEY)).isEmpty()) {
       // Customer access key (UUID)
