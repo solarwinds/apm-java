@@ -269,7 +269,7 @@ jobs:
         env:
           AGENT_VERSION: ${{ steps.set_version.outputs.version }}
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           path: arns.txt
           name: arns
