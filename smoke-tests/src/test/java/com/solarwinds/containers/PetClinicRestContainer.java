@@ -162,6 +162,7 @@ public class PetClinicRestContainer implements Container {
     result.add("-Dotel.metric.export.interval=100ms");
     result.add("-Dsw.otel.exporter.proxy.host=squid-proxy");
     result.add("-Dsw.otel.exporter.proxy.port=3128");
+    result.add("-Dotel.logs.exporter=otlp");
 
     result.add("-jar");
     result.add("/app/spring-petclinic-rest.jar");
