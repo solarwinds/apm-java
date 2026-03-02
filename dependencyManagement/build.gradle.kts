@@ -11,7 +11,7 @@ val joboeVersion = "10.0.27"
 
 val opentelemetryJavaagentAlpha = "$otelAgentVersion-alpha"
 val opentelemetryAlpha = "$otelSdkVersion-alpha"
-val opentelemetrySemconv = "1.37.0"
+val opentelemetrySemconv = "1.40.0"
 val opentelemetrySemconvAlpha = "$opentelemetrySemconv-alpha"
 
 val autoservice = "1.1.1"
