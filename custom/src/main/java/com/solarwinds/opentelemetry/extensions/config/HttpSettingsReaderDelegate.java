@@ -16,14 +16,14 @@
 
 package com.solarwinds.opentelemetry.extensions.config;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.ProxyConfig;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.Settings;
-import com.solarwinds.joboe.shaded.google.gson.Gson;
-import com.solarwinds.joboe.shaded.google.gson.GsonBuilder;
 import io.opentelemetry.api.internal.InstrumentationUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
