@@ -18,7 +18,7 @@ package com.solarwinds.opentelemetry.extensions;
 
 import static com.solarwinds.opentelemetry.extensions.SamplingUtil.SW_XTRACE_OPTIONS_RESP_KEY;
 
-import com.solarwinds.joboe.sampling.XTraceOptions;
+import com.solarwinds.joboe.sampling.XtraceOptions;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceState;
@@ -162,8 +162,8 @@ public class SolarwindsContextPropagator implements TextMapPropagator {
   public <C> Context extract(Context context, C carrier, TextMapGetter<C> getter) {
     final String traceOptions = getter.get(carrier, X_TRACE_OPTIONS);
     final String traceOptionsSignature = getter.get(carrier, X_TRACE_OPTIONS_SIGNATURE);
-    final XTraceOptions xTraceOptions =
-        XTraceOptions.getXTraceOptions(traceOptions, traceOptionsSignature);
+    final XtraceOptions xTraceOptions =
+        XtraceOptions.getXTraceOptions(traceOptions, traceOptionsSignature);
     if (xTraceOptions != null) {
       context = context.with(TriggerTraceContextKey.KEY, xTraceOptions);
       context = context.with(TriggerTraceContextKey.XTRACE_OPTIONS, traceOptions);

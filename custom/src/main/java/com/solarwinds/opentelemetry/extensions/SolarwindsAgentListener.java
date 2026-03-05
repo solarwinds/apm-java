@@ -32,7 +32,6 @@ import com.solarwinds.joboe.core.util.DaemonThreadFactory;
 import com.solarwinds.joboe.core.util.HostInfoUtils;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
-import com.solarwinds.joboe.metrics.SystemMonitorController;
 import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.opentelemetry.core.AgentState;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsFetcher;
@@ -150,8 +149,6 @@ public class SolarwindsAgentListener implements AgentListener {
         new Thread("SolarwindsAPM-shutdown-hook") {
           @Override
           public void run() {
-            SystemMonitorController
-                .stop(); // stop system monitors, this might flush extra messages to reporters
             if (ReporterProvider.getEventReporter() != null) {
               ReporterProvider.getEventReporter()
                   .close(); // close event reporter properly to give it chance to send out pending

@@ -1,0 +1,8 @@
+{
+	"unknownKey": "abc",
+	"agent.aaa": "abc",
+	"agent.serviceKey":"some key",
+	"agent.logging":"info",
+	"agent.jdbcInstAll":false
+}
+

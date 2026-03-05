@@ -48,13 +48,13 @@ public class TransactionNameManager {
   public static final int MAX_TRANSACTION_NAME_LENGTH = 255;
   public static final String TRANSACTION_NAME_ELLIPSIS = "...";
 
-  private static String[] customTransactionNamePattern = null;
+  private static volatile String[] customTransactionNamePattern = null;
   static final Cache<String, String> URL_TRANSACTION_NAME_CACHE =
       Caffeine.newBuilder().maximumSize(1000).expireAfterWrite(Duration.ofMinutes(20)).build();
 
   private static final Set<String> EXISTING_TRANSACTION_NAMES = new HashSet<>();
-  private static boolean limitExceeded;
-  private static int maxNameCount = DEFAULT_MAX_NAME_COUNT;
+  private static volatile boolean limitExceeded;
+  private static volatile int maxNameCount = DEFAULT_MAX_NAME_COUNT;
 
   private static NamingScheme namingScheme = new DefaultNamingScheme(null);
 

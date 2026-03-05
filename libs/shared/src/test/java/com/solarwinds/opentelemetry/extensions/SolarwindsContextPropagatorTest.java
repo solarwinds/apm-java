@@ -30,7 +30,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.solarwinds.joboe.sampling.XTraceOptions;
+import com.solarwinds.joboe.sampling.XtraceOptions;
 import com.solarwinds.opentelemetry.extensions.stubs.TextMapGetterStub;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
@@ -64,8 +64,9 @@ class SolarwindsContextPropagatorTest {
 
   @Captor private ArgumentCaptor<String> stringArgumentCaptor;
 
-  private final String traceId = "80ad68e98d3449dfc54098b38fc466ec";
-  private final String spanId = "a2d8376f3cab2837";
+  private static final String traceId = "80ad68e98d3449dfc54098b38fc466ec";
+
+  private static final String spanId = "a2d8376f3cab2837";
 
   private final SpanContext spanContext =
       SpanContext.create(
@@ -172,7 +173,7 @@ class SolarwindsContextPropagatorTest {
 
     Context newContext =
         solarwindsContextPropagator.extract(Context.current(), carrier, textMapGetterStub);
-    XTraceOptions xTraceOptions = newContext.get(TriggerTraceContextKey.KEY);
+    XtraceOptions xTraceOptions = newContext.get(TriggerTraceContextKey.KEY);
 
     assertEquals(String.format("%s=%s;", key, value), newContext.get(XTRACE_OPTIONS));
     assertNotNull(xTraceOptions);

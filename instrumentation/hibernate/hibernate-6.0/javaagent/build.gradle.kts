@@ -7,7 +7,7 @@ dependencies {
   implementation(project(":instrumentation:instrumentation-shared"))
 
   compileOnly("org.hibernate:hibernate-core:6.0.0.Final")
-  compileOnly("com.solarwinds.joboe:logging")
+  compileOnly(project(":libs:logging"))
 
   compileOnly("io.opentelemetry:opentelemetry-sdk-trace")
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")

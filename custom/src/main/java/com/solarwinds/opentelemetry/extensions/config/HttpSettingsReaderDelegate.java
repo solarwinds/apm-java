@@ -32,6 +32,7 @@ import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class HttpSettingsReaderDelegate {
@@ -56,7 +57,8 @@ public class HttpSettingsReaderDelegate {
                       responseCode, errorResponse));
             } else {
               try (BufferedReader reader =
-                  new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+                  new BufferedReader(
+                      new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
                 settings.set(JsonSettingWrapper.wrap(gson.fromJson(reader, JsonSetting.class)));
               }
             }
@@ -79,14 +81,15 @@ public class HttpSettingsReaderDelegate {
   private String getErrorMessage(HttpURLConnection connection) {
     String errorResponse;
     try (BufferedReader errorReader =
-        new BufferedReader(new InputStreamReader(connection.getErrorStream()))) {
+        new BufferedReader(
+            new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8))) {
       StringBuilder errorBuilder = new StringBuilder();
       String line;
       while ((line = errorReader.readLine()) != null) {
         errorBuilder.append(line);
       }
       errorResponse = errorBuilder.toString();
-    } catch (Exception e) {
+    } catch (IOException e) {
       errorResponse = "Unable to read error response";
     }
     return errorResponse;

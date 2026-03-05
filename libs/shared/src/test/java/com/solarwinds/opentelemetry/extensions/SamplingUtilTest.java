@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 
 import com.solarwinds.joboe.sampling.TraceDecision;
 import com.solarwinds.joboe.sampling.TraceDecisionUtil;
-import com.solarwinds.joboe.sampling.XTraceOptions;
+import com.solarwinds.joboe.sampling.XtraceOptions;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ class SamplingUtilTest {
   @Test
   void verifyThatTriggeredTraceAttributeIsAddedForAuthenticatedTriggerTrace() {
     AttributesBuilder builder = Attributes.builder();
-    XTraceOptions xTraceOptions = XTraceOptions.getXTraceOptions("trigger-trace", null);
+    XtraceOptions xTraceOptions = XtraceOptions.getXTraceOptions("trigger-trace", null);
     when(traceDecisionMock.getRequestType())
         .thenReturn(TraceDecisionUtil.RequestType.AUTHENTICATED_TRIGGER_TRACE);
 
@@ -52,7 +52,7 @@ class SamplingUtilTest {
   @Test
   void verifyThatTriggeredTraceAttributeIsAddedForUnauthenticatedTriggerTrace() {
     AttributesBuilder builder = Attributes.builder();
-    XTraceOptions xTraceOptions = XTraceOptions.getXTraceOptions("trigger-trace", null);
+    XtraceOptions xTraceOptions = XtraceOptions.getXTraceOptions("trigger-trace", null);
     when(traceDecisionMock.getRequestType())
         .thenReturn(TraceDecisionUtil.RequestType.UNAUTHENTICATED_TRIGGER_TRACE);
 
@@ -63,7 +63,7 @@ class SamplingUtilTest {
   @Test
   void verifyThatCustomKvAttributesAreAdded() {
     AttributesBuilder builder = Attributes.builder();
-    XTraceOptions xTraceOptions = XTraceOptions.getXTraceOptions("custom-chubi=chubby;", null);
+    XtraceOptions xTraceOptions = XtraceOptions.getXTraceOptions("custom-chubi=chubby;", null);
     when(traceDecisionMock.getRequestType())
         .thenReturn(TraceDecisionUtil.RequestType.UNAUTHENTICATED_TRIGGER_TRACE);
 
@@ -74,8 +74,8 @@ class SamplingUtilTest {
   @Test
   void verifyThatSwKeysAttributeIsAdded() {
     AttributesBuilder builder = Attributes.builder();
-    XTraceOptions xTraceOptions =
-        XTraceOptions.getXTraceOptions("sw-keys=lo:se,check-id:123", null);
+    XtraceOptions xTraceOptions =
+        XtraceOptions.getXTraceOptions("sw-keys=lo:se,check-id:123", null);
     when(traceDecisionMock.getRequestType())
         .thenReturn(TraceDecisionUtil.RequestType.AUTHENTICATED_TRIGGER_TRACE);
 

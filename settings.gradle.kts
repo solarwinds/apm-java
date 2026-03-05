@@ -45,4 +45,8 @@ include("testing")
 include("testing:agent-for-testing")
 include("testing:agent-test-extension")
 include("dependencyManagement")
+include("libs:core")
+include("libs:config")
+include("libs:logging")
+include("libs:sampling")
 

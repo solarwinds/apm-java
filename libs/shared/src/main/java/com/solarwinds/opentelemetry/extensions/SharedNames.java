@@ -19,11 +19,11 @@ package com.solarwinds.opentelemetry.extensions;
 public final class SharedNames {
   private SharedNames() {}
 
-  public static String COMPONENT_NAME = "solarwinds";
+  public static final String COMPONENT_NAME = "solarwinds";
 
-  public static String TRANSACTION_NAME_KEY = "sw.transaction";
+  public static final String TRANSACTION_NAME_KEY = "sw.transaction";
 
-  public static String SPAN_STACKTRACE_FILTER_CLASS =
+  public static final String SPAN_STACKTRACE_FILTER_CLASS =
       "com.solarwinds.opentelemetry.extensions.SpanStacktraceFilter";
 
   // This is visible to customer via span layer and can be used to configure transaction

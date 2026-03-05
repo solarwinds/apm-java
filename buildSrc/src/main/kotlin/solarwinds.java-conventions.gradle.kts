@@ -18,7 +18,9 @@ import com.solarwinds.instrumentation.gradle.SolarwindsJavaExtension
 plugins {
   java
   checkstyle
+  id("io.freefair.lombok")
   id("solarwinds.spotless-conventions")
+  id("com.github.spotbugs")
 }
 
 repositories {
@@ -93,8 +95,7 @@ dependencies {
   testImplementation("io.opentelemetry.semconv:opentelemetry-semconv")
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
 
-  testImplementation("com.solarwinds.joboe:core")
-  testImplementation("com.solarwinds.joboe:metrics")
+  testImplementation(project(":libs:core"))
   testImplementation("org.junit-pioneer:junit-pioneer")
 
   testImplementation("org.junit.jupiter:junit-jupiter-params")
@@ -117,11 +118,7 @@ tasks {
           "-Xlint:all",
           // disable annotation ownership warnings
           "-Xlint:-processing",
-          "-Werror",
-          // FIXME: Refactor generic service provider interfaces (e.g., ConfigParser) to avoid rawtypes warnings
-          // Disable AutoService verify check to prevent rawtypes warnings for generic service provider interfaces
-          // The @SuppressWarnings("rawtypes") annotation is not recognized in certain Gradle 9 compilation contexts
-          "-Averify=false"
+          "-Werror"
         )
       )
 
@@ -146,4 +143,8 @@ tasks {
 
 checkstyle {
   configFile = file("$rootDir/checkstyle.xml")
+}
+
+spotbugs {
+  excludeFilter.set(file("$rootDir/spotbugs-exclude.xml"))
 }

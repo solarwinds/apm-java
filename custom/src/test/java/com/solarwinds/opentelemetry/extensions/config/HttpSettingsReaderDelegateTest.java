@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -80,7 +81,8 @@ class HttpSettingsReaderDelegateTest {
 
   @Test
   void testFetchSettings_Success() throws IOException {
-    InputStream inputStream = new ByteArrayInputStream(TEST_JSON_RESPONSE.getBytes());
+    InputStream inputStream =
+        new ByteArrayInputStream(TEST_JSON_RESPONSE.getBytes(StandardCharsets.UTF_8));
 
     doReturn(mockConnection)
         .when(tested)
@@ -112,7 +114,8 @@ class HttpSettingsReaderDelegateTest {
   @Test
   void testFetchSettings_HttpError() throws IOException {
     String errorMessage = "Bad Request - Invalid parameters";
-    InputStream errorStream = new ByteArrayInputStream(errorMessage.getBytes());
+    InputStream errorStream =
+        new ByteArrayInputStream(errorMessage.getBytes(StandardCharsets.UTF_8));
 
     doReturn(mockConnection)
         .when(tested)

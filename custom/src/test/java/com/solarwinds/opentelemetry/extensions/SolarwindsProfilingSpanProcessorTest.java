@@ -74,9 +74,9 @@ class SolarwindsProfilingSpanProcessorTest {
 
   private MockedStatic<Profiler> profilerMock;
 
-  private final String traceId = "0123456789abcdef0123456789abcdef";
+  private static final String traceId = "0123456789abcdef0123456789abcdef";
 
-  private final String spanId = "0123456789abcdef";
+  private static final String spanId = "0123456789abcdef";
 
   @BeforeEach
   void setup() {

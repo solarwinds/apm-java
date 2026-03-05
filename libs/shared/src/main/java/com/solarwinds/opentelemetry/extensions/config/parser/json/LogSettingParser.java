@@ -116,13 +116,6 @@ public class LogSettingParser implements ConfigParser<String, LogSetting> {
 
           try {
             logFilePath = Paths.get(locationString);
-            //                        if (!logFilePath.isAbsolute()) { //then use the agent
-            // directory as the base
-            //                            if (ResourceDirectory.getAgentDirectory() != null) {
-            //                                logFilePath =
-            // Paths.get(ResourceDirectory.getAgentDirectory(), logFilePath.toString());
-            //                            }
-            //                        }
 
             maxSize =
                 fileObject.has(FILE_MAX_SIZE_KEY) ? fileObject.getInt(FILE_MAX_SIZE_KEY) : null;

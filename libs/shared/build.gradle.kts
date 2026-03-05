@@ -23,14 +23,12 @@ plugins {
 
 dependencies {
   compileOnly(project(":bootstrap"))
-  compileOnly("org.projectlombok:lombok")
-  annotationProcessor("org.projectlombok:lombok")
 
-  compileOnly("com.solarwinds.joboe:config")
-  compileOnly("com.solarwinds.joboe:logging")
+  compileOnly(project(":libs:config"))
+  compileOnly(project(":libs:logging"))
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv-incubating")
 
-  compileOnly("com.solarwinds.joboe:sampling")
+  compileOnly(project(":libs:sampling"))
   compileOnly("com.google.auto.service:auto-service")
   annotationProcessor("com.google.auto.service:auto-service")
 
@@ -53,7 +51,9 @@ dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-incubator")
 
   testImplementation("org.json:json")
-  testImplementation("com.solarwinds.joboe:sampling")
+  testImplementation(project(":libs:config"))
+  testImplementation(project(":libs:logging"))
+  testImplementation(project(":libs:sampling"))
   testImplementation("io.opentelemetry:opentelemetry-exporter-otlp")
 
   testImplementation("io.opentelemetry:opentelemetry-api-incubator")
@@ -73,6 +73,11 @@ buildConfig {
   buildConfigField("String", "SOLARWINDS_AGENT_VERSION", "\"${swoAgentVersion}\"")
 
   buildConfigField("String", "BUILD_DATETIME", "\"$formattedDate\"")
+}
+
+tasks.named<JavaCompile>("compileJava") {
+  // Disable AutoService verify check to prevent rawtypes warnings for generic service provider interfaces
+  options.compilerArgs.add("-Averify=false")
 }
 
 swoJava {

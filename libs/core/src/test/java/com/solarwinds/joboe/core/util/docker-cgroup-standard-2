@@ -1,0 +1,11 @@
+11:cpuset:abc
+10:memory:abc
+9:net_cls,net_prio:abc
+8:pids:abc
+7:blkio:abc
+6:cpu,cpuacct:abc
+5:perf_event:abc
+4:freezer:abc
+3:hugetlb:abc
+2:devices:abc
+1:name=systemd:/docker/0531ff3c6395131175507ac7e94fdf387f2a2dea81961e6c96f6ac5ccd7ede3f

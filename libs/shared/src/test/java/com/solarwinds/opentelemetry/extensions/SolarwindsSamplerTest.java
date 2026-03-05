@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 import com.solarwinds.joboe.sampling.TraceConfig;
 import com.solarwinds.joboe.sampling.TraceDecision;
 import com.solarwinds.joboe.sampling.TraceDecisionUtil;
-import com.solarwinds.joboe.sampling.XTraceOptions;
+import com.solarwinds.joboe.sampling.XtraceOptions;
 import com.solarwinds.opentelemetry.core.Util;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
@@ -63,7 +63,7 @@ class SolarwindsSamplerTest {
 
   @Mock private TraceDecision traceDecisionMock;
 
-  @Mock private XTraceOptions xTraceOptionsMock;
+  @Mock private XtraceOptions xtraceOptionsMock;
 
   @Mock private TraceConfig traceConfigMock;
 
@@ -90,7 +90,7 @@ class SolarwindsSamplerTest {
     when(traceDecisionMock.getRequestType()).thenReturn(TraceDecisionUtil.RequestType.REGULAR);
     when(traceDecisionMock.isReportMetrics()).thenReturn(true);
 
-    tested.toOtSamplingResult(traceDecisionMock, xTraceOptionsMock, false);
+    tested.toOtSamplingResult(traceDecisionMock, xtraceOptionsMock, false);
 
     verify(traceDecisionMock, atLeastOnce()).getTraceConfig();
     verify(traceConfigMock, atLeastOnce()).getSampleRate();
@@ -101,7 +101,7 @@ class SolarwindsSamplerTest {
     when(traceDecisionMock.isSampled()).thenReturn(false);
     when(traceDecisionMock.isReportMetrics()).thenReturn(true);
 
-    SamplingResult actual = tested.toOtSamplingResult(traceDecisionMock, xTraceOptionsMock, false);
+    SamplingResult actual = tested.toOtSamplingResult(traceDecisionMock, xtraceOptionsMock, false);
     assertEquals(SolarwindsSampler.METRICS_ONLY, actual);
   }
 
@@ -110,7 +110,7 @@ class SolarwindsSamplerTest {
     when(traceDecisionMock.isSampled()).thenReturn(false);
     when(traceDecisionMock.isReportMetrics()).thenReturn(false);
 
-    SamplingResult actual = tested.toOtSamplingResult(traceDecisionMock, xTraceOptionsMock, false);
+    SamplingResult actual = tested.toOtSamplingResult(traceDecisionMock, xtraceOptionsMock, false);
     assertEquals(SolarwindsSampler.NOT_TRACED, actual);
   }
 

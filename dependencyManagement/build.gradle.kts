@@ -7,7 +7,6 @@ val otelSdkVersion = "1.59.0"
 
 val mockitoVersion = "5.2.0"
 val byteBuddyVersion = "1.18.4"
-val joboeVersion = "11.0.0"
 
 val opentelemetryJavaagentAlpha = "$otelAgentVersion-alpha"
 val opentelemetryAlpha = "$otelSdkVersion-alpha"
@@ -58,19 +57,10 @@ dependencies {
     api("net.bytebuddy:byte-buddy:${byteBuddyVersion}")
     api("com.google.auto.service:auto-service:$autoservice")
 
-    api("org.projectlombok:lombok:1.18.42")
-    api("com.solarwinds.joboe:core:$joboeVersion")
-    api("com.solarwinds.joboe:metrics:$joboeVersion")
-
-    api("com.solarwinds.joboe:config:$joboeVersion")
-    api("com.solarwinds.joboe:logging:$joboeVersion")
-    api("com.solarwinds.joboe:sampling:$joboeVersion")
-
-    api("org.json:json:20251224")
-    api("com.google.code.gson:gson:2.13.2")
+    api("org.json:json:20250517")
+    api("com.google.code.gson:gson:2.10.1")
     api("com.github.ben-manes.caffeine:caffeine:2.9.3")
 
-    api("com.google.code.findbugs:annotations:3.0.1u2")
     api("io.opentelemetry.contrib:opentelemetry-span-stacktrace:$otelJavaContribVersion")
     api("io.opentelemetry.semconv:opentelemetry-semconv-incubating:$opentelemetrySemconvAlpha")
 

@@ -53,4 +53,22 @@ tasks.withType<ShadowJar>().configureEach {
   relocate("com.github.benmanes", "com.solarwinds.joboe.shaded.caffeine")
   relocate("org.checkerframework", "com.solarwinds.joboe.shaded.checkerframework")
   relocate("org.json", "com.solarwinds.joboe.shaded.org.json")
+
+  relocate("com.solarwinds.trace", "com.solarwinds.joboe.shaded.trace")
+  relocate("android.annotation", "com.solarwinds.joboe.shaded.android.annotation")
+  relocate("javax.annotation", "com.solarwinds.joboe.shaded.javax.annotation")
+
+  relocate("cloud", "com.solarwinds.joboe.shaded.cloud")
+  relocate("google", "com.solarwinds.joboe.shaded.google2")
+  relocate("com.google", "com.solarwinds.joboe.shaded.google")
+
+  relocate("javax.xml", "com.solarwinds.joboe.shaded.javax.xml")
+  relocate("io.grpc", "com.solarwinds.joboe.shaded.io.grpc")
+  relocate("io.netty", "com.solarwinds.joboe.shaded.io.netty")
+
+  relocate("io.perfmark", "com.solarwinds.joboe.shaded.io.perfmark")
+  relocate("javax.activation", "com.solarwinds.joboe.shaded.javax.activation")
+  relocate("org.jspecify", "com.solarwinds.joboe.shaded.org.jspecify")
+
+  relocate("org.codehaus.mojo", "com.solarwinds.joboe.shaded.org.codehaus.mojo")
 }
