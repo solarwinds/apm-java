@@ -411,7 +411,7 @@ jobs:
             org.opencontainers.image.vendor=SolarWinds Worldwide, LLC
 
       - name: Build and load -> linux/amd64
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: agent
           platforms: linux/amd64
@@ -420,7 +420,7 @@ jobs:
           load: true
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           push: true
           context: agent
@@ -479,7 +479,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           push: true
           context: agent

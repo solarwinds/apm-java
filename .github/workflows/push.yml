@@ -118,7 +118,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build xk6 image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: long-running-test-arch/xk6
           platforms: linux/amd64
@@ -126,7 +126,7 @@ jobs:
           tags: "ghcr.io/${{github.repository_owner}}/xk6:latest"
 
       - name: Build rc image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: long-running-test-arch
           file: long-running-test-arch/Dockerfile-rc
@@ -135,7 +135,7 @@ jobs:
           tags: "ghcr.io/${{github.repository_owner}}/petclinic:agent-rc"
 
       - name: Build stable image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: long-running-test-arch
           platforms: linux/amd64
@@ -554,7 +554,7 @@ jobs:
             org.opencontainers.image.vendor=SolarWinds Worldwide, LLC
 
       - name: Build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: agent
           platforms: linux/amd64
