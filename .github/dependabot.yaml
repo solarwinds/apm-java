@@ -9,3 +9,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+
+  - package-ecosystem: "gomod"
+    directory: "long-running-test-arch/xk6"
+    schedule:
+      interval: "weekly"
