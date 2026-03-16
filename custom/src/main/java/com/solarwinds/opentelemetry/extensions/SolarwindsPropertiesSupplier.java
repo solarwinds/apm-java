@@ -41,7 +41,7 @@ public class SolarwindsPropertiesSupplier implements Supplier<Map<String, String
       PROPERTIES.put(
           "otel.exporter.otlp.metrics.default.histogram.aggregation",
           "base2_exponential_bucket_histogram");
-      PROPERTIES.put("otel.instrumentation.runtime-telemetry-java17.enable-all", "true");
+      PROPERTIES.put("otel.instrumentation.runtime-telemetry-java17.enabled", "true");
     } else {
       PROPERTIES.put("otel.sdk.disabled", "true");
     }
