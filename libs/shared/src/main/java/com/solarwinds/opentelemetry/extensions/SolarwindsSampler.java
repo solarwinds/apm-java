@@ -24,8 +24,8 @@ import static com.solarwinds.opentelemetry.extensions.SharedNames.LAYER_NAME_PLA
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.TraceDecision;
-import com.solarwinds.joboe.sampling.XTraceOptions;
 import com.solarwinds.joboe.sampling.XTraceOptionsResponse;
+import com.solarwinds.joboe.sampling.XtraceOptions;
 import com.solarwinds.opentelemetry.core.Constants;
 import com.solarwinds.opentelemetry.core.Util;
 import io.opentelemetry.api.common.AttributeKey;
@@ -104,7 +104,7 @@ public class SolarwindsSampler implements Sampler {
 
     final SamplingResult samplingResult;
     final AttributesBuilder additionalAttributesBuilder = Attributes.builder();
-    final XTraceOptions xTraceOptions = parentContext.get(TriggerTraceContextKey.KEY);
+    final XtraceOptions xTraceOptions = parentContext.get(TriggerTraceContextKey.KEY);
 
     String xtraceOptionsResponseStr = null;
     List<String> signals =
@@ -201,7 +201,7 @@ public class SolarwindsSampler implements Sampler {
   }
 
   SamplingResult toOtSamplingResult(
-      TraceDecision traceDecision, XTraceOptions xtraceOptions, boolean genesis) {
+      TraceDecision traceDecision, XtraceOptions xtraceOptions, boolean genesis) {
     SamplingResult result = NOT_TRACED;
 
     if (traceDecision.isSampled()) {

@@ -21,11 +21,11 @@ plugins {
 dependencies {
   compileOnly(project(":bootstrap"))
   compileOnly(project(":libs:shared"))
-  compileOnly("com.solarwinds.joboe:core")
+  compileOnly(project(":libs:core"))
 
-  compileOnly("org.projectlombok:lombok")
-  compileOnly("com.solarwinds.joboe:metrics")
-  annotationProcessor("org.projectlombok:lombok")
+  compileOnly(project(":libs:config"))
+  compileOnly(project(":libs:sampling"))
+  compileOnly(project(":libs:logging"))
 
   compileOnly("com.google.auto.service:auto-service")
   annotationProcessor("com.google.auto.service:auto-service")
@@ -43,13 +43,22 @@ dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-incubator")
   compileOnly("io.opentelemetry:opentelemetry-exporter-otlp")
 
+  compileOnly("com.google.code.gson:gson")
+  implementation("org.json:json")
+
+  testImplementation(project(":libs:config"))
+  testImplementation(project(":libs:sampling"))
   testImplementation(project(":libs:shared"))
-  testImplementation("org.json:json")
-  testImplementation("com.solarwinds.joboe:core")
+  testImplementation(project(":libs:core"))
 
   testImplementation("io.opentelemetry:opentelemetry-api-incubator")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-incubator")
   testImplementation("io.opentelemetry:opentelemetry-exporter-otlp")
+}
+
+tasks.named<JavaCompile>("compileJava") {
+  // Disable AutoService verify check to prevent rawtypes warnings for generic service provider interfaces
+  options.compilerArgs.add("-Averify=false")
 }
 
 tasks.withType(Checkstyle::class).configureEach {

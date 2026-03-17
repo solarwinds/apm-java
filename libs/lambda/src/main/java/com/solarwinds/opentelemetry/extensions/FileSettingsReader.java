@@ -27,6 +27,7 @@ import com.solarwinds.opentelemetry.extensions.config.JsonSetting;
 import com.solarwinds.opentelemetry.extensions.config.JsonSettingWrapper;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -48,7 +49,8 @@ public class FileSettingsReader {
     try {
       byte[] bytes = Files.readAllBytes(Paths.get(settingsFilePath));
       List<Settings> kvSetting =
-          JsonSettingWrapper.fromJsonSettings(gson.fromJson(new String(bytes), type));
+          JsonSettingWrapper.fromJsonSettings(
+              gson.fromJson(new String(bytes, StandardCharsets.UTF_8), type));
       logger.debug(String.format("Got settings from file: %s", kvSetting));
 
       if (!kvSetting.isEmpty()) {

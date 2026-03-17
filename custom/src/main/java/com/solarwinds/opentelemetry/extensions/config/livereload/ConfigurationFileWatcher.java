@@ -27,6 +27,7 @@ import java.nio.file.WatchService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 public final class ConfigurationFileWatcher {
   private final Path directory;
@@ -39,7 +40,7 @@ public final class ConfigurationFileWatcher {
 
   private final long watchPeriod;
 
-  private static ConfigurationFileWatcher INSTANCE;
+  private static final AtomicReference<ConfigurationFileWatcher> INSTANCE = new AtomicReference<>();
 
   private ScheduledFuture<?> scheduledWatch;
 
@@ -62,13 +63,15 @@ public final class ConfigurationFileWatcher {
       WatchService watchService,
       ScheduledExecutorService scheduledExecutorService,
       Runnable fileChangeListener) {
-    if (INSTANCE != null) {
-      INSTANCE.cancelWatch();
-    }
-    INSTANCE =
+    ConfigurationFileWatcher next =
         new ConfigurationFileWatcher(
             directory, watchPeriod, watchService, scheduledExecutorService, fileChangeListener);
-    INSTANCE.startWatch();
+
+    ConfigurationFileWatcher previous = INSTANCE.getAndSet(next);
+    if (previous != null) {
+      previous.cancelWatch();
+    }
+    next.startWatch();
   }
 
   private void watch() {

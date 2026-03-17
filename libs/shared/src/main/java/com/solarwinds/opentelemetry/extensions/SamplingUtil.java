@@ -18,8 +18,8 @@ package com.solarwinds.opentelemetry.extensions;
 
 import com.solarwinds.joboe.sampling.TraceDecision;
 import com.solarwinds.joboe.sampling.TraceDecisionUtil;
-import com.solarwinds.joboe.sampling.XTraceOption;
-import com.solarwinds.joboe.sampling.XTraceOptions;
+import com.solarwinds.joboe.sampling.XtraceOption;
+import com.solarwinds.joboe.sampling.XtraceOptions;
 import io.opentelemetry.api.common.AttributesBuilder;
 import java.util.regex.Pattern;
 
@@ -47,7 +47,7 @@ public class SamplingUtil {
 
   public static void addXtraceOptionsToAttribute(
       TraceDecision traceDecision,
-      XTraceOptions xtraceOptions,
+      XtraceOptions xtraceOptions,
       AttributesBuilder attributesBuilder) {
     if (xtraceOptions != null) {
       xtraceOptions
@@ -62,7 +62,7 @@ public class SamplingUtil {
         attributesBuilder.put("TriggeredTrace", true);
       }
 
-      String swKeys = xtraceOptions.getOptionValue(XTraceOption.SW_KEYS);
+      String swKeys = xtraceOptions.getOptionValue(XtraceOption.SW_KEYS);
       if (swKeys != null) {
         attributesBuilder.put("SWKeys", swKeys);
       }

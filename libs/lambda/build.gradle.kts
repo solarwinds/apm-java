@@ -21,13 +21,11 @@ plugins {
 dependencies {
   compileOnly(project(":libs:shared"))
   compileOnly("com.google.code.gson:gson")
-  compileOnly("org.projectlombok:lombok")
 
-  annotationProcessor("org.projectlombok:lombok")
-  compileOnly("com.solarwinds.joboe:config")
-  compileOnly("com.solarwinds.joboe:sampling")
+  compileOnly(project(":libs:config"))
+  compileOnly(project(":libs:sampling"))
 
-  compileOnly("com.solarwinds.joboe:logging")
+  compileOnly(project(":libs:logging"))
   compileOnly("com.google.auto.service:auto-service")
   annotationProcessor("com.google.auto.service:auto-service")
 
@@ -40,7 +38,14 @@ dependencies {
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
 
   compileOnly(project(":bootstrap"))
+  testImplementation(project(":libs:config"))
+  testImplementation(project(":libs:sampling"))
   testImplementation(project(":libs:shared"))
+}
+
+tasks.named<JavaCompile>("compileJava") {
+  // Disable AutoService verify check to prevent rawtypes warnings for generic service provider interfaces
+  options.compilerArgs.add("-Averify=false")
 }
 
 swoJava {

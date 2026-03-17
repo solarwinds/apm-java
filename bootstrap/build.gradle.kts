@@ -3,9 +3,9 @@ plugins {
 }
 
 dependencies {
-  compileOnly("com.solarwinds.joboe:config")
-  compileOnly("com.solarwinds.joboe:logging")
-  compileOnly("com.solarwinds.joboe:sampling")
+  compileOnly(project(":libs:config"))
+  compileOnly(project(":libs:logging"))
+  compileOnly(project(":libs:sampling"))
 
   compileOnly("io.opentelemetry:opentelemetry-api")
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")

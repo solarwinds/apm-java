@@ -47,10 +47,10 @@ dependencies {
   javaagentLibs(project(":instrumentation"))
 
   bootstrapLibs(project(":bootstrap"))
-  bootstrapLibs("com.solarwinds.joboe:config")
+  bootstrapLibs(project(":libs:config"))
   bootstrapLibs("org.json:json")
-  bootstrapLibs("com.solarwinds.joboe:sampling")
-  bootstrapLibs("com.solarwinds.joboe:logging")
+  bootstrapLibs(project(":libs:sampling"))
+  bootstrapLibs(project(":libs:logging"))
 
   upstreamAgent("io.opentelemetry.javaagent:opentelemetry-javaagent")
 }

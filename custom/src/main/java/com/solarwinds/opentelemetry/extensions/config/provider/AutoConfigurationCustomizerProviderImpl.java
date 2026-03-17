@@ -21,7 +21,6 @@ import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
-import com.solarwinds.joboe.shaded.javax.annotation.Nonnull;
 import com.solarwinds.opentelemetry.extensions.MetricExporterCustomizer;
 import com.solarwinds.opentelemetry.extensions.ResourceCustomizer;
 import com.solarwinds.opentelemetry.extensions.SolarwindsPropertiesSupplier;
@@ -31,6 +30,7 @@ import com.solarwinds.opentelemetry.extensions.config.LogRecordExporterCustomize
 import com.solarwinds.opentelemetry.extensions.config.SpanExporterCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
+import javax.annotation.Nonnull;
 
 /**
  * An implementation of {@link AutoConfigurationCustomizer} which serves as the bootstrap for our

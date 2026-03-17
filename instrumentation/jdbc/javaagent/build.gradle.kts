@@ -20,17 +20,18 @@ plugins {
 
 dependencies {
   compileOnly(project(":bootstrap"))
-  compileOnly("com.solarwinds.joboe:config")
+  compileOnly(project(":libs:config"))
   implementation(project(":instrumentation:instrumentation-shared"))
 
   compileOnly("org.json:json")
-  compileOnly("com.solarwinds.joboe:logging")
+  compileOnly(project(":libs:logging"))
   compileOnly("io.opentelemetry:opentelemetry-sdk-trace")
 
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")
   compileOnly("com.github.ben-manes.caffeine:caffeine")
 
   testImplementation(project(":instrumentation:jdbc:javaagent"))
+  testImplementation(project(":libs:config"))
   testImplementation(project(":instrumentation:instrumentation-shared"))
   testImplementation(platform("org.testcontainers:testcontainers-bom:2.0.3"))
 

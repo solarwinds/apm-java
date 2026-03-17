@@ -49,7 +49,7 @@ class ConfigurationFileWatcherTest {
 
   @Captor private ArgumentCaptor<Runnable> runnableArgumentCaptor;
 
-  private final long watchPeriod = 1;
+  private static final long watchPeriod = 1;
 
   @Test
   void verifyThatOverflowEventsAreIgnored() throws IOException {

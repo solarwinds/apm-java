@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <!--
+    Migrated legacy code from joboe. These classes carry known issues that pre-date this
+    repository and are not worth fixing as part of the migration.
+  -->
+  <Match>
+    <Package name="~com\.solarwinds\.joboe\..*"/>
+  </Match>
+
+  <!--
+    ByteBuddy @Advice methods: parameters annotated with @Advice.Enter / @Advice.Return look
+    dead to SpotBugs but are rewritten by the ByteBuddy framework at instrumentation time.
+    The regex matches both the top-level instrumentation package and all sub-packages.
+  -->
+  <Match>
+    <Package name="~com\.solarwinds\.opentelemetry\.instrumentation.*"/>
+    <Or>
+      <Bug pattern="DLS_DEAD_LOCAL_STORE"/>
+      <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN"/>
+    </Or>
+  </Match>
+
+  <!--
+    EI / EI2: storing or returning references to mutable collections.
+    Defensive copies throughout the extensions layer would be excessive and are not warranted
+    by the threat model of an APM agent running in-process.
+  -->
+  <Match>
+    <Package name="~com\.solarwinds\.opentelemetry\.extensions.*"/>
+    <Or>
+      <Bug pattern="EI_EXPOSE_REP"/>
+      <Bug pattern="EI_EXPOSE_REP2"/>
+    </Or>
+  </Match>
+
+  <!--
+    ResourceCustomizer and ResourceComponentProvider intentionally cache the built Resource in
+    a static field so that it can be retrieved later. AutoConfigurationCustomizerProviderImpl
+    sets a static flag from a lifecycle callback. These write-to-static-from-instance patterns
+    are deliberate.
+  -->
+  <Match>
+    <Or>
+      <Class name="com.solarwinds.opentelemetry.extensions.ResourceCustomizer"/>
+      <Class name="com.solarwinds.opentelemetry.extensions.config.provider.ResourceComponentProvider"/>
+      <Class name="com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl"/>
+    </Or>
+    <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"/>
+  </Match>
+
+  <!--
+    Test-only suppressions:
+    - DMI_HARDCODED_ABSOLUTE_FILENAME: test fixture paths are intentionally absolute.
+    - RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT: common in tests that verify via verify() instead
+      of asserting on return values.
+  -->
+  <Match>
+    <Class name="~.*Test"/>
+    <Or>
+      <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME"/>
+      <Bug pattern="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT"/>
+    </Or>
+  </Match>
+</FindBugsFilter>
