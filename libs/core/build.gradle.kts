@@ -9,9 +9,9 @@ dependencies {
   implementation(project(":libs:config"))
   implementation(project(":libs:sampling"))
 
-  implementation("io.grpc:grpc-netty:1.79.0")
-  implementation("io.grpc:grpc-stub:1.79.0")
-  implementation("io.grpc:grpc-protobuf:1.79.0")
+  implementation("io.grpc:grpc-netty:1.80.0")
+  implementation("io.grpc:grpc-stub:1.80.0")
+  implementation("io.grpc:grpc-protobuf:1.80.0")
 
   compileOnly("org.json:json")
   compileOnly("io.opentelemetry:opentelemetry-api")
