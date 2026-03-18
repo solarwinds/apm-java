@@ -20,6 +20,8 @@ package com.solarwinds.webmvc
 import com.solarwinds.api.ext.SolarwindsAgent
 import io.opentelemetry.api.GlobalOpenTelemetry
 import io.opentelemetry.api.OpenTelemetry
+import io.opentelemetry.api.common.AttributeKey.valueKey
+import io.opentelemetry.api.common.Value
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import mu.KotlinLogging
 import org.springframework.web.bind.annotation.GetMapping
@@ -30,6 +32,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.nio.ByteBuffer
 
 @RestController
 @RequestMapping
@@ -42,7 +45,33 @@ class Controller {
     fun greet(@PathVariable name: String): String{
         val startSpan = tracer.spanBuilder("greet-span")
             .setAttribute("sw.test.source", "SDK.trace.test")
+            .setAttribute(valueKey("complex.list"), Value.of(listOf<Value<String>>(Value.of("one"), Value.of("two"))))
+            .setAttribute(
+                valueKey("complex.map"),
+                Value.of(mapOf<String, Value<String>>("one" to Value.of("one"), "two" to Value.of("two")))
+            )
+            .setAttribute(
+                valueKey("complex.bytearray"),
+                Value.of(byteArrayOf(1, 2, 3, 4, 5)),
+            )
+            .setAttribute(
+                valueKey("complex.map.bytearray"), Value.of(
+                    mapOf<String, Value<ByteBuffer>>(
+                        "one" to Value.of(
+                            ByteArray(10) { (it * 3).toByte() }), "two" to Value.of(ByteArray(20) { (it * 2).toByte() })
+                    )
+                )
+            )
+            .setAttribute(
+                valueKey("complex.map.bytearray.big"), Value.of(
+                    mapOf<String, Value<ByteBuffer>>(
+                        "one" to Value.of(
+                            ByteArray(128) { (it * 3).toByte() }), "two" to Value.of(ByteArray(256) { (it * 2).toByte() })
+                    )
+                )
+            )
             .startSpan()
+
         startSpan.makeCurrent().use {
         SolarwindsAgent.setTransactionName(name)
             startSpan.end()
