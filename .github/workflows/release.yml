@@ -278,6 +278,7 @@ jobs:
     needs:
       - github_release
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v6
 
@@ -290,43 +291,26 @@ jobs:
       - name: Build agent
         run: ./gradlew clean build -x test
 
-      - name: Sign and download signed jar
-        run: |
-          response=$(curl -fs \
-            -H "Authorization: Bearer $SIGN_PATH_API_TOKEN" \
-            -F "ProjectSlug=$SIGN_PATH_PROJECT_SLUG" \
-            -F "ArtifactConfigurationSlug=$SIGN_PATH_ARTIFACT_SLUG" \
-            -F "SigningPolicySlug=$SIGN_PATH_SIGNING_POLICY" \
-            -F "Artifact=@agent/build/libs/solarwinds-apm-agent.jar" \
-            https://app.signpath.io/API/v1/$SIGN_PATH_ORG_ID/SigningRequests)
+      - name: Checkout solarwinds-actions/gha-signing
+        uses: actions/checkout@v6
+        with:
+          repository: solarwinds-actions/gha-signing
+          token: ${{ secrets.FGPAT_ENOPS_7950_SOLARWINDS_ACTIONS }}
+          ref: v1
+          path: ./.github/actions/gha-signing
 
-          SIGNING_REQUEST_ID=$(echo "$response" | jq -r '.signingRequestId')
+      - name: Azure Login (Federated Identity)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
-          state=""
-          while [[ "$state" != "true" ]]
-          do
-            response=$(curl -fsSL \
-              -H "Authorization: Bearer $SIGN_PATH_API_TOKEN" \
-              https://app.signpath.io/API/v1/$SIGN_PATH_ORG_ID/SigningRequests/$SIGNING_REQUEST_ID)
-
-            state=$(echo "$response" | jq -r ".isFinalStatus")
-            status_state=$(echo "$response" | jq -r ".status")
-            echo "Status -> $status_state"
-
-            sleep 5
-          done
-
-          curl -fs \
-            -o agent/build/libs/solarwinds-apm-agent-signed.jar \
-            -H "Authorization: Bearer $SIGN_PATH_API_TOKEN" \
-            https://app.signpath.io/API/v1/$SIGN_PATH_ORG_ID/SigningRequests/$SIGNING_REQUEST_ID/SignedArtifact
-
-        env:
-          SIGN_PATH_API_TOKEN: ${{ secrets.SIGN_PATH_API_TOKEN }}
-          SIGN_PATH_PROJECT_SLUG: ${{ secrets.SIGN_PATH_PROJECT_SLUG }}
-          SIGN_PATH_SIGNING_POLICY: ${{ secrets.SIGN_PATH_SIGNING_POLICY }}
-          SIGN_PATH_ORG_ID: ${{ secrets.SIGN_PATH_ORG_ID }}
-          SIGN_PATH_ARTIFACT_SLUG: ${{ secrets.SIGN_PATH_ARTIFACT_SLUG }}
+      - name: Sign Files
+        uses: ./.github/actions/gha-signing/ats-sign
+        with:
+          files-to-sign: '*.jar'
+          cert-profile: ${{ vars.ATS_CERT_PROFILE }}
 
       - name: Set agent version
         id: set_version
@@ -361,6 +345,7 @@ jobs:
           }
           
           # Upload file to GitHub release
+          mv agent/build/libs/solarwinds-apm-agent.jar agent/build/libs/solarwinds-apm-agent-signed.jar
           upload_file_to_release "$release_id" "agent/build/libs/solarwinds-apm-agent-signed.jar"
 
         env:
