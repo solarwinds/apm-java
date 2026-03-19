@@ -18,11 +18,9 @@ package com.solarwinds.joboe.core.util;
 
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
-import com.solarwinds.joboe.core.Context;
 import com.solarwinds.joboe.core.HostId;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
-import com.solarwinds.joboe.sampling.Metadata;
 import io.opentelemetry.api.internal.InstrumentationUtil;
 import java.io.BufferedReader;
 import java.io.File;
@@ -90,8 +88,6 @@ public class ServerHostInfoReader
   private static boolean checkedDistro = false;
   static HostInfoUtils.OsType osType = HostInfoUtils.getOsType();
 
-  static final String HOSTNAME_SEPARATOR = ";";
-
   enum DistroType {
     AMAZON,
     UBUNTU,
@@ -102,7 +98,7 @@ public class ServerHostInfoReader
     GENTOO
   }
 
-  static final Map<DistroType, String> DISTRO_FILE_NAMES = new HashMap<DistroType, String>();
+  static final Map<DistroType, String> DISTRO_FILE_NAMES = new HashMap<>();
 
   public static final String HOSTNAME_ALIAS_KEY = "ConfiguredHostname";
 
@@ -128,10 +124,6 @@ public class ServerHostInfoReader
 
   public String getAwsAvailabilityZone() {
     return Ec2InstanceReader.getAvailabilityZone();
-  }
-
-  public String getDockerContainerId() {
-    return DockerInfoReader.getDockerId();
   }
 
   public String getHerokuDynoId() {
@@ -162,7 +154,7 @@ public class ServerHostInfoReader
     private static final Map<String, NicStatus> ENUM_MAP;
 
     static {
-      Map<String, NicStatus> map = new ConcurrentHashMap<String, NicStatus>();
+      Map<String, NicStatus> map = new ConcurrentHashMap<>();
       for (NicStatus instance : NicStatus.values()) {
         map.put(instance.getDesc(), instance);
       }
@@ -178,24 +170,20 @@ public class ServerHostInfoReader
     }
   }
 
-  /**
-   * Get the network adapters status by executing a command on Windows.
-   *
-   * @param nicStatusMap
-   */
+  /** Get the network adapters status by executing a command on Windows. */
   private static void buildNicStatusMap(Map<String, NicStatus> nicStatusMap) {
     String output;
     try {
       output =
           ExecUtils.exec(
               "powershell.exe Get-NetAdapter -IncludeHidden | Select-Object InterfaceDescription,Status | Format-Table -AutoSize",
-              System.getProperty("line.separator"));
+              System.lineSeparator());
     } catch (Exception e) {
       logger.info("Failed to obtain nic status from exec `Get-NetAdapter` : " + e.getMessage());
       return;
     }
 
-    String[] lines = output.split(System.getProperty("line.separator"));
+    String[] lines = output.split(System.lineSeparator());
     if (lines.length < 3) {
       logger.info(
           "No enough data received from exec `Get-NetAdapter`("
@@ -230,17 +218,15 @@ public class ServerHostInfoReader
   /**
    * Extracts network interface info from the system. Take note that loop back, point-to-point and
    * non-physical addresses are excluded
-   *
-   * @return
    */
   @Override
   public HostInfoUtils.NetworkAddressInfo getNetworkAddressInfo() {
     try {
-      List<String> ips = new ArrayList<String>();
-      List<String> macAddresses = new ArrayList<String>();
+      List<String> ips = new ArrayList<>();
+      List<String> macAddresses = new ArrayList<>();
 
       // map of device id -> status
-      Map<String, NicStatus> nicStatusMap = new HashMap<String, NicStatus>();
+      Map<String, NicStatus> nicStatusMap = new HashMap<>();
       boolean isWindowsIPv4 = false;
       if (osType.equals(HostInfoUtils.OsType.WINDOWS)
           && Boolean.getBoolean("java.net.preferIPv4Stack")) {
@@ -352,7 +338,6 @@ public class ServerHostInfoReader
    *
    * <p>Take note that this definition is different from NetworkInterface.isVirtual()
    *
-   * @param networkInterface
    * @return
    */
   private static boolean isPhysicalInterface(NetworkInterface networkInterface) {
@@ -386,7 +371,6 @@ public class ServerHostInfoReader
    *
    * <p><a href="https://swicloud.atlassian.net/browse/AO-14670">...</a> for details
    *
-   * @param networkInterface
    * @return false if it's NOT a Microsoft Hyper-V Network Adapter or it's UP
    */
   private static boolean isGhostHyperV(NetworkInterface networkInterface) {
@@ -421,19 +405,10 @@ public class ServerHostInfoReader
   @Override
   public HostId getHostId() {
     if (hostId == null) {
-      Metadata existingMetdataContext = null;
-      try {
-        existingMetdataContext = Context.getMetadata();
-        Context.clearMetadata(); // make sure our init route does not accidentally trigger tracing
-        // instrumentations
-
-        // synchronously get it once first to ensure it's available at the return statement
-        hostId = buildHostId();
-        // also start the background checker here
-        startHostIdChecker();
-      } finally {
-        Context.setMetadata(existingMetdataContext); // set the existing context back
-      }
+      // synchronously get it once first to ensure it's available at the return statement
+      hostId = buildHostId();
+      // also start the background checker here
+      startHostIdChecker();
     }
     return hostId;
   }

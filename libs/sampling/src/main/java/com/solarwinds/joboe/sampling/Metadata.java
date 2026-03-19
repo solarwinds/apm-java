@@ -86,11 +86,10 @@ public class Metadata {
 
   public Metadata(SpanContext spanContext) {
     initialize();
-    if (spanContext.isValid()) {
-      System.arraycopy(spanContext.getTraceIdBytes(), 0, this.taskID, 0, Constants.TASK_ID_LEN);
-      System.arraycopy(spanContext.getSpanIdBytes(), 0, this.opID, 0, Constants.OP_ID_LEN);
-      this.flags = spanContext.getTraceFlags().asByte();
-    }
+    System.arraycopy(spanContext.getTraceIdBytes(), 0, this.taskID, 0, Constants.TASK_ID_LEN);
+    System.arraycopy(spanContext.getSpanIdBytes(), 0, this.opID, 0, Constants.OP_ID_LEN);
+
+    flags = spanContext.getTraceFlags().asByte();
   }
 
   public Metadata(Metadata toClone) {

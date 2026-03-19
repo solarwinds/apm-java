@@ -242,14 +242,6 @@ public class EventImpl extends Event {
   }
 
   /* (non-Javadoc)
-   * @see com.solarwinds.joboe.core.Event#report(com.solarwinds.joboe.core.EventReporter)
-   */
-  @Override
-  public void report(EventReporter reporter) {
-    report(Context.getMetadata(), reporter);
-  }
-
-  /* (non-Javadoc)
    * @see com.solarwinds.joboe.core.Event#report(com.solarwinds.joboe.sampling.Metadata, com.solarwinds.joboe.core.EventReporter)
    */
   @Override

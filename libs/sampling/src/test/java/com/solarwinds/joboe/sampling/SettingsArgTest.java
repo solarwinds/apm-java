@@ -35,7 +35,7 @@ public class SettingsArgTest {
     ByteBuffer buffer = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
     buffer.putDouble(1.23);
     buffer.flip();
-    assertEquals(1.23, arg.readValue(buffer));
+    assertEquals(1.23, arg.readFromByteBuffer(buffer));
   }
 
   @Test
@@ -45,7 +45,7 @@ public class SettingsArgTest {
     ByteBuffer buffer = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
     buffer.putInt(3);
     buffer.flip();
-    assertEquals(3, (int) arg.readValue(buffer));
+    assertEquals(3, (int) arg.readFromByteBuffer(buffer));
   }
 
   @Test
@@ -55,12 +55,12 @@ public class SettingsArgTest {
     ByteBuffer buffer = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
     buffer.putInt(1); // boolean uses int in bytebuffer (binary)
     buffer.flip();
-    assertEquals(true, arg.readValue(buffer));
+    assertEquals(true, arg.readFromByteBuffer(buffer));
 
     buffer = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
     buffer.putInt(0); // boolean uses int in bytebuffer (binary)
     buffer.flip();
-    assertEquals(false, arg.readValue(buffer));
+    assertEquals(false, arg.readFromByteBuffer(buffer));
   }
 
   @Test
@@ -104,6 +104,6 @@ public class SettingsArgTest {
             .order(ByteOrder.LITTLE_ENDIAN); // 4 bytes will trigger buffer underflow
     buffer.putInt(3);
     buffer.flip();
-    assertNull(arg.readValue(buffer)); // should just give null
+    assertNull(arg.readFromByteBuffer(buffer)); // should just give null
   }
 }

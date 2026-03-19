@@ -45,8 +45,7 @@ public class SolarwindsProfilingSpanProcessor implements ExtendedSpanProcessor {
       if (!parentSpanContext.isValid()
           || parentSpanContext.isRemote()) { // then a root span of this service
         if (isProfilingEnabled()) {
-          SpanContext spanContext = span.getSpanContext();
-          Metadata metadata = Util.buildMetadata(spanContext);
+          Metadata metadata = Util.buildMetadata(span.getSpanContext());
           if (metadata.isValid()) {
             Profiler.addProfiledThread(
                 Thread.currentThread(), metadata, Metadata.bytesToHex(metadata.getTaskID()));

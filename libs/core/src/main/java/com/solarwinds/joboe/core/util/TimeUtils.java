@@ -189,11 +189,11 @@ public class TimeUtils {
 
     @SuppressWarnings("unchecked")
     public T getSum() {
-      Double sum = 0.0;
+      double sum = 0.0;
       for (T a : data) {
         sum += a.doubleValue();
       }
-      return (T) sum;
+      return (T) Double.valueOf(sum);
     }
 
     public double getMean() {

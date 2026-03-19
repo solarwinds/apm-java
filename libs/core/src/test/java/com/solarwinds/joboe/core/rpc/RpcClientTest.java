@@ -137,13 +137,14 @@ public abstract class RpcClientTest {
 
   private static List<Event> generateTestEvents() {
     List<Event> testEvents = new ArrayList<Event>();
-    Context.getMetadata().randomize();
-    Event entryEvent = Context.createEvent();
+    Metadata metadata = Context.getMetadata();
+    metadata.randomize();
+    Event entryEvent = Context.createEventWithContext(metadata);
     entryEvent.addInfo("Layer", "test-thrift");
     entryEvent.addInfo("Label", "entry");
     testEvents.add(entryEvent);
 
-    Event exitEvent = Context.createEvent();
+    Event exitEvent = Context.createEventWithContext(metadata);
     exitEvent.addInfo("Layer", "test-thrift");
     exitEvent.addInfo("Label", "exit");
     testEvents.add(exitEvent);
@@ -152,8 +153,9 @@ public abstract class RpcClientTest {
   }
 
   private static Event generateBigEvent() {
-    Context.getMetadata().randomize();
-    Event testEvent = Context.createEvent();
+    Metadata metadata = Context.getMetadata();
+    metadata.randomize();
+    Event testEvent = Context.createEventWithContext(metadata);
     for (int i = 0; i < 100; i++) { // each event is around 100 kb
       testEvent.addInfo(String.valueOf(i), new byte[1024]);
     }
@@ -874,8 +876,9 @@ public abstract class RpcClientTest {
       List<Future<Result>> futures = new ArrayList<Future<Result>>();
       List<Event> sentEvents = new ArrayList<Event>();
       for (int i = 0; i < 100; i++) {
-        Context.getMetadata().randomize();
-        Event entryEvent = Context.createEvent();
+        Metadata metadata = Context.getMetadata();
+        metadata.randomize();
+        Event entryEvent = Context.createEventWithContext(metadata);
         entryEvent.addInfo("Layer", "test-" + i);
         entryEvent.addInfo("Label", "info");
 

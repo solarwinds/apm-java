@@ -133,9 +133,8 @@ function verify_that_span_data_is_persisted() {
                     for (let k = 0; k < properties.length; k++) {
                         const property = properties[k]
                         check(property, {"mvc handler name is added": prop => prop.key === "HandlerName"})
-                        check(property, {"code profiling": prop => prop.key === "NewFrames"})
-
                         check(property, {"trigger trace": prop => prop.key === "TriggeredTrace"})
+
                         if (property.key === "PDKeys") {
                             check(property, {"xtrace-options is added to root span": prop => prop.value === "{check-id=123, lo=se}"})
                             found = true
@@ -153,6 +152,65 @@ function verify_that_span_data_is_persisted() {
 
     }
 
+}
+
+function verify_profile() {
+    const newOwner = names.randomOwner();
+    let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
+    for (; retryCount > 0; retryCount--) {
+        const newOwnerResponse = http.post(`${baseUri}/owners`, JSON.stringify(newOwner),
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    "x-trace-options": "trigger-trace;custom-info=chubi;sw-keys=lo:se,check-id:123"
+                }
+            });
+
+        const traceContext = newOwnerResponse.headers['X-Trace']
+        const [_, __, ___, flag] = traceContext.split("-")
+        console.log("Trace context -> ", traceContext)
+        if ((parseInt(flag, 16) & 1) === 0) continue;
+
+        const endTime = Date.now();
+        const startTime = endTime - 10 * 60 * 1000;
+        const profileSpanQueryPayload = {
+            "operationName": "getSearchedTraceRequests",
+            "variables": {
+                "searchQuery": "sw.profile.spans:1",
+                "orderBy": {
+                    "direction": "DESC",
+                    "sort": "TIME"
+                },
+                "first": 15,
+                "timeFilter": {
+                    "startTime": `${startTime}`,
+                    "endTime": `${endTime}`
+                },
+                "serviceNames": ["java-apm-smoke-test","java-apm-smoke-test-webmvc"]
+            },
+            "query": "query getSearchedTraceRequests($first: Int, $serviceNames: [String!], $timeFilter: TimeRangeInput!, $orderBy: TraceRequestItemsOrderBy!, $searchQuery: String!) {\n  trace {\n    requests(\n      context: {serviceNames: $serviceNames}\n      search: {query: $searchQuery, timeRange: $timeFilter}\n      paging: {first: $first}\n      orderBy: $orderBy\n    ) {\n      totalCount\n      pageInfo {\n        startCursor\n        endCursor\n        hasPreviousPage\n        hasNextPage\n        __typename\n      }\n      edges {\n        node {\n          id\n          traceId\n          spanId\n          time\n          transaction\n          httpMethod\n          httpStatus\n          service\n          serviceEntityId\n          websiteEntityName\n          awsLambdaEntityName\n          awsLambdaEntityId\n          hostEntityName\n          hostEntityId\n          websiteId\n          duration {\n            value\n            units\n            __typename\n          }\n          __typename\n        }\n        cursor\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n"
+        }
+
+        for (; retryCount > 0; retryCount--) {
+            let profileResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(profileSpanQueryPayload),
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cookie': `${__ENV.SWO_COOKIE}`,
+                        'X-Csrf-Token': `${__ENV.SWO_XSR_TOKEN}`
+                    }
+                });
+
+            profileResponse = JSON.parse(profileResponse.body)
+            if (profileResponse['errors']) {
+              console.log("Error -> Profile spans response:", JSON.stringify(profileResponse))
+              continue
+            }
+
+            const {data: {trace: {requests: {edges}}}} = profileResponse
+            check(edges, {"code profiling": prop => prop.length > 0})
+        }
+    }
 }
 
 function verify_that_span_data_is_persisted_0() {
@@ -206,9 +264,8 @@ function verify_that_span_data_is_persisted_0() {
 
                     for (let k = 0; k < properties.length; k++) {
                         const property = properties[k]
-
                         check(property, {"trigger trace": prop => prop.key === "TriggeredTrace"})
-                        check(property, {"code profiling": prop => prop.key === "NewFrames"})
+
                         if (property.key === "sw.transaction") {
                             check(property, {"custom transaction name": prop => prop.value === transactionName})
                             return;
@@ -683,5 +740,6 @@ export default function () {
     silence(verify_that_span_data_is_persisted)
     silence(verify_that_trace_is_persisted)
     silence(verify_distributed_trace)
+    silence(verify_profile)
   }
 };

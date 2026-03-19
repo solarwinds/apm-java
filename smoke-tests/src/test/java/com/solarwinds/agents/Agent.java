@@ -42,6 +42,8 @@ public class Agent {
   public Agent(String name, String description, String url) {
     this(name, description, url, Arrays.asList("-Dio.opentelemetry.context.enableStrictContext=true",
             "-Dotel.java.experimental.span-stacktrace.min.duration=0ms",
+            "-Dsw.apm.profiler.enabled=true",
+            "-Dsw.apm.profiler.interval=10",
             "-Dsw.apm.span.stacktrace.filters=thread.id,os.description,http.request.method"));
   }
 

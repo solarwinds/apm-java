@@ -157,7 +157,6 @@ public class SmokeTestV2 {
     }
 
     @Test
-    @Disabled
     void assertCodeProfiling() throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['code profiling'].passes");

@@ -32,19 +32,23 @@ public class TestReporterTest {
   }
 
   @Test
-  public void testReporterSameThread() throws InvalidConfigException {
+  public void testReporterSameThread() {
     final TestReporter threadLocalReporter = ReporterFactory.getInstance().createTestReporter(true);
     final TestReporter nonThreadLocalReporter =
         ReporterFactory.getInstance().createTestReporter(false);
 
     Event event;
+    Metadata md = new Metadata();
+    md.randomize(true);
 
-    event = startTrace();
-    event.report(threadLocalReporter);
+    event = Context.createEventWithContext(md, false);
+    event.report(md, threadLocalReporter);
 
-    event = startTrace();
-    event.report(nonThreadLocalReporter);
+    md = new Metadata();
+    md.randomize(true);
+    event = Context.createEventWithContext(md, false);
 
+    event.report(md, nonThreadLocalReporter);
     assertEquals(1, threadLocalReporter.getSentEvents().size());
     assertEquals(1, nonThreadLocalReporter.getSentEvents().size());
   }
@@ -59,12 +63,16 @@ public class TestReporterTest {
         new Thread(
             () -> {
               Event event;
+              Metadata md = new Metadata();
+              md.randomize(true);
 
-              event = startTrace();
-              event.report(threadLocalReporter);
+              event = Context.createEventWithContext(md, false);
+              event.report(md, threadLocalReporter);
 
-              event = startTrace();
-              event.report(nonThreadLocalReporter);
+              md = new Metadata();
+              md.randomize(true);
+              event = Context.createEventWithContext(md, false);
+              event.report(md, nonThreadLocalReporter);
             });
 
     thread.start();
@@ -74,12 +82,5 @@ public class TestReporterTest {
         0,
         threadLocalReporter.getSentEvents().size()); // different thread, should not get the event
     assertEquals(1, nonThreadLocalReporter.getSentEvents().size());
-  }
-
-  private Event startTrace() {
-    Metadata md = new Metadata();
-    md.randomize(true);
-    Context.setMetadata(md);
-    return Context.createEventWithContext(md, false);
   }
 }
