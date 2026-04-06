@@ -23,6 +23,7 @@ import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.ProxyConfig;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.api.metrics.MeterProvider;
 import io.opentelemetry.exporter.otlp.http.trace.OtlpHttpSpanExporter;
 import io.opentelemetry.exporter.otlp.http.trace.OtlpHttpSpanExporterBuilder;
 import io.opentelemetry.exporter.otlp.internal.OtlpDeclarativeConfigUtil;
@@ -62,7 +63,9 @@ public class SpanExporterComponentProvider implements ComponentProvider {
         builder::setClientTls,
         builder::setRetryPolicy,
         builder::setMemoryMode,
-        true);
+        true,
+        builder::setInternalTelemetryVersion,
+        () -> builder.setMeterProvider(MeterProvider::noop));
 
     ProxyConfig proxyConfig = (ProxyConfig) ConfigManager.getConfig(ConfigProperty.AGENT_PROXY);
     if (proxyConfig != null) {

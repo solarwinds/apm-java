@@ -24,6 +24,7 @@ import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.ProxyConfig;
 import com.solarwinds.opentelemetry.extensions.DelegatingMetricExporter;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.api.metrics.MeterProvider;
 import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
 import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporterBuilder;
 import io.opentelemetry.exporter.otlp.internal.OtlpDeclarativeConfigUtil;
@@ -64,7 +65,9 @@ public class MetricExporterComponentProvider implements ComponentProvider {
         builder::setClientTls,
         builder::setRetryPolicy,
         builder::setMemoryMode,
-        true);
+        true,
+        builder::setInternalTelemetryVersion,
+        () -> builder.setMeterProvider(MeterProvider::noop));
 
     builder.setAggregationTemporalitySelector(AggregationTemporalitySelector.deltaPreferred());
 

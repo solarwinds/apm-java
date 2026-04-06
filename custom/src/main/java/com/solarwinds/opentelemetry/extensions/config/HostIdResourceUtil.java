@@ -21,12 +21,12 @@ import com.solarwinds.joboe.core.util.ServerHostInfoReader;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.semconv.ServiceAttributes;
 import io.opentelemetry.semconv.incubating.CloudIncubatingAttributes;
 import io.opentelemetry.semconv.incubating.ContainerIncubatingAttributes;
 import io.opentelemetry.semconv.incubating.HostIncubatingAttributes;
 import io.opentelemetry.semconv.incubating.K8sIncubatingAttributes;
 import io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes;
-import io.opentelemetry.semconv.incubating.ServiceIncubatingAttributes;
 
 public final class HostIdResourceUtil {
   private HostIdResourceUtil() {}
@@ -45,7 +45,7 @@ public final class HostIdResourceUtil {
     builder.put(HostIncubatingAttributes.HOST_ID, hostId.getHerokuDynoId());
     builder.put(AttributeKey.stringKey("sw.uams.client.id"), hostId.getUamsClientId());
     builder.put(AttributeKey.stringKey("uuid"), hostId.getUuid());
-    builder.put(ServiceIncubatingAttributes.SERVICE_INSTANCE_ID, hostId.getUuid());
+    builder.put(ServiceAttributes.SERVICE_INSTANCE_ID, hostId.getUuid());
 
     HostId.K8sMetadata k8sMetadata = hostId.getK8sMetadata();
     if (k8sMetadata != null) {
