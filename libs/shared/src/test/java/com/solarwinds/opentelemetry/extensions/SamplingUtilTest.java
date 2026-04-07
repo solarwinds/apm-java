@@ -90,8 +90,26 @@ class SamplingUtilTest {
   }
 
   @Test
+  void returnTrueGivenSwTraceStateWithFlag02() {
+    String swTraceState = "4025843a0f1f35f3-02";
+    assertTrue(SamplingUtil.isValidSwTraceState(swTraceState));
+  }
+
+  @Test
+  void returnTrueGivenSwTraceStateWithFlag03() {
+    String swTraceState = "4025843a0f1f35f3-03";
+    assertTrue(SamplingUtil.isValidSwTraceState(swTraceState));
+  }
+
+  @Test
+  void returnTrueGivenSwTraceStateWithAnyValidHexFlag() {
+    String swTraceState = "4025843a0f1f35f3-ff";
+    assertTrue(SamplingUtil.isValidSwTraceState(swTraceState));
+  }
+
+  @Test
   void returnFalseGivenSwTraceStateWithInvalidFlag() {
-    String swTraceState = "4025843a0f1f35f3-11";
+    String swTraceState = "4025843a0f1f35f3-0g";
     assertFalse(SamplingUtil.isValidSwTraceState(swTraceState));
   }
 

@@ -269,6 +269,44 @@ class SolarwindsSamplerTest {
     }
   }
 
+  @Test
+  void verifyThatSamplerFallsBackToPropagatedContextForRootSpan() {
+    try (MockedStatic<Span> spanMockedStatic = mockStatic(Span.class);
+        MockedStatic<TraceDecisionUtil> traceDecisionUtilMockedStatic =
+            mockStatic(TraceDecisionUtil.class)) {
+      spanMockedStatic.when(() -> Span.fromContext(any())).thenReturn(spanMock);
+
+      when(spanContextMock.isValid()).thenReturn(false);
+      when(spanMock.getSpanContext()).thenReturn(spanContextMock);
+
+      when(traceDecisionMock.isSampled()).thenReturn(false);
+      when(traceDecisionMock.isReportMetrics()).thenReturn(false);
+
+      XtraceOptions realOptions =
+          XtraceOptions.getXTraceOptions("trigger-trace;custom-senderhost=test;", null);
+
+      ArgumentCaptor<XtraceOptions> xtraceCaptor = ArgumentCaptor.forClass(XtraceOptions.class);
+      traceDecisionUtilMockedStatic
+          .when(() -> TraceDecisionUtil.shouldTraceRequest(any(), any(), any(), any()))
+          .thenReturn(traceDecisionMock);
+
+      PropagatedContext.set(realOptions);
+
+      tested.shouldSample(
+          Context.root(),
+          idGenerator.generateTraceId(),
+          "name",
+          SpanKind.SERVER,
+          Attributes.empty(),
+          Collections.emptyList());
+
+      traceDecisionUtilMockedStatic.verify(
+          () -> TraceDecisionUtil.shouldTraceRequest(any(), any(), xtraceCaptor.capture(), any()));
+      assertEquals(realOptions, xtraceCaptor.getValue());
+      assertNull(PropagatedContext.getXtraceOptions());
+    }
+  }
+
   @ParameterizedTest
   @MethodSource("constructParams")
   void testConstructUrl(String expected, Attributes attributes) {

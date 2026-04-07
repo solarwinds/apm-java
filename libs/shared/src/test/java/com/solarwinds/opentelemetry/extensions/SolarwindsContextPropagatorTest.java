@@ -204,6 +204,22 @@ class SolarwindsContextPropagatorTest {
   }
 
   @Test
+  void verifyThatExtractPopulatesPropagatedContext() {
+    PropagatedContext.clear();
+    final Map<String, String> carrier =
+        new HashMap<String, String>() {
+          {
+            put("X-Trace-Options", "trigger-trace;custom-senderhost=chubi;");
+          }
+        };
+
+    solarwindsContextPropagator.extract(Context.current(), carrier, textMapGetterStub);
+
+    assertNotNull(PropagatedContext.getXtraceOptions());
+    PropagatedContext.clear();
+  }
+
+  @Test
   void verifyThatTracestateIsExtractedAndPutIntoContext() {
     final Map<String, String> carrier =
         new HashMap<String, String>() {
