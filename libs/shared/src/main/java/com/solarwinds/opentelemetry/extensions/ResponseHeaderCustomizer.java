@@ -38,9 +38,13 @@ public class ResponseHeaderCustomizer implements HttpServerResponseCustomizer {
       RESPONSE response,
       HttpServerResponseMutator<RESPONSE> httpServerResponseMutator) {
     SpanContext spanContext = Span.fromContext(context).getSpanContext();
-    String flags = spanContext.isSampled() ? "01" : "00";
     String traceContext =
-        "00-" + spanContext.getTraceId() + "-" + spanContext.getSpanId() + "-" + flags;
+        "00-"
+            + spanContext.getTraceId()
+            + "-"
+            + spanContext.getSpanId()
+            + "-"
+            + spanContext.getTraceFlags().asHex();
 
     httpServerResponseMutator.appendHeader(response, XTRACE_HEADER, traceContext);
     String xtraceOptionsResp = spanContext.getTraceState().get(SW_XTRACE_OPTIONS_RESP_KEY);

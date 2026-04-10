@@ -28,6 +28,7 @@ import java.util.Objects;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.Getter;
+import lombok.ToString;
 
 /**
  * Represents the data model from the `X-Trace-Options` request header.
@@ -39,6 +40,7 @@ import lombok.Getter;
  *
  * <p>Provides a method to look up {@link XtraceOption} with the corresponding typed value.
  */
+@ToString
 public class XtraceOptions {
   private static final Logger logger = LoggerFactory.getLogger();
   static final long TIMESTAMP_MAX_DELTA = 5 * 60; // 5 minutes in seconds

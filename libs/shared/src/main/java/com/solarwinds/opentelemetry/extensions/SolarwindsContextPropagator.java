@@ -73,7 +73,7 @@ public class SolarwindsContextPropagator implements TextMapPropagator {
     // https://www.w3.org/TR/trace-context/#mutating-the-tracestate-field
     final TraceState traceState = spanContext.getTraceState();
     final String swTraceStateValue =
-        spanContext.getSpanId() + "-" + (spanContext.isSampled() ? "01" : "00");
+        spanContext.getSpanId() + "-" + spanContext.getTraceFlags().asHex();
     setter.set(carrier, TRACE_STATE, updateTraceState(traceState, swTraceStateValue));
 
     final String traceOptions = context.get(TriggerTraceContextKey.XTRACE_OPTIONS);
@@ -171,6 +171,7 @@ public class SolarwindsContextPropagator implements TextMapPropagator {
         context =
             context.with(TriggerTraceContextKey.XTRACE_OPTIONS_SIGNATURE, traceOptionsSignature);
       }
+      PropagatedContext.set(xTraceOptions);
     }
 
     final String traceState = getter.get(carrier, TRACE_STATE);

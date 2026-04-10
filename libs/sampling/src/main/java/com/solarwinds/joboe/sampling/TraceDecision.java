@@ -17,6 +17,7 @@
 package com.solarwinds.joboe.sampling;
 
 import lombok.Getter;
+import lombok.ToString;
 
 /**
  * Contains the result of trace decision (whether a request is sampled and whether metrics should be
@@ -28,6 +29,7 @@ import lombok.Getter;
  * @author pluk
  */
 @Getter
+@ToString
 public class TraceDecision {
   private final boolean sampled;
   private final boolean reportMetrics;

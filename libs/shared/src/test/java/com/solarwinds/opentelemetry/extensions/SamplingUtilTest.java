@@ -28,8 +28,14 @@ import com.solarwinds.joboe.sampling.TraceDecisionUtil;
 import com.solarwinds.joboe.sampling.XtraceOptions;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -83,33 +89,27 @@ class SamplingUtilTest {
     assertEquals("lo:se,check-id:123", builder.build().get(stringKey("SWKeys")));
   }
 
-  @Test
-  void returnTrueGivenValidSwTraceState() {
-    String swTraceState = "4025843a0f1f35f3-01";
+  static Stream<String> validHexFlags() {
+    return IntStream.rangeClosed(0x00, 0xff)
+        .mapToObj(i -> "4025843a0f1f35f3-" + String.format("%02x", i));
+  }
+
+  @ParameterizedTest
+  @MethodSource("validHexFlags")
+  void returnTrueGivenValidSwTraceStateForAllHexFlags(String swTraceState) {
     assertTrue(SamplingUtil.isValidSwTraceState(swTraceState));
   }
 
-  @Test
-  void returnFalseGivenSwTraceStateWithInvalidFlag() {
-    String swTraceState = "4025843a0f1f35f3-11";
-    assertFalse(SamplingUtil.isValidSwTraceState(swTraceState));
-  }
-
-  @Test
-  void returnFalseGivenSwTraceStateWithSpanIdLengthLessThan16() {
-    String swTraceState = "4025843a0f1f35f-01";
-    assertFalse(SamplingUtil.isValidSwTraceState(swTraceState));
-  }
-
-  @Test
-  void returnFalseGivenSwTraceStateWithSpanIdLengthGreaterThan16() {
-    String swTraceState = "4025843a0f1f35f33-01";
-    assertFalse(SamplingUtil.isValidSwTraceState(swTraceState));
-  }
-
-  @Test
-  void returnFalseGivenSwTraceStateWithInvalidFormat() {
-    String swTraceState = "4025843a0f1f3-5f-01";
+  @ParameterizedTest
+  @NullAndEmptySource
+  @ValueSource(
+      strings = {
+        "4025843a0f1f35f3-0g",
+        "4025843a0f1f35f-01",
+        "4025843a0f1f35f33-01",
+        "4025843a0f1f3-5f-01"
+      })
+  void returnFalseGivenInvalidSwTraceState(String swTraceState) {
     assertFalse(SamplingUtil.isValidSwTraceState(swTraceState));
   }
 }

@@ -38,7 +38,7 @@ function verify_that_trace_is_persisted() {
         const traceContext = petTypesResponse.headers['X-Trace']
         const [_, traceId, spanId, flag] = traceContext.split("-")
         console.log("Trace context -> ", traceContext)
-        if (flag === '00') continue;
+        if ((parseInt(flag, 16) & 1) === 0) continue;
 
         const traceDetailPayload = {
             "operationName": "getTraceDetails",
@@ -95,7 +95,7 @@ function verify_that_span_data_is_persisted() {
         const traceContext = newOwnerResponse.headers['X-Trace']
         const [_, traceId, __, flag] = traceContext.split("-")
         console.log("Trace context -> ", traceContext)
-        if (flag === '00') continue;
+        if ((parseInt(flag, 16) & 1) === 0) continue;
 
         const spanRawDataPayload = {
             "operationName": "getSubSpanRawData",
@@ -169,7 +169,7 @@ function verify_that_span_data_is_persisted_0() {
         const traceContext = response.headers['X-Trace']
         const [_, traceId, __, flag] = traceContext.split("-")
         console.log("Trace context -> ", traceContext)
-        if (flag === '00') continue;
+        if ((parseInt(flag, 16) & 1) === 0) continue;
 
         const spanRawDataPayload = {
             "operationName": "getSubSpanRawData",
@@ -232,7 +232,7 @@ function verify_distributed_trace() {
         const traceContext = response.headers['X-Trace']
         const [_, traceId, __, flag] = traceContext.split("-")
         console.log("[Distributed]Trace context -> ", traceContext)
-        if (flag === '00') continue;
+        if ((parseInt(flag, 16) & 1) === 0) continue;
 
         const spanRawDataPayload = {
             "operationName": "getSubSpanRawData",
@@ -303,7 +303,7 @@ function verify_that_specialty_path_is_not_sampled() {
     const traceContext = specialtiesResponse.headers['X-Trace']
 
     const [_, __, ___, flag] = traceContext.split("-")
-    check(flag, {"verify that transaction is filtered": f => f === "00"})
+    check(flag, {"verify that transaction is filtered": f => (parseInt(f, 16) & 1) === 0})
 }
 
 function verify_that_metrics_are_reported(metric, checkFn, service="lambda-e2e") {
@@ -430,7 +430,7 @@ function check_property(fn) {
         const traceContext = response.headers['X-Trace']
         const [_, traceId, __, flag] = traceContext.split("-")
         console.log("Trace context -> ", traceContext)
-        if (flag === '00') continue;
+        if ((parseInt(flag, 16) & 1) === 0) continue;
 
         const spanRawDataPayload = {
             "operationName": "getSubSpanRawData",

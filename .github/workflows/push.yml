@@ -341,7 +341,7 @@ jobs:
     env:
       SMOKEV2: "true"
     needs:
-      - release-test
+      - s3-stage-upload
     steps:
       - uses: actions/checkout@v6
 
