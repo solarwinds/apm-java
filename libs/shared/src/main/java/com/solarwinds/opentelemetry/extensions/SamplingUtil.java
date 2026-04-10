@@ -28,22 +28,10 @@ public class SamplingUtil {
 
   public static final String SW_TRACESTATE_KEY = "sw";
   public static final String SW_XTRACE_OPTIONS_RESP_KEY = "xtrace_options_response";
-  static final Pattern SPAN_ID_REGEX = Pattern.compile("[0-9a-fA-F]{16}");
-  static final Pattern FLAGS_REGEX = Pattern.compile("[0-9a-fA-F]{2}");
+  static final Pattern SW_TRACESTATE_REGEX = Pattern.compile("[0-9a-fA-F]{16}-[0-9a-fA-F]{2}");
 
   public static boolean isValidSwTraceState(String swVal) {
-    if (swVal == null || !swVal.contains("-")) {
-      return false;
-    }
-
-    final String[] swTraceState = swVal.split("-");
-    if (swTraceState.length != 2) {
-      return false;
-    }
-
-    // 16 is the hex length of the Otel span id
-    return (SPAN_ID_REGEX.matcher(swTraceState[0]).matches())
-        && FLAGS_REGEX.matcher(swTraceState[1]).matches();
+    return swVal != null && SW_TRACESTATE_REGEX.matcher(swVal).matches();
   }
 
   public static void addXtraceOptionsToAttribute(
