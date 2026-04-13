@@ -208,7 +208,9 @@ function verify_profile() {
             }
 
             const {data: {trace: {requests: {edges}}}} = profileResponse
-            check(edges, {"code profiling": prop => prop.length > 0})
+            if (check(edges, {"code profiling": prop => prop.length > 0})) {
+                return;
+            }
         }
     }
 }
