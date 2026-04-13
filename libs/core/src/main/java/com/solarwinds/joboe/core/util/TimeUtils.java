@@ -187,17 +187,16 @@ public class TimeUtils {
       size = data.size();
     }
 
-    @SuppressWarnings("unchecked")
-    public T getSum() {
+    public double getSum() {
       double sum = 0.0;
       for (T a : data) {
         sum += a.doubleValue();
       }
-      return (T) Double.valueOf(sum);
+      return sum;
     }
 
     public double getMean() {
-      return getSum().doubleValue() / size;
+      return getSum() / size;
     }
 
     public double getVariance() {
