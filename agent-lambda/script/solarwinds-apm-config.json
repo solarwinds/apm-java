@@ -1,6 +1,5 @@
 {
   "agent.logging": "info",
-  "monitor.jmx.enable": false,
   "profiler": {
     "enabled": false,
     "excludePackages": [

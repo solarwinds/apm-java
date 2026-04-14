@@ -39,9 +39,8 @@ public class CustomConfigCustomizerProvider implements DeclarativeConfigurationC
     customizer.addModelCustomizer(
         configurationModel -> {
           TracerProviderModel tracerProvider = configurationModel.getTracerProvider();
-          if (tracerProvider == null) {
-            tracerProvider = new TracerProviderModel();
-            configurationModel.withTracerProvider(tracerProvider);
+          if (tracerProvider != null) {
+            addProcessors(tracerProvider);
           }
 
           ResourceModel resourceModel = configurationModel.getResource();
@@ -51,7 +50,6 @@ public class CustomConfigCustomizerProvider implements DeclarativeConfigurationC
           }
 
           addResourceDetector(resourceModel);
-          addProcessors(tracerProvider);
           return configurationModel;
         });
   }

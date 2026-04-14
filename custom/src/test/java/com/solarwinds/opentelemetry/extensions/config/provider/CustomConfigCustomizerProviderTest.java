@@ -18,6 +18,7 @@ package com.solarwinds.opentelemetry.extensions.config.provider;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
@@ -58,7 +59,7 @@ class CustomConfigCustomizerProviderTest {
           .thenReturn(true);
 
       OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-          new OpenTelemetryConfigurationModel();
+          new OpenTelemetryConfigurationModel().withTracerProvider(new TracerProviderModel());
 
       doNothing()
           .when(declarativeConfigurationCustomizerMock)
@@ -88,7 +89,7 @@ class CustomConfigCustomizerProviderTest {
           .thenReturn(false);
 
       OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-          new OpenTelemetryConfigurationModel();
+          new OpenTelemetryConfigurationModel().withTracerProvider(new TracerProviderModel());
 
       doNothing()
           .when(declarativeConfigurationCustomizerMock)
@@ -131,6 +132,29 @@ class CustomConfigCustomizerProviderTest {
               .getDetectionDevelopment()
               .getDetectors()
               .isEmpty());
+    }
+  }
+
+  @Test
+  void processorsNotAddedWhenTracerProviderAbsent() {
+    try (MockedStatic<JavaRuntimeVersionChecker> javaRuntimeVersionCheckerMockedStatic =
+        mockStatic(JavaRuntimeVersionChecker.class)) {
+      javaRuntimeVersionCheckerMockedStatic
+          .when(JavaRuntimeVersionChecker::isJdkVersionSupported)
+          .thenReturn(true);
+
+      OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+          new OpenTelemetryConfigurationModel();
+
+      doNothing()
+          .when(declarativeConfigurationCustomizerMock)
+          .addModelCustomizer(functionArgumentCaptor.capture());
+
+      tested.customize(declarativeConfigurationCustomizerMock);
+      functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+
+      assertNull(openTelemetryConfigurationModel.getTracerProvider());
+      assertNotNull(openTelemetryConfigurationModel.getResource());
     }
   }
 }

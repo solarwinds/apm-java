@@ -82,7 +82,9 @@ public enum ConfigProperty {
       ConfigGroup.AGENT,
       String.class),
   AGENT_LOG_FILE(
-      new ConfigKey(null, EnvPrefix.PRODUCT + "JAVA_LOG_FILE"), ConfigGroup.AGENT, String.class),
+      new ConfigKey("agent.javaLogFile", EnvPrefix.PRODUCT + "JAVA_LOG_FILE"),
+      ConfigGroup.AGENT,
+      String.class),
   AGENT_COLLECTOR(
       new ConfigKey("agent.collector", EnvPrefix.PRODUCT + "COLLECTOR"),
       ConfigGroup.AGENT,
@@ -146,19 +148,6 @@ public enum ConfigProperty {
       new ConfigKey("agent.sqlTagDatabases", EnvPrefix.PRODUCT + "SQL_TAG_DATABASES"),
       ConfigGroup.AGENT,
       String.class),
-  MONITOR_JMX_SCOPES(new ConfigKey("monitor.jmx.scopes"), ConfigGroup.MONITOR, String.class),
-  MONITOR_JMX_ENABLE(new ConfigKey("monitor.jmx.enable"), ConfigGroup.MONITOR, Boolean.class),
-  MONITOR_JMX_MAX_ENTRY(new ConfigKey("monitor.jmx.maxEntry"), ConfigGroup.MONITOR, Integer.class),
-  MONITOR_METRICS_FLUSH_INTERVAL(
-      new ConfigKey(null, EnvPrefix.PRODUCT + "METRICS_FLUSH_INTERVAL"),
-      ConfigGroup.MONITOR,
-      Integer.class),
-
-  MONITOR_SPAN_METRICS_ENABLE(
-      new ConfigKey("monitor.spanMetrics.enable", EnvPrefix.PRODUCT + "SPAN_METRICS_ENABLE"),
-      ConfigGroup.MONITOR,
-      Boolean.class),
-
   PROFILER(new ConfigKey("profiler"), ConfigGroup.PROFILER, String.class),
   PROFILER_ENABLED_ENV_VAR(
       new ConfigKey(null, EnvPrefix.PRODUCT + "PROFILER_ENABLED"),
