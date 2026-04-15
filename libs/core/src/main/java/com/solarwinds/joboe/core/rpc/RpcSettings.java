@@ -90,7 +90,7 @@ public class RpcSettings extends com.solarwinds.joboe.sampling.Settings {
       if (arg == null) {
         logger.debug("Cannot recognize argument [" + inputArg.getKey() + "], ignoring...");
       } else {
-        args.put(arg, arg.readValue(inputArg.getValue()));
+        args.put(arg, arg.readFromByteBuffer(inputArg.getValue()));
       }
     }
   }

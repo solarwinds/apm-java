@@ -22,12 +22,14 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import lombok.ToString;
 
 /**
  * Container that stores {@link TraceConfig} mapped by URL
  *
  * @author pluk
  */
+@ToString
 public class TraceConfigs implements Serializable {
   private static final long serialVersionUID = 1L;
 

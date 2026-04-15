@@ -87,7 +87,7 @@ public abstract class SettingsArg<T> {
    * @param byteBuffer
    * @return
    */
-  public abstract T readValue(ByteBuffer byteBuffer);
+  public abstract T readFromByteBuffer(ByteBuffer byteBuffer);
 
   /** Converts the given {@link Object} to T */
   public abstract T readValue(Object object);
@@ -148,7 +148,7 @@ public abstract class SettingsArg<T> {
     }
 
     @Override
-    public Double readValue(ByteBuffer byteBuffer) {
+    public Double readFromByteBuffer(ByteBuffer byteBuffer) {
       try {
         return byteBuffer.order(ByteOrder.LITTLE_ENDIAN).getDouble();
       } catch (BufferUnderflowException e) {
@@ -196,7 +196,7 @@ public abstract class SettingsArg<T> {
     }
 
     @Override
-    public Integer readValue(ByteBuffer byteBuffer) {
+    public Integer readFromByteBuffer(ByteBuffer byteBuffer) {
       try {
         return byteBuffer.order(ByteOrder.LITTLE_ENDIAN).getInt();
       } catch (BufferUnderflowException e) {
@@ -244,7 +244,7 @@ public abstract class SettingsArg<T> {
     }
 
     @Override
-    public Boolean readValue(ByteBuffer byteBuffer) {
+    public Boolean readFromByteBuffer(ByteBuffer byteBuffer) {
       try {
         int value = byteBuffer.order(ByteOrder.LITTLE_ENDIAN).getInt();
         return value != 0; // any non-zero is considered as True
@@ -290,7 +290,7 @@ public abstract class SettingsArg<T> {
     }
 
     @Override
-    public byte[] readValue(ByteBuffer byteBuffer) {
+    public byte[] readFromByteBuffer(ByteBuffer byteBuffer) {
       try {
         byte[] value = new byte[byteBuffer.remaining()];
         byteBuffer.order(ByteOrder.LITTLE_ENDIAN).get(value);

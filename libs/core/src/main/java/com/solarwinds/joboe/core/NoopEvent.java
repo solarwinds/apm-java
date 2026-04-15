@@ -44,9 +44,6 @@ public class NoopEvent extends Event {
   public void setAsync() {}
 
   @Override
-  public void report(EventReporter reporter) {}
-
-  @Override
   public void report(Metadata md, EventReporter reporter) {}
 
   @Override

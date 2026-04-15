@@ -17,10 +17,12 @@
 package com.solarwinds.joboe.sampling;
 
 import lombok.Builder;
+import lombok.ToString;
 import lombok.Value;
 
 @Value
 @Builder
+@ToString
 public class SamplingConfiguration {
   @Builder.Default int ttl = 1_200_000; // 20 minutes by default, in unit of millisecond;
 

@@ -64,13 +64,6 @@ public abstract class Event {
   /**
    * Report event to agent
    *
-   * @param reporter
-   */
-  public abstract void report(EventReporter reporter);
-
-  /**
-   * Report event to agent
-   *
    * @param md metadata from context - if null, then no context metadata check and update will be
    *     done
    * @param reporter Event Reporter

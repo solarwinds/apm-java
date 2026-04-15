@@ -18,9 +18,7 @@ package com.solarwinds.joboe.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.solarwinds.joboe.core.TestReporter.DeserializedEvent;
@@ -39,7 +37,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,131 +45,33 @@ public class ContextTest {
   private static final TestReporter tracingReporter = TestUtils.initTraceReporter();
 
   @AfterEach
-  protected void tearDown() throws Exception {
+  protected void tearDown() {
 
     testSettingsReader.reset();
     tracingReporter.reset();
   }
 
   @Test
-  public void testContext() throws Exception {
-
-    // Clear metadata: it may have been set by a previous test
-    Context.clearMetadata();
-
+  public void testContext() {
     // Make sure we can get metadata from our context:
     final Metadata md = Context.getMetadata();
     assertFalse(md.isValid());
 
     md.randomize();
     assertTrue(md.isValid());
-
-    Metadata md2 = Context.getMetadata();
-    assertSame(md, md2);
-
-    // Make sure we can set IDs:
-    Metadata rndMd = new Metadata();
-    rndMd.randomize();
-
-    Context.setMetadata(rndMd.toHexString());
-    assertEquals(Context.getMetadata().toHexString(), rndMd.toHexString());
-
-    // Verify that the context is inherited in child thread
-    final Metadata parentMD = Context.getMetadata();
-    final AtomicReference<Error> assertionError = new AtomicReference<Error>();
-
-    Thread thr =
-        new Thread(
-            () -> {
-              try {
-                Metadata childMD = Context.getMetadata();
-                assertNotSame(parentMD, childMD); // different object
-                assertEquals(parentMD.toHexString(), childMD.toHexString()); // but same metadata
-                assertTrue(childMD.isValid());
-              } catch (Error e) {
-                assertionError.set(e);
-              }
-            });
-
-    thr.start();
-    thr.join();
-
-    if (assertionError.get() != null) {
-      throw assertionError.get();
-    }
-  }
-
-  @Test
-  public void testInheritContext() throws InterruptedException {
-    Metadata context = Context.getMetadata();
-    context.randomize(); // make a valid context
-
-    TestThread thread;
-
-    thread = new TestThread();
-    thread.start();
-    thread.join();
-
-    assertEquals(
-        context.toHexString(), thread.threadContext.toHexString()); // should have same xtrace id
-    assertNotSame(
-        context,
-        thread
-            .threadContext); // but they should not be the same object, the inherited context should
-    // be a clone
-
-    // test config flag
-    Context.setSkipInheritingContext(true);
-    thread = new TestThread();
-    thread.start();
-    thread.join();
-    Context.setSkipInheritingContext(false);
-
-    assertFalse(thread.threadContext.isValid()); // no context inherited
-    // disable inherit context
-    testSettingsReader.put(
-        new SettingsMockupBuilder()
-            .withFlags(TracingMode.ALWAYS)
-            .withSampleRate(TraceDecisionUtil.SAMPLE_RESOLUTION)
-            .withSettingsArg(SettingsArg.DISABLE_INHERIT_CONTEXT, true)
-            .build());
-    thread = new TestThread();
-    thread.start();
-    thread.join();
-
-    assertFalse(thread.threadContext.isValid()); // no context inherited
-
-    // re-enable inherit context
-    testSettingsReader.put(
-        new SettingsMockupBuilder()
-            .withFlags(TracingMode.ALWAYS)
-            .withSampleRate(TraceDecisionUtil.SAMPLE_RESOLUTION)
-            .build());
-    thread = new TestThread();
-    thread.start();
-    thread.join();
-
-    assertEquals(
-        context.toHexString(), thread.threadContext.toHexString()); // should have same xtrace id
-    assertNotSame(
-        context,
-        thread
-            .threadContext); // but they should not be the same object, the inherited context should
-    // be a clone
   }
 
   @Test
   public void testCreateEventWithContextTtl() throws InterruptedException {
-    Context.clearMetadata(); // this triggers creation of new metadata
-    Context.getMetadata().randomize(true); // make it a valid context
+    Metadata metadata = Context.getMetadata();
+    metadata.randomize(true); // make it a valid context
 
     // warm-up run...as first call can take a few secs (for getting host info)
-    Event event = Context.createEvent();
-    event.report(tracingReporter);
+    Event event = Context.createEventWithContext(metadata);
+    event.report(metadata, tracingReporter);
     tracingReporter.reset();
 
-    Context.clearMetadata(); // this triggers creation of new metadata
-    Context.getMetadata().randomize(); // make it a valid context
+    metadata.randomize(); // make it a valid context
     int newTtl = 2;
     // set to 2 secs
     testSettingsReader.put(
@@ -182,8 +81,8 @@ public class ContextTest {
             .withSettingsArg(SettingsArg.MAX_CONTEXT_AGE, newTtl)
             .build());
 
-    event = Context.createEvent();
-    event.report(tracingReporter); // should be okay
+    event = Context.createEventWithContext(metadata);
+    event.report(metadata, tracingReporter); // should be okay
 
     List<DeserializedEvent> deserializedEvents = tracingReporter.getSentEvents();
     assertEquals(1, deserializedEvents.size()); // ok, since it's within 2 secs
@@ -191,16 +90,17 @@ public class ContextTest {
 
     TimeUnit.SECONDS.sleep(newTtl + 1);
 
-    event = Context.createEvent();
-    event.report(tracingReporter); // not reported as this is more than 2 secs since creation
+    event = Context.createEventWithContext(metadata);
+    event.report(
+        metadata, tracingReporter); // not reported as this is more than 2 secs since creation
     deserializedEvents = tracingReporter.getSentEvents();
     assertTrue(deserializedEvents.isEmpty()); // no events
 
-    Context.clearMetadata(); // ensure reset metadata also reset ttl
-    Context.getMetadata().randomize(); // make it a valid context
+    metadata.randomize(); // make it a valid context
 
-    event = Context.createEvent();
-    event.report(tracingReporter); // this event should now be reported as this is a new metadata
+    event = Context.createEventWithContext(metadata);
+    event.report(
+        metadata, tracingReporter); // this event should now be reported as this is a new metadata
 
     deserializedEvents = tracingReporter.getSentEvents();
     assertEquals(1, deserializedEvents.size());
@@ -210,14 +110,11 @@ public class ContextTest {
 
   @Test
   public void testCreateEventWithMaxEvents() throws InterruptedException {
-    Context.clearMetadata(); // this triggers creation of new metadata
-    Context.getMetadata().randomize(true); // make it a valid context
-
     List<DeserializedEvent> deserializedEvents;
 
     // now simulate a max event change
-    Context.clearMetadata(); // this triggers creation of new metadata
-    Context.getMetadata().randomize(true); // make it a valid context
+    Metadata metadata = Context.getMetadata();
+    metadata.randomize(true); // make it a valid context
     int newMaxEvent = 10;
     testSettingsReader.put(
         new SettingsMockupBuilder()
@@ -227,33 +124,30 @@ public class ContextTest {
             .build());
 
     for (int i = 0; i < newMaxEvent; i++) {
-      Event event = Context.createEvent();
-      event.report(tracingReporter);
+      Event event = Context.createEventWithContext(metadata);
+      event.report(metadata, tracingReporter);
     }
 
     deserializedEvents = tracingReporter.getSentEvents();
     assertEquals(newMaxEvent, deserializedEvents.size()); // ok within limit
     tracingReporter.reset();
 
-    Event noopEvent = Context.createEvent(); // exceeding limit
-    noopEvent.report(tracingReporter);
+    Event noopEvent = Context.createEventWithContext(metadata); // exceeding limit
+    noopEvent.report(metadata, tracingReporter);
     deserializedEvents = tracingReporter.getSentEvents();
     tracingReporter.reset();
     assertTrue(deserializedEvents.isEmpty()); // no events
 
-    assertTrue(Context.isValid()); // context should still be valid
-    assertTrue(Context.getMetadata().isSampled()); // and it should still be flagged as sampled
-
-    Context.clearMetadata(); // this triggers creation of new metadata
-    Context.getMetadata().randomize(true); // make it a valid context
+    assertTrue(metadata.isSampled()); // and it should still be flagged as sampled
+    metadata.randomize(true); // make it a valid context
 
     ExecutorService threadPool = Executors.newCachedThreadPool();
 
     for (int i = 0; i < newMaxEvent + 50; i++) {
       threadPool.submit(
           () -> {
-            Event event = Context.createEvent();
-            event.report(tracingReporter);
+            Event event = Context.createEventWithContext(metadata);
+            event.report(metadata, tracingReporter);
           });
     }
 
@@ -267,22 +161,20 @@ public class ContextTest {
             .size()); // collected event count should be newMaxEvent (not +1)
     tracingReporter.reset();
 
-    noopEvent = Context.createEvent(); // exceeding limit, this should return a noop
-    noopEvent.report(tracingReporter);
+    noopEvent =
+        Context.createEventWithContext(metadata); // exceeding limit, this should return a noop
+    noopEvent.report(metadata, tracingReporter);
     deserializedEvents = tracingReporter.getSentEvents();
     assertTrue(deserializedEvents.isEmpty()); // no events
   }
 
   @Test
   public void testMaxBacktraces() throws InterruptedException, ExecutionException {
-    Context.clearMetadata(); // this triggers creation of new metadata
-    Context.getMetadata().randomize(true); // make it a valid context
-
     List<DeserializedEvent> deserializedEvents;
 
     // now simulate a max event change
-    Context.clearMetadata(); // this triggers creation of new metadata
-    Context.getMetadata().randomize(true); // make it a valid context
+    Metadata metadata = Context.getMetadata();
+    metadata.randomize(true); // make it a valid context
     int newBacktraces = 10;
     testSettingsReader.put(
         new SettingsMockupBuilder()
@@ -292,10 +184,10 @@ public class ContextTest {
             .build());
 
     for (int i = 0; i < newBacktraces; i++) {
-      Event event = Context.createEvent();
+      Event event = Context.createEventWithContext(metadata);
       event.addInfo("Backtrace", "some backtrace");
       event.addInfo("OtherKv", "some value");
-      event.report(tracingReporter);
+      event.report(metadata, tracingReporter);
     }
 
     deserializedEvents = tracingReporter.getSentEvents();
@@ -306,10 +198,10 @@ public class ContextTest {
     }
     tracingReporter.reset();
 
-    Event event = Context.createEvent();
+    Event event = Context.createEventWithContext(metadata);
     event.addInfo("Backtrace", "some backtrace"); // exceeding limit
     event.addInfo("OtherKv", "some value"); // this should still get through
-    event.report(tracingReporter);
+    event.report(metadata, tracingReporter);
 
     deserializedEvents = tracingReporter.getSentEvents();
     assertEquals(1, deserializedEvents.size());
@@ -318,20 +210,18 @@ public class ContextTest {
     assertEquals("some value", deseralizedEvent.getSentEntries().get("OtherKv"));
     tracingReporter.reset();
 
-    Context.clearMetadata(); // this triggers creation of new metadata
-    Context.getMetadata().randomize(true); // make it a valid context
-
+    metadata.randomize(true); // make it a valid context
     ExecutorService threadPool = Executors.newCachedThreadPool();
 
-    List<Future<?>> futures = new ArrayList<Future<?>>();
+    List<Future<?>> futures = new ArrayList<>();
     for (int i = 0; i < newBacktraces + 10; i++) {
       futures.add(
           threadPool.submit(
               () -> {
-                Event event1 = Context.createEvent();
+                Event event1 = Context.createEventWithContext(metadata);
                 event1.addInfo("Backtrace", "some backtrace"); // 10 backtraces will not be reported
                 event1.addInfo("OtherKv", "some value");
-                event1.report(tracingReporter);
+                event1.report(metadata, tracingReporter);
               }));
     }
 
@@ -353,14 +243,5 @@ public class ContextTest {
 
     tracingReporter.reset();
     assertEquals(newBacktraces, backTraceCollected);
-  }
-
-  private static class TestThread extends Thread {
-    private Metadata threadContext;
-
-    @Override
-    public void run() {
-      threadContext = Context.getMetadata();
-    }
   }
 }

@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -60,14 +61,14 @@ public class EventImplTest {
   }
 
   @AfterEach
-  protected void tearDown() throws Exception {
+  protected void tearDown() {
+    Assertions.assertNotNull(reporter);
     reporter.reset();
-    Context.clearMetadata();
   }
 
   /*  Test that events can be sent and decoded, using a mock sender. */
   @Test
-  public void testLocalSendEvent() throws Exception {
+  public void testLocalSendEvent() {
 
     // Metadata for the context:
     Metadata md = new Metadata();
@@ -193,16 +194,14 @@ public class EventImplTest {
     assertEquals(1, reporter.getSentEvents().size());
   }
 
-  /**
-   * Over-sized event with a large KV
-   *
-   * @throws InvalidConfigException
-   */
+  /** Over-sized event with a large KV */
   @Test
-  public void testOversizedEvent1() throws InvalidConfigException {
+  public void testOversizedEvent1() {
     String bigValue = new String(new char[1000000]);
 
-    Event testEvent = startTrace();
+    Metadata md = new Metadata();
+    md.randomize(true);
+    Event testEvent = Context.createEventWithContext(md, false);
 
     testEvent.addInfo("key1", bigValue);
     testEvent.addInfo("key2", new String[] {bigValue, bigValue, bigValue});
@@ -212,12 +211,12 @@ public class EventImplTest {
     testEvent.addInfo("key6", new String[] {"hi"});
     testEvent.addInfo("key7", new Object[] {1, bigValue});
 
-    Metadata testEdge = new Metadata(Context.getMetadata());
+    Metadata testEdge = new Metadata(md);
     testEdge.randomizeOpID();
     testEvent.addEdge(testEdge.toHexString());
 
     TestReporter reporter = ReporterFactory.getInstance().createTestReporter();
-    testEvent.report(reporter);
+    testEvent.report(md, reporter);
 
     // Decode what was "sent":
     ByteBuffer buf = ByteBuffer.wrap(reporter.getLastSent()).order(ByteOrder.LITTLE_ENDIAN);
@@ -250,14 +249,16 @@ public class EventImplTest {
    */
   @Test
   public void testOversizedEvent2() throws InvalidConfigException {
-    Event testEvent = startTrace();
+    Metadata md = new Metadata();
+    md.randomize(true);
+    Event testEvent = Context.createEventWithContext(md, false);
 
     for (int i = 0; i < 10000; i++) {
       testEvent.addInfo(String.valueOf(i), i);
     }
 
     TestReporter reporter = ReporterFactory.getInstance().createTestReporter();
-    testEvent.report(reporter);
+    testEvent.report(md, reporter);
 
     // Decode what was "sent":
     ByteBuffer buf = ByteBuffer.wrap(reporter.getLastSent()).order(ByteOrder.LITTLE_ENDIAN);
@@ -290,11 +291,13 @@ public class EventImplTest {
       hugeArray[i] = 0;
     }
 
-    Event testEvent = startTrace();
-    testEvent.addInfo("HugeArray", hugeArray);
+    Metadata md = new Metadata();
+    md.randomize(true);
+    Event testEvent = Context.createEventWithContext(md, false);
 
+    testEvent.addInfo("HugeArray", hugeArray);
     TestReporter reporter = ReporterFactory.getInstance().createTestReporter();
-    testEvent.report(reporter);
+    testEvent.report(md, reporter);
 
     // Decode what was "sent":
     ByteBuffer buf = ByteBuffer.wrap(reporter.getLastSent()).order(ByteOrder.LITTLE_ENDIAN);
@@ -325,11 +328,13 @@ public class EventImplTest {
       longString.append(i);
     }
 
-    Event testEvent = startTrace();
-    testEvent.addInfo("LongString", longString.toString());
+    Metadata md = new Metadata();
+    md.randomize(true);
+    Event testEvent = Context.createEventWithContext(md, false);
 
+    testEvent.addInfo("LongString", longString.toString());
     TestReporter reporter = ReporterFactory.getInstance().createTestReporter();
-    testEvent.report(reporter);
+    testEvent.report(md, reporter);
 
     // Decode what was "sent":
     ByteBuffer buf = ByteBuffer.wrap(reporter.getLastSent()).order(ByteOrder.LITTLE_ENDIAN);
@@ -361,13 +366,16 @@ public class EventImplTest {
     }
     final String longPrefix = longString.toString();
 
-    Event testEvent = startTrace();
+    Metadata md = new Metadata();
+    md.randomize(true);
+    Event testEvent = Context.createEventWithContext(md, false);
+
     for (int i = 0; i < 100; i++) {
       testEvent.addInfo(longPrefix + i, longPrefix + 1);
     }
 
     TestReporter reporter = ReporterFactory.getInstance().createTestReporter();
-    testEvent.report(reporter);
+    testEvent.report(md, reporter);
 
     // Decode what was "sent":
     ByteBuffer buf = ByteBuffer.wrap(reporter.getLastSent()).order(ByteOrder.LITTLE_ENDIAN);
@@ -399,14 +407,16 @@ public class EventImplTest {
       map.put(PREFIX + i, PREFIX);
     }
 
-    Event testEvent = startTrace();
-    testEvent.addInfo("large-map", map);
+    Metadata md = new Metadata();
+    md.randomize(true);
+    Event testEvent = Context.createEventWithContext(md, false);
 
+    testEvent.addInfo("large-map", map);
     testEvent.addInfo("k1", 1); // these 2 should still make it
     testEvent.addInfo("k2", "2");
 
     TestReporter reporter = ReporterFactory.getInstance().createTestReporter();
-    testEvent.report(reporter);
+    testEvent.report(md, reporter);
 
     // Decode what was "sent":
     ByteBuffer buf = ByteBuffer.wrap(reporter.getLastSent()).order(ByteOrder.LITTLE_ENDIAN);
@@ -441,14 +451,16 @@ public class EventImplTest {
       list.add(PREFIX + i);
     }
 
-    Event testEvent = startTrace();
-    testEvent.addInfo("long-list", list);
+    Metadata md = new Metadata();
+    md.randomize(true);
+    Event testEvent = Context.createEventWithContext(md, false);
 
+    testEvent.addInfo("long-list", list);
     testEvent.addInfo("k1", 1); // these 2 should still make it
     testEvent.addInfo("k2", "2");
 
     TestReporter reporter = ReporterFactory.getInstance().createTestReporter();
-    testEvent.report(reporter);
+    testEvent.report(md, reporter);
 
     // Decode what was "sent":
     ByteBuffer buf = ByteBuffer.wrap(reporter.getLastSent()).order(ByteOrder.LITTLE_ENDIAN);
@@ -471,21 +483,22 @@ public class EventImplTest {
 
   @Test
   public void testAsyncByMarkedEvent() {
-    Context.getMetadata().randomize(true);
+    Metadata metadata = Context.getMetadata();
+    metadata.randomize(true);
 
-    Event event = Context.createEvent();
+    Event event = Context.createEventWithContext(metadata);
     event.addInfo(
         "Layer", "test",
         "Label", "entry");
     event.setAsync();
-    event.report(reporter);
+    event.report(event.metadata, reporter);
 
-    event = Context.createEvent();
+    event = Context.createEventWithContext(metadata);
     event.addInfo(
         "Layer", "test",
         "Label", "exit");
     event.setAsync();
-    event.report(reporter);
+    event.report(event.metadata, reporter);
 
     for (DeserializedEvent deserializedEvent : reporter.getSentEvents()) {
       assertEquals(true, deserializedEvent.getSentEntries().get(Constants.XTR_ASYNC_KEY));
@@ -494,43 +507,43 @@ public class EventImplTest {
 
   @Test
   public void testAsyncByMarkedMetadata() {
-    Context.getMetadata().randomize(true);
-    Context.getMetadata().setIsAsync(true);
+    Metadata metadata = Context.getMetadata();
+    metadata.randomize(true);
+    metadata.setIsAsync(true);
 
-    Event event = Context.createEvent();
+    Event event = Context.createEventWithContext(metadata);
     event.addInfo("Layer", "test", "Label", "entry");
-    event.report(reporter);
+    event.report(metadata, reporter);
 
-    event = Context.createEvent();
+    event = Context.createEventWithContext(metadata);
     event.addInfo("Layer", "test-nested", "Label", "entry");
-    event.report(reporter);
+    event.report(metadata, reporter);
 
-    event = Context.createEvent();
+    event = Context.createEventWithContext(metadata);
     event.addInfo("Layer", "test-nested", "Label", "exit");
-    event.report(reporter);
+    event.report(metadata, reporter);
 
-    event = Context.createEvent();
+    event = Context.createEventWithContext(metadata);
     event.addInfo("Layer", "test", "Label", "exit");
-    event.report(reporter);
+    event.report(metadata, reporter);
 
-    event = Context.createEvent();
+    event = Context.createEventWithContext(metadata);
     event.addInfo("Layer", "test", "Label", "entry");
-    event.report(reporter);
+    event.report(metadata, reporter);
 
-    event = Context.createEvent();
+    event = Context.createEventWithContext(metadata);
     event.addInfo("Layer", "test-nested", "Label", "entry");
-    event.report(reporter);
+    event.report(metadata, reporter);
 
-    event = Context.createEvent();
+    event = Context.createEventWithContext(metadata);
     event.addInfo("Layer", "test-nested", "Label", "exit");
-    event.report(reporter);
+    event.report(metadata, reporter);
 
-    event = Context.createEvent();
+    event = Context.createEventWithContext(metadata);
     event.addInfo("Layer", "test", "Label", "exit");
-    event.report(reporter);
+    event.report(metadata, reporter);
 
     List<DeserializedEvent> deserializedEvents = reporter.getSentEvents();
-
     assertEquals(8, deserializedEvents.size());
 
     // only the first (0) and the fifth (4)
@@ -551,12 +564,5 @@ public class EventImplTest {
     assertEquals(
         "2BA6A6D97A748BFC9F91A4DC46A0D15BBB00000000B6968E14AC09A25A00",
         EventImpl.w3cContextToXTrace("00-a6a6d97a748bfc9f91a4dc46a0d15bbb-b6968e14ac09a25a-00"));
-  }
-
-  private Event startTrace() {
-    Metadata md = new Metadata();
-    md.randomize(true);
-    Context.setMetadata(md);
-    return Context.createEventWithContext(md, false);
   }
 }
