@@ -33,7 +33,7 @@ dependencies {
   testImplementation(project(":instrumentation:jdbc:javaagent"))
   testImplementation(project(":libs:config"))
   testImplementation(project(":instrumentation:instrumentation-shared"))
-  testImplementation(platform("org.testcontainers:testcontainers-bom:2.0.3"))
+  testImplementation(platform("org.testcontainers:testcontainers-bom:2.0.4"))
 
   testImplementation("org.testcontainers:testcontainers-mysql")
   testImplementation("org.testcontainers:testcontainers-junit-jupiter")
