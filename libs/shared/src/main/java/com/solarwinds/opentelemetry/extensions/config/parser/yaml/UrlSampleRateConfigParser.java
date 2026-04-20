@@ -75,9 +75,7 @@ public class UrlSampleRateConfigParser
           urlSampleRate.getStructured(url, DeclarativeConfigProperties.empty());
       TraceConfig traceConfig = extractConfig(urlConfig, declarativeConfigProperties);
 
-      if (traceConfig != null) {
-        result.put(new StringPatternMatcher(pattern), traceConfig);
-      }
+      result.put(new StringPatternMatcher(pattern), traceConfig);
     }
 
     return new TraceConfigs(result);

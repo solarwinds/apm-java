@@ -28,7 +28,7 @@ tracer_provider:
 # Configure meter provider.
 meter_provider:
 
-# Configure logger provider.
+# Configure logger provider. Remove to disable log export
 logger_provider:
 
 instrumentation/development:

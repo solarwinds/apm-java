@@ -150,30 +150,7 @@ instrumentation/development:
           delimiter: ":"
           attributes:
             - HandlerName
+      agent.triggerTrace: true
+      agent.sqlQueryMaxLength: 4096
       agent.serviceKey: ${SW_APM_SERVICE_KEY}
       agent.collector: apm.collector.na-01.st-ssp.solarwinds.com
-      monitor.jmx.enable: true
-      monitor.jmx.scopes: |
-        {
-          "java.lang:type=MemoryPool,*": [
-            "Usage"
-          ],
-          "java.lang:type=Memory": [
-            "HeapMemoryUsage",
-            "NonHeapMemoryUsage"
-          ],
-          "java.lang:type=GarbageCollector,*": [
-            "CollectionTime"
-          ],
-          "java.lang:type=Threading": [
-            "ThreadCount"
-          ],
-          "java.lang:type=OperatingSystem": [
-            "ProcessCpuTime",
-            "AvailableProcessors",
-            "ProcessCpuLoad"
-          ],
-          "java.lang:type=Runtime,*": [
-            "Uptime"
-          ]
-        }

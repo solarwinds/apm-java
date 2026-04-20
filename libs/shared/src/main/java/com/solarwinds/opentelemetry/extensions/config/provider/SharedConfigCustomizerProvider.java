@@ -81,28 +81,31 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
           if (meterProvider == null) {
             meterProvider = new MeterProviderModel();
             configurationModel.withMeterProvider(meterProvider);
+            try {
+              ConfigManager.setConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, false);
+            } catch (InvalidConfigException ignore) {
+            }
           }
-
-          if (tracerProvider == null) {
-            tracerProvider = new TracerProviderModel();
-            configurationModel.withTracerProvider(tracerProvider);
-          }
-
-          if (loggerProvider == null) {
-            loggerProvider = new LoggerProviderModel();
-            configurationModel.withLoggerProvider(loggerProvider);
-          }
-
-          addSampler(tracerProvider);
-          addProcessors(tracerProvider);
           addMetricExporter(configurationModel);
 
-          addLogExporter(configurationModel);
-          addSpanExporter(configurationModel);
-          PropagatorModel propagatorModel = new PropagatorModel();
+          if (tracerProvider != null) {
+            addSampler(tracerProvider);
+            addProcessors(tracerProvider);
+
+            addSpanExporter(configurationModel);
+          }
+
+          if (loggerProvider != null) {
+            addLogExporter(configurationModel);
+          }
+
+          PropagatorModel propagatorModel = configurationModel.getPropagator();
+          if (propagatorModel == null) {
+            propagatorModel = new PropagatorModel();
+            configurationModel.withPropagator(propagatorModel);
+          }
 
           addContextPropagators(propagatorModel);
-          configurationModel.withPropagator(propagatorModel);
           return configurationModel;
         });
   }
@@ -156,9 +159,15 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
   }
 
   private void addContextPropagators(PropagatorModel model) {
-    model.withCompositeList(
-        String.format(
-            "tracecontext,baggage,%s", ContextPropagatorComponentProvider.COMPONENT_NAME));
+    String compositeList = model.getCompositeList();
+    if (compositeList != null) {
+      model.withCompositeList(
+          String.format("%s,%s", compositeList, ContextPropagatorComponentProvider.COMPONENT_NAME));
+    } else {
+      model.withCompositeList(
+          String.format(
+              "tracecontext,baggage,%s", ContextPropagatorComponentProvider.COMPONENT_NAME));
+    }
   }
 
   private void addSpanExporter(OpenTelemetryConfigurationModel model) {
