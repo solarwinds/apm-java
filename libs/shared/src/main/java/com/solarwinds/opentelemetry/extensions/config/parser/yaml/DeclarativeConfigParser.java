@@ -54,24 +54,25 @@ public final class DeclarativeConfigParser {
         unknownKeys.add(key);
       } else {
         Object parsed = null;
-        Class<?> typeClass = configProperty.getTypeClass();
 
-        if (typeClass == String.class) {
-          parsed = declarativeConfigProperties.getString(key);
-
-        } else if (typeClass == Boolean.class) {
-          parsed = declarativeConfigProperties.getBoolean(key);
-
-        } else if (typeClass == Integer.class) {
-          parsed = declarativeConfigProperties.getInt(key);
-
-        } else if (typeClass == Long.class) {
-          parsed = declarativeConfigProperties.getLong(key);
-        }
-
-        if (register.containsKey(key)) {
-          ConfigParser<DeclarativeConfigProperties, Object> configParser = register.get(key);
+        ConfigParser<DeclarativeConfigProperties, Object> configParser = register.get(key);
+        if (configParser != null) {
           parsed = configParser.convert(declarativeConfigProperties);
+        } else {
+          Class<?> typeClass = configProperty.getTypeClass();
+
+          if (typeClass == String.class) {
+            parsed = declarativeConfigProperties.getString(key);
+
+          } else if (typeClass == Boolean.class) {
+            parsed = declarativeConfigProperties.getBoolean(key);
+
+          } else if (typeClass == Integer.class) {
+            parsed = declarativeConfigProperties.getInt(key);
+
+          } else if (typeClass == Long.class) {
+            parsed = declarativeConfigProperties.getLong(key);
+          }
         }
 
         if (parsed != null) {
