@@ -288,9 +288,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build agent
-        run: ./gradlew clean build -x test
-
       - name: Checkout solarwinds-actions/gha-signing
         uses: actions/checkout@v6
         with:
@@ -306,15 +303,15 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Build and Set agent version
+        id: set_version
+        uses: ./.github/actions/version
+
       - name: Sign Files
         uses: ./.github/actions/gha-signing/ats-sign
         with:
           files-to-sign: '*.jar'
           cert-profile: ${{ vars.ATS_CERT_PROFILE }}
-
-      - name: Set agent version
-        id: set_version
-        uses: ./.github/actions/version
 
       - name: Upload signed artifact
         run: |
