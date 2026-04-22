@@ -366,13 +366,7 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
     }
   }
 
-  @Override
-  protected void finalize() throws Throwable {
-    close();
-    super.finalize();
-  }
-
-  private final void asyncInitClient() {
+  private void asyncInitClient() {
     ExecutorService executorService =
         Executors.newSingleThreadExecutor(DaemonThreadFactory.newInstance("init-rpc-client"));
     executorService.submit(() -> initClient());
