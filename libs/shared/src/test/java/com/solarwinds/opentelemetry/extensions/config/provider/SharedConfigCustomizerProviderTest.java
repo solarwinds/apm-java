@@ -28,6 +28,7 @@ import com.solarwinds.joboe.config.ConfigProperty;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.AttributeLimitsModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.BatchLogRecordProcessorModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.BatchSpanProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalInstrumentationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
@@ -35,10 +36,16 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRec
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordExporterPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LoggerProviderModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.MeterProviderModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.MetricReaderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PeriodicMetricReaderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PropagatorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SamplerModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SimpleLogRecordProcessorModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SimpleSpanProcessorModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanExporterModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanExporterPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
@@ -199,6 +206,129 @@ class SharedConfigCustomizerProviderTest {
   }
 
   @Test
+  void customizeShouldNotSetMetricReaderWhenOneIsSpecified() {
+    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+        new OpenTelemetryConfigurationModel()
+            .withMeterProvider(
+                new MeterProviderModel()
+                    .withReaders(Collections.singletonList(new MetricReaderModel())))
+            .withInstrumentationDevelopment(
+                new ExperimentalInstrumentationModel()
+                    .withJava(
+                        new ExperimentalLanguageSpecificInstrumentationModel()
+                            .withAdditionalProperty(
+                                "solarwinds",
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                        "token:service")
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                        "apm.collector.com"))));
+
+    doNothing()
+        .when(declarativeConfigurationCustomizerMock)
+        .addModelCustomizer(functionArgumentCaptor.capture());
+
+    tested.customize(declarativeConfigurationCustomizerMock);
+    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+
+    MeterProviderModel meterProvider = openTelemetryConfigurationModel.getMeterProvider();
+    MetricReaderModel metricReaderModel = meterProvider.getReaders().get(0);
+    assertNull(metricReaderModel.getPeriodic());
+  }
+
+  @Test
+  void customizeShouldNotSetTraceExporterWhenBatchIsSpecified() {
+    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+        new OpenTelemetryConfigurationModel()
+            .withTracerProvider(
+                new TracerProviderModel()
+                    .withProcessors(
+                        Collections.singletonList(
+                            new SpanProcessorModel()
+                                .withBatch(
+                                    new BatchSpanProcessorModel()
+                                        .withExporter(new SpanExporterModel())))))
+            .withInstrumentationDevelopment(
+                new ExperimentalInstrumentationModel()
+                    .withJava(
+                        new ExperimentalLanguageSpecificInstrumentationModel()
+                            .withAdditionalProperty(
+                                "solarwinds",
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                        "token:service")
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                        "apm.collector.com"))));
+
+    doNothing()
+        .when(declarativeConfigurationCustomizerMock)
+        .addModelCustomizer(functionArgumentCaptor.capture());
+
+    tested.customize(declarativeConfigurationCustomizerMock);
+    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+
+    TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
+    SpanProcessorModel spanProcessorModel = tracerProvider.getProcessors().get(0);
+    BatchSpanProcessorModel batch = spanProcessorModel.getBatch();
+
+    assertNotNull(batch);
+    SpanExporterModel exporter = batch.getExporter();
+    SpanExporterPropertyModel spanExporterPropertyModel =
+        exporter.getAdditionalProperties().get(SpanExporterComponentProvider.COMPONENT_NAME);
+
+    assertNull(spanExporterPropertyModel);
+  }
+
+  @Test
+  void customizeShouldNotSetTraceExporterWhenSimpleIsSpecified() {
+    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+        new OpenTelemetryConfigurationModel()
+            .withTracerProvider(
+                new TracerProviderModel()
+                    .withProcessors(
+                        Collections.singletonList(
+                            new SpanProcessorModel()
+                                .withSimple(
+                                    new SimpleSpanProcessorModel()
+                                        .withExporter(new SpanExporterModel())))))
+            .withInstrumentationDevelopment(
+                new ExperimentalInstrumentationModel()
+                    .withJava(
+                        new ExperimentalLanguageSpecificInstrumentationModel()
+                            .withAdditionalProperty(
+                                "solarwinds",
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                        "token:service")
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                        "apm.collector.com"))));
+
+    doNothing()
+        .when(declarativeConfigurationCustomizerMock)
+        .addModelCustomizer(functionArgumentCaptor.capture());
+
+    tested.customize(declarativeConfigurationCustomizerMock);
+    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+
+    TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
+    SpanProcessorModel spanProcessorModel = tracerProvider.getProcessors().get(0);
+    SimpleSpanProcessorModel simple = spanProcessorModel.getSimple();
+
+    assertNotNull(simple);
+    SpanExporterModel exporter = simple.getExporter();
+    SpanExporterPropertyModel spanExporterPropertyModel =
+        exporter.getAdditionalProperties().get(SpanExporterComponentProvider.COMPONENT_NAME);
+
+    assertNull(spanExporterPropertyModel);
+  }
+
+  @Test
   void testCustomizeSetsExperimentalStacktraceWhenNotSet() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
@@ -314,6 +444,96 @@ class SharedConfigCustomizerProviderTest {
     Map<String, Object> logConfigs = logExporterProperty.getAdditionalProperties();
     assertEquals("https://otel.collector.com/v1/logs", logConfigs.get("endpoint"));
     assertEquals("authorization=Bearer token", logConfigs.get("headers_list"));
+  }
+
+  @Test
+  void customizeShouldNotSetLogExporterWhenBatchIsSpecified() {
+    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+        new OpenTelemetryConfigurationModel()
+            .withLoggerProvider(
+                new LoggerProviderModel()
+                    .withProcessors(
+                        Collections.singletonList(
+                            new LogRecordProcessorModel()
+                                .withBatch(
+                                    new BatchLogRecordProcessorModel()
+                                        .withExporter(new LogRecordExporterModel())))))
+            .withInstrumentationDevelopment(
+                new ExperimentalInstrumentationModel()
+                    .withJava(
+                        new ExperimentalLanguageSpecificInstrumentationModel()
+                            .withAdditionalProperty(
+                                "solarwinds",
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                        "token:service")
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                        "http://apm.collector.com"))));
+
+    doNothing()
+        .when(declarativeConfigurationCustomizerMock)
+        .addModelCustomizer(functionArgumentCaptor.capture());
+
+    tested.customize(declarativeConfigurationCustomizerMock);
+    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+
+    LoggerProviderModel loggerProvider = openTelemetryConfigurationModel.getLoggerProvider();
+    LogRecordProcessorModel logRecordProcessorModel = loggerProvider.getProcessors().get(0);
+    BatchLogRecordProcessorModel batch = logRecordProcessorModel.getBatch();
+
+    assertNotNull(batch);
+    LogRecordExporterModel exporter = batch.getExporter();
+    LogRecordExporterPropertyModel logExporterProperty =
+        exporter.getAdditionalProperties().get(LogExporterComponentProvider.COMPONENT_NAME);
+
+    assertNull(logExporterProperty);
+  }
+
+  @Test
+  void customizeShouldNotSetLogExporterWhenSimpleIsSpecified() {
+    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+        new OpenTelemetryConfigurationModel()
+            .withLoggerProvider(
+                new LoggerProviderModel()
+                    .withProcessors(
+                        Collections.singletonList(
+                            new LogRecordProcessorModel()
+                                .withSimple(
+                                    new SimpleLogRecordProcessorModel()
+                                        .withExporter(new LogRecordExporterModel())))))
+            .withInstrumentationDevelopment(
+                new ExperimentalInstrumentationModel()
+                    .withJava(
+                        new ExperimentalLanguageSpecificInstrumentationModel()
+                            .withAdditionalProperty(
+                                "solarwinds",
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                        "token:service")
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                        "http://apm.collector.com"))));
+
+    doNothing()
+        .when(declarativeConfigurationCustomizerMock)
+        .addModelCustomizer(functionArgumentCaptor.capture());
+
+    tested.customize(declarativeConfigurationCustomizerMock);
+    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+
+    LoggerProviderModel loggerProvider = openTelemetryConfigurationModel.getLoggerProvider();
+    LogRecordProcessorModel logRecordProcessorModel = loggerProvider.getProcessors().get(0);
+    SimpleLogRecordProcessorModel simple = logRecordProcessorModel.getSimple();
+
+    assertNotNull(simple);
+    LogRecordExporterModel exporter = simple.getExporter();
+    LogRecordExporterPropertyModel logExporterProperty =
+        exporter.getAdditionalProperties().get(LogExporterComponentProvider.COMPONENT_NAME);
+
+    assertNull(logExporterProperty);
   }
 
   @Test
