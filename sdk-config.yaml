@@ -6,7 +6,7 @@
 # vars defined in https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/.
 
 # The file format version.
-file_format: "0.4"
+file_format: "1.0"
 
 # Configure if the SDK is disabled or not. This setting is optional, the default value when not provided is for the SDK to be enabled
 disabled: false

@@ -256,7 +256,10 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
 
     boolean hasExporter =
         processors.stream()
-            .anyMatch(logRecordProcessorModel -> logRecordProcessorModel.getBatch() != null);
+            .anyMatch(
+                logRecordProcessorModel ->
+                    logRecordProcessorModel.getBatch() != null
+                        || logRecordProcessorModel.getSimple() != null);
 
     if (hasExporter) {
       return;
