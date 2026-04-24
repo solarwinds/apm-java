@@ -41,16 +41,16 @@ jobs:
     if: inputs.run_maven_release
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
     - name: Set up JDK 17
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
       with:
         java-version: '17'
         distribution: 'temurin'
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v6
+      uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
 
     - name: Publish
       run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
@@ -67,13 +67,13 @@ jobs:
     if: inputs.run_github_release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
           fetch-tags: true
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -104,10 +104,10 @@ jobs:
     if: inputs.run_s3_upload
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -116,7 +116,7 @@ jobs:
         run: ./gradlew clean build -x test
 
       - name: Aws setup
-        uses: aws-actions/configure-aws-credentials@v6
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
         with:
           role-to-assume: ${{ secrets.AWS_S3_ROLE_ARN_SSP_PROD }}
           aws-region: "us-east-1"
@@ -172,16 +172,16 @@ jobs:
     if: inputs.run_lambda_publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Aws setup
-        uses: aws-actions/configure-aws-credentials@v6
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
         with:
           role-to-assume: ${{ secrets.AWS_LAMBDA_ROLE_PROD }}
           aws-region: "us-east-1"
@@ -269,7 +269,7 @@ jobs:
         env:
           AGENT_VERSION: ${{ steps.set_version.outputs.version }}
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           path: arns.txt
           name: arns
@@ -280,16 +280,16 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Checkout solarwinds-actions/gha-signing
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: solarwinds-actions/gha-signing
           token: ${{ secrets.FGPAT_ENOPS_7950_SOLARWINDS_ACTIONS }}
@@ -297,7 +297,7 @@ jobs:
           path: ./.github/actions/gha-signing
 
       - name: Azure Login (Federated Identity)
-        uses: azure/login@v3
+        uses: azure/login@532459ea530d8321f2fb9bb10d1e0bcf23869a43 # v3.0.0
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
@@ -354,10 +354,10 @@ jobs:
       - github_release
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -367,20 +367,20 @@ jobs:
         uses: ./.github/actions/version
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v4
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
           username: ${{ vars.DOCKER_SOLARWINDS_ORG_LOGIN }}
           password: ${{ secrets.ENOPS5919_APM_DOCKER_HUB_CI_OAT }}
 
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         with:
           images: ${{ github.repository_owner }}/autoinstrumentation-java
           tags: |
@@ -393,7 +393,7 @@ jobs:
             org.opencontainers.image.vendor=SolarWinds Worldwide, LLC
 
       - name: Build and load -> linux/amd64
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
           context: agent
           platforms: linux/amd64
@@ -402,7 +402,7 @@ jobs:
           load: true
 
       - name: Build and push
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
           push: true
           context: agent
@@ -411,13 +411,13 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v4
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
           username: ${{ vars.ENOPS5919_DOCKER_SCOUT_CI_USER }}
           password: ${{ secrets.ENOPS5919_DOCKER_SCOUT_CI_PAT }}
 
       - name: Analyze for critical and high CVEs -> linux/amd64
-        uses: docker/scout-action@v1
+        uses: docker/scout-action@bacf462e8d090c09660de30a6ccc718035f961e3 # v1.20.4
         with:
           command: cves
           image: ${{ steps.meta.outputs.tags[0] }}
@@ -425,7 +425,7 @@ jobs:
           sarif-file: sarif.output.json
 
       - name: Upload SARIF result
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@65216971a11ded447a6b76263d5a144519e5eee1 # v2.25.2
         with:
           sarif_file: sarif.output.json
 
@@ -435,10 +435,10 @@ jobs:
       - github_release
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -448,20 +448,20 @@ jobs:
         uses: ./.github/actions/version
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
 
       - name: Login to GitHub Package Registry
-        uses: docker/login-action@v4
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
           push: true
           context: agent
@@ -473,10 +473,10 @@ jobs:
     needs:
       - github_release
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -486,7 +486,7 @@ jobs:
         uses: ./.github/actions/version
 
       - name: Scan Jar
-        uses: reversinglabs/gh-action-rl-scanner-cloud-only@v1
+        uses: reversinglabs/gh-action-rl-scanner-cloud-only@b61135055814f4da482de188fafe6c5d614f87a8 # v1
         with:
           artifact-to-scan: agent/build/libs/solarwinds-apm-agent.jar
           rl-verbose: true
@@ -501,10 +501,10 @@ jobs:
     needs:
       - github_release
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -514,7 +514,7 @@ jobs:
         uses: ./.github/actions/version
 
       - name: Scan SDK Jar
-        uses: reversinglabs/gh-action-rl-scanner-cloud-only@v1
+        uses: reversinglabs/gh-action-rl-scanner-cloud-only@b61135055814f4da482de188fafe6c5d614f87a8 # v1
         with:
           artifact-to-scan: solarwinds-otel-sdk/build/libs/solarwinds-otel-sdk.jar
           rl-verbose: true
@@ -529,10 +529,10 @@ jobs:
     needs:
       - github_release
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -542,7 +542,7 @@ jobs:
         uses: ./.github/actions/version
 
       - name: Scan Jar
-        uses: reversinglabs/gh-action-rl-scanner-cloud-only@v1
+        uses: reversinglabs/gh-action-rl-scanner-cloud-only@b61135055814f4da482de188fafe6c5d614f87a8 # v1
         with:
           artifact-to-scan: agent-lambda/build/libs/solarwinds-apm-agent-lambda.jar
           rl-verbose: true
