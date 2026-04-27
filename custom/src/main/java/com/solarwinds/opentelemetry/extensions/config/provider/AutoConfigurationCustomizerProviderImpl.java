@@ -48,11 +48,6 @@ public class AutoConfigurationCustomizerProviderImpl
     return agentEnabled;
   }
 
-  public static void setAgentEnabled(boolean agentEnabled) {
-    AutoConfigurationCustomizerProviderImpl.agentEnabled =
-        AutoConfigurationCustomizerProviderImpl.agentEnabled && agentEnabled;
-  }
-
   @Override
   public void customize(@Nonnull AutoConfigurationCustomizer autoConfiguration) {
     try {

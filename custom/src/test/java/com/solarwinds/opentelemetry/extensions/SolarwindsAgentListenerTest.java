@@ -16,19 +16,19 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import io.opentelemetry.sdk.trace.SdkTracerProvider;
-import io.opentelemetry.sdk.trace.samplers.Sampler;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,35 +39,36 @@ class SolarwindsAgentListenerTest {
 
   @Mock private OpenTelemetrySdk openTelemetrySdkMock;
 
-  @Mock private SdkTracerProvider sdkTracerProviderMock;
-
-  @Mock private Sampler samplerMock;
-
-  @Test
-  void returnFalseWhenOurSamplerIsNotAttached() {
-    when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk())
-        .thenReturn(OpenTelemetrySdk.builder().build());
-
-    assertFalse(tested.isUsingSolarwindsSampler(autoConfiguredOpenTelemetrySdkMock));
-  }
-
-  @Test
-  void returnTrueWhenOurSamplerIsAttached() {
-    when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk()).thenReturn(openTelemetrySdkMock);
-
-    when(openTelemetrySdkMock.getSdkTracerProvider()).thenReturn(sdkTracerProviderMock);
-    when(sdkTracerProviderMock.getSampler()).thenReturn(new SolarwindsSampler());
-
-    assertTrue(tested.isUsingSolarwindsSampler(autoConfiguredOpenTelemetrySdkMock));
-  }
-
   @Test
   void verifySDKIsShutdownWhenBranchIsNotTaken() {
-    when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk()).thenReturn(openTelemetrySdkMock);
-    when(openTelemetrySdkMock.getSdkTracerProvider()).thenReturn(sdkTracerProviderMock);
-    when(sdkTracerProviderMock.getSampler()).thenReturn(samplerMock);
+    try (MockedStatic<AutoConfigurationCustomizerProviderImpl>
+        autoConfigurationCustomizerProviderMockedStatic =
+            mockStatic(AutoConfigurationCustomizerProviderImpl.class)) {
 
-    tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
-    verify(openTelemetrySdkMock).shutdown();
+      autoConfigurationCustomizerProviderMockedStatic
+          .when(AutoConfigurationCustomizerProviderImpl::isAgentEnabled)
+          .thenReturn(false);
+
+      when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk())
+          .thenReturn(openTelemetrySdkMock);
+
+      tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
+      verify(openTelemetrySdkMock).shutdown();
+    }
+  }
+
+  @Test
+  void verifySDKIsNotShutdownWhenBranchIsTaken() {
+    try (MockedStatic<AutoConfigurationCustomizerProviderImpl>
+        autoConfigurationCustomizerProviderMockedStatic =
+            mockStatic(AutoConfigurationCustomizerProviderImpl.class)) {
+
+      autoConfigurationCustomizerProviderMockedStatic
+          .when(AutoConfigurationCustomizerProviderImpl::isAgentEnabled)
+          .thenReturn(true);
+
+      tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
+      verify(openTelemetrySdkMock, never()).shutdown();
+    }
   }
 }
