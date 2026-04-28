@@ -17,9 +17,9 @@ jobs:
   run-overhead-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
     # check out the branch `benchmark-results` for staging the benchmark data and summary.
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         ref: benchmark-results
         path: benchmark-results
@@ -33,7 +33,7 @@ jobs:
       # (Check out this document about how to create a PAT: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
       run: echo "${{ secrets.GP_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GP_USERNAME }} --password-stdin
     - name: run tests
-      uses: gradle/gradle-build-action@v3.5.0
+      uses: gradle/gradle-build-action@ac2d340dc04d9e1113182899e983b5400c17cda1 # v3.5.0
       with:
         arguments: test
         build-root-directory: benchmark
