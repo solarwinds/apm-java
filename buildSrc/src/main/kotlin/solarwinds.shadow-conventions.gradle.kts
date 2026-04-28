@@ -58,10 +58,6 @@ tasks.withType<ShadowJar>().configureEach {
   relocate("android.annotation", "com.solarwinds.joboe.shaded.android.annotation")
   relocate("javax.annotation", "com.solarwinds.joboe.shaded.javax.annotation")
 
-  relocate("cloud", "com.solarwinds.joboe.shaded.cloud")
-  relocate("google", "com.solarwinds.joboe.shaded.google2")
-  relocate("com.google", "com.solarwinds.joboe.shaded.google")
-
   relocate("javax.xml", "com.solarwinds.joboe.shaded.javax.xml")
   relocate("io.grpc", "com.solarwinds.joboe.shaded.io.grpc")
   relocate("io.netty", "com.solarwinds.joboe.shaded.io.netty")
@@ -71,4 +67,5 @@ tasks.withType<ShadowJar>().configureEach {
   relocate("org.jspecify", "com.solarwinds.joboe.shaded.org.jspecify")
 
   relocate("org.codehaus.mojo", "com.solarwinds.joboe.shaded.org.codehaus.mojo")
+  relocate("google", "com.solarwinds.joboe.shaded.google2")
 }
