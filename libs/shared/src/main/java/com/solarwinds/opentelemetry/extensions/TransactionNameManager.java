@@ -16,6 +16,8 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
+import static com.solarwinds.opentelemetry.extensions.SharedNames.TRANSACTION_NAME_KEY;
+
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.solarwinds.joboe.config.ConfigManager;
@@ -164,8 +166,13 @@ public class TransactionNameManager {
 
   static String buildTransactionName(SpanData spanData) {
     Attributes spanAttributes = spanData.getAttributes();
-    String custName = CustomTransactionNameDict.get(spanData.getTraceId());
+    String transactionName = spanAttributes.get(TRANSACTION_NAME_KEY);
+    if (transactionName != null && !transactionName.isEmpty()) {
+      logger.trace(String.format("Using pre-computed transaction name -> %s", transactionName));
+      return transactionName;
+    }
 
+    String custName = CustomTransactionNameDict.get(spanData.getTraceId());
     if (custName != null) {
       logger.trace(String.format("Using custom transaction name -> %s", custName));
       return custName;
@@ -201,7 +208,7 @@ public class TransactionNameManager {
 
     if (customTransactionNamePattern
         != null) { // try forming transaction name by the custom configured pattern
-      String transactionName =
+      transactionName =
           getTransactionNameByUrlAndPattern(
               path, customTransactionNamePattern, false, CUSTOM_TRANSACTION_NAME_PATTERN_SEPARATOR);
 
