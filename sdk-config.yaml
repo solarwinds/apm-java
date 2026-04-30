@@ -33,6 +33,8 @@ logger_provider:
 
 instrumentation/development:
   java:
+    runtime_telemetry:
+      emit_experimental_jfr_metrics/development: true
     common:
       default-enabled: true
     solarwinds:
