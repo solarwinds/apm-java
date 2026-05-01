@@ -16,11 +16,11 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
-import static io.opentelemetry.api.common.AttributeKey.stringKey;
+import static com.solarwinds.opentelemetry.extensions.SharedNames.LEGACY_TRANSACTION_NAME_KEY;
+import static com.solarwinds.opentelemetry.extensions.SharedNames.TRANSACTION_NAME_KEY;
 
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
-import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.metrics.LongHistogram;
@@ -37,10 +37,6 @@ import io.opentelemetry.semconv.HttpAttributes;
 
 public class InboundMeasurementMetricsGenerator implements ExtendedSpanProcessor {
   private LongHistogram responseTime;
-  private static final AttributeKey<String> TRANSACTION_NAME_KEY =
-      stringKey(SharedNames.TRANSACTION_NAME_KEY);
-  private static final AttributeKey<String> LEGACY_TRANSACTION_NAME_KEY =
-      stringKey("TransactionName");
 
   private static final Logger logger = LoggerFactory.getLogger();
 

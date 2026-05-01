@@ -16,12 +16,14 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
+import static io.opentelemetry.api.common.AttributeKey.stringKey;
+
+import io.opentelemetry.api.common.AttributeKey;
+
 public final class SharedNames {
   private SharedNames() {}
 
   public static final String COMPONENT_NAME = "solarwinds";
-
-  public static final String TRANSACTION_NAME_KEY = "sw.transaction";
 
   public static final String SPAN_STACKTRACE_FILTER_CLASS =
       "com.solarwinds.opentelemetry.extensions.SpanStacktraceFilter";
@@ -33,4 +35,9 @@ public final class SharedNames {
   public static final String SW_OTEL_PROXY_HOST_KEY = "sw.otel.exporter.proxy.host";
 
   public static final String SW_OTEL_PROXY_PORT_KEY = "sw.otel.exporter.proxy.port";
+
+  public static final AttributeKey<String> TRANSACTION_NAME_KEY = stringKey("sw.transaction");
+
+  public static final AttributeKey<String> LEGACY_TRANSACTION_NAME_KEY =
+      stringKey("TransactionName");
 }

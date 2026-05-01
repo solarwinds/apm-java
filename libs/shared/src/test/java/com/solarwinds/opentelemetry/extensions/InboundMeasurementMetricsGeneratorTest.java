@@ -129,9 +129,7 @@ class InboundMeasurementMetricsGeneratorTest {
                         && Boolean.FALSE.equals(
                             attributes.get(AttributeKey.booleanKey("sw.is_error")))
                         && TransactionNameManager.getTransactionName(testSpanData)
-                            .equals(
-                                attributes.get(
-                                    AttributeKey.stringKey(SharedNames.TRANSACTION_NAME_KEY))));
+                            .equals(attributes.get(SharedNames.TRANSACTION_NAME_KEY)));
 
     assertTrue(allMatch);
   }
@@ -170,9 +168,7 @@ class InboundMeasurementMetricsGeneratorTest {
                         && Boolean.TRUE.equals(
                             attributes.get(AttributeKey.booleanKey("sw.is_error")))
                         && TransactionNameManager.getTransactionName(testSpanData)
-                            .equals(
-                                attributes.get(
-                                    AttributeKey.stringKey(SharedNames.TRANSACTION_NAME_KEY))));
+                            .equals(attributes.get(SharedNames.TRANSACTION_NAME_KEY)));
 
     assertTrue(allMatch);
   }
