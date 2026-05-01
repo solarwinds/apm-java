@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import org.junit.jupiter.api.Test;
@@ -55,6 +56,7 @@ class TraceContextInjectorTest {
       when(spanContextMock.getTraceId()).thenReturn(traceId);
 
       when(spanContextMock.getSpanId()).thenReturn(spanId);
+      when(spanContextMock.getTraceFlags()).thenReturn(TraceFlags.getSampled());
 
       String actual = TraceContextInjector.inject(Context.current(), sql);
       String expected = String.format("/*traceparent='00-%s-%s-01'*/ %s", traceId, spanId, sql);
