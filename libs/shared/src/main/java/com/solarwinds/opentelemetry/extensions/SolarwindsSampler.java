@@ -104,77 +104,68 @@ public class SolarwindsSampler implements Sampler {
 
     final SamplingResult samplingResult;
     final AttributesBuilder additionalAttributesBuilder = Attributes.builder();
-    XtraceOptions xTraceOptions = parentContext.get(TriggerTraceContextKey.KEY);
-
-    if (xTraceOptions == null) {
-      xTraceOptions = PropagatedContext.getXtraceOptions();
-    }
+    final XtraceOptions xTraceOptions = parentContext.get(TriggerTraceContextKey.KEY);
 
     String xtraceOptionsResponseStr = null;
     List<String> signals =
         Arrays.asList(
             constructUrl(attributes), String.format(LAYER_NAME_PLACEHOLDER, spanKind, name.trim()));
 
-    try {
-      if (!parentSpanContext.isValid()) { // no valid traceparent, it is a new trace
-        TraceDecision traceDecision = shouldTraceRequest(name, null, xTraceOptions, signals);
-        samplingResult = toOtSamplingResult(traceDecision, xTraceOptions, true);
-        XTraceOptionsResponse xtraceOptionsResponse =
-            XTraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, true);
+    if (!parentSpanContext.isValid()) { // no valid traceparent, it is a new trace
+      TraceDecision traceDecision = shouldTraceRequest(name, null, xTraceOptions, signals);
+      samplingResult = toOtSamplingResult(traceDecision, xTraceOptions, true);
+      XTraceOptionsResponse xtraceOptionsResponse =
+          XTraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, true);
 
-        if (xtraceOptionsResponse != null) {
-          xtraceOptionsResponseStr = xtraceOptionsResponse.toString();
-        }
-
-      } else if (parentSpanContext.isRemote()) {
-        final String swTraceState = traceState.get(SW_TRACESTATE_KEY);
-
-        if (SamplingUtil.isValidSwTraceState(swTraceState)) { // pass through for request counting
-          additionalAttributesBuilder.put(Constants.SW_PARENT_ID, swTraceState.split("-")[0]);
-          final String xTraceId = Util.w3cContextToHexString(parentSpanContext);
-          final TraceDecision traceDecision =
-              shouldTraceRequest(name, xTraceId, xTraceOptions, signals);
-
-          samplingResult = toOtSamplingResult(traceDecision, xTraceOptions, false);
-          final XTraceOptionsResponse xTraceOptionsResponse =
-              XTraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, false);
-
-          if (xTraceOptionsResponse != null) {
-            xtraceOptionsResponseStr = xTraceOptionsResponse.toString();
-          }
-
-        } else { // no swTraceState, treat it as a new trace
-          final TraceDecision traceDecision =
-              shouldTraceRequest(name, null, xTraceOptions, signals);
-          samplingResult = toOtSamplingResult(traceDecision, xTraceOptions, true);
-
-          final XTraceOptionsResponse xTraceOptionsResponse =
-              XTraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, true);
-          if (xTraceOptionsResponse != null) {
-            xtraceOptionsResponseStr = xTraceOptionsResponse.toString();
-          }
-        }
-
-        final String traceStateValue = parentContext.get(TraceStateKey.KEY);
-        if (traceStateValue != null) {
-          additionalAttributesBuilder.put(Constants.SW_UPSTREAM_TRACESTATE, traceStateValue);
-        }
-
-      } else { // local span, continue with parent based sampling
-        samplingResult =
-            Sampler.parentBased(Sampler.alwaysOff())
-                .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks);
+      if (xtraceOptionsResponse != null) {
+        xtraceOptionsResponseStr = xtraceOptionsResponse.toString();
       }
 
-      SamplingResult result =
-          TraceStateSamplingResult.wrap(
-              samplingResult, additionalAttributesBuilder.build(), xtraceOptionsResponseStr);
+    } else if (parentSpanContext.isRemote()) {
+      final String swTraceState = traceState.get(SW_TRACESTATE_KEY);
 
-      logger.trace(String.format("Sampling decision: %s", result.getDecision()));
-      return result;
-    } finally {
-      PropagatedContext.clear();
+      if (SamplingUtil.isValidSwTraceState(swTraceState)) { // pass through for request counting
+        additionalAttributesBuilder.put(Constants.SW_PARENT_ID, swTraceState.split("-")[0]);
+        final String xTraceId = Util.w3cContextToHexString(parentSpanContext);
+        final TraceDecision traceDecision =
+            shouldTraceRequest(name, xTraceId, xTraceOptions, signals);
+
+        samplingResult = toOtSamplingResult(traceDecision, xTraceOptions, false);
+        final XTraceOptionsResponse xTraceOptionsResponse =
+            XTraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, false);
+
+        if (xTraceOptionsResponse != null) {
+          xtraceOptionsResponseStr = xTraceOptionsResponse.toString();
+        }
+
+      } else { // no swTraceState, treat it as a new trace
+        final TraceDecision traceDecision = shouldTraceRequest(name, null, xTraceOptions, signals);
+        samplingResult = toOtSamplingResult(traceDecision, xTraceOptions, true);
+
+        final XTraceOptionsResponse xTraceOptionsResponse =
+            XTraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, true);
+        if (xTraceOptionsResponse != null) {
+          xtraceOptionsResponseStr = xTraceOptionsResponse.toString();
+        }
+      }
+
+      final String traceStateValue = parentContext.get(TraceStateKey.KEY);
+      if (traceStateValue != null) {
+        additionalAttributesBuilder.put(Constants.SW_UPSTREAM_TRACESTATE, traceStateValue);
+      }
+
+    } else { // local span, continue with parent based sampling
+      samplingResult =
+          Sampler.parentBased(Sampler.alwaysOff())
+              .shouldSample(parentContext, traceId, name, spanKind, attributes, parentLinks);
     }
+
+    SamplingResult result =
+        TraceStateSamplingResult.wrap(
+            samplingResult, additionalAttributesBuilder.build(), xtraceOptionsResponseStr);
+
+    logger.trace(String.format("Sampling decision: %s", result.getDecision()));
+    return result;
   }
 
   String constructUrl(Attributes attributes) {

@@ -171,7 +171,6 @@ public class SolarwindsContextPropagator implements TextMapPropagator {
         context =
             context.with(TriggerTraceContextKey.XTRACE_OPTIONS_SIGNATURE, traceOptionsSignature);
       }
-      PropagatedContext.set(xTraceOptions);
     }
 
     final String traceState = getter.get(carrier, TRACE_STATE);
