@@ -38,6 +38,7 @@ import com.solarwinds.joboe.core.profiler.Profiler;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;
 import com.solarwinds.joboe.sampling.Metadata;
 import com.solarwinds.joboe.sampling.SamplingConfiguration;
+import com.solarwinds.joboe.sampling.TraceDecisionUtil;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
@@ -74,6 +75,8 @@ class SolarwindsProfilingSpanProcessorTest {
 
   private MockedStatic<Profiler> profilerMock;
 
+  private MockedStatic<TraceDecisionUtil> traceDecisionUtilMock;
+
   private static final String traceId = "0123456789abcdef0123456789abcdef";
 
   private static final String spanId = "0123456789abcdef";
@@ -83,12 +86,14 @@ class SolarwindsProfilingSpanProcessorTest {
     Metadata.setup(SamplingConfiguration.builder().build());
     processor = new SolarwindsProfilingSpanProcessor();
     spanMock = mockStatic(Span.class);
-
     profilerMock = mockStatic(Profiler.class);
+    traceDecisionUtilMock = mockStatic(TraceDecisionUtil.class);
+    traceDecisionUtilMock.when(TraceDecisionUtil::isProfilingEnabledByFlags).thenReturn(true);
   }
 
   @AfterEach
   void teardown() {
+    traceDecisionUtilMock.close();
     spanMock.close();
     profilerMock.close();
   }
@@ -319,5 +324,40 @@ class SolarwindsProfilingSpanProcessorTest {
   @DisplayName("isOnEndingRequired should return true")
   void isOnEndingRequiredShouldReturnTrue() {
     assertTrue(processor.isOnEndingRequired());
+  }
+
+  @Test
+  @DisplayName(
+      "onStart should set attribute to -1 on root span when profiling disabled by remote flags")
+  void onStartWhenProfilingDisabledByFlagsShouldSetAttributeToMinusOne()
+      throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.PROFILER, new ProfilerSetting(true, 1));
+    traceDecisionUtilMock.when(TraceDecisionUtil::isProfilingEnabledByFlags).thenReturn(false);
+
+    when(mockSpan.getSpanContext()).thenReturn(mockSpanContext);
+    when(mockSpanContext.isSampled()).thenReturn(true);
+
+    Span mockParentSpan = mock(Span.class);
+    spanMock.when(() -> Span.fromContext(mockParentContext)).thenReturn(mockParentSpan);
+    when(mockParentSpan.getSpanContext()).thenReturn(mockParentSpanContext);
+    when(mockParentSpanContext.isValid()).thenReturn(false);
+
+    processor.onStart(mockParentContext, mockSpan);
+    verify(mockSpan).setAttribute(SW_KEY_PREFIX + "profile.spans", -1);
+    profilerMock.verify(() -> Profiler.addProfiledThread(any(), any(), any()), never());
+  }
+
+  @Test
+  @DisplayName("onEnding should not profile when profiling disabled by remote flags")
+  void onEndingWhenProfilingDisabledByFlagsShouldNotProfile() throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.PROFILER, new ProfilerSetting(true, 1));
+    traceDecisionUtilMock.when(TraceDecisionUtil::isProfilingEnabledByFlags).thenReturn(false);
+
+    when(mockSpan.getSpanContext()).thenReturn(mockSpanContext);
+    when(mockSpanContext.isSampled()).thenReturn(true);
+
+    processor.onEnding(mockSpan);
+    verify(mockSpan, never()).setAttribute(anyString(), anyInt());
+    profilerMock.verify(() -> Profiler.stopProfile(any()), never());
   }
 }

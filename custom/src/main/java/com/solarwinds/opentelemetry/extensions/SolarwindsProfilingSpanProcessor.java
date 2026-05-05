@@ -25,6 +25,7 @@ import com.solarwinds.joboe.core.profiler.ProfilerSetting;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.Metadata;
+import com.solarwinds.joboe.sampling.TraceDecisionUtil;
 import com.solarwinds.opentelemetry.core.Util;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
@@ -75,7 +76,10 @@ public class SolarwindsProfilingSpanProcessor implements ExtendedSpanProcessor {
   private boolean isProfilingEnabled() {
     final ProfilerSetting profilerSetting =
         (ProfilerSetting) ConfigManager.getConfig(ConfigProperty.PROFILER);
-    return profilerSetting != null && profilerSetting.isEnabled();
+    if (profilerSetting == null || !profilerSetting.isEnabled()) {
+      return false;
+    }
+    return TraceDecisionUtil.isProfilingEnabledByFlags();
   }
 
   @Override

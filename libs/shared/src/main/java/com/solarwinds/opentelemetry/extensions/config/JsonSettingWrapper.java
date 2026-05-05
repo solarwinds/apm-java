@@ -59,8 +59,8 @@ public class JsonSettingWrapper extends Settings {
         flags |= OBOE_SETTINGS_FLAG_SAMPLE_THROUGH_ALWAYS;
       } else if ("TRIGGER_TRACE".equals(flagToken)) {
         flags |= OBOE_SETTINGS_FLAG_TRIGGER_TRACE_ENABLED;
-      } else if ("SAMPLE_BUCKET_ENABLED".equals(flagToken)) { // not used anymore
-        flags |= OBOE_SETTINGS_FLAG_SAMPLE_BUCKET_ENABLED;
+      } else if ("PROFILING".equals(flagToken)) {
+        flags |= OBOE_SETTINGS_FLAG_PROFILING;
       } else {
         LoggerFactory.getLogger().debug("Unknown flag found from settings: " + flagToken);
       }
