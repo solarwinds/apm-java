@@ -17,7 +17,6 @@
 package com.solarwinds.opentelemetry.extensions;
 
 import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
-import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.setAgentEnabled;
 
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigManager;
@@ -39,7 +38,6 @@ import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReader;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReaderDelegate;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import io.opentelemetry.sdk.trace.samplers.Sampler;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -56,7 +54,7 @@ public class SolarwindsAgentListener implements AgentListener {
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
-    if (isAgentEnabled() && isUsingSolarwindsSampler(autoConfiguredOpenTelemetrySdk)) {
+    if (isAgentEnabled()) {
       executeStartupTasks();
       registerShutdownTasks();
       logger.info(
@@ -64,19 +62,6 @@ public class SolarwindsAgentListener implements AgentListener {
     } else {
       autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk().shutdown();
     }
-  }
-
-  boolean isUsingSolarwindsSampler(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
-    Sampler sampler =
-        autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk().getSdkTracerProvider().getSampler();
-    boolean verdict = sampler instanceof SolarwindsSampler;
-    setAgentEnabled(verdict);
-
-    if (!verdict) {
-      logger.warn(
-          "Not using Solarwinds sampler. Configured sampler is: " + sampler.getDescription());
-    }
-    return verdict;
   }
 
   private void executeStartupTasks() {

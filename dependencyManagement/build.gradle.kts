@@ -64,6 +64,7 @@ dependencies {
     api("com.github.ben-manes.caffeine:caffeine:2.9.3")
 
     api("io.opentelemetry.contrib:opentelemetry-span-stacktrace:$otelJavaContribVersion")
+    api("io.opentelemetry.contrib:opentelemetry-cel-sampler:$otelJavaContribVersion")
     api("io.opentelemetry.semconv:opentelemetry-semconv-incubating:$opentelemetrySemconvAlpha")
 
     api("io.opentelemetry:opentelemetry-api-incubator:$opentelemetryAlpha")
