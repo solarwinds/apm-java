@@ -9,7 +9,7 @@
             "TriggerStrictBucketCapacity": 500000,
             "TriggerStrictBucketRate": 1.0
         },
-        "flags": "SAMPLE_START,SAMPLE_THROUGH_ALWAYS,SAMPLE_BUCKET_ENABLED,TRIGGER_TRACE",
+        "flags": "SAMPLE_START,SAMPLE_THROUGH_ALWAYS,PROFILING,TRIGGER_TRACE",
         "layer": "",
         "timestamp": 1698176407,
         "ttl": 120,

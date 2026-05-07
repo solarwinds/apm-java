@@ -396,6 +396,24 @@ public class TraceDecisionUtil {
         remoteConfig.getBucketRates()); // token bucket parameters are always from remote config
   }
 
+  /**
+   * Callers must check local profiling config before calling this method. Returns true when remote
+   * settings are unavailable, assuming the caller already confirmed local profiling is enabled.
+   */
+  public static boolean isProfilingEnabledByFlags() {
+    Settings settings = SettingsManager.getSettings();
+    if (settings == null) {
+      return true;
+    }
+
+    short flags = settings.getFlags();
+    if ((flags & Settings.OBOE_SETTINGS_FLAG_OVERRIDE) == Settings.OBOE_SETTINGS_FLAG_OVERRIDE) {
+      return (flags & Settings.OBOE_SETTINGS_FLAG_PROFILING)
+          == Settings.OBOE_SETTINGS_FLAG_PROFILING;
+    }
+    return true;
+  }
+
   private static boolean sampled(int sampleRate) {
     return (sampleRate == SAMPLE_RESOLUTION
         || (sampleRate < SAMPLE_RESOLUTION && rand.nextInt(SAMPLE_RESOLUTION) <= sampleRate));

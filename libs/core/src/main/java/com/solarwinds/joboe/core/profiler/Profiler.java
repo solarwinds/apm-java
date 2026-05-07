@@ -330,25 +330,8 @@ public class Profiler {
     return profile;
   }
 
-  /**
-   * Stops profiling on a particular thread
-   *
-   * @param profiledThread
-   * @param traceId
-   */
-  public static void removeProfiledThread(Thread profiledThread, String traceId) {
-    Profile profile = profileByTraceId.get(traceId);
-    if (profile != null) {
-      if (profile.stopProfilingOnThread(profiledThread)) {
-        logger.debug(
-            "Stopped profiling on Thread id: "
-                + profiledThread.getId()
-                + " name: "
-                + profiledThread.getName()
-                + " for trace "
-                + traceId);
-      }
-    }
+  public static boolean hasActiveProfiles() {
+    return !profileByTraceId.isEmpty();
   }
 
   /**

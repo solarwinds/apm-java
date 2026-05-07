@@ -28,11 +28,7 @@ public abstract class Settings {
       OBOE_SETTINGS_FLAG_SAMPLE_THROUGH = 0x8,
       OBOE_SETTINGS_FLAG_SAMPLE_THROUGH_ALWAYS = 0x10,
       OBOE_SETTINGS_FLAG_TRIGGER_TRACE_ENABLED = 0x20,
-      OBOE_SETTINGS_FLAG_SAMPLE_BUCKET_ENABLED =
-          0x40; // NOT USED This flag is to indicates whether the args position in settings contains
-  // valid bucket rate and bucket capacity in order to avoid errors reading old
-  // settings. It does not directly control whether token bucket check should be
-  // enforced
+      OBOE_SETTINGS_FLAG_PROFILING = 0x40;
   public static final short OBOE_SETTINGS_TYPE_SKIP = 0,
       OBOE_SETTINGS_TYPE_STOP = 1,
       OBOE_SETTINGS_TYPE_DEFAULT_SAMPLE_RATE = 2,

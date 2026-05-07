@@ -98,7 +98,21 @@ public class SettingsStub extends Settings {
         boolean isThroughAlways,
         boolean isTriggerTraceEnabled,
         boolean isOverride) {
-      flags = getFlags(isStart, isThrough, isThroughAlways, isTriggerTraceEnabled, isOverride);
+      flags =
+          getFlags(isStart, isThrough, isThroughAlways, isTriggerTraceEnabled, isOverride, false);
+      return this;
+    }
+
+    public SettingsStubBuilder withFlags(
+        boolean isStart,
+        boolean isThrough,
+        boolean isThroughAlways,
+        boolean isTriggerTraceEnabled,
+        boolean isOverride,
+        boolean isProfiling) {
+      flags =
+          getFlags(
+              isStart, isThrough, isThroughAlways, isTriggerTraceEnabled, isOverride, isProfiling);
       return this;
     }
 
@@ -137,8 +151,9 @@ public class SettingsStub extends Settings {
         boolean isThrough,
         boolean isThroughAlways,
         boolean isTriggerTraceEnabled,
-        boolean isOverride) {
-      byte flags = 0;
+        boolean isOverride,
+        boolean isProfiling) {
+      short flags = 0;
       if (isOverride) {
         flags |= Settings.OBOE_SETTINGS_FLAG_OVERRIDE;
       }
@@ -157,6 +172,10 @@ public class SettingsStub extends Settings {
 
       if (isTriggerTraceEnabled) {
         flags |= Settings.OBOE_SETTINGS_FLAG_TRIGGER_TRACE_ENABLED;
+      }
+
+      if (isProfiling) {
+        flags |= Settings.OBOE_SETTINGS_FLAG_PROFILING;
       }
 
       return flags;

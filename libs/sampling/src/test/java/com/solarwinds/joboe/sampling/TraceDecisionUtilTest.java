@@ -1356,6 +1356,41 @@ public class TraceDecisionUtilTest {
   }
 
   @Test
+  public void testProfilingEnabledByFlagsWhenRemoteNotAvailable() {
+    when(settingsFetcherMock.getSettings()).thenReturn(null);
+    assertTrue(TraceDecisionUtil.isProfilingEnabledByFlags());
+  }
+
+  @Test
+  public void testProfilingEnabledByFlagsWhenOverrideWithProfilingFlag() {
+    when(settingsFetcherMock.getSettings())
+        .thenReturn(SettingsStub.builder().withFlags(true, false, true, true, true, true).build());
+    assertTrue(TraceDecisionUtil.isProfilingEnabledByFlags());
+  }
+
+  @Test
+  public void testProfilingDisabledByFlagsWhenOverrideWithoutProfilingFlag() {
+    when(settingsFetcherMock.getSettings())
+        .thenReturn(SettingsStub.builder().withFlags(true, false, true, true, true, false).build());
+    assertFalse(TraceDecisionUtil.isProfilingEnabledByFlags());
+  }
+
+  @Test
+  public void testProfilingEnabledByFlagsWhenNoOverrideWithoutProfilingFlag() {
+    when(settingsFetcherMock.getSettings())
+        .thenReturn(
+            SettingsStub.builder().withFlags(true, false, true, true, false, false).build());
+    assertTrue(TraceDecisionUtil.isProfilingEnabledByFlags());
+  }
+
+  @Test
+  public void testProfilingEnabledByFlagsWhenNoOverrideWithProfilingFlag() {
+    when(settingsFetcherMock.getSettings())
+        .thenReturn(SettingsStub.builder().withFlags(true, false, true, true, false, true).build());
+    assertTrue(TraceDecisionUtil.isProfilingEnabledByFlags());
+  }
+
+  @Test
   public void testBadSignature() {
     when(settingsFetcherMock.getSettings())
         .thenReturn(

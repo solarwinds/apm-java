@@ -97,8 +97,14 @@ public class TraceConfig {
   }
 
   public boolean hasSampleTriggerTraceFlag() {
-    return (flags & Settings.OBOE_SETTINGS_FLAG_TRIGGER_TRACE_ENABLED)
-        == Settings.OBOE_SETTINGS_FLAG_TRIGGER_TRACE_ENABLED;
+    return flags != null
+        && (flags & Settings.OBOE_SETTINGS_FLAG_TRIGGER_TRACE_ENABLED)
+            == Settings.OBOE_SETTINGS_FLAG_TRIGGER_TRACE_ENABLED;
+  }
+
+  public boolean hasProfilingFlag() {
+    return flags != null
+        && (flags & Settings.OBOE_SETTINGS_FLAG_PROFILING) == Settings.OBOE_SETTINGS_FLAG_PROFILING;
   }
 
   short getFlags() {

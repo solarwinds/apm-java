@@ -60,7 +60,7 @@ class HttpSettingsReaderDelegateTest {
   private static final String TEST_JSON_RESPONSE =
       "{\n"
           + "    \"value\": 1000000,\n"
-          + "    \"flags\": \"SAMPLE_START,SAMPLE_THROUGH_ALWAYS,SAMPLE_BUCKET_ENABLED,TRIGGER_TRACE\",\n"
+          + "    \"flags\": \"SAMPLE_START,SAMPLE_THROUGH_ALWAYS,PROFILING,TRIGGER_TRACE\",\n"
           + "    \"timestamp\": 1741301987,\n"
           + "    \"ttl\": 120,\n"
           + "    \"arguments\": {\n"
