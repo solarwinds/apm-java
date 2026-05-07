@@ -401,13 +401,15 @@ public class TraceDecisionUtil {
    * settings are unavailable, assuming the caller already confirmed local profiling is enabled.
    */
   public static boolean isProfilingEnabledByFlags() {
-    TraceConfig remoteConfig = getRemoteTraceConfig();
-    if (remoteConfig == null) {
+    Settings settings = SettingsManager.getSettings();
+    if (settings == null) {
       return true;
     }
 
-    if (remoteConfig.hasOverrideFlag()) {
-      return remoteConfig.hasProfilingFlag();
+    short flags = settings.getFlags();
+    if ((flags & Settings.OBOE_SETTINGS_FLAG_OVERRIDE) == Settings.OBOE_SETTINGS_FLAG_OVERRIDE) {
+      return (flags & Settings.OBOE_SETTINGS_FLAG_PROFILING)
+          == Settings.OBOE_SETTINGS_FLAG_PROFILING;
     }
     return true;
   }

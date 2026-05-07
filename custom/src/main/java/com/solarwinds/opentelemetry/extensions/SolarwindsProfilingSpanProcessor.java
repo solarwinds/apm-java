@@ -85,7 +85,7 @@ public class SolarwindsProfilingSpanProcessor implements ExtendedSpanProcessor {
   @Override
   public void onEnding(ReadWriteSpan readWriteSpan) {
     SpanContext spanContext = readWriteSpan.getSpanContext();
-    if (spanContext.isSampled() && isProfilingEnabled()) { // only profile on sampled spans
+    if (spanContext.isSampled() && Profiler.hasActiveProfiles()) { // only profile on sampled spans
       SpanContext parentSpanContext = readWriteSpan.toSpanData().getParentSpanContext();
       if (!parentSpanContext.isValid()
           || parentSpanContext.isRemote()) { // then a root span of this service

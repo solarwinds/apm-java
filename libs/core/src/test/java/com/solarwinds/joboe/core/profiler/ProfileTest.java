@@ -232,6 +232,25 @@ public class ProfileTest {
     }
   }
 
+  @Test
+  void hasActiveProfilesReturnsFalseWhenNoProfilesExist() {
+    assertFalse(Profiler.hasActiveProfiles());
+  }
+
+  @Test
+  void hasActiveProfilesReturnsTrueAfterAddingProfiledThread() throws SamplingException {
+    Metadata.setup(SamplingConfiguration.builder().build());
+    Thread thread = Thread.currentThread();
+    String traceId = "970026c88092a447d3b2bba3be3be2fc";
+
+    Profiler.addProfiledThread(
+        thread, new Metadata("00-970026c88092a447d3b2bba3be3be2fc-0c8fc43138df813a-01"), traceId);
+    assertTrue(Profiler.hasActiveProfiles());
+
+    Profiler.stopProfile(traceId);
+    assertFalse(Profiler.hasActiveProfiles());
+  }
+
   private StackTraceElement[] simulateStackChange(Profile profile) {
     Thread thread = Thread.currentThread();
     StackTraceElement[] stackTrace = thread.getStackTrace();

@@ -239,6 +239,7 @@ class SolarwindsProfilingSpanProcessorTest {
     ConfigManager.setConfig(ConfigProperty.PROFILER, new ProfilerSetting(true, 1));
     when(mockSpan.getSpanContext()).thenReturn(mockSpanContext);
     when(mockSpanContext.isSampled()).thenReturn(true);
+    profilerMock.when(Profiler::hasActiveProfiles).thenReturn(true);
 
     when(mockSpan.toSpanData()).thenReturn(mockSpanData);
     when(mockSpanData.getParentSpanContext()).thenReturn(mockParentSpanContext);
@@ -259,6 +260,7 @@ class SolarwindsProfilingSpanProcessorTest {
     when(mockSpanContext.isSampled()).thenReturn(true);
     when(mockSpanContext.getTraceId()).thenReturn(traceId);
     when(mockSpanContext.getSpanId()).thenReturn(spanId);
+    profilerMock.when(Profiler::hasActiveProfiles).thenReturn(true);
 
     when(mockSpan.toSpanData()).thenReturn(mockSpanData);
     when(mockSpanData.getParentSpanContext()).thenReturn(mockParentSpanContext);
@@ -278,6 +280,7 @@ class SolarwindsProfilingSpanProcessorTest {
     ConfigManager.setConfig(ConfigProperty.PROFILER, new ProfilerSetting(true, 1));
     when(mockSpan.getSpanContext()).thenReturn(mockSpanContext);
     when(mockSpanContext.isSampled()).thenReturn(true);
+    profilerMock.when(Profiler::hasActiveProfiles).thenReturn(true);
 
     when(mockSpanContext.getTraceId()).thenReturn(traceId);
     when(mockSpanContext.getSpanId()).thenReturn(spanId);
@@ -298,6 +301,7 @@ class SolarwindsProfilingSpanProcessorTest {
     ConfigManager.setConfig(ConfigProperty.PROFILER, new ProfilerSetting(true, 1));
     when(mockSpan.getSpanContext()).thenReturn(mockSpanContext);
     when(mockSpanContext.isSampled()).thenReturn(true);
+    profilerMock.when(Profiler::hasActiveProfiles).thenReturn(true);
 
     when(mockSpanContext.getTraceId()).thenReturn(traceId);
     when(mockSpan.toSpanData()).thenReturn(mockSpanData);
