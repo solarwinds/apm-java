@@ -4,14 +4,16 @@ plugins {
 
 description = "core"
 
+val grpcVersion = "1.81.0"
+
 dependencies {
   implementation(project(":libs:logging"))
   implementation(project(":libs:config"))
   implementation(project(":libs:sampling"))
 
-  implementation("io.grpc:grpc-netty:1.80.0")
-  implementation("io.grpc:grpc-stub:1.80.0")
-  implementation("io.grpc:grpc-protobuf:1.80.0")
+  implementation("io.grpc:grpc-netty:$grpcVersion")
+  implementation("io.grpc:grpc-stub:$grpcVersion")
+  implementation("io.grpc:grpc-protobuf:$grpcVersion")
 
   compileOnly("org.json:json")
   compileOnly("io.opentelemetry:opentelemetry-api")
