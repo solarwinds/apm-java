@@ -19,14 +19,17 @@ package com.solarwinds.opentelemetry.extensions;
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.core.settings.TestSettingsReader;
 import com.solarwinds.joboe.core.util.TestUtils;
-import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
-import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
+import com.solarwinds.opentelemetry.core.AgentState;
+import io.opentelemetry.javaagent.extension.AgentListener;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import java.util.concurrent.TimeUnit;
 
-@AutoService(AutoConfigurationCustomizerProvider.class)
-public class TestAutoConfigurationCustomizer implements AutoConfigurationCustomizerProvider {
+@AutoService(AgentListener.class)
+public class TestAgentListener implements AgentListener {
 
   @Override
-  public void customize(AutoConfigurationCustomizer autoConfiguration) {
+  public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
+    AgentState.waitForReady(30, TimeUnit.SECONDS);
     TestSettingsReader reader = TestUtils.initSettingsReader();
     reader.put(
         new TestSettingsReader.SettingsMockupBuilder()

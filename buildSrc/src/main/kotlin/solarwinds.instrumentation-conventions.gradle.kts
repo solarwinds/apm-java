@@ -147,6 +147,11 @@ class JavaagentProvider(
     "--add-opens=java.base/java.lang=ALL-UNNAMED",
     "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
     "-XX:+IgnoreUnrecognizedVMOptions",
-    "-Dotel.javaagent.debug=true"
+    "-Dotel.javaagent.debug=true",
+    "-Dio.opentelemetry.context.enableStrictContext=true",
+    "-Dotel.java.experimental.span-stacktrace.min.duration=0ms",
+    "-Dsw.apm.profiler.enabled=true",
+    "-Dsw.apm.profiler.interval=10",
+    "-Dsw.apm.span.stacktrace.filters=thread.id,os.description,http.request.method"
   )
 }
