@@ -23,7 +23,6 @@ dependencies {
   testImplementation(project(":libs:sampling"))
   testImplementation(project(":libs:core"))
   testImplementation("jakarta.servlet:jakarta.servlet-api:5.0.0")
-  testImplementation("org.awaitility:awaitility:4.3.0")
 }
 
 tasks.named("compileTestJava") {

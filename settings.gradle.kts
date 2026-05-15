@@ -49,5 +49,5 @@ include("libs:core")
 include("libs:config")
 include("libs:logging")
 include("libs:sampling")
-include("integration-tests")
+include("testing:feature-tests")
 

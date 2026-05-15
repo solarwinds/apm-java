@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.integrationtest;
+package com.solarwinds.opentelemetry.instrumentation.feature.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
