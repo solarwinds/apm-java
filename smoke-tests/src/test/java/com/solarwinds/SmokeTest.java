@@ -38,7 +38,6 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 
 import java.io.IOException;
@@ -211,7 +210,7 @@ public class SmokeTest {
 
     @Test
     @Disabled
-    void assertJDBC()  throws IOException {
+    void assertJDBC() throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['JDBC is not broken'].passes");
         assertTrue(passes > 0, "JDBC instrumentation doesn't work");
@@ -219,7 +218,7 @@ public class SmokeTest {
 
     @Test
     @Disabled
-    void assertXTraceOptions()  throws IOException {
+    void assertXTraceOptions() throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['xtrace-options is added to root span'].passes");
         assertTrue(passes > 1, "Xtrace options is not captured in root span");
@@ -227,7 +226,7 @@ public class SmokeTest {
 
     @Test
     @Disabled
-    void assertMvcInstrumentation()  throws IOException {
+    void assertMvcInstrumentation() throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['mvc handler name is added'].passes");
         assertTrue(passes > 0, "MVC instrumentation is broken");
@@ -235,7 +234,7 @@ public class SmokeTest {
 
     @Test
     @Disabled
-    void assertTriggerTrace()  throws IOException {
+    void assertTriggerTrace() throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['trigger trace'].passes");
         assertTrue(passes > 0, "trigger trace is broken");
@@ -243,7 +242,7 @@ public class SmokeTest {
 
     @Test
     @Disabled
-    void assertCodeProfiling()  throws IOException {
+    void assertCodeProfiling() throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['code profiling'].passes");
         assertTrue(passes > 0, "code profiling is broken");
@@ -251,7 +250,7 @@ public class SmokeTest {
 
     @Test
     @Disabled
-    void assertContextPropagation()  throws IOException {
+    void assertContextPropagation() throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['check that remote service, java-apm-smoke-test, is path of the trace'].passes");
         assertTrue(passes > 0, "context propagation is broken");
@@ -265,22 +264,22 @@ public class SmokeTest {
         assertTrue(passes > 0, "transaction naming is broken");
     }
 
-  @Test
-  @Disabled
-  void assertThatJDBCInstrumentationIsApplied() {
-    Boolean actual = logStreamAnalyzer.getAnswer().get("Applying instrumentation: sw-jdbc");
-    assertTrue(actual, "sw-jdbc instrumentation is not applied");
-  }
+    @Test
+    @Disabled
+    void assertThatJDBCInstrumentationIsApplied() {
+        Boolean actual = logStreamAnalyzer.getAnswer().get("Applying instrumentation: sw-jdbc");
+        assertTrue(actual, "sw-jdbc instrumentation is not applied");
+    }
 
-  @Test
-  @Disabled
-  void assertThatSdkTracingIsWorking() throws IOException {
-    String resultJson = new String(
-        Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+    @Test
+    @Disabled
+    void assertThatSdkTracingIsWorking() throws IOException {
+        String resultJson = new String(
+                Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
 
-    double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['sdk-trace'].passes");
-    assertTrue(passes > 0, "SDK trace is not working, expected a count > 0");
-  }
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['sdk-trace'].passes");
+        assertTrue(passes > 0, "SDK trace is not working, expected a count > 0");
+    }
 
     @Test
     @Disabled

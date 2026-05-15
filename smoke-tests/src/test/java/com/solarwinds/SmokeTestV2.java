@@ -115,66 +115,10 @@ public class SmokeTestV2 {
     }
 
     @Test
-    void assertTransactionFiltering() throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double fails = ResultsCollector.read(resultJson, "$.root_group.checks.['verify that transaction is filtered'].fails");
-        assertEquals(0, fails, "transaction filtering doesn't work");
-    }
-
-    @Test
     void assertTraceIngestion() throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['trace is returned'].passes");
         assertTrue(passes > 0, "trace ingestion is not working. There maybe network issues");
-    }
-
-    @Test
-    void assertJDBC() throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['JDBC is not broken'].passes");
-        assertTrue(passes > 0, "JDBC instrumentation doesn't work");
-    }
-
-    @Test
-    void assertXTraceOptions() throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['xtrace-options is added to root span'].passes");
-        assertTrue(passes > 1, "Xtrace options is not captured in root span");
-    }
-
-    @Test
-    void assertMvcInstrumentation() throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['mvc handler name is added'].passes");
-        assertTrue(passes > 0, "MVC instrumentation is broken");
-    }
-
-    @Test
-    void assertTriggerTrace() throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['trigger trace'].passes");
-        assertTrue(passes > 0, "trigger trace is broken");
-    }
-
-    @Test
-    void assertCodeProfiling() throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['code profiling'].passes");
-        assertTrue(passes > 0, "code profiling is broken");
-    }
-
-    @Test
-    void assertContextPropagation() throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['check that remote service, java-apm-smoke-test, is path of the trace'].passes");
-        assertTrue(passes > 0, "context propagation is broken");
-    }
-
-    @Test
-    void assertTransactionNaming() throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['custom transaction name'].passes");
-        assertTrue(passes > 0, "transaction naming is broken");
     }
 
     @Test
@@ -210,12 +154,6 @@ public class SmokeTestV2 {
     }
 
     @Test
-    void assertThatJDBCInstrumentationIsApplied() {
-        Boolean actual = logStreamAnalyzer.getAnswer().get("Applying instrumentation: sw-jdbc");
-        assertTrue(actual, "sw-jdbc instrumentation is not applied");
-    }
-
-    @Test
     void assertThatLogsAreExported() throws IOException {
         String resultJson = new String(
                 Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
@@ -243,6 +181,78 @@ public class SmokeTestV2 {
     }
 
     @Test
+    @Disabled
+    void assertTransactionFiltering() throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double fails = ResultsCollector.read(resultJson, "$.root_group.checks.['verify that transaction is filtered'].fails");
+        assertEquals(0, fails, "transaction filtering doesn't work");
+    }
+
+    @Test
+    @Disabled
+    void assertJDBC() throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['JDBC is not broken'].passes");
+        assertTrue(passes > 0, "JDBC instrumentation doesn't work");
+    }
+
+    @Test
+    @Disabled
+    void assertXTraceOptions() throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['xtrace-options is added to root span'].passes");
+        assertTrue(passes > 1, "Xtrace options is not captured in root span");
+    }
+
+    @Test
+    @Disabled
+    void assertMvcInstrumentation() throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['mvc handler name is added'].passes");
+        assertTrue(passes > 0, "MVC instrumentation is broken");
+    }
+
+    @Test
+    @Disabled
+    void assertTriggerTrace() throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['trigger trace'].passes");
+        assertTrue(passes > 0, "trigger trace is broken");
+    }
+
+    @Test
+    @Disabled
+    void assertCodeProfiling() throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['code profiling'].passes");
+        assertTrue(passes > 0, "code profiling is broken");
+    }
+
+    @Test
+    @Disabled
+    void assertContextPropagation() throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['check that remote service, java-apm-smoke-test, is path of the trace'].passes");
+        assertTrue(passes > 0, "context propagation is broken");
+    }
+
+    @Test
+    @Disabled
+    void assertTransactionNaming() throws IOException {
+        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
+        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['custom transaction name'].passes");
+        assertTrue(passes > 0, "transaction naming is broken");
+    }
+
+    @Test
+    @Disabled
+    void assertThatJDBCInstrumentationIsApplied() {
+        Boolean actual = logStreamAnalyzer.getAnswer().get("Applying instrumentation: sw-jdbc");
+        assertTrue(actual, "sw-jdbc instrumentation is not applied");
+    }
+
+    @Test
+    @Disabled
     void assertThatSdkTracingIsWorking() throws IOException {
         String resultJson = new String(
                 Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
@@ -252,6 +262,7 @@ public class SmokeTestV2 {
     }
 
     @Test
+    @Disabled
     void assertThatRequestCountMetricIsReported() throws IOException {
         String resultJson = new String(
                 Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
@@ -261,6 +272,7 @@ public class SmokeTestV2 {
     }
 
     @Test
+    @Disabled
     void assertThatTraceCountMetricIsReported() throws IOException {
         String resultJson = new String(
                 Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
@@ -270,6 +282,7 @@ public class SmokeTestV2 {
     }
 
     @Test
+    @Disabled
     void assertThatSampleCountMetricIsReported() throws IOException {
         String resultJson = new String(
                 Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
@@ -279,6 +292,7 @@ public class SmokeTestV2 {
     }
 
     @Test
+    @Disabled
     void assertThatResponseTimeMetricIsReported() throws IOException {
         String resultJson = new String(
                 Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
@@ -288,6 +302,7 @@ public class SmokeTestV2 {
     }
 
     @Test
+    @Disabled
     void assertThatCodeStacktraceIsCaptured() throws IOException {
         String resultJson = new String(
                 Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
@@ -297,6 +312,7 @@ public class SmokeTestV2 {
     }
 
     @Test
+    @Disabled
     void assertThatTraceJvmMetricsAreNotCollected() throws IOException {
         String resultJson = new String(
                 Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));

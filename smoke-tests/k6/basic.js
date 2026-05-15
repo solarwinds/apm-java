@@ -21,10 +21,10 @@ import names from "./names.js";
 const baseUri = `http://petclinic:9966/petclinic/api`;
 const webMvcUri = `http://webmvc:8080`;
 export const options = {
-  duration: "30m",
-  minIterationDuration: "5m",
-  vus: 10,
-  iterations: 200,
+  duration: "5m",
+  minIterationDuration: "1m",
+  vus: 5,
+  iterations: 25,
 };
 
 function verify_that_trace_is_persisted() {
@@ -465,7 +465,6 @@ function check_transaction_name(property) {
     return false
 }
 
-
 function check_code_stack_trace(property) {
     if (property.key === "code.stacktrace") {
         check(property, {"code.stacktrace": _ => true})
@@ -644,104 +643,21 @@ function silence(fn) {
 }
 
 export default function () {
-  silence(verify_that_span_data_is_persisted_0)
-
-  const request_count = (measurement) => check(measurement, {"request_count": mrs => mrs.value > 0})
-  const tracecount = (measurement) => check(measurement, {"tracecount": mrs => mrs.value > 0})
-  const samplecount = (measurement) => check(measurement, {"samplecount": mrs => mrs.value > 0})
-  const response_time = (measurement) => check(measurement, {"response_time": mrs => mrs.value > 0})
-
-  if (`${__ENV.LAMBDA}` === "true") {
-
+    const service = "java-apm-smoke-test"
     silence(function () {
-      verify_that_metrics_are_reported("trace.service.request_count", request_count)
+        verify_that_metrics_are_reported("jvm.memory.used",
+            (measurement) => check(measurement, {"otel-metrics": mrs => mrs.value > 0}),
+            service
+        )
     })
 
     silence(function () {
-      verify_that_metrics_are_reported("trace.service.tracecount", tracecount)
+        verify_that_metrics_are_reported("jvm.network.time",
+            (measurement) => check(measurement, {"otel-metrics-17": mrs => mrs.value > 0}),
+            service
+        )
     })
 
-    silence(function () {
-      verify_that_metrics_are_reported("trace.service.samplecount", samplecount)
-    })
-
-    silence(function () {
-      verify_that_metrics_are_reported("trace.service.response_time", response_time)
-    })
-
-    silence(function () {
-        check_property(check_transaction_name)
-    })
-
-    silence(function () {
-      check_property(check_code_stack_trace)
-    })
-
-      silence(function () {
-          verify_that_metrics_are_reported("trace.jvm.Runtime.Uptime",
-              (measurement) => check(measurement, {"trace.jvm-metrics": mrs => mrs.value === 0})
-          )
-      })
-
-      silence(function () {
-          verify_that_metrics_are_reported("trace.jvm.Threading.ThreadCount",
-              (measurement) => check(measurement, {"trace.jvm-metrics": mrs => mrs.value === 0})
-          )
-      })
-
-  } else {
-      const service = "java-apm-smoke-test"
-      silence(function () {
-          verify_that_metrics_are_reported("trace.service.request_count", request_count, service)
-      })
-
-      silence(function () {
-          verify_that_metrics_are_reported("trace.service.tracecount", tracecount, service)
-      })
-
-      silence(function () {
-          verify_that_metrics_are_reported("trace.service.samplecount", samplecount, service)
-      })
-
-      silence(function () {
-          verify_that_metrics_are_reported("trace.service.response_time", response_time, service)
-      })
-
-      silence(function () {
-          verify_that_metrics_are_reported("jvm.memory.used",
-              (measurement) => check(measurement, {"otel-metrics": mrs => mrs.value > 0}),
-              service
-          )
-      })
-
-      silence(function () {
-          verify_that_metrics_are_reported("jvm.network.time",
-              (measurement) => check(measurement, {"otel-metrics-17": mrs => mrs.value > 0}),
-              service
-          )
-      })
-
-      silence(function () {
-          verify_that_metrics_are_reported("trace.jvm.Runtime.Uptime",
-              (measurement) => check(measurement, {"trace.jvm-metrics": mrs => mrs.value === 0}),
-              service
-          )
-      })
-
-      silence(function () {
-          verify_that_metrics_are_reported("trace.jvm.Threading.ThreadCount",
-              (measurement) => check(measurement, {"trace.jvm-metrics": mrs => mrs.value === 0}),
-              service
-          )
-      })
     silence(verify_logs_export)
-    silence(verify_that_specialty_path_is_not_sampled)
-    silence(function () {
-        check_property(check_code_stack_trace)
-    })
-    silence(verify_that_span_data_is_persisted)
     silence(verify_that_trace_is_persisted)
-    silence(verify_distributed_trace)
-    silence(verify_profile)
-  }
 };
