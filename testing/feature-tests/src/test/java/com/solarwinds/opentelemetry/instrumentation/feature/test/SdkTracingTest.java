@@ -84,7 +84,7 @@ class SdkTracingTest {
         "root",
         () -> {
           Tracer tracer = GlobalOpenTelemetry.get().getTracer("sdk.tracing");
-          Span span = tracer.spanBuilder("code-stacktrace").startSpan();
+          Span span = tracer.spanBuilder("resource-name").startSpan();
           span.setAttribute("thread.id", "test-1");
           span.end();
         });
@@ -96,7 +96,7 @@ class SdkTracingTest {
     assertThat(spans).hasSize(2);
 
     SpanData spanData =
-        spans.stream().filter(s -> "code-stacktrace".equals(s.getName())).findFirst().orElseThrow();
+        spans.stream().filter(s -> "resource-name".equals(s.getName())).findFirst().orElseThrow();
     assertThat(spanData.getResource().getAttributes().get(AttributeKey.stringKey("service.name")))
         .isEqualTo("test-app");
   }

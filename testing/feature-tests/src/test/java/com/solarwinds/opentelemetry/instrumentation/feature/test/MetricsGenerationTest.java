@@ -27,35 +27,31 @@ import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtens
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.Test;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class MetricsGenerationTest {
 
   @RegisterExtension
   static final AgentInstrumentationExtension testing = AgentInstrumentationExtension.create();
 
-  @Test
-  void verifyResponseTimeMetricIsReportedAfterServerSpan() {
-    Tracer tracer = GlobalOpenTelemetry.get().getTracer("test");
-    Span span =
-        tracer.spanBuilder("GET /petclinic/api/owners").setSpanKind(SpanKind.SERVER).startSpan();
-    span.end();
-
-    testing.waitForTraces(1);
-    await()
-        .atMost(5, TimeUnit.SECONDS)
-        .untilAsserted(
-            () -> {
-              List<MetricData> metrics = testing.metrics();
-              assertThat(metrics)
-                  .as("trace.service.response_time metric should be reported")
-                  .anyMatch(m -> m.getName().equals("trace.service.response_time"));
-            });
+  static Stream<Arguments> metricNames() {
+    return Stream.of(
+        Arguments.of("trace.service.response_time"),
+        Arguments.of("trace.service.request_count"),
+        Arguments.of("trace.service.tokenbucket_exhaustion_count"),
+        Arguments.of("trace.service.tracecount"),
+        Arguments.of("trace.service.samplecount"),
+        Arguments.of("trace.service.through_trace_count"),
+        Arguments.of("trace.service.triggered_trace_count"));
   }
 
-  @Test
-  void verifyRequestCountMetricIsReportedAfterServerSpan() {
+  @ParameterizedTest(name = "{0} metric is reported")
+  @MethodSource("metricNames")
+  void verifyMetricIsReportedAfterServerSpan(String metricName) {
     Tracer tracer = GlobalOpenTelemetry.get().getTracer("test");
     Span span =
         tracer.spanBuilder("GET /petclinic/api/pettypes").setSpanKind(SpanKind.SERVER).startSpan();
@@ -68,103 +64,8 @@ class MetricsGenerationTest {
             () -> {
               List<MetricData> metrics = testing.metrics();
               assertThat(metrics)
-                  .as("trace.service.request_count metric should be reported")
-                  .anyMatch(m -> m.getName().equals("trace.service.request_count"));
-            });
-  }
-
-  @Test
-  void verifyTokenbucketExhaustionCountMetricIsReported() {
-    Tracer tracer = GlobalOpenTelemetry.get().getTracer("test");
-    Span span =
-        tracer.spanBuilder("GET /petclinic/api/pettypes").setSpanKind(SpanKind.SERVER).startSpan();
-    span.end();
-
-    testing.waitForTraces(1);
-    await()
-        .atMost(5, TimeUnit.SECONDS)
-        .untilAsserted(
-            () -> {
-              List<MetricData> metrics = testing.metrics();
-              assertThat(metrics)
-                  .as("trace.service.tokenbucket_exhaustion_count metric should be reported")
-                  .anyMatch(m -> m.getName().equals("trace.service.tokenbucket_exhaustion_count"));
-            });
-  }
-
-  @Test
-  void verifyTraceCountMetricIsReported() {
-    Tracer tracer = GlobalOpenTelemetry.get().getTracer("test");
-    Span span =
-        tracer.spanBuilder("GET /petclinic/api/pettypes").setSpanKind(SpanKind.SERVER).startSpan();
-    span.end();
-
-    testing.waitForTraces(1);
-    await()
-        .atMost(5, TimeUnit.SECONDS)
-        .untilAsserted(
-            () -> {
-              List<MetricData> metrics = testing.metrics();
-              assertThat(metrics)
-                  .as("trace.service.tracecount metric should be reported")
-                  .anyMatch(m -> m.getName().equals("trace.service.tracecount"));
-            });
-  }
-
-  @Test
-  void verifySampleCountMetricIsReported() {
-    Tracer tracer = GlobalOpenTelemetry.get().getTracer("test");
-    Span span =
-        tracer.spanBuilder("GET /petclinic/api/pettypes").setSpanKind(SpanKind.SERVER).startSpan();
-    span.end();
-
-    testing.waitForTraces(1);
-    await()
-        .atMost(5, TimeUnit.SECONDS)
-        .untilAsserted(
-            () -> {
-              List<MetricData> metrics = testing.metrics();
-              assertThat(metrics)
-                  .as("trace.service.samplecount metric should be reported")
-                  .anyMatch(m -> m.getName().equals("trace.service.samplecount"));
-            });
-  }
-
-  @Test
-  void verifyThroughTraceCountMetricIsReported() {
-    Tracer tracer = GlobalOpenTelemetry.get().getTracer("test");
-    Span span =
-        tracer.spanBuilder("GET /petclinic/api/pettypes").setSpanKind(SpanKind.SERVER).startSpan();
-    span.end();
-
-    testing.waitForTraces(1);
-    await()
-        .atMost(5, TimeUnit.SECONDS)
-        .untilAsserted(
-            () -> {
-              List<MetricData> metrics = testing.metrics();
-              assertThat(metrics)
-                  .as("trace.service.through_trace_count metric should be reported")
-                  .anyMatch(m -> m.getName().equals("trace.service.through_trace_count"));
-            });
-  }
-
-  @Test
-  void verifyTriggeredTraceCountMetricIsReported() {
-    Tracer tracer = GlobalOpenTelemetry.get().getTracer("test");
-    Span span =
-        tracer.spanBuilder("GET /petclinic/api/pettypes").setSpanKind(SpanKind.SERVER).startSpan();
-    span.end();
-
-    testing.waitForTraces(1);
-    await()
-        .atMost(5, TimeUnit.SECONDS)
-        .untilAsserted(
-            () -> {
-              List<MetricData> metrics = testing.metrics();
-              assertThat(metrics)
-                  .as("trace.service.triggered_trace_count metric should be reported")
-                  .anyMatch(m -> m.getName().equals("trace.service.triggered_trace_count"));
+                  .as("%s metric should be reported", metricName)
+                  .anyMatch(m -> m.getName().equals(metricName));
             });
   }
 }

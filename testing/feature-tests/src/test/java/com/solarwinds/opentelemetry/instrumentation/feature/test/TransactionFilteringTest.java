@@ -19,8 +19,10 @@ package com.solarwinds.opentelemetry.instrumentation.feature.test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+import com.solarwinds.joboe.core.settings.SimpleSettingsFetcher;
 import com.solarwinds.joboe.core.settings.TestSettingsReader;
 import com.solarwinds.joboe.core.util.TestUtils;
+import com.solarwinds.joboe.sampling.ResourceMatcher;
 import com.solarwinds.joboe.sampling.SampleRateSource;
 import com.solarwinds.joboe.sampling.SamplingConfiguration;
 import com.solarwinds.joboe.sampling.SettingsManager;
@@ -50,8 +52,7 @@ class TransactionFilteringTest {
 
   @BeforeEach
   void setUp() {
-    Map<com.solarwinds.joboe.sampling.ResourceMatcher, TraceConfig> urlConfigs =
-        new LinkedHashMap<>();
+    Map<ResourceMatcher, TraceConfig> urlConfigs = new LinkedHashMap<>();
     urlConfigs.put(
         url -> url.contains("/specialties"),
         new TraceConfig(0, SampleRateSource.FILE, TracingMode.DISABLED.toFlags()));
@@ -64,7 +65,7 @@ class TransactionFilteringTest {
             .build());
 
     SettingsManager.initialize(
-        new com.solarwinds.joboe.core.settings.SimpleSettingsFetcher(reader),
+        new SimpleSettingsFetcher(reader),
         SamplingConfiguration.builder()
             .internalTransactionSettings(new TraceConfigs(urlConfigs))
             .build());
@@ -78,6 +79,9 @@ class TransactionFilteringTest {
             .withFlags(true, false, true, true, false)
             .withSampleRate(1_000_000)
             .build());
+
+    SettingsManager.initialize(
+        new SimpleSettingsFetcher(reader), SamplingConfiguration.builder().build());
   }
 
   @Test
