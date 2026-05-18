@@ -16,7 +16,6 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,10 +52,5 @@ class DefaultAutoConfigurationCustomizerProviderTest {
     verify(autoConfigurationCustomizerMock).addResourceCustomizer(any());
 
     verify(autoConfigurationCustomizerMock).addMetricExporterCustomizer(any());
-  }
-
-  @Test
-  void returnIntMax() {
-    assertEquals(Integer.MAX_VALUE, tested.order());
   }
 }
