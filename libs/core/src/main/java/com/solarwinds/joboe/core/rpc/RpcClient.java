@@ -26,7 +26,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import lombok.Getter;
 
 /**
@@ -197,8 +205,8 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
                * result is received. It is implemented this way as those conditions applies to the
                * any tasks submitted to this RpcClient instance hence blocking is required
                *
-               * @param clientCall
-               * @param retryParams
+               * @param clientCall the callable representing the client operation to execute
+               * @param retryParams the retry parameters governing retry behavior
                * @return the result of the rpc call, take note that this could be null if the
                *     protocol client is reconnected during a failed call
                * @throws ClientException if fatal(unrecoverable) exception is found or if retry on
@@ -411,8 +419,8 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
   /**
    * Logs on every connection exception if applicable
    *
-   * @param e
-   * @param taskType
+   * @param e the connection exception to log
+   * @param taskType the type of RPC task during which the exception occurred
    */
   private void logConnectException(Exception e, TaskType taskType) {
     if (logger.shouldLog(
@@ -434,8 +442,8 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
   /**
    * Logs on critical connection exception - for example prolonged connection init failure
    *
-   * @param e
-   * @param taskType
+   * @param e the critical connection exception to log
+   * @param taskType the type of RPC task during which the exception occurred
    */
   private void logCriticalConnectException(Exception e, TaskType taskType) {
     if (logger.shouldLog(Level.DEBUG)
@@ -483,7 +491,7 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
    * @param events tracing events to be posted
    * @param callback callback to invoke if the operation is completed, null means no callback
    * @return Future of the Result
-   * @throws ClientException
+   * @throws ClientException if the client cannot submit the request
    */
   @Override
   public Future<Result> postEvents(final List<Event> events, final Callback<Result> callback)
@@ -504,7 +512,7 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
    * @param messages metrics messages to be posted
    * @param callback callback to invoke if the operation is completed, null means no callback
    * @return Future of the Result
-   * @throws ClientException
+   * @throws ClientException if the client cannot submit the request
    */
   @Override
   public Future<Result> postMetrics(
@@ -526,7 +534,7 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
    * @param messages status messages to be posted
    * @param callback callback to invoke if the operation is completed, null means no callback
    * @return Future of the Result
-   * @throws ClientException
+   * @throws ClientException if the client cannot submit the request
    */
   @Override
   public Future<Result> postStatus(
@@ -548,7 +556,7 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
    * @param version version of the settings structure being requested
    * @param callback callback to invoke if the operation is completed, null means no callback
    * @return Future of the SettingsResult
-   * @throws ClientException
+   * @throws ClientException if the client cannot submit the request
    */
   @Override
   public Future<SettingsResult> getSettings(
@@ -600,7 +608,7 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
   /**
    * Gets the current connection {@link com.solarwinds.joboe.core.rpc.Client.Status}
    *
-   * @return
+   * @return the current connection status
    */
   @Override
   public Status getStatus() {
@@ -780,7 +788,7 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
      * RetryParams</code> would also be assessed (for example if the current retry count has
      * exceeded the limit)
      *
-     * @param retryType
+     * @param retryType the type of retry to flag
      * @return whether flagging is successful based on the current state
      */
     public boolean flagRetry(RetryType retryType) {
@@ -796,7 +804,7 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
      * RetryParams</code> would also be assessed (for example if the current retry count has
      * exceeded the limit)
      *
-     * @param retryType
+     * @param retryType the type of retry to flag
      * @param resetOtherParams whether to reset the states of all params with other <code>RetryType
      *     </code>
      * @return whether flagging is successful based on the current state
@@ -902,10 +910,4 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
       }
     }
   }
-
-  /**
-   * A keep alive monitor that sends a ping message if it has been idle for 20 seconds
-   *
-   * @author pluk
-   */
 }

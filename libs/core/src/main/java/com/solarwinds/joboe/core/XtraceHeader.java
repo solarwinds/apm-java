@@ -23,7 +23,7 @@ package com.solarwinds.joboe.core;
  *
  * @author Patson Luk
  */
-public enum XTraceHeader {
+public enum XtraceHeader {
   TRACE_ID,
   SPAN_ID,
   TRACE_OPTIONS,

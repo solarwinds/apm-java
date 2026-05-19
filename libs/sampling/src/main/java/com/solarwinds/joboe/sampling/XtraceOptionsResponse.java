@@ -16,7 +16,8 @@
 
 package com.solarwinds.joboe.sampling;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 /**
@@ -24,15 +25,15 @@ import java.util.Map.Entry;
  *
  * <p>Contains the key/value produced from the computation.
  */
-public class XTraceOptionsResponse {
+public class XtraceOptionsResponse {
 
-  public static XTraceOptionsResponse computeResponse(
+  public static XtraceOptionsResponse computeResponse(
       XtraceOptions options, TraceDecision traceDecision, boolean isServiceRoot) {
     if (options == null) {
       return null;
     }
 
-    XTraceOptionsResponse response = new XTraceOptionsResponse();
+    XtraceOptionsResponse response = new XtraceOptionsResponse();
 
     if (options
         .getAuthenticationStatus()
@@ -63,7 +64,7 @@ public class XTraceOptionsResponse {
         response.setValue("trigger-trace", "not-requested");
       }
 
-      for (XtraceOptions.XTraceOptionException exception : options.getExceptions()) {
+      for (XtraceOptions.XtraceOptionException exception : options.getExceptions()) {
         exception.appendToResponse(response);
       }
     }
@@ -73,7 +74,7 @@ public class XTraceOptionsResponse {
 
   private final Map<String, String> keyValues = new LinkedHashMap<String, String>();
 
-  private XTraceOptionsResponse() {}
+  private XtraceOptionsResponse() {}
 
   public String getValue(String key) {
     return keyValues.get(key);

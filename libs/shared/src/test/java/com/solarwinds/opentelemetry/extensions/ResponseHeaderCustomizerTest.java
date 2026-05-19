@@ -16,8 +16,10 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
@@ -47,7 +49,7 @@ class ResponseHeaderCustomizerTest {
   }
 
   @Test
-  void shouldAddXTraceHeaderWhenSpanIsSampled() {
+  void shouldAddXtraceHeaderWhenSpanIsSampled() {
     String traceId = "0af7651916cd43dd8448eb211c80319c";
     String spanId = "b7ad6b7169203331";
     SpanContext spanContext =
@@ -64,7 +66,7 @@ class ResponseHeaderCustomizerTest {
   }
 
   @Test
-  void shouldAddXTraceHeaderWhenSpanIsNotSampled() {
+  void shouldAddXtraceHeaderWhenSpanIsNotSampled() {
     String traceId = "0af7651916cd43dd8448eb211c80319c";
     String spanId = "b7ad6b7169203331";
     SpanContext spanContext =
@@ -81,7 +83,7 @@ class ResponseHeaderCustomizerTest {
   }
 
   @Test
-  void shouldAddXTraceOptionsResponseHeaderWhenPresent() {
+  void shouldAddXtraceOptionsResponseHeaderWhenPresent() {
     String traceId = "0af7651916cd43dd8448eb211c80319c";
     String spanId = "b7ad6b7169203331";
     String xtraceOptionsResp = "trigger-trace";
@@ -100,7 +102,7 @@ class ResponseHeaderCustomizerTest {
   }
 
   @Test
-  void shouldNotAddXTraceOptionsResponseHeaderWhenNotPresent() {
+  void shouldNotAddXtraceOptionsResponseHeaderWhenNotPresent() {
     String traceId = "0af7651916cd43dd8448eb211c80319c";
     String spanId = "b7ad6b7169203331";
     SpanContext spanContext =
@@ -115,7 +117,7 @@ class ResponseHeaderCustomizerTest {
   }
 
   @Test
-  void shouldRecoverEncodedXTraceOptionsResponse() {
+  void shouldRecoverEncodedXtraceOptionsResponse() {
     String traceId = "0af7651916cd43dd8448eb211c80319c";
     String spanId = "b7ad6b7169203331";
     String encodedValue = "key####value....another####pair";
@@ -132,7 +134,7 @@ class ResponseHeaderCustomizerTest {
   }
 
   @Test
-  void shouldHandleMultipleEncodedCharactersInXTraceOptionsResponse() {
+  void shouldHandleMultipleEncodedCharactersInXtraceOptionsResponse() {
     String traceId = "0af7651916cd43dd8448eb211c80319c";
     String spanId = "b7ad6b7169203331";
     String encodedValue = "a####b####c....d....e####f";

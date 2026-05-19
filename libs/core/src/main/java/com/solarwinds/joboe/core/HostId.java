@@ -110,7 +110,9 @@ public class HostId {
     String hostType;
 
     public static AwsMetadata fromJson(String json, String hostName) throws JSONException {
-      if (json == null) return null;
+      if (json == null) {
+        return null;
+      }
       JSONObject jsonObject = new JSONObject(json);
       return AwsMetadata.builder()
           .cloudRegion(jsonObject.getString("region"))

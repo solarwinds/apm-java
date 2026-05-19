@@ -32,7 +32,7 @@ public abstract class ConfigReader {
    * Reads the configuration and puts the result in {@link ConfigContainer}
    *
    * @param container the container which this config reader should write result into
-   * @throws Exception
+   * @throws InvalidConfigException if the configuration is invalid
    */
   public abstract void read(ConfigContainer container) throws InvalidConfigException;
 }

@@ -52,7 +52,7 @@ public class TestSettingsReader implements SettingsReader {
   /**
    * Registers Callback on settings changed
    *
-   * @param settingsChangeCallback
+   * @param settingsChangeCallback the callback to invoke when settings change
    */
   public void onSettingsChanged(SettingsChangeCallback settingsChangeCallback) {
     this.settingsChangeCallback = settingsChangeCallback;

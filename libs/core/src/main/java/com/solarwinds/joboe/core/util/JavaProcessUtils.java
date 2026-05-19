@@ -33,15 +33,15 @@ public final class JavaProcessUtils {
   /**
    * Copied from <code>Event.getPID()</code> Retrieves PID from current Java process
    *
-   * @return
+   * @return the process ID of the current JVM
    */
   public static int getPid() {
     // You'd think getting the PID would be simple:
     // http://arhipov.blogspot.com/2011/01/java-snippet-get-pid-at-runtime.html
     if (pid == null) {
-      String nameOfRunningVM = ManagementFactory.getRuntimeMXBean().getName();
-      int p = nameOfRunningVM.indexOf('@');
-      String pidStr = nameOfRunningVM.substring(0, p);
+      String nameOfRunningVm = ManagementFactory.getRuntimeMXBean().getName();
+      int p = nameOfRunningVm.indexOf('@');
+      String pidStr = nameOfRunningVm.substring(0, p);
       try {
         pid = Integer.parseInt(pidStr);
       } catch (NumberFormatException ex) {

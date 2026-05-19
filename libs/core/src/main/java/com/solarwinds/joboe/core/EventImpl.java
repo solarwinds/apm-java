@@ -16,7 +16,16 @@
 
 package com.solarwinds.joboe.core;
 
-import static com.solarwinds.joboe.core.Constants.*;
+import static com.solarwinds.joboe.core.Constants.MAX_EVENT_BUFFER_SIZE;
+import static com.solarwinds.joboe.core.Constants.XTR_AO_EDGE_KEY;
+import static com.solarwinds.joboe.core.Constants.XTR_ASYNC_KEY;
+import static com.solarwinds.joboe.core.Constants.XTR_EDGE_KEY;
+import static com.solarwinds.joboe.core.Constants.XTR_HOSTNAME_KEY;
+import static com.solarwinds.joboe.core.Constants.XTR_METADATA_KEY;
+import static com.solarwinds.joboe.core.Constants.XTR_PROCESS_ID_KEY;
+import static com.solarwinds.joboe.core.Constants.XTR_THREAD_ID_KEY;
+import static com.solarwinds.joboe.core.Constants.XTR_TIMESTAMP_U_KEY;
+import static com.solarwinds.joboe.core.Constants.XTR_XTRACE;
 
 import com.solarwinds.joboe.core.ebson.BsonDocument;
 import com.solarwinds.joboe.core.ebson.BsonDocuments;
@@ -34,8 +43,14 @@ import java.lang.reflect.Array;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 public class EventImpl extends Event {
   private static final Logger logger = LoggerFactory.getLogger();
@@ -87,12 +102,12 @@ public class EventImpl extends Event {
   }
 
   /**
-   * Creates an event with a previously determined metadataID . See ServletInstrumentation for an
+   * Creates an event with a previously determined metadataId . See ServletInstrumentation for an
    * example where this was needed.
    */
-  public EventImpl(Metadata ctxMetadata, String metadataID, boolean addEdge)
+  public EventImpl(Metadata ctxMetadata, String metadataId, boolean addEdge)
       throws SamplingException {
-    super(new Metadata(metadataID));
+    super(new Metadata(metadataId));
     initOverride();
     if (addEdge) {
       addEdge(ctxMetadata);
@@ -102,8 +117,8 @@ public class EventImpl extends Event {
   /**
    * Creates an event with a previously determined metadata
    *
-   * @param parentMetadata
-   * @param eventMetadata
+   * @param parentMetadata the parent metadata to add as an edge
+   * @param eventMetadata the metadata to assign to this event
    */
   EventImpl(Metadata parentMetadata, Metadata eventMetadata) {
     super(eventMetadata);
@@ -114,11 +129,11 @@ public class EventImpl extends Event {
   }
 
   private void init() {
-    metadata.randomizeOpID();
+    metadata.randomizeOpId();
     bsonBuilder = BsonDocuments.builder();
     String traceContext = metadata.toHexString();
     bsonBuilder.put(XTR_METADATA_KEY, traceContext);
-    bsonBuilder.put(XTR_XTRACE, w3cContextToXTrace(traceContext));
+    bsonBuilder.put(XTR_XTRACE, w3cContextToXtrace(traceContext));
   }
 
   /**
@@ -131,10 +146,10 @@ public class EventImpl extends Event {
     bsonBuilder = BsonDocuments.builder();
     String traceContext = metadata.toHexString();
     bsonBuilder.put(XTR_METADATA_KEY, traceContext);
-    bsonBuilder.put(XTR_XTRACE, w3cContextToXTrace(traceContext));
+    bsonBuilder.put(XTR_XTRACE, w3cContextToXtrace(traceContext));
   }
 
-  protected static String w3cContextToXTrace(String w3cContext) {
+  protected static String w3cContextToXtrace(String w3cContext) {
     String[] arr = w3cContext.split("-");
     if (arr.length != 4) {
       return "";
@@ -190,8 +205,8 @@ public class EventImpl extends Event {
    * example checking whether it's entry/exit event), But the key and value will always be inserted
    * into the Bson map (hence not validations)
    *
-   * @param key
-   * @param value
+   * @param key the key to insert
+   * @param value the value to associate with the key
    */
   private void insertToBsonBuilder(String key, Object value) {
     if ("Label".equals(key) && value instanceof String) {
@@ -289,7 +304,7 @@ public class EventImpl extends Event {
       reporter.send(this);
       // Update the context's opID to that of the event
       if (contextMetadata != null) {
-        contextMetadata.setOpID(metadata);
+        contextMetadata.setOpId(metadata);
       }
     } catch (EventReporterException e) {
       logger.trace(
@@ -368,7 +383,7 @@ public class EventImpl extends Event {
    * creator (instrumentation, metrics collector) should try their best to avoid overflowing the
    * event
    *
-   * @param doc
+   * @param doc the BsonDocument to trim
    * @return trimmed BsonDocument
    */
   private BsonDocument trimDoc(BsonDocument doc) {
@@ -542,7 +557,7 @@ public class EventImpl extends Event {
    * Returns the estimate byte size of the object in bson. Take note that this only account for Bson
    * object type
    *
-   * @param object to use for byte size estimate
+   * @param object the object to use for byte size estimate
    */
   private static int getBsonByteSize(Object object) {
     if (object instanceof String) { // if it's a String element check if it's too long
@@ -598,7 +613,7 @@ public class EventImpl extends Event {
   /**
    * Trim the input KV map such that it contains up to MAX_KEY_COUNT entries.
    *
-   * @param keyValues
+   * @param keyValues the map to trim in-place
    * @return a new Map instance of the trimmed entries
    */
   private static void trimKeyValues(Map<String, Object> keyValues) {
@@ -619,7 +634,7 @@ public class EventImpl extends Event {
   }
 
   /**
-   * @param keyValues
+   * @param keyValues the source map to filter
    * @return a new instance of Map of key values that with keys defined in BASIC_KEYS
    */
   private static Map<String, Object> extractBasicKeyValues(Map<String, Object> keyValues) {
@@ -648,11 +663,11 @@ public class EventImpl extends Event {
   private void addEdges() {
     if (!edges.isEmpty()) {
       addInfo(XTR_EDGE_KEY, edges);
-      addInfo(XTR_AO_EDGE_KEY, toAOEdges(edges));
+      addInfo(XTR_AO_EDGE_KEY, toAoEdges(edges));
     }
   }
 
-  private MultiValList<String> toAOEdges(MultiValList<String> edges) {
+  private MultiValList<String> toAoEdges(MultiValList<String> edges) {
     MultiValList<String> aoEdges = new MultiValList<>();
     for (String edge : edges) {
       aoEdges.add(edge.toUpperCase());

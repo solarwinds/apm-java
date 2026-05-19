@@ -16,7 +16,8 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.opentelemetry.extensions.config.parser.json.LogFileStringParser;

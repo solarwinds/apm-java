@@ -49,7 +49,7 @@ public class SolarwindsProfilingSpanProcessor implements ExtendedSpanProcessor {
           Metadata metadata = Util.buildMetadata(span.getSpanContext());
           if (metadata.isValid()) {
             Profiler.addProfiledThread(
-                Thread.currentThread(), metadata, Metadata.bytesToHex(metadata.getTaskID()));
+                Thread.currentThread(), metadata, Metadata.bytesToHex(metadata.getTaskId()));
           } else {
             span.setAttribute(SW_KEY_PREFIX + "profile.spans", 0); // no samples
           }

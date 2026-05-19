@@ -29,7 +29,6 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +111,6 @@ public class FileLoggerStreamTest {
     // there should not be a .2 backup
     assertFalse(Files.exists(Paths.get(logFilePath + ".2")));
 
-    System.out.println(backupPath.toAbsolutePath());
     lines = Files.readAllLines(backupPath);
     assertEquals(2, lines.size());
     assertEquals(getTestString(3, stringArgumentSize), lines.get(0));
@@ -165,7 +163,6 @@ public class FileLoggerStreamTest {
             printString
           };
       Process process = Runtime.getRuntime().exec(command);
-      System.out.println("Executing command " + Arrays.toString(command) + " process " + process);
       processes.add(process);
     }
 
@@ -196,7 +193,6 @@ public class FileLoggerStreamTest {
       try {
         List<String> lines = Files.readAllLines(Paths.get(logFilePath + "." + i));
         allLogLines.addAll(lines);
-        System.out.println(i + " => " + lines.size());
       } catch (NoSuchFileException e) {
         // it's okay, sometimes it might fit in just expectedLogFileCount - 1 files
       }
@@ -240,13 +236,13 @@ public class FileLoggerStreamTest {
           URI.create(
               getClass().getProtectionDomain().getCodeSource().getLocation().toURI() + fileName));
     } catch (URISyntaxException e) {
-      e.printStackTrace();
       return null;
     }
   }
 
   static class ReadProcessThread extends Thread {
-    private final BufferedReader inputReader, errorReader;
+    private final BufferedReader inputReader;
+    private final BufferedReader errorReader;
     private final String prefix;
     private boolean shouldRun = true;
 
@@ -265,15 +261,16 @@ public class FileLoggerStreamTest {
       while (shouldRun) {
         try {
           String line;
+          // CHECKSTYLE:OFF
           while ((line = errorReader.readLine()) != null) {
             System.out.println(prefix + " : " + line);
           }
           while ((line = inputReader.readLine()) != null) {
             System.out.println(prefix + " : " + line);
           }
+          // CHECKSTYLE:ON
           TimeUnit.SECONDS.sleep(1);
-        } catch (Exception e) {
-          e.printStackTrace();
+        } catch (Exception ignored) {
         }
       }
     }

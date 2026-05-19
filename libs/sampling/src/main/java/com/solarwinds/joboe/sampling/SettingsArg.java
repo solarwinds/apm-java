@@ -72,7 +72,7 @@ public abstract class SettingsArg<T> {
   /**
    * -- GETTER -- Gets the string key of this <code>SettingsArg</code>
    *
-   * @return
+   * @return the string key identifying this settings argument
    */
   @Getter protected final String key;
 
@@ -84,8 +84,8 @@ public abstract class SettingsArg<T> {
   /**
    * Reads byteBuffer and returns the converted argument value
    *
-   * @param byteBuffer
-   * @return
+   * @param byteBuffer the byte buffer to read from
+   * @return the converted argument value, or null if the buffer cannot be read
    */
   public abstract T readFromByteBuffer(ByteBuffer byteBuffer);
 
@@ -95,8 +95,8 @@ public abstract class SettingsArg<T> {
   /**
    * Reads the typed value of this SettingsArg and convert it to ByteBuffer
    *
-   * @param fromValue
-   * @return
+   * @param fromValue the typed value to convert
+   * @return a ByteBuffer containing the serialized value, or null if value is null
    */
   public abstract ByteBuffer toByteBuffer(T fromValue);
 
@@ -104,9 +104,9 @@ public abstract class SettingsArg<T> {
    * Checks if the values of this settings arg type are considered equal. By default uses the equals
    * method.
    *
-   * @param value1
-   * @param value2
-   * @return
+   * @param value1 the first value to compare
+   * @param value2 the second value to compare
+   * @return true if the values are considered equal, false otherwise
    */
   public boolean areValuesEqual(T value1, T value2) {
     if (value1 == value2) {
@@ -121,8 +121,8 @@ public abstract class SettingsArg<T> {
   /**
    * Gets the <code>SettingsArg</code> corresponds to this key
    *
-   * @param key
-   * @return
+   * @param key the string key to look up
+   * @return the {@link SettingsArg} associated with the given key, or null if not found
    */
   public static SettingsArg<?> fromKey(String key) {
     return keyToArgs.get(key);
@@ -131,7 +131,7 @@ public abstract class SettingsArg<T> {
   /**
    * Gets all the available (instantiated so far) <code>SettingsArg</code> instances
    *
-   * @return
+   * @return a collection of all registered {@link SettingsArg} instances
    */
   public static Collection<SettingsArg<?>> values() {
     return keyToArgs.values();

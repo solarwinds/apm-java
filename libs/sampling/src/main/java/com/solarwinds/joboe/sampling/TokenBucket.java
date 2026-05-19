@@ -54,7 +54,7 @@ public class TokenBucket {
    * Consumes # of available token as the size provided
    *
    * @param size # of tokens to be consumed
-   * @return
+   * @return true if tokens were available and consumed
    */
   public synchronized boolean consume(int size) {
     updateAvailable();
@@ -105,7 +105,7 @@ public class TokenBucket {
   /**
    * Sets the capacity. This would adjust the available token if available token > capacity
    *
-   * @param capacity
+   * @param capacity the new capacity
    */
   synchronized void setCapacity(double capacity) {
     this.capacity = capacity;

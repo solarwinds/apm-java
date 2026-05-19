@@ -50,7 +50,7 @@ public class EventValueConverter {
 
   // types that requires conversion/validations before putting into the Event info, more common
   // class first for better performance (since we might do instanceOf check)
-  protected final Map<Class<?>, Converter<?, ?>> EXPECTED_SPECIAL_TYPES =
+  protected final Map<Class<?>, Converter<?, ?>> expectedSpecialTypes =
       new LinkedHashMap<Class<?>, Converter<?, ?>>();
 
   // By default, always output the class name only if its an unknown parameter type
@@ -71,25 +71,24 @@ public class EventValueConverter {
   }
 
   public EventValueConverter(int maxValueLength, Logger.Level logLevel) {
-    EXPECTED_SPECIAL_TYPES.put(String.class, new SimpleParameterHandler());
-    EXPECTED_SPECIAL_TYPES.put(Date.class, new SimpleParameterHandler());
-    EXPECTED_SPECIAL_TYPES.put(byte[].class, new ByteArrayParameterHandler());
-    EXPECTED_SPECIAL_TYPES.put(URL.class, new ToStringParameterHandler());
-    EXPECTED_SPECIAL_TYPES.put(
+    expectedSpecialTypes.put(String.class, new SimpleParameterHandler());
+    expectedSpecialTypes.put(Date.class, new SimpleParameterHandler());
+    expectedSpecialTypes.put(byte[].class, new ByteArrayParameterHandler());
+    expectedSpecialTypes.put(URL.class, new ToStringParameterHandler());
+    expectedSpecialTypes.put(
         BigDecimal.class, new BigDecimalParameterHandler()); // Event does not support BigDecimal
-    EXPECTED_SPECIAL_TYPES.put(
+    expectedSpecialTypes.put(
         BigInteger.class, new BigIntegerParameterHandler()); // Event does not support BigInteger
-    EXPECTED_SPECIAL_TYPES.put(
+    expectedSpecialTypes.put(
         Float.class, new FloatParameterHandler()); // Event does not support Float
-    EXPECTED_SPECIAL_TYPES.put(
+    expectedSpecialTypes.put(
         Short.class, new ShortParameterHandler()); // Event does not support Short
-    EXPECTED_SPECIAL_TYPES.put(
-        Byte.class, new ByteParameterHandler()); // Event does not support Byte
-    EXPECTED_SPECIAL_TYPES.put(Character.class, new ToStringParameterHandler());
-    EXPECTED_SPECIAL_TYPES.put(InetAddress.class, new ToStringParameterHandler());
-    EXPECTED_SPECIAL_TYPES.put(Collection.class, new CollectionParameterHandler());
-    EXPECTED_SPECIAL_TYPES.put(Map.class, new MapParameterHandler());
-    EXPECTED_SPECIAL_TYPES.put(UUID.class, new ToStringParameterHandler());
+    expectedSpecialTypes.put(Byte.class, new ByteParameterHandler()); // Event does not support Byte
+    expectedSpecialTypes.put(Character.class, new ToStringParameterHandler());
+    expectedSpecialTypes.put(InetAddress.class, new ToStringParameterHandler());
+    expectedSpecialTypes.put(Collection.class, new CollectionParameterHandler());
+    expectedSpecialTypes.put(Map.class, new MapParameterHandler());
+    expectedSpecialTypes.put(UUID.class, new ToStringParameterHandler());
 
     this.maxValueLength = maxValueLength;
     this.logLevel = logLevel;
@@ -98,8 +97,8 @@ public class EventValueConverter {
   /**
    * Converts the rawValue into an object that is acceptable as info value of Event
    *
-   * @param rawValue
-   * @return
+   * @param rawValue the raw value to convert
+   * @return the converted value suitable for use as an Event info value
    */
   public Object convertToEventValue(Object rawValue) {
     if (rawValue == null) {
@@ -126,12 +125,12 @@ public class EventValueConverter {
     Converter converter = null;
 
     // quick check to avoid overhead of checking for each of the entries
-    if (EXPECTED_SPECIAL_TYPES.containsKey(parameter.getClass())) {
-      converter = EXPECTED_SPECIAL_TYPES.get(parameter.getClass());
+    if (expectedSpecialTypes.containsKey(parameter.getClass())) {
+      converter = expectedSpecialTypes.get(parameter.getClass());
     } else { // have to iterate thru the special types, should not be common
-      for (Class<?> specialType : EXPECTED_SPECIAL_TYPES.keySet()) {
+      for (Class<?> specialType : expectedSpecialTypes.keySet()) {
         if (specialType.isInstance(parameter)) {
-          converter = EXPECTED_SPECIAL_TYPES.get(specialType);
+          converter = expectedSpecialTypes.get(specialType);
           break;
         }
       }

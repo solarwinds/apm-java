@@ -105,9 +105,9 @@ class FileLoggerStream implements LoggerStream, Closeable {
    * <p>If forced, then it always resets it, otherwise reset would only happen if it has been less
    * than RETRY_INTERVAL since last attempt
    *
-   * @param logFilePath
-   * @param forced
-   * @throws IOException
+   * @param logFilePath path to the log file
+   * @param forced whether to force the reset regardless of retry interval
+   * @throws IOException if the file channel cannot be opened
    */
   private void resetChannel(Path logFilePath, boolean forced) throws IOException {
     boolean resetChannel;
@@ -273,7 +273,7 @@ class FileLoggerStream implements LoggerStream, Closeable {
    * <p>If the lock is acquired, then perform file rolling
    *
    * @return whether the file was rolled successfully
-   * @throws IOException
+   * @throws IOException if the lock or roll operation fails
    */
   boolean lockAndRollFile() throws IOException {
     FileLockAndChannel fileLockAndChannel = null;

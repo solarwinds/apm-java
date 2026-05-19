@@ -53,7 +53,7 @@ public class ConfigManager {
   /**
    * Convenience method for other code to read the configuration value of the Agent
    *
-   * @param configKey
+   * @param configKey the configuration property key
    * @return the configuration value of the provided key. Take note that this might be null if the
    *     configuration property is not required
    */

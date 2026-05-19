@@ -27,10 +27,10 @@ public class K8sReaderTest {
 
   @BeforeEach
   protected void setUp() throws Exception {
-    ServerHostInfoReader.K8sReader.NAMESPACE_FILE_LOC_LINUX =
+    ServerHostInfoReader.K8sReader.namespaceFileLocLinux =
         "src/test/java/com/solarwinds/joboe/core/util/namespace";
 
-    ServerHostInfoReader.K8sReader.POD_UUID_FILE_LOC =
+    ServerHostInfoReader.K8sReader.podUuidFileLoc =
         "src/test/java/com/solarwinds/joboe/core/util/poduid";
     ServerHostInfoReader.osType = HostInfoUtils.OsType.LINUX;
     tested = new ServerHostInfoReader.K8sReader();

@@ -142,7 +142,7 @@ class HttpSettingsReaderDelegateTest {
   }
 
   @Test
-  void testFetchSettings_IOException() throws IOException {
+  void testFetchSettingsIoException() throws IOException {
     doThrow(new IOException("Connection failed"))
         .when(tested)
         .getHttpUrlConnection(any(URL.class), eq(TEST_AUTH_HEADER));

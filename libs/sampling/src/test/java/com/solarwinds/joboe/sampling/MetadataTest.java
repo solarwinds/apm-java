@@ -63,7 +63,7 @@ public class MetadataTest {
 
     String hex2 = md2.toHexString();
 
-    md2.randomizeOpID();
+    md2.randomizeOpId();
     assertNotEquals(md2.toHexString(), hex2);
 
     Metadata md3 = new Metadata(md2);
@@ -113,10 +113,10 @@ public class MetadataTest {
     Metadata md = new Metadata();
     assertFalse(md.isValid());
 
-    md.randomizeOpID();
+    md.randomizeOpId();
     assertFalse(md.isValid());
 
-    md.randomizeTaskID();
+    md.randomizeTaskId();
     assertTrue(md.isValid());
   }
 
@@ -195,8 +195,7 @@ public class MetadataTest {
     settingsManagerMock.close();
   }
 
-  @Test
-  public static String getXTraceid(int version, boolean sampled) {
+  public static String getXtraceId(int version, boolean sampled) {
     Metadata metadata = new Metadata();
     metadata.randomize(sampled);
     return metadata.toHexString(version);

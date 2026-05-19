@@ -76,7 +76,7 @@ class LambdaAgentListenerTest {
   }
 
   @Test
-  void verifySDKIsShutdownWhenBranchIsNotTaken() {
+  void verifySdkIsShutdownWhenBranchIsNotTaken() {
     try (MockedStatic<DefaultAutoConfigurationCustomizerProvider>
         defaultAutoConfigurationCustomizerProviderMock =
             mockStatic(DefaultAutoConfigurationCustomizerProvider.class)) {

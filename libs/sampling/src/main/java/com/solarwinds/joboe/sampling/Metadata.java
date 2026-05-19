@@ -31,8 +31,9 @@ import lombok.Getter;
 public class Metadata {
   private static final Logger logger = LoggerFactory.getLogger();
 
-  @Getter private byte[] taskID;
-  @Getter private byte[] opID;
+  @Getter private byte[] taskId;
+
+  @Getter private byte[] opId;
 
   private int taskLen = Constants.TASK_ID_LEN;
   private int opLen = Constants.OP_ID_LEN;
@@ -48,8 +49,8 @@ public class Metadata {
   public static final char[] hexTable = {
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
   };
-  public static final byte[] unsetTaskID = new byte[Constants.TASK_ID_LEN]; // initialized to zero
-  public static final byte[] unsetOpID = new byte[Constants.OP_ID_LEN]; // initialized to zero
+  public static final byte[] unsetTaskId = new byte[Constants.TASK_ID_LEN]; // initialized to zero
+  public static final byte[] unsetOpId = new byte[Constants.OP_ID_LEN]; // initialized to zero
 
   private static int ttl; // in millisec
   public static final int DEFAULT_TTL = 20 * 60 * 1000; // 20 mins by default, in unit of millisec
@@ -86,8 +87,8 @@ public class Metadata {
 
   public Metadata(SpanContext spanContext) {
     initialize();
-    System.arraycopy(spanContext.getTraceIdBytes(), 0, this.taskID, 0, Constants.TASK_ID_LEN);
-    System.arraycopy(spanContext.getSpanIdBytes(), 0, this.opID, 0, Constants.OP_ID_LEN);
+    System.arraycopy(spanContext.getTraceIdBytes(), 0, this.taskId, 0, Constants.TASK_ID_LEN);
+    System.arraycopy(spanContext.getSpanIdBytes(), 0, this.opId, 0, Constants.OP_ID_LEN);
 
     flags = spanContext.getTraceFlags().asByte();
   }
@@ -109,8 +110,8 @@ public class Metadata {
     this.numBacktraces =
         toClone.numBacktraces; // use the same instance of numBacktraces as we want to keep a
     // centralized counter for all clones
-    System.arraycopy(toClone.taskID, 0, this.taskID, 0, Constants.TASK_ID_LEN);
-    System.arraycopy(toClone.opID, 0, this.opID, 0, Constants.OP_ID_LEN);
+    System.arraycopy(toClone.taskId, 0, this.taskId, 0, Constants.TASK_ID_LEN);
+    System.arraycopy(toClone.opId, 0, this.opId, 0, Constants.OP_ID_LEN);
     this.flags = toClone.flags;
     this.traceId = toClone.traceId;
     this.reportMetrics = toClone.reportMetrics;
@@ -165,9 +166,9 @@ public class Metadata {
 
   /** Clears Task and Op IDs */
   public void initialize() {
-    taskID = new byte[Constants.TASK_ID_LEN];
+    taskId = new byte[Constants.TASK_ID_LEN];
     taskLen = Constants.TASK_ID_LEN;
-    opID = new byte[Constants.OP_ID_LEN];
+    opId = new byte[Constants.OP_ID_LEN];
     opLen = Constants.OP_ID_LEN;
     flags = 0x0;
     isAsync = false;
@@ -190,53 +191,53 @@ public class Metadata {
   /** Randomizes and resets the state of this Metadata */
   public void randomize(boolean isSampled) {
     initialize();
-    randomizeTaskID();
+    randomizeTaskId();
     if (isSampled) {
-      randomizeOpID();
+      randomizeOpId();
     }
     setSampled(isSampled);
   }
 
-  public void randomizeTaskID() {
-    random.nextBytes(taskID);
+  public void randomizeTaskId() {
+    random.nextBytes(taskId);
     // just in case if it really generates all zeros, then flip the last byte to a non zero value
     if (!isValid()) {
-      taskID[taskLen - 1] = 0x1;
+      taskId[taskLen - 1] = 0x1;
     }
   }
 
-  public void randomizeOpID() {
-    random.nextBytes(opID);
+  public void randomizeOpId() {
+    random.nextBytes(opId);
   }
 
-  public void setOpID(Metadata md) {
+  public void setOpId(Metadata md) {
     this.opLen = md.opLen;
-    setOpID(md.opID);
+    setOpId(md.opId);
   }
 
-  public void setOpID(String opId) throws SamplingException {
-    setOpID(hexToBytes(opId));
+  public void setOpId(String opId) throws SamplingException {
+    setOpId(hexToBytes(opId));
   }
 
-  public void setOpID(byte[] opId) {
-    System.arraycopy(opId, 0, this.opID, 0, Constants.OP_ID_LEN);
+  public void setOpId(byte[] opId) {
+    System.arraycopy(opId, 0, this.opId, 0, Constants.OP_ID_LEN);
   }
 
   /**
    * Whether the metadata has a valid task id - the operation has gone through a valid entry point
    * (might or might not be sampled)
    *
-   * @return
+   * @return true if the task ID is set to a non-zero value
    */
   public boolean isValid() {
-    return !Arrays.equals(taskID, unsetTaskID);
+    return !Arrays.equals(taskId, unsetTaskId);
   }
 
   /**
    * Whether the metadata has SAMPLED flag turned on - the operation is sampled to generate tracing
    * events
    *
-   * @return
+   * @return true if the sampled flag is set
    */
   public boolean isSampled() {
     return getFlag(Flag.SAMPLED);
@@ -302,7 +303,7 @@ public class Metadata {
 
   /**
    * @param reportingTimestamp the timestamp to be reported in millisec
-   * @return
+   * @return true if the metadata has expired based on the reporting timestamp
    */
   public boolean isExpired(long reportingTimestamp) {
     if (isValid()) {
@@ -317,19 +318,19 @@ public class Metadata {
   }
 
   public boolean isTaskEqual(Metadata md) {
-    return Arrays.equals(taskID, md.taskID);
+    return Arrays.equals(taskId, md.taskId);
   }
 
   public boolean isOpEqual(Metadata md) {
-    return Arrays.equals(opID, md.opID);
+    return Arrays.equals(opId, md.opId);
   }
 
   /**
    * Packs metadata into byte buffer. Note that the parameter `version` is currently used for
    * testing only.
    *
-   * @param version
-   * @return
+   * @param version the version number to use in the packed representation
+   * @return the packed byte array
    */
   public byte[] getPackedMetadata(int version) {
     byte[] buf = new byte[METADATA_BUF_SIZE];
@@ -341,12 +342,12 @@ public class Metadata {
     // Task and Op ID data:
     buf[writeMarker++] = '-';
 
-    System.arraycopy(taskID, 0, buf, writeMarker, taskLen);
+    System.arraycopy(taskId, 0, buf, writeMarker, taskLen);
     writeMarker += taskLen;
 
     buf[writeMarker++] = '-';
 
-    System.arraycopy(opID, 0, buf, writeMarker, opLen);
+    System.arraycopy(opId, 0, buf, writeMarker, opLen);
     writeMarker += opLen;
 
     buf[writeMarker++] = '-';
@@ -380,10 +381,10 @@ public class Metadata {
     }
 
     int readMarker = 2; // the version and the delimiter
-    System.arraycopy(buf, readMarker, taskID, 0, taskLen);
+    System.arraycopy(buf, readMarker, taskId, 0, taskLen);
     readMarker += taskLen;
     readMarker++; // the '-' delimiter
-    System.arraycopy(buf, readMarker, opID, 0, opLen);
+    System.arraycopy(buf, readMarker, opId, 0, opLen);
     readMarker += opLen;
     readMarker++; // the '-' delimiter
     this.flags = buf[readMarker];
@@ -397,27 +398,27 @@ public class Metadata {
     return bytesToHex(getPackedMetadata(CURRENT_VERSION));
   }
 
-  @Override
-  public String toString() {
-    return toHexString();
-  }
-
   /**
    * Gets a hex string representation by setting an explicit version number. For internal use only
    *
-   * @param versionOverride
-   * @return
+   * @param versionOverride the version to use instead of the current version
+   * @return the hex string representation
    */
   public String toHexString(int versionOverride) {
     return bytesToHex(getPackedMetadata(versionOverride));
   }
 
+  @Override
+  public String toString() {
+    return toHexString();
+  }
+
   public String opHexString() {
-    return bytesToHex(opID, opLen);
+    return bytesToHex(opId, opLen);
   }
 
   public String taskHexString() {
-    return bytesToHex(taskID, taskLen);
+    return bytesToHex(taskId, taskLen);
   }
 
   /** Populates this metadata instance from a hex string */
@@ -431,43 +432,52 @@ public class Metadata {
     int result = 1;
     result = prime * result + flags;
     result = prime * result + (isAsync ? 1231 : 1237);
-    result = prime * result + Arrays.hashCode(opID);
+    result = prime * result + Arrays.hashCode(opId);
     result = prime * result + opLen;
-    result = prime * result + Arrays.hashCode(taskID);
+    result = prime * result + Arrays.hashCode(taskId);
     result = prime * result + taskLen;
     return result;
   }
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
     Metadata other = (Metadata) obj;
-    if (flags != other.flags) return false;
-    if (isAsync != other.isAsync) return false;
-    if (!Arrays.equals(opID, other.opID)) return false;
-    if (opLen != other.opLen) return false;
-    if (!Arrays.equals(taskID, other.taskID)) return false;
+    if (flags != other.flags) {
+      return false;
+    }
+    if (isAsync != other.isAsync) {
+      return false;
+    }
+    if (!Arrays.equals(opId, other.opId)) {
+      return false;
+    }
+    if (opLen != other.opLen) {
+      return false;
+    }
+    if (!Arrays.equals(taskId, other.taskId)) {
+      return false;
+    }
     return taskLen == other.taskLen;
   }
 
-  public static String bytesToHex(byte[] bytes) {
-    return bytesToHex(bytes, bytes.length);
-  }
-
-  /**
-   * This method checks if the position is one of the delimiter positions in a W3C trace context.
-   *
-   * @param len
-   * @param index
-   * @return
-   */
-  private static boolean isW3CDelimiterPos(int len, int index) {
+  private static boolean isW3cDelimiterPos(int len, int index) {
     if (len != METADATA_BUF_SIZE) {
       return false;
     }
     return index == 1 || index == 18 || index == 27;
+  }
+
+  public static String bytesToHex(byte[] bytes) {
+    return bytesToHex(bytes, bytes.length);
   }
 
   private static String bytesToHex(byte[] bytes, int len) {
@@ -476,7 +486,7 @@ public class Metadata {
     for (int i = 0; i < len; i++) {
       v = bytes[i] & 0xFF;
 
-      if (isW3CDelimiterPos(len, i) && v == '-') {
+      if (isW3cDelimiterPos(len, i) && v == '-') {
         sb.append('-');
         continue;
       }
@@ -529,16 +539,16 @@ public class Metadata {
   /**
    * Checks if the xTraceId is compatible with this current agent
    *
-   * @param xTraceId
-   * @return
-   * @exception NullPointerException if xTraceId is null
+   * @param traceIdHex the hex-encoded trace ID to check
+   * @return true if compatible
+   * @exception NullPointerException if traceIdHex is null
    */
-  public static boolean isCompatible(String xTraceId) {
+  public static boolean isCompatible(String traceIdHex) {
     try {
-      new Metadata(xTraceId);
+      new Metadata(traceIdHex);
       return true;
     } catch (SamplingException e) {
-      logger.debug("X-Trace ID [" + xTraceId + "] not compatible : " + e.getMessage());
+      logger.debug("X-Trace ID [" + traceIdHex + "] not compatible : " + e.getMessage());
       return false;
     }
   }
@@ -607,12 +617,12 @@ public class Metadata {
       try {
         // try /dev/urandom first, as using SecureRandomSeedGenerator could trigger slow startup due
         // to /dev/random blocking (entropy exhaustion)
-        random = new XorShiftRNG(new DevURandomSeedGenerator());
+        random = new XorShiftRng(new DevUrandomSeedGenerator());
       } catch (SeedException e) {
         logger.debug(
             "Failed to use /dev/urandom as seed generator. Error message : " + e.getMessage());
         // try using the SecureRandomSeedGenerator instead
-        random = new XorShiftRNG(new SecureRandomSeedGenerator());
+        random = new XorShiftRng(new SecureRandomSeedGenerator());
       }
     } catch (Exception ex) {
       logger.error(ex.getMessage(), ex); // should never happen

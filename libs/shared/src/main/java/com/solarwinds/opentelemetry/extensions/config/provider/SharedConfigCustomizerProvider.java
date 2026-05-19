@@ -83,7 +83,7 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
             configurationModel.withMeterProvider(meterProvider);
             try {
               ConfigManager.setConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, false);
-            } catch (InvalidConfigException ignore) {
+            } catch (InvalidConfigException ignored) {
             }
           }
           addMetricExporter(configurationModel);

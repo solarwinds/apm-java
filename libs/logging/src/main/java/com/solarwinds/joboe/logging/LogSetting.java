@@ -51,8 +51,12 @@ public class LogSetting implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     LogSetting that = (LogSetting) o;
     return stdoutEnabled == that.stdoutEnabled
         && stderrEnabled == that.stderrEnabled

@@ -44,16 +44,16 @@ public class TraceDecisionUtilTest {
   private static final String TEST_LAYER = "test";
 
   private static final String X_TRACE_ID_SAMPLED =
-      MetadataTest.getXTraceid(Metadata.CURRENT_VERSION, true);
+      MetadataTest.getXtraceId(Metadata.CURRENT_VERSION, true);
   private static final String X_TRACE_ID_NOT_SAMPLED =
-      MetadataTest.getXTraceid(Metadata.CURRENT_VERSION, false);
+      MetadataTest.getXtraceId(Metadata.CURRENT_VERSION, false);
   private static final String X_TRACE_ID_INCOMPATIBLE =
-      MetadataTest.getXTraceid(Metadata.CURRENT_VERSION + 1, true);
+      MetadataTest.getXtraceId(Metadata.CURRENT_VERSION + 1, true);
   private static final String X_TRACE_ID_ALL_ZEROS = new Metadata().toHexString();
   private static final String X_TRACE_ID_INCORRECT_FORMAT = "XYZ";
 
   private static final XtraceOptions TRIGGER_TRACE_OPTIONS =
-      XtraceOptions.getXTraceOptions("trigger-trace", null);
+      XtraceOptions.getXtraceOptions("trigger-trace", null);
 
   @Mock private SettingsFetcher settingsFetcherMock;
 
@@ -566,15 +566,15 @@ public class TraceDecisionUtilTest {
 
     TraceDecisionUtil.consumeMetricsData(TraceDecisionUtil.MetricType.THROUGHPUT); // clear it
 
-    final int THREAD_COUNT = 1000;
-    final int RUN_PER_THREAD = 100;
+    final int threadCount = 1000;
+    final int runPerThread = 100;
 
-    ExecutorService executorService = Executors.newFixedThreadPool(THREAD_COUNT);
+    ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
     List<Callable<Object>> tasks = new ArrayList<Callable<Object>>();
-    for (int i = 0; i < THREAD_COUNT; i++) {
+    for (int i = 0; i < threadCount; i++) {
       tasks.add(
           () -> {
-            for (int i1 = 0; i1 < RUN_PER_THREAD; i1++) {
+            for (int i1 = 0; i1 < runPerThread; i1++) {
               TraceDecisionUtil.shouldTraceRequest("LayerA", null, null, null);
             }
             return null;
@@ -584,11 +584,11 @@ public class TraceDecisionUtilTest {
     executorService.invokeAll(tasks);
 
     int data = TraceDecisionUtil.consumeMetricsData(TraceDecisionUtil.MetricType.THROUGHPUT);
-    assertEquals(THREAD_COUNT * RUN_PER_THREAD, data);
+    assertEquals(threadCount * runPerThread, data);
 
     // try to do increment and clear at once
     tasks.clear();
-    for (int i = 0; i < THREAD_COUNT; i++) {
+    for (int i = 0; i < threadCount; i++) {
       tasks.add(
           () -> {
             TraceDecisionUtil.shouldTraceRequest("LayerA", null, null, null);

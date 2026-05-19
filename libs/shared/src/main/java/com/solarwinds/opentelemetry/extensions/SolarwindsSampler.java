@@ -24,8 +24,8 @@ import static com.solarwinds.opentelemetry.extensions.SharedNames.LAYER_NAME_PLA
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.TraceDecision;
-import com.solarwinds.joboe.sampling.XTraceOptionsResponse;
 import com.solarwinds.joboe.sampling.XtraceOptions;
+import com.solarwinds.joboe.sampling.XtraceOptionsResponse;
 import com.solarwinds.opentelemetry.core.Constants;
 import com.solarwinds.opentelemetry.core.Util;
 import io.opentelemetry.api.common.AttributeKey;
@@ -114,8 +114,8 @@ public class SolarwindsSampler implements Sampler {
     if (!parentSpanContext.isValid()) { // no valid traceparent, it is a new trace
       TraceDecision traceDecision = shouldTraceRequest(name, null, xTraceOptions, signals);
       samplingResult = toOtSamplingResult(traceDecision, xTraceOptions, true);
-      XTraceOptionsResponse xtraceOptionsResponse =
-          XTraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, true);
+      XtraceOptionsResponse xtraceOptionsResponse =
+          XtraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, true);
 
       if (xtraceOptionsResponse != null) {
         xtraceOptionsResponseStr = xtraceOptionsResponse.toString();
@@ -131,8 +131,8 @@ public class SolarwindsSampler implements Sampler {
             shouldTraceRequest(name, xTraceId, xTraceOptions, signals);
 
         samplingResult = toOtSamplingResult(traceDecision, xTraceOptions, false);
-        final XTraceOptionsResponse xTraceOptionsResponse =
-            XTraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, false);
+        final XtraceOptionsResponse xTraceOptionsResponse =
+            XtraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, false);
 
         if (xTraceOptionsResponse != null) {
           xtraceOptionsResponseStr = xTraceOptionsResponse.toString();
@@ -142,8 +142,8 @@ public class SolarwindsSampler implements Sampler {
         final TraceDecision traceDecision = shouldTraceRequest(name, null, xTraceOptions, signals);
         samplingResult = toOtSamplingResult(traceDecision, xTraceOptions, true);
 
-        final XTraceOptionsResponse xTraceOptionsResponse =
-            XTraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, true);
+        final XtraceOptionsResponse xTraceOptionsResponse =
+            XtraceOptionsResponse.computeResponse(xTraceOptions, traceDecision, true);
         if (xTraceOptionsResponse != null) {
           xtraceOptionsResponseStr = xTraceOptionsResponse.toString();
         }

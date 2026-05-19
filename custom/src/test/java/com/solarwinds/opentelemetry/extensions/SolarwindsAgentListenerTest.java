@@ -40,7 +40,7 @@ class SolarwindsAgentListenerTest {
   @Mock private OpenTelemetrySdk openTelemetrySdkMock;
 
   @Test
-  void verifySDKIsShutdownWhenBranchIsNotTaken() {
+  void verifySdkIsShutdownWhenBranchIsNotTaken() {
     try (MockedStatic<AutoConfigurationCustomizerProviderImpl>
         autoConfigurationCustomizerProviderMockedStatic =
             mockStatic(AutoConfigurationCustomizerProviderImpl.class)) {
@@ -58,7 +58,7 @@ class SolarwindsAgentListenerTest {
   }
 
   @Test
-  void verifySDKIsNotShutdownWhenBranchIsTaken() {
+  void verifySdkIsNotShutdownWhenBranchIsTaken() {
     try (MockedStatic<AutoConfigurationCustomizerProviderImpl>
         autoConfigurationCustomizerProviderMockedStatic =
             mockStatic(AutoConfigurationCustomizerProviderImpl.class)) {

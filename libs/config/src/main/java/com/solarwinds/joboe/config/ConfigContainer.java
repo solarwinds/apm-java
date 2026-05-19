@@ -30,8 +30,6 @@ import org.json.JSONException;
 /**
  * This container serves several purposes
  *
- * <p>
- *
  * <ol>
  *   <li>Contains configuration values, the subset method prevents irrelevant access to config
  *       parameters
@@ -60,7 +58,7 @@ public class ConfigContainer {
    * the sampling rate
    *
    * @param groups groups of ConfigGroup to retain
-   * @return
+   * @return a new container with only the specified groups
    */
   public ConfigContainer subset(ConfigGroup... groups) {
     ConfigContainer subset = new ConfigContainer();
@@ -74,7 +72,7 @@ public class ConfigContainer {
   /**
    * Gets a configuration property value from a Property key
    *
-   * @param propertyKey
+   * @param propertyKey the configuration property key
    * @return the property value based on the propertyKey
    */
   public Object get(ConfigProperty propertyKey) {
@@ -90,7 +88,7 @@ public class ConfigContainer {
   /**
    * Checks whether a property key is set in the container
    *
-   * @param propertyKey
+   * @param propertyKey the configuration property key
    * @return whether the property key is set in the container
    */
   public boolean containsProperty(ConfigProperty propertyKey) {
@@ -154,8 +152,8 @@ public class ConfigContainer {
    *
    * <p>It will ignore the operation if the key already exists
    *
-   * @param propertyKey
-   * @param stringValue
+   * @param propertyKey the configuration property key
+   * @param stringValue the string representation of the value
    * @throws InvalidConfigException if the stringValue cannot be converted to the expected type
    *     defined in the propertyKey
    */
@@ -179,10 +177,10 @@ public class ConfigContainer {
    * method should only handle the basic Wrapper types like Integer, BigDecimal or String. Do not
    * attempt to handle anything too specific here as the Container is supposed to be generic
    *
-   * @param valueString
-   * @param configProperty
+   * @param valueString the string representation of the value
+   * @param configProperty the configuration property
    * @return the Object of typeClass base on the valueString. null if the conversion failed
-   * @throws InvalidConfigException
+   * @throws InvalidConfigException if the value cannot be converted
    */
   @SuppressWarnings("unchecked")
   private static <T extends Serializable> Object getValue(

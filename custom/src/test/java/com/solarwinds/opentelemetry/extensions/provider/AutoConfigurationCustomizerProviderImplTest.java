@@ -59,7 +59,7 @@ class AutoConfigurationCustomizerProviderImplTest {
   }
 
   @Test
-  void verifyThatAutoConfigurationIsCustomizedWithSWODefaultPropertiesAndTraceProviderCustomizer() {
+  void verifyThatAutoConfigurationIsCustomizedWithSwoDefaultPropertiesAndTraceProviderCustomizer() {
     when(autoConfigurationCustomizerMock.addTracerProviderCustomizer(any()))
         .thenReturn(autoConfigurationCustomizerMock);
     when(autoConfigurationCustomizerMock.addPropertiesSupplier(any()))

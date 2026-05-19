@@ -27,9 +27,8 @@ public class LoggerThreadFactory implements ThreadFactory {
   private final ThreadFactory threadFactory = Executors.defaultThreadFactory();
 
   private LoggerThreadFactory(String threadName) {
-    String THREAD_NAME_PREFIX = "SolarwindsAPM";
-    this.threadName =
-        threadName != null ? THREAD_NAME_PREFIX + "-" + threadName : THREAD_NAME_PREFIX;
+    String prefix = "SolarwindsAPM";
+    this.threadName = threadName != null ? prefix + "-" + threadName : prefix;
   }
 
   public static LoggerThreadFactory newInstance(String threadName) {

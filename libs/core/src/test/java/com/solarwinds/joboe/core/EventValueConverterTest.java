@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test;
 public class EventValueConverterTest {
   private static final int MAX_VALUE_LENGTH = 100;
   private final EventValueConverter converter = new EventValueConverter(MAX_VALUE_LENGTH);
-  Object o;
+  Object testObject;
   int objectId;
 
   @Test
@@ -121,58 +121,60 @@ public class EventValueConverterTest {
 
   @Test
   public void testSpecialTypeByteArray() throws Exception {
-    o = new byte[0];
-    objectId = System.identityHashCode(o);
-    assertEquals("(Byte array 0 Bytes) id [" + objectId + "]", converter.convertToEventValue(o));
+    testObject = new byte[0];
+    objectId = System.identityHashCode(testObject);
+    assertEquals(
+        "(Byte array 0 Bytes) id [" + objectId + "]", converter.convertToEventValue(testObject));
   }
 
   @Test
-  public void testSpecialTypeURL() throws Exception {
-    o = new URL("http://www.google.com");
-    assertEquals(o.toString(), converter.convertToEventValue(o));
+  public void testSpecialTypeUrl() throws Exception {
+    testObject = new URL("http://www.google.com");
+    assertEquals(testObject.toString(), converter.convertToEventValue(testObject));
   }
 
   @Test
-  public void testSpecialTypeIPAddress() throws Exception {
-    o = InetAddress.getByAddress(new byte[4]);
-    assertEquals(o.toString(), converter.convertToEventValue(o));
-    o = InetAddress.getByAddress(new byte[16]);
-    assertEquals(o.toString(), converter.convertToEventValue(o));
+  public void testSpecialTypeIpAddress() throws Exception {
+    testObject = InetAddress.getByAddress(new byte[4]);
+    assertEquals(testObject.toString(), converter.convertToEventValue(testObject));
+    testObject = InetAddress.getByAddress(new byte[16]);
+    assertEquals(testObject.toString(), converter.convertToEventValue(testObject));
   }
 
   @Test
   public void testSpecialTypeArrayList() throws Exception {
-    o = new ArrayList<Object>();
-    objectId = System.identityHashCode(o);
+    testObject = new ArrayList<Object>();
+    objectId = System.identityHashCode(testObject);
     assertEquals(
         "(Collection of class ["
             + ArrayList.class.getName()
             + "] with 0 Elements) id ["
             + objectId
             + "]",
-        converter.convertToEventValue(o));
+        converter.convertToEventValue(testObject));
   }
 
   @Test
   public void testSpecialTypeHashMap() throws Exception {
-    o = new HashMap<Object, Object>();
-    objectId = System.identityHashCode(o);
+    testObject = new HashMap<Object, Object>();
+    objectId = System.identityHashCode(testObject);
     assertEquals(
         "(Map of class [" + HashMap.class.getName() + "] with 0 Elements) id [" + objectId + "]",
-        converter.convertToEventValue(o));
+        converter.convertToEventValue(testObject));
   }
 
   @Test
-  public void testSpecialTypeUUID() throws Exception {
-    o = UUID.randomUUID();
-    assertEquals(o.toString(), converter.convertToEventValue(o));
+  public void testSpecialTypeUuid() throws Exception {
+    testObject = UUID.randomUUID();
+    assertEquals(testObject.toString(), converter.convertToEventValue(testObject));
   }
 
   @Test
   public void testSpecialTypeObject() throws Exception {
-    o = new Object();
-    objectId = System.identityHashCode(o);
+    testObject = new Object();
+    objectId = System.identityHashCode(testObject);
     assertEquals(
-        "(" + Object.class.getName() + ") id [" + objectId + "]", converter.convertToEventValue(o));
+        "(" + Object.class.getName() + ") id [" + objectId + "]",
+        converter.convertToEventValue(testObject));
   }
 }

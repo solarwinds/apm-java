@@ -87,8 +87,8 @@ public class BackTraceUtil {
    * Build the stackTrace output and append the result to the buffer provided
    *
    * @param stackTrace The source of the stack trace array
-   * @param startPosition
-   * @param lineCount
+   * @param startPosition the index in the stack trace array to start from
+   * @param lineCount the maximum number of lines to append
    * @param buffer The buffer that stores the result
    */
   private static void appendStackTrace(

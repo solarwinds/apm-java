@@ -22,7 +22,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class ExecUtils {
   private static final Logger logger = LoggerFactory.getLogger();
@@ -31,9 +35,9 @@ public class ExecUtils {
   /**
    * Executes the command and returns the result as string
    *
-   * @param command
+   * @param command the command to execute
+   * @return the standard output of the executed command
    * @throws Exception if the exec command failed to execute
-   * @return
    */
   public static String exec(String command, String newLine) throws Exception {
     ExecutorService executorService =

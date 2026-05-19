@@ -30,15 +30,15 @@ public abstract class Event {
   /**
    * Add key/value pair to event
    *
-   * @param key
-   * @param value
+   * @param key the key to add
+   * @param value the value to associate with the key
    */
   public abstract void addInfo(String key, Object value);
 
   /**
    * Add all key /value pairs to event
    *
-   * @param infoMap
+   * @param infoMap the map of key-value pairs to add
    */
   public abstract void addInfo(Map<String, ?> infoMap);
 
@@ -46,7 +46,7 @@ public abstract class Event {
    * Add all key/value pairs to event. This assumes that info contains alternating Name/Value pairs
    * (String, Object).
    *
-   * @param info
+   * @param info alternating key/value pairs to add to the event
    */
   public abstract void addInfo(Object... info);
 
@@ -77,14 +77,14 @@ public abstract class Event {
   /**
    * Sets timestamp in microsecond since epoch time
    *
-   * @param timestamp
+   * @param timestamp the timestamp in microseconds since epoch
    */
   public abstract void setTimestamp(long timestamp);
 
   /**
    * Sets an explicit thread ID to be reported in the event
    *
-   * @param threadId
+   * @param threadId the explicit thread ID to report in the event
    */
   public abstract void setThreadId(Long threadId);
 }

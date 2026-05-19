@@ -23,7 +23,10 @@ import com.solarwinds.joboe.core.rpc.SettingsResult;
 import com.solarwinds.joboe.sampling.Settings;
 import com.solarwinds.trace.ingestion.proto.Collector;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 

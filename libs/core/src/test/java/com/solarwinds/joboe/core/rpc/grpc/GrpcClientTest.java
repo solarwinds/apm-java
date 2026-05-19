@@ -87,7 +87,6 @@ public class GrpcClientTest extends RpcClientTest {
 
   @Test
   public void testExhaustedServer() throws Exception {
-    System.out.println("running testExhaustedServer");
     int exhaustedServerPort = locateAvailablePort();
     startExhaustedServer(exhaustedServerPort);
     Client client = null;
@@ -190,8 +189,6 @@ public class GrpcClientTest extends RpcClientTest {
       this.server = builder.build();
       this.service = service;
       server.start();
-      System.out.println(
-          "Grpc collector started at " + port + " with service GrpcCollectorService");
     }
 
     @Override
@@ -200,7 +197,7 @@ public class GrpcClientTest extends RpcClientTest {
         server.shutdown();
         try {
           server.awaitTermination();
-        } catch (InterruptedException ignore) {
+        } catch (InterruptedException ignored) {
         }
       }
       return flush();
@@ -397,13 +394,13 @@ public class GrpcClientTest extends RpcClientTest {
   }
 
   private static class GrpcRedirectCollectorService extends GrpcCollectorService {
-    private final Collector.MessageResult REDIRECT_RESULT;
+    private final Collector.MessageResult redirectResult;
     private final String redirectArg;
 
     public GrpcRedirectCollectorService(String redirectArg) {
       super();
       this.redirectArg = redirectArg;
-      REDIRECT_RESULT =
+      redirectResult =
           Collector.MessageResult.newBuilder()
               .setResult(Collector.ResultCode.REDIRECT)
               .setArg(redirectArg)
@@ -414,7 +411,7 @@ public class GrpcClientTest extends RpcClientTest {
     public void postEvents(
         Collector.MessageRequest request,
         StreamObserver<Collector.MessageResult> responseObserver) {
-      responseObserver.onNext(REDIRECT_RESULT);
+      responseObserver.onNext(redirectResult);
       responseObserver.onCompleted();
     }
 
@@ -422,7 +419,7 @@ public class GrpcClientTest extends RpcClientTest {
     public void postMetrics(
         Collector.MessageRequest request,
         StreamObserver<Collector.MessageResult> responseObserver) {
-      responseObserver.onNext(REDIRECT_RESULT);
+      responseObserver.onNext(redirectResult);
       responseObserver.onCompleted();
     }
 
@@ -430,7 +427,7 @@ public class GrpcClientTest extends RpcClientTest {
     public void postStatus(
         Collector.MessageRequest request,
         StreamObserver<Collector.MessageResult> responseObserver) {
-      responseObserver.onNext(REDIRECT_RESULT);
+      responseObserver.onNext(redirectResult);
       responseObserver.onCompleted();
     }
 
@@ -451,7 +448,7 @@ public class GrpcClientTest extends RpcClientTest {
     @Override
     public void ping(
         Collector.PingRequest request, StreamObserver<Collector.MessageResult> responseObserver) {
-      responseObserver.onNext(REDIRECT_RESULT);
+      responseObserver.onNext(redirectResult);
       responseObserver.onCompleted();
     }
   }
@@ -518,7 +515,7 @@ public class GrpcClientTest extends RpcClientTest {
                 () -> {
                   try {
                     Thread.sleep((long) messages.size() * processingSpeedPerMessage);
-                  } catch (InterruptedException ignore) {
+                  } catch (InterruptedException ignored) {
                   }
                   isProcessingAtomic.set(false);
                 })

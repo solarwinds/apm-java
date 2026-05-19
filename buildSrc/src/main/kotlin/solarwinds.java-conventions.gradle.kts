@@ -143,6 +143,8 @@ tasks {
 
 checkstyle {
   configFile = file("$rootDir/checkstyle.xml")
+  configProperties["org.checkstyle.google.suppressionfilter.config"] =
+    file("$rootDir/checkstyle-suppressions.xml").absolutePath
 }
 
 spotbugs {

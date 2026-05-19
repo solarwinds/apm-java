@@ -16,7 +16,9 @@
 
 package com.solarwinds.opentelemetry.extensions.config.parser.json;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;

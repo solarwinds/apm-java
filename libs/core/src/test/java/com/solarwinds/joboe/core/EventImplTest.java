@@ -103,10 +103,9 @@ public class EventImplTest {
     Integer pid = (Integer) doc.get(XTR_PROCESS_ID_KEY);
     Long tid = (Long) doc.get(XTR_THREAD_ID_KEY);
     String host = (String) doc.get(XTR_HOSTNAME_KEY);
-    Long time_u = (Long) doc.get(XTR_TIMESTAMP_U_KEY);
+    Long timeU = (Long) doc.get(XTR_TIMESTAMP_U_KEY);
 
-    log.info(
-        "Received: host: " + host + " pid: " + pid + " tid: " + tid + " timestamp_u:" + time_u);
+    log.info("Received: host: " + host + " pid: " + pid + " tid: " + tid + " timestamp_u:" + timeU);
   }
 
   /** Tests network send/receive by sending UDP to ourselves */
@@ -150,10 +149,9 @@ public class EventImplTest {
     Integer pid = (Integer) doc.get(XTR_PROCESS_ID_KEY);
     Long tid = (Long) doc.get(XTR_THREAD_ID_KEY);
     String host = (String) doc.get(XTR_HOSTNAME_KEY);
-    Long time_u = (Long) doc.get(XTR_TIMESTAMP_U_KEY);
+    Long timeU = (Long) doc.get(XTR_TIMESTAMP_U_KEY);
 
-    log.info(
-        "Received: host: " + host + " pid: " + pid + " tid: " + tid + " timestamp_u:" + time_u);
+    log.info("Received: host: " + host + " pid: " + pid + " tid: " + tid + " timestamp_u:" + timeU);
   }
 
   @Test
@@ -212,7 +210,7 @@ public class EventImplTest {
     testEvent.addInfo("key7", new Object[] {1, bigValue});
 
     Metadata testEdge = new Metadata(md);
-    testEdge.randomizeOpID();
+    testEdge.randomizeOpId();
     testEvent.addEdge(testEdge.toHexString());
 
     TestReporter reporter = ReporterFactory.getInstance().createTestReporter();
@@ -242,11 +240,7 @@ public class EventImplTest {
     assertEquals(testEdge.opHexString(), doc.get(Constants.XTR_EDGE_KEY));
   }
 
-  /**
-   * Over-sized event with too many KV pairs
-   *
-   * @throws InvalidConfigException
-   */
+  /** Over-sized event with too many KV pairs */
   @Test
   public void testOversizedEvent2() throws InvalidConfigException {
     Metadata md = new Metadata();
@@ -278,16 +272,12 @@ public class EventImplTest {
     }
   }
 
-  /**
-   * Over-sized event with single KV as a huge array
-   *
-   * @throws InvalidConfigException
-   */
+  /** Over-sized event with single KV as a huge array */
   @Test
   public void testOversizedEvent3() throws InvalidConfigException {
-    final int ARRAY_SIZE = 100000;
-    Object[] hugeArray = new Object[ARRAY_SIZE];
-    for (int i = 0; i < ARRAY_SIZE; i++) {
+    final int arraySize = 100000;
+    Object[] hugeArray = new Object[arraySize];
+    for (int i = 0; i < arraySize; i++) {
       hugeArray[i] = 0;
     }
 
@@ -315,16 +305,12 @@ public class EventImplTest {
     assertTrue(doc.containsKey("HugeArray"));
   }
 
-  /**
-   * Over-sized event with single KV as a very long string
-   *
-   * @throws InvalidConfigException
-   */
+  /** Over-sized event with single KV as a very long string */
   @Test
   public void testOversizedEvent4() throws InvalidConfigException {
-    final int STRING_APPEND_COUNT = 100000;
+    final int stringAppendCount = 100000;
     StringBuffer longString = new StringBuffer();
-    for (int i = 0; i < STRING_APPEND_COUNT; i++) {
+    for (int i = 0; i < stringAppendCount; i++) {
       longString.append(i);
     }
 
@@ -352,16 +338,12 @@ public class EventImplTest {
     assertTrue(doc.containsKey("LongString"));
   }
 
-  /**
-   * Over-sized event with alot of KVs and long keys and values
-   *
-   * @throws InvalidConfigException
-   */
+  /** Over-sized event with alot of KVs and long keys and values */
   @Test
   public void testOversizedEvent5() throws InvalidConfigException {
-    final int STRING_APPEND_COUNT = 1000;
+    final int stringAppendCount = 1000;
     StringBuffer longString = new StringBuffer();
-    for (int i = 0; i < STRING_APPEND_COUNT; i++) {
+    for (int i = 0; i < stringAppendCount; i++) {
       longString.append(i);
     }
     final String longPrefix = longString.toString();
@@ -393,18 +375,14 @@ public class EventImplTest {
     // each entry. This is ok as this is one extreme case
   }
 
-  /**
-   * Over-sized event with large map value
-   *
-   * @throws InvalidConfigException
-   */
+  /** Over-sized event with large map value */
   @Test
   public void testOversizedEvent6() throws InvalidConfigException {
-    int TEST_KEY_COUNT = 32 * 1024;
-    String PREFIX = "漢字";
+    int testKeyCount = 32 * 1024;
+    String prefix = "漢字";
     Map<String, String> map = new HashMap<String, String>();
-    for (int i = 0; i < TEST_KEY_COUNT; i++) {
-      map.put(PREFIX + i, PREFIX);
+    for (int i = 0; i < testKeyCount; i++) {
+      map.put(prefix + i, prefix);
     }
 
     Metadata md = new Metadata();
@@ -437,18 +415,14 @@ public class EventImplTest {
     assertEquals("2", doc.get("k2"));
   }
 
-  /**
-   * Over-sized event with large collection value
-   *
-   * @throws InvalidConfigException
-   */
+  /** Over-sized event with large collection value */
   @Test
   public void testOversizedEvent7() throws InvalidConfigException {
-    int TEST_KEY_COUNT = 32 * 1024;
-    String PREFIX = "漢字";
+    int testKeyCount = 32 * 1024;
+    String prefix = "漢字";
     List<String> list = new ArrayList<String>();
-    for (int i = 0; i < TEST_KEY_COUNT; i++) {
-      list.add(PREFIX + i);
+    for (int i = 0; i < testKeyCount; i++) {
+      list.add(prefix + i);
     }
 
     Metadata md = new Metadata();
@@ -557,12 +531,12 @@ public class EventImplTest {
   }
 
   @Test
-  public void testW3cContextToXTrace() {
+  public void testW3cContextToXtrace() {
     assertEquals(
         "2BA6A6D97A748BFC9F91A4DC46A0D15BBB00000000B6968E14AC09A25A01",
-        EventImpl.w3cContextToXTrace("00-a6a6d97a748bfc9f91a4dc46a0d15bbb-b6968e14ac09a25a-01"));
+        EventImpl.w3cContextToXtrace("00-a6a6d97a748bfc9f91a4dc46a0d15bbb-b6968e14ac09a25a-01"));
     assertEquals(
         "2BA6A6D97A748BFC9F91A4DC46A0D15BBB00000000B6968E14AC09A25A00",
-        EventImpl.w3cContextToXTrace("00-a6a6d97a748bfc9f91a4dc46a0d15bbb-b6968e14ac09a25a-00"));
+        EventImpl.w3cContextToXtrace("00-a6a6d97a748bfc9f91a4dc46a0d15bbb-b6968e14ac09a25a-00"));
   }
 }

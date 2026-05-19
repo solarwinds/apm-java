@@ -27,7 +27,7 @@ import lombok.Getter;
  * too
  *
  * @author pluk
- * @param <T>
+ * @param <T> the type of the settings argument value
  */
 @Getter
 public abstract class SettingsArgChangeListener<T> {

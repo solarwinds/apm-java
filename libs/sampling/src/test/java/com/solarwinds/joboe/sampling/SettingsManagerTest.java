@@ -140,8 +140,7 @@ public class SettingsManagerTest {
         try {
           TimeUnit.SECONDS.sleep(5);
           countDownLatch.countDown();
-        } catch (InterruptedException e) {
-          e.printStackTrace();
+        } catch (InterruptedException ignored) {
         }
       }
     }.start();

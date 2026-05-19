@@ -26,7 +26,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
-public class UDPReporter implements EventReporter {
+public class UdpReporter implements EventReporter {
   private static final Logger logger = LoggerFactory.getLogger();
   private DatagramSocket socket;
 
@@ -39,9 +39,9 @@ public class UDPReporter implements EventReporter {
    * <p>WARNING: this is ONLY for internal usage and will be removed from public access later on In
    * order to build UDP reporter, please use {@link ReporterFactory} instead
    *
-   * @throws IOException
+   * @throws IOException if the UDP socket cannot be created
    */
-  public UDPReporter() throws IOException {
+  public UdpReporter() throws IOException {
     this(XTR_UDP_HOST, XTR_UDP_PORT);
   }
 
@@ -51,11 +51,11 @@ public class UDPReporter implements EventReporter {
    * <p>WARNING: this is ONLY for internal usage and will be removed from public access later on In
    * order to build UDP reporter, please use {@link ReporterFactory} instead
    *
-   * @param host
-   * @param port
-   * @throws IOException
+   * @param host the destination host
+   * @param port the destination port
+   * @throws IOException if the UDP socket cannot be created
    */
-  public UDPReporter(String host, int port) throws IOException {
+  public UdpReporter(String host, int port) throws IOException {
     this(host, port, null, null);
   }
 
@@ -63,13 +63,13 @@ public class UDPReporter implements EventReporter {
    * Create UDP report with provided destination Host and Port. Also bind the socket to the local
    * address and port provided
    *
-   * @param host
-   * @param port
-   * @param datagramLocalAddress
-   * @param datagramLocalPort
-   * @throws IOException
+   * @param host the destination host
+   * @param port the destination port
+   * @param datagramLocalAddress the local address to bind the socket to, or null for any
+   * @param datagramLocalPort the local port to bind the socket to, or null for any
+   * @throws IOException if the UDP socket cannot be created or bound
    */
-  UDPReporter(String host, int port, String datagramLocalAddress, Integer datagramLocalPort)
+  UdpReporter(String host, int port, String datagramLocalAddress, Integer datagramLocalPort)
       throws IOException {
     init(host, port, datagramLocalAddress, datagramLocalPort);
   }

@@ -227,11 +227,11 @@ public class ServerHostInfoReader
 
       // map of device id -> status
       Map<String, NicStatus> nicStatusMap = new HashMap<>();
-      boolean isWindowsIPv4 = false;
+      boolean isWindowsIpv4 = false;
       if (osType.equals(HostInfoUtils.OsType.WINDOWS)
           && Boolean.getBoolean("java.net.preferIPv4Stack")) {
         buildNicStatusMap(nicStatusMap);
-        isWindowsIPv4 = true;
+        isWindowsIpv4 = true;
       }
 
       for (NetworkInterface networkInterface :
@@ -261,7 +261,7 @@ public class ServerHostInfoReader
               hasIp = true;
             }
 
-            if (isWindowsIPv4) { // extra check for windows IPv4 preferred environment, see
+            if (isWindowsIpv4) { // extra check for windows IPv4 preferred environment, see
               // https://github.com/librato/joboe/pull/1090 for details
               NicStatus status = nicStatusMap.get(networkInterface.getDisplayName());
               logger.debug(
@@ -285,7 +285,7 @@ public class ServerHostInfoReader
               // some kind of `link local` IP address (169.254. 0.0/16). The link local IP can be
               // fetched by the Go API (used by the
               // host agent) but not by the Java Windows API when `java.net.preferIPv4Stack`=true.
-              // Therefore, if the isWindowsIPv4 is true (check that when it's true), we'll accept
+              // Therefore, if the isWindowsIpv4 is true (check that when it's true), we'll accept
               // the DISCONNECTED NIC without
               // considering if it has an IP. For all other cases, that NIC will be filtered out if
               // it doesn't have an IP address.
@@ -338,7 +338,7 @@ public class ServerHostInfoReader
    *
    * <p>Take note that this definition is different from NetworkInterface.isVirtual()
    *
-   * @return
+   * @return true if the interface is physical, false if it is virtual
    */
   private static boolean isPhysicalInterface(NetworkInterface networkInterface) {
     if (osType
@@ -374,11 +374,11 @@ public class ServerHostInfoReader
    * @return false if it's NOT a Microsoft Hyper-V Network Adapter or it's UP
    */
   private static boolean isGhostHyperV(NetworkInterface networkInterface) {
-    final String hyperVPrefix = "Microsoft Hyper-V Network Adapter";
+    final String hyperVprefix = "Microsoft Hyper-V Network Adapter";
     try {
       String displayName = networkInterface.getDisplayName();
       return displayName != null
-          && displayName.startsWith(hyperVPrefix)
+          && displayName.startsWith(hyperVprefix)
           && !networkInterface.isUp();
     } catch (SocketException e) {
       logger.debug("Cannot call isUp on " + networkInterface.getDisplayName(), e);
@@ -460,7 +460,7 @@ public class ServerHostInfoReader
   /**
    * This was copied from JAgentInfo.java
    *
-   * @return
+   * @return the host name, or null if it cannot be determined
    */
   private static String loadHostNameFromInetAddress() {
     try {
@@ -508,12 +508,12 @@ public class ServerHostInfoReader
     return distro; // could be null for unsupported system
   }
 
-  @Override
   /**
    * Get a map of host information
    *
-   * @return
+   * @return a map of host metadata key-value pairs
    */
+  @Override
   public Map<String, Object> getHostMetadata() {
     HashMap<String, Object> infoMap = new HashMap<String, Object>();
 
@@ -551,7 +551,7 @@ public class ServerHostInfoReader
    * <p>Code logic copied from <a
    * href="https://github.com/librato/oboe/blob/a3dd998e7ea239e3d5e5c7ece8c635c3ff61c903/liboboe/reporter/ssl.cc#L559">...</a>
    *
-   * @return
+   * @return the Linux distribution string, or null if it cannot be identified
    */
   private static String getLinuxDistro() {
     // Note: Order of checking is important because some distros share same file names but with
@@ -800,7 +800,7 @@ public class ServerHostInfoReader
       awsMetadata = getMetadata(token);
     }
 
-    private static String useIMDSv1(String relativePath) {
+    private static String useImdsV1(String relativePath) {
       AtomicReference<String> result = new AtomicReference<>();
       InstrumentationUtil.suppressInstrumentation(
           () -> {
@@ -892,7 +892,7 @@ public class ServerHostInfoReader
       return result.get();
     }
 
-    private static String useIMDSv2(String relativePath, String apiToken) {
+    private static String useImdsV2(String relativePath, String apiToken) {
       AtomicReference<String> result = new AtomicReference<>();
       InstrumentationUtil.suppressInstrumentation(
           () -> {
@@ -939,11 +939,11 @@ public class ServerHostInfoReader
     private static String getResourceOnEndpoint(String relativePath, String token) {
       String result = null;
       if (token != null) {
-        result = useIMDSv2(relativePath, token);
+        result = useImdsV2(relativePath, token);
       }
 
       if (result == null) {
-        result = useIMDSv1(relativePath);
+        result = useImdsV1(relativePath);
       }
       return result;
     }
@@ -1177,19 +1177,18 @@ public class ServerHostInfoReader
   }
 
   public static class K8sReader {
-    public static String SW_K8S_POD_NAMESPACE = "SW_K8S_POD_NAMESPACE";
+    public static final String SW_K8S_POD_NAMESPACE = "SW_K8S_POD_NAMESPACE";
 
-    public static String SW_K8S_POD_NAME = "SW_K8S_POD_NAME";
+    public static final String SW_K8S_POD_NAME = "SW_K8S_POD_NAME";
 
-    public static String SW_K8S_POD_UID = "SW_K8S_POD_UID";
+    public static final String SW_K8S_POD_UID = "SW_K8S_POD_UID";
 
-    public static String NAMESPACE_FILE_LOC_LINUX =
-        "/var/run/secrets/kubernetes.io/serviceaccount/namespace";
+    static String namespaceFileLocLinux = "/var/run/secrets/kubernetes.io/serviceaccount/namespace";
 
-    public static String NAMESPACE_FILE_LOC_WINDOWS =
+    static String namespaceFileLocWindows =
         "C:\\var\\run\\secrets\\kubernetes.io\\serviceaccount\\namespace";
 
-    public static String POD_UUID_FILE_LOC = "/proc/self/mountinfo";
+    static String podUuidFileLoc = "/proc/self/mountinfo";
 
     static final Pattern POD_UID_REGEX =
         Pattern.compile("[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}");
@@ -1213,10 +1212,10 @@ public class ServerHostInfoReader
 
     private static String getNamespace() {
       if (osType == HostInfoUtils.OsType.LINUX) {
-        return fileReader(NAMESPACE_FILE_LOC_LINUX, line -> Optional.of(line.trim()));
+        return fileReader(namespaceFileLocLinux, line -> Optional.of(line.trim()));
 
       } else if (osType == HostInfoUtils.OsType.WINDOWS) {
-        return fileReader(NAMESPACE_FILE_LOC_WINDOWS, line -> Optional.of(line.trim()));
+        return fileReader(namespaceFileLocWindows, line -> Optional.of(line.trim()));
       }
 
       return null;
@@ -1224,7 +1223,7 @@ public class ServerHostInfoReader
 
     private static String getPodId() {
       return fileReader(
-          POD_UUID_FILE_LOC,
+          podUuidFileLoc,
           line -> {
             Matcher matcher = POD_UID_REGEX.matcher(line);
             String podId = null;
