@@ -40,7 +40,7 @@ repositories {
 dependencies {
   implementation(gradleApi())
   implementation("com.diffplug.spotless:spotless-plugin-gradle:8.4.0")
-  implementation("io.freefair.gradle:lombok-plugin:8.13")
+  implementation("io.freefair.gradle:lombok-plugin:9.5.0")
 
   implementation("io.opentelemetry.instrumentation:gradle-plugins:2.27.0-alpha")
   implementation("com.gradleup.shadow:shadow-gradle-plugin:9.4.1")
