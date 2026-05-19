@@ -72,6 +72,7 @@ dependencies {
     api("io.opentelemetry:opentelemetry-sdk-extension-incubator:$opentelemetryAlpha")
 
     api("org.junit.jupiter:junit-jupiter-params:$junit5")
+    api("dev.cel:cel:0.13.0")
 
   }
 }
