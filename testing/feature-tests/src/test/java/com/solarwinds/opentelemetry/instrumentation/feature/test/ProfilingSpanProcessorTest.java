@@ -51,7 +51,7 @@ class ProfilingSpanProcessorTest {
         () -> {
           try {
             Thread.sleep(2000);
-          } catch (InterruptedException ignore) {
+          } catch (InterruptedException ignored) {
           }
         });
 
