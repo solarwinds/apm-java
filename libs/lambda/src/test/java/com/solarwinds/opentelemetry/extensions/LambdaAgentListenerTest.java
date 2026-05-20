@@ -25,8 +25,6 @@ import static org.mockito.Mockito.when;
 import com.solarwinds.joboe.sampling.SettingsManager;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import io.opentelemetry.sdk.trace.SdkTracerProvider;
-import io.opentelemetry.sdk.trace.samplers.Sampler;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -42,10 +40,6 @@ class LambdaAgentListenerTest {
 
   @Mock private OpenTelemetrySdk openTelemetrySdkMock;
 
-  @Mock private SdkTracerProvider sdkTracerProviderMock;
-
-  @Mock private Sampler samplerMock;
-
   @Test
   void verifySettingsManagerIsInitializedWhenConditionsAreMet() {
     try (MockedStatic<SettingsManager> settingsManagerMock = mockStatic(SettingsManager.class);
@@ -56,11 +50,6 @@ class LambdaAgentListenerTest {
       defaultAutoConfigurationCustomizerProviderMock
           .when(DefaultAutoConfigurationCustomizerProvider::isAgentEnabled)
           .thenReturn(true);
-      when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk())
-          .thenReturn(openTelemetrySdkMock);
-      when(openTelemetrySdkMock.getSdkTracerProvider()).thenReturn(sdkTracerProviderMock);
-
-      when(sdkTracerProviderMock.getSampler()).thenReturn(new SolarwindsSampler());
 
       tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
       settingsManagerMock.verify(() -> SettingsManager.initialize(any(), any()));
@@ -76,12 +65,10 @@ class LambdaAgentListenerTest {
 
       defaultAutoConfigurationCustomizerProviderMock
           .when(DefaultAutoConfigurationCustomizerProvider::isAgentEnabled)
-          .thenReturn(true);
+          .thenReturn(false);
+
       when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk())
           .thenReturn(openTelemetrySdkMock);
-      when(openTelemetrySdkMock.getSdkTracerProvider()).thenReturn(sdkTracerProviderMock);
-
-      when(sdkTracerProviderMock.getSampler()).thenReturn(samplerMock);
 
       tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
       settingsManagerMock.verify(() -> SettingsManager.initialize(any(), any()), never());
@@ -90,11 +77,19 @@ class LambdaAgentListenerTest {
 
   @Test
   void verifySDKIsShutdownWhenBranchIsNotTaken() {
-    when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk()).thenReturn(openTelemetrySdkMock);
-    when(openTelemetrySdkMock.getSdkTracerProvider()).thenReturn(sdkTracerProviderMock);
-    when(sdkTracerProviderMock.getSampler()).thenReturn(samplerMock);
+    try (MockedStatic<DefaultAutoConfigurationCustomizerProvider>
+        defaultAutoConfigurationCustomizerProviderMock =
+            mockStatic(DefaultAutoConfigurationCustomizerProvider.class)) {
 
-    tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
-    verify(openTelemetrySdkMock).shutdown();
+      defaultAutoConfigurationCustomizerProviderMock
+          .when(DefaultAutoConfigurationCustomizerProvider::isAgentEnabled)
+          .thenReturn(false);
+
+      when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk())
+          .thenReturn(openTelemetrySdkMock);
+
+      tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
+      verify(openTelemetrySdkMock).shutdown();
+    }
   }
 }

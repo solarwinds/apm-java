@@ -16,8 +16,6 @@
 
 package com.solarwinds.opentelemetry.extensions.provider;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.verify;
@@ -58,18 +56,6 @@ class AutoConfigurationCustomizerProviderImplTest {
   void teardown() throws Throwable {
     // Reset the static agentEnabled field to true so it doesn't affect other tests
     AGENT_ENABLED_SETTER.invokeExact(true);
-  }
-
-  @Test
-  void verifyThatWhenDisabledItIsNeverEnabled() {
-    AutoConfigurationCustomizerProviderImpl.setAgentEnabled(false);
-    AutoConfigurationCustomizerProviderImpl.setAgentEnabled(true);
-    assertFalse(AutoConfigurationCustomizerProviderImpl.isAgentEnabled());
-  }
-
-  @Test
-  void verifyThatOrderReturnsIntMax() {
-    assertEquals(Integer.MAX_VALUE, tested.order());
   }
 
   @Test

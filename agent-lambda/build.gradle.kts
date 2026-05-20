@@ -82,7 +82,11 @@ tasks {
     filesMatching("META-INF/services/**") {
       duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
+
     exclude("**/module-info.class")
+    filesMatching(listOf("META-INF/LICENSE", "META-INF/LICENSE.txt", "META-INF/NOTICE", "META-INF/NOTICE.txt")) {
+      duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
 
     // exclude known bootstrap dependencies - they can't appear in the inst/ directory
     dependencies {

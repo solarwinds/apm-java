@@ -42,6 +42,11 @@ dependencies {
     exclude(module = "opentelemetry-sdk", group = "io.opentelemetry") // the agent includes this
   }
 
+  implementation("io.opentelemetry.contrib:opentelemetry-cel-sampler") {
+    exclude(module = "opentelemetry-sdk", group = "io.opentelemetry") // the agent includes this
+    exclude(group = "com.google.code.findbugs", module = "annotations")
+  }
+
   implementation("org.json:json")
   implementation("com.google.code.gson:gson")
   implementation("com.github.ben-manes.caffeine:caffeine")

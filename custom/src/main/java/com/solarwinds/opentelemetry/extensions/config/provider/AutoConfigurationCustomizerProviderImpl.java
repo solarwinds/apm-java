@@ -48,11 +48,6 @@ public class AutoConfigurationCustomizerProviderImpl
     return agentEnabled;
   }
 
-  public static void setAgentEnabled(boolean agentEnabled) {
-    AutoConfigurationCustomizerProviderImpl.agentEnabled =
-        AutoConfigurationCustomizerProviderImpl.agentEnabled && agentEnabled;
-  }
-
   @Override
   public void customize(@Nonnull AutoConfigurationCustomizer autoConfiguration) {
     try {
@@ -82,13 +77,5 @@ public class AutoConfigurationCustomizerProviderImpl
         .addSpanExporterCustomizer(new SpanExporterCustomizer())
         .addLogRecordExporterCustomizer(new LogRecordExporterCustomizer())
         .addResourceCustomizer(new ResourceCustomizer());
-  }
-
-  @Override
-  public int order() {
-    // Here, we return Integer.MAX_VALUE to force our extension customization to execute last.
-    // See https://github.com/appoptics/solarwinds-apm-java/pull/93#discussion_r1165987329 for more
-    // context
-    return Integer.MAX_VALUE;
   }
 }

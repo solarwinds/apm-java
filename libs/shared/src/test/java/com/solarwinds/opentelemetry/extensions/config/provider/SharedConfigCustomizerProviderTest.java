@@ -651,6 +651,41 @@ class SharedConfigCustomizerProviderTest {
   }
 
   @Test
+  void customizeShouldNotOverrideSamplerWhenOneIsAlreadyConfigured() {
+    SamplerModel userSampler = new SamplerModel().withAdditionalProperty("cel", null);
+
+    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+        new OpenTelemetryConfigurationModel()
+            .withTracerProvider(new TracerProviderModel().withSampler(userSampler))
+            .withInstrumentationDevelopment(
+                new ExperimentalInstrumentationModel()
+                    .withJava(
+                        new ExperimentalLanguageSpecificInstrumentationModel()
+                            .withAdditionalProperty(
+                                "solarwinds",
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                        "token:service")
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                        "apm.collector.com"))));
+
+    doNothing()
+        .when(declarativeConfigurationCustomizerMock)
+        .addModelCustomizer(functionArgumentCaptor.capture());
+
+    tested.customize(declarativeConfigurationCustomizerMock);
+    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+
+    TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
+    SamplerModel sampler = tracerProvider.getSampler();
+
+    assertNull(sampler.getAdditionalProperties().get(SamplerComponentProvider.COMPONENT_NAME));
+    assertTrue(sampler.getAdditionalProperties().containsKey("cel"));
+  }
+
+  @Test
   void logsNotConfiguredWhenLoggerProviderAbsent() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()

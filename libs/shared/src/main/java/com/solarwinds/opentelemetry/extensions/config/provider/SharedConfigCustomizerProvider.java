@@ -152,10 +152,13 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
   }
 
   private void addSampler(TracerProviderModel model) {
-    model.withSampler(
-        new SamplerModel()
-            .withAdditionalProperty(
-                SamplerComponentProvider.COMPONENT_NAME, new SamplerPropertyModel()));
+    SamplerModel sampler = model.getSampler();
+    if (sampler == null) {
+      model.withSampler(
+          new SamplerModel()
+              .withAdditionalProperty(
+                  SamplerComponentProvider.COMPONENT_NAME, new SamplerPropertyModel()));
+    }
   }
 
   private void addContextPropagators(PropagatorModel model) {
