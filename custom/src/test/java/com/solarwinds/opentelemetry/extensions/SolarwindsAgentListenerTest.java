@@ -24,6 +24,10 @@ import static org.mockito.Mockito.when;
 import com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,7 +37,26 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class SolarwindsAgentListenerTest {
+
+  private static final MethodHandle AGENT_ENABLED_SETTER;
+
+  static {
+    try {
+      Field field = AutoConfigurationCustomizerProviderImpl.class.getDeclaredField("agentEnabled");
+      field.setAccessible(true);
+      AGENT_ENABLED_SETTER = MethodHandles.lookup().unreflectSetter(field);
+    } catch (ReflectiveOperationException e) {
+      throw new ExceptionInInitializerError(e);
+    }
+  }
+
   @InjectMocks private SolarwindsAgentListener tested;
+
+  @AfterEach
+  void teardown() throws Throwable {
+    // Reset the static agentEnabled field to true so it doesn't affect other tests
+    AGENT_ENABLED_SETTER.invokeExact(true);
+  }
 
   @Mock private AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdkMock;
 
