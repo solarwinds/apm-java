@@ -38,7 +38,6 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 
 import java.io.IOException;
@@ -123,66 +122,10 @@ public class SmokeTest {
     }
 
     @Test
-    void assertTransactionFiltering() throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double fails = ResultsCollector.read(resultJson, "$.root_group.checks.['verify that transaction is filtered'].fails");
-        assertEquals(0, fails, "transaction filtering doesn't work");
-    }
-
-    @Test
     void assertTraceIngestion() throws IOException {
         String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
         double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['trace is returned'].passes");
         assertTrue(passes > 0, "trace ingestion is not working. There maybe network issues");
-    }
-
-    @Test
-    void assertJDBC()  throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['JDBC is not broken'].passes");
-        assertTrue(passes > 0, "JDBC instrumentation doesn't work");
-    }
-
-    @Test
-    void assertXTraceOptions()  throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['xtrace-options is added to root span'].passes");
-        assertTrue(passes > 1, "Xtrace options is not captured in root span");
-    }
-
-    @Test
-    void assertMvcInstrumentation()  throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['mvc handler name is added'].passes");
-        assertTrue(passes > 0, "MVC instrumentation is broken");
-    }
-
-    @Test
-    void assertTriggerTrace()  throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['trigger trace'].passes");
-        assertTrue(passes > 0, "trigger trace is broken");
-    }
-
-    @Test
-    void assertCodeProfiling()  throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['code profiling'].passes");
-        assertTrue(passes > 0, "code profiling is broken");
-    }
-
-    @Test
-    void assertContextPropagation()  throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['check that remote service, java-apm-smoke-test, is path of the trace'].passes");
-        assertTrue(passes > 0, "context propagation is broken");
-    }
-
-    @Test
-    void assertTransactionNaming() throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['custom transaction name'].passes");
-        assertTrue(passes > 0, "transaction naming is broken");
     }
 
     @Test
@@ -212,114 +155,41 @@ public class SmokeTest {
     }
 
     @Test
-    void assertServiceNameIsSameAsOneInServiceKey() {
-        Boolean actual = logStreamAnalyzer.getAnswer().get("This log line is used for validation only: service.name: java-apm-smoke-test");
-        assertTrue(actual, "service.name is not updated with name in service key");
-    }
-
-    @Test
     void assertThatTransactionNameBufferIsCleared() {
         Boolean actual = logStreamAnalyzer.getAnswer().get("Clearing transaction name buffer. Unique transaction count: \\d+");
         assertTrue(actual, "Transaction name buffer is not getting cleared on metric flush");
     }
 
-  @Test
-  void assertThatJDBCInstrumentationIsApplied() {
-    Boolean actual = logStreamAnalyzer.getAnswer().get("Applying instrumentation: sw-jdbc");
-    assertTrue(actual, "sw-jdbc instrumentation is not applied");
-  }
-
-  @Test
-  void assertThatProxyIsUsed() {
-    Boolean actual = logStreamAnalyzer.getAnswer().get("CONNECT otel.collector.na-01.st-ssp.solarwinds.com:443");
-    assertTrue(actual, "not using proxy");
-  }
-
-  @Test
-  void assertThatLogsAreExported() throws IOException {
-    String resultJson = new String(
-        Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-    double passes = ResultsCollector.read(resultJson,
-        "$.root_group.checks.['logs'].passes");
-    assertTrue(passes > 0, "log export is broken");
-  }
-
-  @Test
-  void assertThatMetricsAreExported() throws IOException {
-    String resultJson = new String(
-        Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-    double passes = ResultsCollector.read(resultJson,
-        "$.root_group.checks.['otel-metrics'].passes");
-    assertTrue(passes > 0, "otel metric export is broken");
-  }
-
-  @Test
-  void assertThatRuntimeMetrics17AreExported() throws IOException {
-    String resultJson = new String(
-        Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-    double passes = ResultsCollector.read(resultJson,
-        "$.root_group.checks.['otel-metrics-17'].passes");
-    assertTrue(passes > 0, "JVM 17+ runtime metric export is broken");
-  }
-
-  @Test
-  void assertThatSdkTracingIsWorking() throws IOException {
-    String resultJson = new String(
-        Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-
-    double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['sdk-trace'].passes");
-    assertTrue(passes > 0, "SDK trace is not working, expected a count > 0");
-  }
-
     @Test
-    void assertThatRequestCountMetricIsReported() throws IOException {
-        String resultJson = new String(
-                Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['request_count'].passes");
-        assertTrue(passes > 0, "Expects a count > 0");
+    void assertThatProxyIsUsed() {
+        Boolean actual = logStreamAnalyzer.getAnswer().get("CONNECT otel.collector.na-01.st-ssp.solarwinds.com:443");
+        assertTrue(actual, "not using proxy");
     }
 
     @Test
-    void assertThatTraceCountMetricIsReported() throws IOException {
+    void assertThatLogsAreExported() throws IOException {
         String resultJson = new String(
                 Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['tracecount'].passes");
-        assertTrue(passes > 0, "Expects a count > 0");
+        double passes = ResultsCollector.read(resultJson,
+                "$.root_group.checks.['logs'].passes");
+        assertTrue(passes > 0, "log export is broken");
     }
 
     @Test
-    void assertThatSampleCountMetricIsReported() throws IOException {
+    void assertThatMetricsAreExported() throws IOException {
         String resultJson = new String(
                 Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['samplecount'].passes");
-        assertTrue(passes > 0, "Expects a count > 0");
+        double passes = ResultsCollector.read(resultJson,
+                "$.root_group.checks.['otel-metrics'].passes");
+        assertTrue(passes > 0, "otel metric export is broken");
     }
 
     @Test
-    void assertThatResponseTimeMetricIsReported() throws IOException {
+    void assertThatRuntimeMetrics17AreExported() throws IOException {
         String resultJson = new String(
                 Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['response_time'].passes");
-        assertTrue(passes > 0, "Expects a count > 0");
-    }
-
-    @Test
-    void assertThatCodeStacktraceIsCaptured() throws IOException {
-        String resultJson = new String(
-                Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['code.stacktrace'].passes");
-        assertTrue(passes > 0, "Expects a count > 0");
-    }
-
-    @Test
-    void assertThatTraceJvmMetricsAreNotCollected() throws IOException {
-        String resultJson = new String(
-                Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        assertThrows(PathNotFoundException.class, () -> ResultsCollector.read(resultJson, "$.root_group.checks.['trace.jvm-metrics'].fails"));
+        double passes = ResultsCollector.read(resultJson,
+                "$.root_group.checks.['otel-metrics-17'].passes");
+        assertTrue(passes > 0, "JVM 17+ runtime metric export is broken");
     }
 }

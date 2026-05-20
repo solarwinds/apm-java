@@ -82,10 +82,6 @@ allprojects {
                 }
             }
         }
-
-        tasks.withType<Test> {
-            finalizedBy(tasks.named("cleanListedDependencies"))
-        }
     }
 }
 
