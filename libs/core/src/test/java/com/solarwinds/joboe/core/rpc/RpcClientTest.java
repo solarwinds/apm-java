@@ -41,8 +41,13 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.GeneralSecurityException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -168,7 +173,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testConnectValidServer() throws Exception {
-    System.out.println("running testConnectValidServer");
     Client client = null;
     try {
       client =
@@ -190,7 +194,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testConnectInvalidServer() throws Exception {
-    System.out.println("running testConnectInvalidServer");
     Client client = null;
     try {
       client =
@@ -202,7 +205,6 @@ public abstract class RpcClientTest {
               getProtocolClientFactory(new File(INVALID_CERT_LOCATION).toURI().toURL()));
     } catch (Exception e) {
       // expected;
-      System.out.println("Fret not! Expected ^^");
     } finally {
       if (client != null) {
         client.close();
@@ -212,7 +214,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testConnectDeadServer() throws Exception {
-    System.out.println("running testConnectDeadServer");
     Client client = null;
     try {
       client =
@@ -226,7 +227,6 @@ public abstract class RpcClientTest {
       fail("Expect exception thrown, but no exception found!");
     } catch (TimeoutException | ExecutionException e) {
       // expected;
-      System.out.println("Fret not! Expected ^^");
     } finally {
       if (client != null) {
         client.close();
@@ -266,7 +266,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testPostManyEvents() throws Exception {
-    System.out.println("running testPostManyEvents");
     Client client = null;
 
     try {
@@ -296,7 +295,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testPostManyBigEvents() throws Exception {
-    System.out.println("running testPostManyBigEvents");
     Client client = null;
 
     try {
@@ -334,7 +332,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testGetSettings() throws Exception {
-    System.out.println("running testGetSettings");
     Client client = null;
 
     try {
@@ -375,7 +372,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testGetSettingsDeadServer() throws Exception {
-    System.out.println("running testGetSettingsDeadServer");
     Client client = null;
     try {
       client =
@@ -388,7 +384,6 @@ public abstract class RpcClientTest {
       fail("Expect exception thrown, but no exception found!");
     } catch (TimeoutException | ExecutionException e) {
       // expected;
-      System.out.println("Fret not! Expected ^^");
     } finally {
       if (client != null) {
         client.close();
@@ -396,14 +391,9 @@ public abstract class RpcClientTest {
     }
   }
 
-  /**
-   * With non empty warning
-   *
-   * @throws Exception
-   */
+  /** With non empty warning */
   @Test
   public void testGetSettingSoftDisabled() throws Exception {
-    System.out.println("running testGetSettings with warning (soft-disabled)");
     Client client = null;
     int softDisabledServerPort = locateAvailablePort();
 
@@ -429,7 +419,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testPostStatus() throws Exception {
-    System.out.println("running testPostStatus");
     Client client = null;
 
     try {
@@ -467,10 +456,9 @@ public abstract class RpcClientTest {
 
   @Test
   public void testPostStatusBigMessage() throws Exception {
-    System.out.println("running testPostStatusBigMessage");
     Client client = null;
-    final int ENTRY_COUNT = 500;
-    final int ENTRY_SIZE = 1024;
+    final int entryCount = 500;
+    final int entrySize = 1024;
     try {
       client =
           new RpcClient(
@@ -481,8 +469,8 @@ public abstract class RpcClientTest {
 
       List<Map<String, Object>> testMessages = new ArrayList<Map<String, Object>>();
       Map<String, Object> testMessage = new HashMap<String, Object>();
-      for (int j = 0; j < ENTRY_COUNT; j++) {
-        testMessage.put(String.valueOf(j), new Byte[ENTRY_SIZE]);
+      for (int j = 0; j < entryCount; j++) {
+        testMessage.put(String.valueOf(j), new Byte[entrySize]);
       }
       testMessages.add(testMessage);
 
@@ -498,10 +486,9 @@ public abstract class RpcClientTest {
 
   @Test
   public void testPostStatusHugeMessage() throws Exception {
-    System.out.println("running testPostStatusHugeMessage");
     Client client = null;
-    final int ENTRY_COUNT = 2000;
-    final int ENTRY_SIZE = 1024;
+    final int entryCount = 2000;
+    final int entrySize = 1024;
     try {
       client =
           new RpcClient(
@@ -512,8 +499,8 @@ public abstract class RpcClientTest {
 
       List<Map<String, Object>> testMessages = new ArrayList<Map<String, Object>>();
       Map<String, Object> testMessage = new HashMap<String, Object>();
-      for (int j = 0; j < ENTRY_COUNT; j++) {
-        testMessage.put(String.valueOf(j), new Byte[ENTRY_SIZE]);
+      for (int j = 0; j < entryCount; j++) {
+        testMessage.put(String.valueOf(j), new Byte[entrySize]);
       }
       testMessages.add(testMessage);
 
@@ -528,7 +515,6 @@ public abstract class RpcClientTest {
                 + e.getCause().getClass().getName());
       }
       // expected;
-      System.out.println("Fret not! Expected ^^");
     } finally {
       if (client != null) {
         client.close();
@@ -540,7 +526,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testPostMetrics() throws Exception {
-    System.out.println("running testPostMetrics");
     Client client = null;
 
     try {
@@ -578,7 +563,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testConnectionInit() throws Exception {
-    System.out.println("running testConnectionInit");
     Client client = null;
 
     try {
@@ -608,7 +592,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testRedirectLoop() throws Exception {
-    System.out.println("running testRedirectLoop");
     int redirectPort = locateAvailablePort();
     TestCollector redirectServer =
         startRedirectCollector(redirectPort, "localhost:" + redirectPort); // redirect loop
@@ -636,7 +619,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testValidRedirect() throws Exception {
-    System.out.println("running testValidRedirect");
     int redirectPort1 = locateAvailablePort();
     int redirectPort2 = redirectPort1 + 1;
     TestCollector redirectServer1 =
@@ -670,7 +652,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testInvalidRedirectArg() throws Exception {
-    System.out.println("running testInvalidRedirectArg");
     int redirectPort = locateAvailablePort();
     TestCollector redirectServer =
         startRedirectCollector(
@@ -688,7 +669,6 @@ public abstract class RpcClientTest {
       fail("Expect exception thrown, but no exception found!");
     } catch (ExecutionException e) {
       // expected
-      System.out.println("Fret not! Expected ^^");
     } finally {
       if (client != null) {
         client.close();
@@ -699,7 +679,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testInvalidRedirectTarget() throws Exception {
-    System.out.println("running testInvalidRedirectTarget");
     int redirectPort = locateAvailablePort();
     TestCollector redirectServer =
         startRedirectCollector(
@@ -720,7 +699,6 @@ public abstract class RpcClientTest {
       fail("Expect exception thrown, but no exception found!");
     } catch (TimeoutException | ExecutionException e) {
       // expected;
-      System.out.println("Fret not! Expected ^^");
     } finally {
       if (client != null) {
         client.close();
@@ -734,12 +712,9 @@ public abstract class RpcClientTest {
    * later.
    *
    * <p>This verifies the retry mechanism of this client
-   *
-   * @throws Exception
    */
   @Test
   public void testTryLater() throws Exception {
-    System.out.println("running testTryLater");
     int tryLaterPort = locateAvailablePort();
 
     TestCollector tryLaterCollector = startRatedCollector(tryLaterPort, ResultCode.TRY_LATER);
@@ -782,12 +757,9 @@ public abstract class RpcClientTest {
    * exceed
    *
    * <p>This verifies the retry mechanism of this client
-   *
-   * @throws Exception
    */
   @Test
   public void testLimitExceed() throws Exception {
-    System.out.println("running testLimitExceed");
     int tryLaterPort = locateAvailablePort();
 
     TestCollector tryLaterServer = startRatedCollector(tryLaterPort, ResultCode.LIMIT_EXCEEDED);
@@ -827,7 +799,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testUnstableServer() throws Exception {
-    System.out.println("running testUnstableServer");
     final int unstableServerPort = locateAvailablePort();
 
     final AtomicBoolean keepRunning = new AtomicBoolean(true);
@@ -841,21 +812,14 @@ public abstract class RpcClientTest {
             while (keepRunning.get()) {
               try {
                 while (isPortNotAvailable()) {
-                  System.out.println(
-                      "unstable server port ["
-                          + unstableServerPort
-                          + "] is not yet available... sleeping");
                   TimeUnit.SECONDS.sleep(1);
                 }
 
                 TestCollector unstableServer = startCollector(unstableServerPort);
-                System.out.println("unstable server serving for 1 sec...");
                 Thread.sleep(1000);
-                System.out.println("unstable server coming down...");
                 List<ByteBuffer> receivedEvents = unstableServer.stop();
                 collectorEvents.addAll(receivedEvents);
-              } catch (Exception e) {
-                e.printStackTrace();
+              } catch (Exception ignored) {
               }
             }
           }
@@ -908,7 +872,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testOccasionalErrorServer() throws Exception {
-    System.out.println("running testOccasionalErrorServer");
     int errorServerPort = locateAvailablePort();
 
     TestCollector errorServer =
@@ -950,7 +913,6 @@ public abstract class RpcClientTest {
 
   @Test
   public void testErrorServer() throws Exception {
-    System.out.println("running testErrorServer");
     int errorServerPort = locateAvailablePort();
 
     TestCollector errorServer =
@@ -986,12 +948,9 @@ public abstract class RpcClientTest {
    * Test different calls processing should block each other based on different status code. For
    * example a server might return TRY_LATER for postMetrics but get settings calls might be OK,
    * therefore the getSettings calls should not get held up by postMetrics's failure
-   *
-   * @throws Exception
    */
   @Test
   public void testBiasedServer() throws Exception {
-    System.out.println("running testBiasedServer");
     int biasedServerPort = locateAvailablePort();
 
     TestCollector basiedServer = startBiasedTestCollector(biasedServerPort);
@@ -1038,8 +997,8 @@ public abstract class RpcClientTest {
 
   /** Checks to see if a specific port is available. */
   public static synchronized int locateAvailablePort() {
-    int MAX_PORT = portWalker + 2000; // huh shouldn't hit it
-    while (portWalker <= MAX_PORT) {
+    int maxPort = portWalker + 2000; // huh shouldn't hit it
+    while (portWalker <= maxPort) {
       if (isPortNotAvailable()) {
         portWalker++;
       } else {
@@ -1062,8 +1021,7 @@ public abstract class RpcClientTest {
     } finally {
       try {
         s.close();
-      } catch (IOException e) {
-        e.printStackTrace();
+      } catch (IOException ignored) {
       }
     }
   }

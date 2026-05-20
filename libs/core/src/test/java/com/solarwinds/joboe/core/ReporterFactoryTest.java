@@ -42,7 +42,7 @@ public class ReporterFactoryTest {
 
   @Test
   public void testbuildNonDefaultUdpReporter() throws Exception {
-    UDPReporter reporter = tested.createUdpReporter("localhost", 9999);
+    UdpReporter reporter = tested.createUdpReporter("localhost", 9999);
 
     Field addressField = reporter.getClass().getDeclaredField("addr");
     addressField.setAccessible(true);

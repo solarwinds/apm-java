@@ -93,7 +93,7 @@ public final class SettingsManager {
    *
    * <p>The caller will get notified immediately once on the initial value upon calling this method
    *
-   * @param listener
+   * @param listener the settings arg change listener to register
    */
   public static void registerListener(SettingsArgChangeListener<?> listener) {
     Set<SettingsArgChangeListener<?>> listenersOfThisType =
@@ -118,7 +118,7 @@ public final class SettingsManager {
    * Gets the <code>Settings</code> of this current process. Might return null if no <code>Settings
    * </code> is available yet
    *
-   * @return
+   * @return the current {@link Settings}, or null if not yet available
    */
   public static Settings getSettings() {
     return getSettings(0, null);
@@ -129,9 +129,9 @@ public final class SettingsManager {
    * available, this method will block either until <code>Settings</code> is available or the
    * timeout elapses
    *
-   * @param timeout
-   * @param unit
-   * @return
+   * @param timeout the maximum time to wait for settings to become available
+   * @param unit the time unit of the timeout argument
+   * @return the current {@link Settings}, or null if not available within the timeout
    */
   public static Settings getSettings(long timeout, TimeUnit unit) {
     if (fetcher != null) {

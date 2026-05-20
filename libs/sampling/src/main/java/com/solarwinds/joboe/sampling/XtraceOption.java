@@ -31,7 +31,7 @@ import lombok.Getter;
 @Getter
 public class XtraceOption<V> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger();
+  private static final Logger logger = LoggerFactory.getLogger();
   private static final Map<String, XtraceOption<?>> keyLookup =
       new HashMap<String, XtraceOption<?>>();
   public static final XtraceOption<Boolean> TRIGGER_TRACE =
@@ -48,7 +48,7 @@ public class XtraceOption<V> {
   private boolean isCustomKv = false;
 
   /**
-   * @param key
+   * @param key the option key
    * @param parser null parser indicates that this is a key only option
    */
   private XtraceOption(String key, ValueParser<V> parser) {
@@ -84,8 +84,12 @@ public class XtraceOption<V> {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     XtraceOption<?> that = (XtraceOption<?>) o;
 
@@ -100,23 +104,23 @@ public class XtraceOption<V> {
   /**
    * Whether this option is a custom one that starts with {@link XtraceOption#CUSTOM_KV_PREFIX}
    *
-   * @return
+   * @return true if this is a custom key-value option
    */
   public boolean isCustomKv() {
     return this.isCustomKv;
   }
 
+  private static boolean isCustomKv(String key) {
+    return key.startsWith(CUSTOM_KV_PREFIX);
+  }
+
   /**
    * Whether this option should appear in key-value pair or not.
    *
-   * @return
+   * @return true if this option has no value parser
    */
   public boolean isKeyOnlyOption() {
     return parser == null;
-  }
-
-  private static boolean isCustomKv(String key) {
-    return key.startsWith(CUSTOM_KV_PREFIX);
   }
 
   private interface ValueParser<V> {
@@ -128,11 +132,11 @@ public class XtraceOption<V> {
   }
 
   public V parseValueFromString(String value)
-      throws XtraceOptions.InvalidValueXTraceOptionException {
+      throws XtraceOptions.InvalidValueXtraceOptionException {
     try {
       return parser != null ? parser.parse(value) : null;
     } catch (IllegalArgumentException e) {
-      throw new XtraceOptions.InvalidValueXTraceOptionException(this, value);
+      throw new XtraceOptions.InvalidValueXtraceOptionException(this, value);
     }
   }
 

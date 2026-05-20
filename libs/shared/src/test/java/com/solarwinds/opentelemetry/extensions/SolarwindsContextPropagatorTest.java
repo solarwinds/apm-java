@@ -173,13 +173,13 @@ class SolarwindsContextPropagatorTest {
 
     Context newContext =
         solarwindsContextPropagator.extract(Context.current(), carrier, textMapGetterStub);
-    XtraceOptions xTraceOptions = newContext.get(TriggerTraceContextKey.KEY);
+    XtraceOptions xtraceOptions = newContext.get(TriggerTraceContextKey.KEY);
 
     assertEquals(String.format("%s=%s;", key, value), newContext.get(XTRACE_OPTIONS));
-    assertNotNull(xTraceOptions);
-    assertEquals(1, xTraceOptions.getCustomKvs().size());
+    assertNotNull(xtraceOptions);
+    assertEquals(1, xtraceOptions.getCustomKvs().size());
 
-    xTraceOptions
+    xtraceOptions
         .getCustomKvs()
         .forEach(
             (innerKey, innerValue) -> {

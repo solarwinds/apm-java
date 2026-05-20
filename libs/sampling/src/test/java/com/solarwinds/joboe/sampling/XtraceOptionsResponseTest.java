@@ -32,19 +32,19 @@ public class XtraceOptionsResponseTest {
             TracingMode.ALWAYS.toFlags());
     XtraceOptions options;
 
-    XTraceOptionsResponse response;
+    XtraceOptionsResponse response;
     // no x-trace options
     response =
-        XTraceOptionsResponse.computeResponse(
-            XtraceOptions.getXTraceOptions(null, null),
+        XtraceOptionsResponse.computeResponse(
+            XtraceOptions.getXtraceOptions(null, null),
             new TraceDecision(true, true, traceConfig, TraceDecisionUtil.RequestType.REGULAR),
             true);
     assertNull(response);
 
     // empty x-trace options
     response =
-        XTraceOptionsResponse.computeResponse(
-            XtraceOptions.getXTraceOptions("", null),
+        XtraceOptionsResponse.computeResponse(
+            XtraceOptions.getXtraceOptions("", null),
             new TraceDecision(true, true, traceConfig, TraceDecisionUtil.RequestType.REGULAR),
             true);
     assertEquals("trigger-trace=not-requested", response.toString());
@@ -56,7 +56,7 @@ public class XtraceOptionsResponseTest {
             Collections.emptyList(),
             XtraceOptions.AuthenticationStatus.NOT_AUTHENTICATED);
     response =
-        XTraceOptionsResponse.computeResponse(
+        XtraceOptionsResponse.computeResponse(
             options,
             new TraceDecision(
                 true,
@@ -73,7 +73,7 @@ public class XtraceOptionsResponseTest {
             Collections.emptyList(),
             XtraceOptions.AuthenticationStatus.OK);
     response =
-        XTraceOptionsResponse.computeResponse(
+        XtraceOptionsResponse.computeResponse(
             options,
             new TraceDecision(
                 true, true, traceConfig, TraceDecisionUtil.RequestType.AUTHENTICATED_TRIGGER_TRACE),
@@ -87,7 +87,7 @@ public class XtraceOptionsResponseTest {
             Collections.emptyList(),
             XtraceOptions.AuthenticationStatus.NOT_AUTHENTICATED);
     response =
-        XTraceOptionsResponse.computeResponse(
+        XtraceOptionsResponse.computeResponse(
             options,
             new TraceDecision(
                 false, false, null, TraceDecisionUtil.RequestType.UNAUTHENTICATED_TRIGGER_TRACE),
@@ -101,7 +101,7 @@ public class XtraceOptionsResponseTest {
             Collections.emptyList(),
             XtraceOptions.AuthenticationStatus.NOT_AUTHENTICATED);
     response =
-        XTraceOptionsResponse.computeResponse(
+        XtraceOptionsResponse.computeResponse(
             options,
             new TraceDecision(
                 false,
@@ -121,7 +121,7 @@ public class XtraceOptionsResponseTest {
     TraceConfig tracingDisabledConfig =
         new TraceConfig(0, SampleRateSource.FILE, TracingMode.NEVER.toFlags());
     response =
-        XTraceOptionsResponse.computeResponse(
+        XtraceOptionsResponse.computeResponse(
             options,
             new TraceDecision(
                 false,
@@ -145,7 +145,7 @@ public class XtraceOptionsResponseTest {
                 (TracingMode.ENABLED.toFlags()
                     & ~Settings.OBOE_SETTINGS_FLAG_TRIGGER_TRACE_ENABLED));
     response =
-        XTraceOptionsResponse.computeResponse(
+        XtraceOptionsResponse.computeResponse(
             options,
             new TraceDecision(
                 false,
@@ -164,11 +164,11 @@ public class XtraceOptionsResponseTest {
             SampleRateSource.OBOE_DEFAULT,
             TracingMode.ALWAYS.toFlags());
 
-    XTraceOptionsResponse response;
+    XtraceOptionsResponse response;
     // unknown X-Trace-Options
     response =
-        XTraceOptionsResponse.computeResponse(
-            XtraceOptions.getXTraceOptions(
+        XtraceOptionsResponse.computeResponse(
+            XtraceOptions.getXtraceOptions(
                 "unknown1=1;unknown2;" + XtraceOption.SW_KEYS.getKey() + "=3", null),
             new TraceDecision(true, true, traceConfig, TraceDecisionUtil.RequestType.REGULAR),
             true);
@@ -176,8 +176,8 @@ public class XtraceOptionsResponseTest {
 
     // invalid trigger-trace (has value)
     response =
-        XTraceOptionsResponse.computeResponse(
-            XtraceOptions.getXTraceOptions(
+        XtraceOptionsResponse.computeResponse(
+            XtraceOptions.getXtraceOptions(
                 XtraceOption.TRIGGER_TRACE.getKey() + "=0;" + XtraceOption.SW_KEYS.getKey() + "=3",
                 null),
             new TraceDecision(true, true, traceConfig, TraceDecisionUtil.RequestType.REGULAR),
@@ -193,7 +193,7 @@ public class XtraceOptionsResponseTest {
             SampleRateSource.OBOE_DEFAULT,
             TracingMode.ALWAYS.toFlags());
 
-    XTraceOptionsResponse response;
+    XtraceOptionsResponse response;
     // bad timestamp
     XtraceOptions badTimestampOptions =
         new XtraceOptions(
@@ -201,7 +201,7 @@ public class XtraceOptionsResponseTest {
             Collections.emptyList(),
             XtraceOptions.AuthenticationStatus.failure("bad-timestamp"));
     response =
-        XTraceOptionsResponse.computeResponse(
+        XtraceOptionsResponse.computeResponse(
             badTimestampOptions,
             new TraceDecision(
                 false, true, traceConfig, TraceDecisionUtil.RequestType.BAD_SIGNATURE),
@@ -215,7 +215,7 @@ public class XtraceOptionsResponseTest {
             Collections.emptyList(),
             XtraceOptions.AuthenticationStatus.failure("bad-signature"));
     response =
-        XTraceOptionsResponse.computeResponse(
+        XtraceOptionsResponse.computeResponse(
             badSignatureOptions,
             new TraceDecision(
                 false, true, traceConfig, TraceDecisionUtil.RequestType.BAD_SIGNATURE),

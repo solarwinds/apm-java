@@ -106,7 +106,7 @@ public class PollingSettingsFetcher implements SettingsFetcher {
    * Starts background worker to update settings record with <code>refreshInterval</code> sec pauses
    * in between
    *
-   * @return
+   * @return the Future representing the background worker task
    */
   private Future<?> startWorker() {
     return executorService.submit(

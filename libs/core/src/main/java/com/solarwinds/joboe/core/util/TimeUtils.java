@@ -80,8 +80,8 @@ public class TimeUtils {
    * Starts background working to periodically adjust the base time to address Time drifting and
    * shift problem as documented in <a href="https://github.com/librato/joboe/issues/537">...</a>
    *
-   * @param paramValue
-   * @return
+   * @param paramValue the interval in seconds, or 0 to disable time adjustment
+   * @return true if the background worker was started successfully
    */
   private static boolean startAdjustBaseWorker(Integer paramValue) {
     final int timeAdjustInterval;

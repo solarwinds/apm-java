@@ -56,18 +56,18 @@ public class TraceDecisionUtil {
   /**
    * Determines if we should trace this request.
    *
-   * @param layer
-   * @param inXTraceID incoming validated X-Trace-Id, if it is not valid, it should be null
-   * @param xTraceOptions incoming X-Trace-Options, null if not defined
+   * @param layer the layer name
+   * @param inXtraceId incoming validated X-Trace-Id, if it is not valid, it should be null
+   * @param xtraceOptions incoming X-Trace-Options, null if not defined
    * @param signals resource if the request has one, for example URL for web request, job name for
    *     jobs
    * @return trace decision, should always be nonnull
    */
   public static TraceDecision shouldTraceRequest(
-      String layer, String inXTraceID, XtraceOptions xTraceOptions, List<String> signals) {
+      String layer, String inXtraceId, XtraceOptions xtraceOptions, List<String> signals) {
     boolean isTriggerTrace;
     try {
-      RequestType requestType = getRequestType(inXTraceID, xTraceOptions);
+      RequestType requestType = getRequestType(inXtraceId, xtraceOptions);
       isTriggerTrace = requestType.isTriggerTrace();
 
       // First get the config from remote source (SRv1)
@@ -105,7 +105,7 @@ public class TraceDecisionUtil {
       }
 
       boolean isReportMetrics = isReportMetricsByConfig(config);
-      if (xTraceOptions != null && xTraceOptions.getAuthenticationStatus().isFailure()) {
+      if (xtraceOptions != null && xtraceOptions.getAuthenticationStatus().isFailure()) {
         logger.debug("Bad x-tv-options-signature, not tracing");
         return new TraceDecision(false, isReportMetrics, null, requestType);
       }
@@ -118,8 +118,8 @@ public class TraceDecisionUtil {
       }
 
       Metadata inMetadata = null;
-      if (inXTraceID != null) {
-        inMetadata = validateMetadata(inXTraceID);
+      if (inXtraceId != null) {
+        inMetadata = validateMetadata(inXtraceId);
       }
       boolean isSampled = isSampledByConfig(inMetadata, config, isTriggerTrace);
       boolean bucketExhausted = false;
@@ -159,21 +159,21 @@ public class TraceDecisionUtil {
     }
   }
 
-  private static Metadata validateMetadata(String inXTraceID) {
-    if (!Metadata.isCompatible(inXTraceID)) {
-      logger.debug("Not accepting X-Trace ID [" + inXTraceID + "] for trace continuation");
+  private static Metadata validateMetadata(String inXtraceId) {
+    if (!Metadata.isCompatible(inXtraceId)) {
+      logger.debug("Not accepting X-Trace ID [" + inXtraceId + "] for trace continuation");
       return null;
     }
 
     try {
-      Metadata inMetadata = new Metadata(inXTraceID);
+      Metadata inMetadata = new Metadata(inXtraceId);
       if (!inMetadata.isValid()) {
-        logger.debug("Invalid incoming x-trace ID [" + inXTraceID + "]");
+        logger.debug("Invalid incoming x-trace ID [" + inXtraceId + "]");
         return null;
       }
       return inMetadata;
     } catch (SamplingException e) {
-      logger.warn("Failed to parse x-trace ID [" + inXTraceID + "] " + e.getMessage());
+      logger.warn("Failed to parse x-trace ID [" + inXtraceId + "] " + e.getMessage());
       return null;
     }
   }
@@ -182,19 +182,19 @@ public class TraceDecisionUtil {
     return new AbstractMap.SimpleEntry<>(key, value);
   }
 
-  private static RequestType getRequestType(String inXTraceId, XtraceOptions xTraceOptions) {
-    if (xTraceOptions == null
-        || inXTraceId
+  private static RequestType getRequestType(String inXtraceId, XtraceOptions xtraceOptions) {
+    if (xtraceOptions == null
+        || inXtraceId
             != null) { // if there's an incoming valid x-trace ID then trigger trace option is
       // ignored
       return RequestType.REGULAR;
     }
     RequestType requestType;
     XtraceOptions.AuthenticationStatus authenticationStatus =
-        xTraceOptions.getAuthenticationStatus();
+        xtraceOptions.getAuthenticationStatus();
     if (authenticationStatus.isFailure()) {
       requestType = RequestType.BAD_SIGNATURE;
-    } else if (!xTraceOptions.getOptionValue(XtraceOption.TRIGGER_TRACE)) {
+    } else if (!xtraceOptions.getOptionValue(XtraceOption.TRIGGER_TRACE)) {
       requestType = RequestType.REGULAR;
     } else if (authenticationStatus.isAuthenticated()) {
       requestType = RequestType.AUTHENTICATED_TRIGGER_TRACE;
@@ -280,9 +280,9 @@ public class TraceDecisionUtil {
   /**
    * Validates the bucket settings, if it's invalid, 0 will be returned
    *
-   * @param settings
-   * @param arg
-   * @return
+   * @param settings the settings to read from
+   * @param arg the settings argument to read
+   * @return the validated bucket settings value, or 0 if invalid
    */
   private static double getBucketSettingsArg(Settings settings, SettingsArg<Double> arg) {
     Double value = settings.getArgValue(arg);
@@ -317,7 +317,7 @@ public class TraceDecisionUtil {
    * Retrieves universal (general settings that apply to the java process) Trace Config from local
    * Settings such as jvm arguments and java agent config file
    *
-   * @return
+   * @return the universal trace config from local settings
    */
   private static TraceConfig getLocalUniversalTraceConfig() {
     Integer sampleRate = SettingsManager.getSamplingConfiguration().getSampleRate();
@@ -350,8 +350,9 @@ public class TraceDecisionUtil {
    * Computes the trace config based on the precedence list.
    *
    * @param remoteConfig should not be null
-   * @param localConfig
-   * @return
+   * @param localConfig local trace configuration
+   * @param localTriggerTraceEnabled whether trigger trace is enabled locally
+   * @return the computed trace config
    */
   static TraceConfig computeTraceConfig(
       TraceConfig remoteConfig, TraceConfig localConfig, boolean localTriggerTraceEnabled) {
@@ -422,8 +423,9 @@ public class TraceDecisionUtil {
   /**
    * Checks whether we should sample based on the TraceConfig and various criteria
    *
-   * @param inMetadata
-   * @param config
+   * @param inMetadata incoming metadata, null for new traces
+   * @param config the trace configuration
+   * @param isTriggerTrace whether this is a trigger trace request
    * @return whether we should trace
    */
   private static boolean isSampledByConfig(
@@ -445,11 +447,12 @@ public class TraceDecisionUtil {
       if (!continuingMetadata
           .isSampled()) { // sampling decision from previous service decides not to trace
         return false;
-      } else // this flag is not being used currently
-      if (config.hasSampleThroughAlwaysFlag()) {
+      } else if (config.hasSampleThroughAlwaysFlag()) {
         incrementMetrics(MetricType.THROUGH_TRACE_COUNT);
         return true;
-      } else return config.hasSampleThroughFlag() && sampled(config.getSampleRate());
+      } else {
+        return config.hasSampleThroughFlag() && sampled(config.getSampleRate());
+      }
     }
   }
 
@@ -462,7 +465,7 @@ public class TraceDecisionUtil {
   /**
    * Increments the count for the given metricType.
    *
-   * @param metricType
+   * @param metricType the metric type to increment
    */
   private static void incrementMetrics(MetricType metricType) {
     requestCounters.get(metricType).incrementAndGet();
@@ -472,7 +475,7 @@ public class TraceDecisionUtil {
    * Records the last accessed sample rate for metric reporting functionality
    *
    * @param config last accessed sample rate
-   * @param layer
+   * @param layer the layer name
    */
   private static void recordLastTraceConfig(TraceConfig config, String layer) {
     synchronized (lastTraceConfigs) {

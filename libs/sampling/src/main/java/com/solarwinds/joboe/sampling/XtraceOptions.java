@@ -53,14 +53,14 @@ public class XtraceOptions {
   /**
    * -- GETTER -- Gets the exceptions occurred during the construction of XTraceOptions by
    *
-   * @return
+   * @return the list of exceptions that occurred during parsing
    */
-  @Getter private final List<XTraceOptionException> exceptions;
+  @Getter private final List<XtraceOptionException> exceptions;
 
   /**
    * -- GETTER -- Gets the authentication status after invocation of
    *
-   * @return
+   * @return the authentication status resulting from signature verification
    */
   @Getter private final AuthenticationStatus authenticationStatus;
 
@@ -80,7 +80,7 @@ public class XtraceOptions {
 
   XtraceOptions(
       Map<XtraceOption<?>, ?> options,
-      List<XTraceOptionException> exceptions,
+      List<XtraceOptionException> exceptions,
       AuthenticationStatus authenticationStatus) {
     this.options = options;
     this.exceptions = exceptions;
@@ -93,19 +93,19 @@ public class XtraceOptions {
    * <p>If `traceOptionsSignature` is provided, then authenticates the options with the
    * authenticator
    *
-   * @param traceOptionsString
-   * @param traceOptionsSignature
+   * @param traceOptionsString the raw X-Trace-Options header value to parse
+   * @param traceOptionsSignature the signature to authenticate the options, or null if not provided
    * @return An XTraceOptions instance after the parsing and authentication; null if
    *     `traceOptionsString` is null. Take note that any parsing or authentication failure will be
    *     recorded in the returning instance and can be extracted by {@link
    *     XtraceOptions#getAuthenticationStatus()} and {@link XtraceOptions#getExceptions()} methods.
    */
-  public static XtraceOptions getXTraceOptions(
+  public static XtraceOptions getXtraceOptions(
       String traceOptionsString, String traceOptionsSignature) {
-    return getXTraceOptions(traceOptionsString, traceOptionsSignature, authenticator);
+    return getXtraceOptions(traceOptionsString, traceOptionsSignature, authenticator);
   }
 
-  static XtraceOptions getXTraceOptions(
+  static XtraceOptions getXtraceOptions(
       String traceOptionsString,
       String traceOptionsSignature,
       SignatureAuthenticator authenticator) {
@@ -113,7 +113,7 @@ public class XtraceOptions {
       return null;
     }
 
-    List<XTraceOptionException> exceptions = new ArrayList<XTraceOptionException>();
+    List<XtraceOptionException> exceptions = new ArrayList<XtraceOptionException>();
 
     Map<XtraceOption<?>, Object> options = new LinkedHashMap<XtraceOption<?>, Object>();
     for (String optionEntry : traceOptionsString.split(ENTRY_SEPARATOR)) {
@@ -140,7 +140,7 @@ public class XtraceOptions {
       if (option != null) {
         if (option.isKeyOnlyOption()) {
           if (separatorIndex > 0) { // do not allow key only option with a value
-            exceptions.add(new InvalidFormatXTraceOptionException(option, optionEntry));
+            exceptions.add(new InvalidFormatXtraceOptionException(option, optionEntry));
           } else {
             if (!options.containsKey(option)) {
               options.put(option, true);
@@ -153,7 +153,7 @@ public class XtraceOptions {
           }
         } else {
           if (separatorIndex < 0) {
-            exceptions.add(new InvalidFormatXTraceOptionException(option, optionEntry));
+            exceptions.add(new InvalidFormatXtraceOptionException(option, optionEntry));
           }
           String optionValueString = optionEntry.substring(separatorIndex + 1).trim();
           try {
@@ -167,12 +167,12 @@ public class XtraceOptions {
                       + optionValueString
                       + "] found in X-Trace-Options, ignoring...");
             }
-          } catch (InvalidValueXTraceOptionException e) {
+          } catch (InvalidValueXtraceOptionException e) {
             exceptions.add(e);
           }
         }
       } else {
-        exceptions.add(new UnknownXTraceOptionException(optionKey));
+        exceptions.add(new UnknownXtraceOptionException(optionKey));
       }
     }
 
@@ -188,7 +188,7 @@ public class XtraceOptions {
       return new XtraceOptions(
           Collections.emptyMap(), Collections.emptyList(), authenticationStatus);
     } else {
-      for (XTraceOptionException exception : exceptions) {
+      for (XtraceOptionException exception : exceptions) {
         logger.debug(exception.getMessage());
       }
       return new XtraceOptions(options, exceptions, authenticationStatus);
@@ -205,12 +205,12 @@ public class XtraceOptions {
    *       `authenticator`
    * </ol>
    *
-   * Returns the authentication status based on the provided parameters
+   * <p>Returns the authentication status based on the provided parameters
    *
-   * @param optionsString
-   * @param timestamp
-   * @param traceOptionsSignature
-   * @param authenticator
+   * @param optionsString the raw X-Trace-Options header value to authenticate
+   * @param timestamp the timestamp extracted from the options, or null if absent
+   * @param traceOptionsSignature the signature to verify against, or null if not provided
+   * @param authenticator the signature authenticator to use, or null if unavailable
    * @return {@link AuthenticationStatus#NOT_AUTHENTICATED} if `traceOptionsSignature` is null;
    *     otherwise the result of the authentication
    */
@@ -253,9 +253,9 @@ public class XtraceOptions {
    *
    * <p>Take note that default value could be null too.
    *
-   * @param option
-   * @param <T>
-   * @return
+   * @param option the X-Trace option to retrieve the value for
+   * @param <T> the type of the option value
+   * @return the option value if set, otherwise the default value for the option
    */
   @SuppressWarnings("unchecked")
   public <T> T getOptionValue(XtraceOption<T> option) {
@@ -266,7 +266,7 @@ public class XtraceOptions {
    * Gets the custom KVs X-Trace-Options with key that starts with {@link
    * XtraceOption#CUSTOM_KV_PREFIX}
    *
-   * @return
+   * @return a map of custom key-value options parsed from the X-Trace-Options header
    */
   @SuppressWarnings("unchecked")
   public Map<XtraceOption<String>, String> getCustomKvs() {
@@ -280,33 +280,33 @@ public class XtraceOptions {
     return customKvs;
   }
 
-  public abstract static class XTraceOptionException extends Exception {
+  public abstract static class XtraceOptionException extends Exception {
     private static final long serialVersionUID = 1L;
 
-    XTraceOptionException(String message, Exception cause) {
+    XtraceOptionException(String message, Exception cause) {
       super(message, cause);
     }
 
-    XTraceOptionException(String message) {
+    XtraceOptionException(String message) {
       super(message);
     }
 
-    abstract void appendToResponse(XTraceOptionsResponse response);
+    abstract void appendToResponse(XtraceOptionsResponse response);
   }
 
   @Getter
-  public abstract static class InvalidXTraceOptionException extends XTraceOptionException {
+  public abstract static class InvalidXtraceOptionException extends XtraceOptionException {
     private static final long serialVersionUID = 1L;
     protected String invalidOptionKey;
     private static final String RESPONSE_KEY = "ignored";
 
-    protected InvalidXTraceOptionException(String invalidOptionKey, String message) {
+    protected InvalidXtraceOptionException(String invalidOptionKey, String message) {
       super(message);
       this.invalidOptionKey = invalidOptionKey;
     }
 
     @Override
-    void appendToResponse(XTraceOptionsResponse response) {
+    void appendToResponse(XtraceOptionsResponse response) {
       String existingIgnoredOptions = response.getValue(RESPONSE_KEY);
       String newIgnoredOptions;
       if (existingIgnoredOptions == null) {
@@ -320,19 +320,19 @@ public class XtraceOptions {
   }
 
   /** The X-Trace-Options key is unknown */
-  static class UnknownXTraceOptionException extends InvalidXTraceOptionException {
+  static class UnknownXtraceOptionException extends InvalidXtraceOptionException {
     private static final long serialVersionUID = 1L;
 
-    UnknownXTraceOptionException(String unknownOptionkey) {
+    UnknownXtraceOptionException(String unknownOptionkey) {
       super(unknownOptionkey, "Unknown key " + unknownOptionkey + " in X-Trace-Options header");
     }
   }
 
   /** The x-trace-option value is not the expected type/value */
-  public static class InvalidValueXTraceOptionException extends InvalidXTraceOptionException {
+  public static class InvalidValueXtraceOptionException extends InvalidXtraceOptionException {
     private static final long serialVersionUID = 1L;
 
-    InvalidValueXTraceOptionException(XtraceOption<?> optionKey, String invalidValue) {
+    InvalidValueXtraceOptionException(XtraceOption<?> optionKey, String invalidValue) {
       super(
           optionKey.getKey(),
           "Invalid value ["
@@ -347,10 +347,10 @@ public class XtraceOptions {
    * The x-trace-option entry is in invalid format, for example it expects a key/value but the
    * separator cannot be found
    */
-  static class InvalidFormatXTraceOptionException extends InvalidXTraceOptionException {
+  static class InvalidFormatXtraceOptionException extends InvalidXtraceOptionException {
     private static final long serialVersionUID = 1L;
 
-    InvalidFormatXTraceOptionException(XtraceOption<?> optionKey, String entry) {
+    InvalidFormatXtraceOptionException(XtraceOption<?> optionKey, String entry) {
       super(
           optionKey.getKey(),
           "Invalid format for option entry [" + entry + "] in X-Trace-Options header");
@@ -367,7 +367,7 @@ public class XtraceOptions {
      * -- GETTER -- Gets the reason of the authentication failure. If the authentication was
      * successfully or no authentication is done, then this will be null
      *
-     * @return
+     * @return the failure reason string, or null if authentication succeeded or was not attempted
      */
     private final String reason;
 
@@ -375,14 +375,14 @@ public class XtraceOptions {
      * -- GETTER -- Whether there is failure during the authentication. Take note that if no
      * authentication was taken place (for example no signature), then this will be `false`
      *
-     * @return
+     * @return true if authentication failed, false if it succeeded or was not attempted
      */
     private final boolean failure;
 
     /**
      * -- GETTER -- Whether the request is authenticated
      *
-     * @return
+     * @return true if the request was successfully authenticated, false otherwise
      */
     private final boolean authenticated;
 
@@ -411,13 +411,21 @@ public class XtraceOptions {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
 
       AuthenticationStatus that = (AuthenticationStatus) o;
 
-      if (failure != that.failure) return false;
-      if (authenticated != that.authenticated) return false;
+      if (failure != that.failure) {
+        return false;
+      }
+      if (authenticated != that.authenticated) {
+        return false;
+      }
       return Objects.equals(reason, that.reason);
     }
 

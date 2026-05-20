@@ -113,7 +113,7 @@ public class GrpcClient implements ProtocolClient {
         Collector.SettingsRequest.newBuilder()
             .setApiKey(serviceKey)
             .setClientVersion(version)
-            .setIdentity(hostIdManager.getHostnameOnlyHostID())
+            .setIdentity(hostIdManager.resolveGrpcHostnameOnlyHostId())
             .build();
     try {
       Collector.SettingsResult result =
@@ -170,7 +170,7 @@ public class GrpcClient implements ProtocolClient {
 
     Collector.MessageResult resultMessage = null;
     for (List<ByteString> itemsAsByteString : itemsByCalls) {
-      Collector.HostID hostId = hostIdManager.getHostID();
+      Collector.HostID hostId = hostIdManager.resolveGrpcHostId();
       Collector.MessageRequest.Builder builder =
           Collector.MessageRequest.newBuilder()
               .setApiKey(serviceKey)
@@ -357,46 +357,46 @@ public class GrpcClient implements ProtocolClient {
 
   private static class GrpcHostIdManager {
     private HostId localHostId;
-    private Collector.HostID grpcHostID;
-    private Collector.HostID grpcHostnameOnlyHostID;
+    private Collector.HostID grpcHostId;
+    private Collector.HostID grpcHostnameOnlyHostId;
     private String localHostname;
 
     private GrpcHostIdManager() {}
 
-    private Collector.HostID getHostID() {
+    private Collector.HostID resolveGrpcHostId() {
       HostId hostId = getHostId();
       boolean loadGrpcHostId;
       if (hostId == localHostId || hostId.equals(localHostId)) {
-        loadGrpcHostId = grpcHostID == null;
+        loadGrpcHostId = grpcHostId == null;
       } else {
         localHostId = hostId;
         loadGrpcHostId = true;
       }
 
       if (loadGrpcHostId) {
-        grpcHostID = toGrpcHostID(localHostId);
+        grpcHostId = toGrpcHostId(localHostId);
       }
 
-      return grpcHostID;
+      return grpcHostId;
     }
 
-    private Collector.HostID getHostnameOnlyHostID() {
+    private Collector.HostID resolveGrpcHostnameOnlyHostId() {
       String hostname = HostInfoUtils.getHostName();
       boolean loadGrpcHostId;
       if (hostname.equals(localHostname)) {
-        loadGrpcHostId = grpcHostnameOnlyHostID == null;
+        loadGrpcHostId = grpcHostnameOnlyHostId == null;
       } else {
         localHostname = hostname;
         loadGrpcHostId = true;
       }
 
       if (loadGrpcHostId) {
-        grpcHostnameOnlyHostID = toGrpcHostnameOnlyHostID(localHostname);
+        grpcHostnameOnlyHostId = toGrpcHostnameOnlyHostId(localHostname);
       }
-      return grpcHostnameOnlyHostID;
+      return grpcHostnameOnlyHostId;
     }
 
-    private static Collector.HostID toGrpcHostID(HostId hostId) {
+    private static Collector.HostID toGrpcHostId(HostId hostId) {
       Collector.HostID.Builder builder = Collector.HostID.newBuilder();
       setIfNotNull(builder::setHostname, hostId.getHostname());
       setIfNotNull(builder::setEc2InstanceID, hostId.getEc2InstanceId());
@@ -435,9 +435,9 @@ public class GrpcClient implements ProtocolClient {
      * <p>Unlike other language agent, this change does not give any performance boost to java
      * agent.
      *
-     * @return
+     * @return a HostID containing only the hostname
      */
-    private static Collector.HostID toGrpcHostnameOnlyHostID(String hostname) {
+    private static Collector.HostID toGrpcHostnameOnlyHostId(String hostname) {
       return Collector.HostID.newBuilder().setHostname(hostname).build();
     }
   }

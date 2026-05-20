@@ -16,7 +16,7 @@
 
 package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.sampling.TracingMode;

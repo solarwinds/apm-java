@@ -67,7 +67,7 @@ public class RpcSettings extends com.solarwinds.joboe.sampling.Settings {
   /**
    * For internal testing purpose only
    *
-   * @param source
+   * @param source the source RpcSettings to copy from
    * @param timestamp a new timestamp
    */
   public RpcSettings(RpcSettings source, long timestamp) {
@@ -82,7 +82,7 @@ public class RpcSettings extends com.solarwinds.joboe.sampling.Settings {
   /**
    * Read arguments from the input map
    *
-   * @param inputArgs
+   * @param inputArgs the map of argument keys and their byte buffer values
    */
   private void readArgs(Map<String, ByteBuffer> inputArgs) {
     for (Entry<String, ByteBuffer> inputArg : inputArgs.entrySet()) {

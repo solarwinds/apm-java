@@ -26,7 +26,7 @@ import java.io.IOException;
  *
  * @author pluk
  */
-public class DevURandomSeedGenerator implements SeedGenerator {
+public class DevUrandomSeedGenerator implements SeedGenerator {
   private static final File DEV_U_RANDOM = new File("/dev/urandom");
 
   @Override

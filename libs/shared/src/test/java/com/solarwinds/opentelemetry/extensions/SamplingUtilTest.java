@@ -47,45 +47,45 @@ class SamplingUtilTest {
   @Test
   void verifyThatTriggeredTraceAttributeIsAddedForAuthenticatedTriggerTrace() {
     AttributesBuilder builder = Attributes.builder();
-    XtraceOptions xTraceOptions = XtraceOptions.getXTraceOptions("trigger-trace", null);
+    XtraceOptions xtraceOptions = XtraceOptions.getXtraceOptions("trigger-trace", null);
     when(traceDecisionMock.getRequestType())
         .thenReturn(TraceDecisionUtil.RequestType.AUTHENTICATED_TRIGGER_TRACE);
 
-    SamplingUtil.addXtraceOptionsToAttribute(traceDecisionMock, xTraceOptions, builder);
+    SamplingUtil.addXtraceOptionsToAttribute(traceDecisionMock, xtraceOptions, builder);
     assertEquals(Boolean.TRUE, builder.build().get(booleanKey("TriggeredTrace")));
   }
 
   @Test
   void verifyThatTriggeredTraceAttributeIsAddedForUnauthenticatedTriggerTrace() {
     AttributesBuilder builder = Attributes.builder();
-    XtraceOptions xTraceOptions = XtraceOptions.getXTraceOptions("trigger-trace", null);
+    XtraceOptions xtraceOptions = XtraceOptions.getXtraceOptions("trigger-trace", null);
     when(traceDecisionMock.getRequestType())
         .thenReturn(TraceDecisionUtil.RequestType.UNAUTHENTICATED_TRIGGER_TRACE);
 
-    SamplingUtil.addXtraceOptionsToAttribute(traceDecisionMock, xTraceOptions, builder);
+    SamplingUtil.addXtraceOptionsToAttribute(traceDecisionMock, xtraceOptions, builder);
     assertEquals(Boolean.TRUE, builder.build().get(booleanKey("TriggeredTrace")));
   }
 
   @Test
   void verifyThatCustomKvAttributesAreAdded() {
     AttributesBuilder builder = Attributes.builder();
-    XtraceOptions xTraceOptions = XtraceOptions.getXTraceOptions("custom-chubi=chubby;", null);
+    XtraceOptions xtraceOptions = XtraceOptions.getXtraceOptions("custom-chubi=chubby;", null);
     when(traceDecisionMock.getRequestType())
         .thenReturn(TraceDecisionUtil.RequestType.UNAUTHENTICATED_TRIGGER_TRACE);
 
-    SamplingUtil.addXtraceOptionsToAttribute(traceDecisionMock, xTraceOptions, builder);
+    SamplingUtil.addXtraceOptionsToAttribute(traceDecisionMock, xtraceOptions, builder);
     assertEquals("chubby", builder.build().get(stringKey("custom-chubi")));
   }
 
   @Test
   void verifyThatSwKeysAttributeIsAdded() {
     AttributesBuilder builder = Attributes.builder();
-    XtraceOptions xTraceOptions =
-        XtraceOptions.getXTraceOptions("sw-keys=lo:se,check-id:123", null);
+    XtraceOptions xtraceOptions =
+        XtraceOptions.getXtraceOptions("sw-keys=lo:se,check-id:123", null);
     when(traceDecisionMock.getRequestType())
         .thenReturn(TraceDecisionUtil.RequestType.AUTHENTICATED_TRIGGER_TRACE);
 
-    SamplingUtil.addXtraceOptionsToAttribute(traceDecisionMock, xTraceOptions, builder);
+    SamplingUtil.addXtraceOptionsToAttribute(traceDecisionMock, xtraceOptions, builder);
     assertEquals("lo:se,check-id:123", builder.build().get(stringKey("SWKeys")));
   }
 

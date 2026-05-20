@@ -92,8 +92,7 @@ public class TestRpcClient implements Client {
     if (delay > 0) {
       try {
         Thread.sleep(delay);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
+      } catch (InterruptedException ignored) {
       }
     }
   }

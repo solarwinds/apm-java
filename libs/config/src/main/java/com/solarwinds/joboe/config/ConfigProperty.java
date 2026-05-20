@@ -190,7 +190,7 @@ public enum ConfigProperty {
 
   /**
    * @param configKey keys used to map to this property
-   * @param group
+   * @param group the configuration group
    * @param typeClass the Java Class of the property value
    */
   ConfigProperty(ConfigKey configKey, ConfigGroup group, Class<? extends Serializable> typeClass) {

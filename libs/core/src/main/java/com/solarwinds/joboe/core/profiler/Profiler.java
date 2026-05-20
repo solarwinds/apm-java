@@ -123,7 +123,7 @@ public class Profiler {
    *
    * <p>Ignores calls if profiler is NOT in `UNINITIALIZED` state
    *
-   * @param setting
+   * @param setting the profiler settings to initialize with
    * @param reporter reporter used to export the captured data (in {@link Event} output format)
    */
   public static void initialize(ProfilerSetting setting, EventReporter reporter) {
@@ -274,10 +274,10 @@ public class Profiler {
   /**
    * Adds a thread to be tracked for profiling
    *
-   * @param thread
-   * @param metadata
-   * @param traceId
-   * @return
+   * @param thread the thread to track for profiling
+   * @param metadata the tracing metadata associated with the thread
+   * @param traceId the trace ID of the parent span
+   * @return true if the thread was added, false if profiler is not running or thread was skipped
    */
   public static boolean addProfiledThread(Thread thread, Metadata metadata, String traceId) {
     if (thread.getName() != null
@@ -317,8 +317,8 @@ public class Profiler {
   /**
    * Stops profiling on all threads triggered by this parent (tracing) span
    *
-   * @param traceId
-   * @return
+   * @param traceId the trace ID of the parent span whose profiling should stop
+   * @return the stopped Profile, or null if no profile was found for the given trace ID
    */
   public static Profile stopProfile(String traceId) {
     Profile profile = profileByTraceId.remove(traceId);
@@ -369,8 +369,8 @@ public class Profiler {
      * Creates an "entry" event for the profiling span with a "SpanRef" pointing back to the parent
      * "tracing" span that triggers/create this profile
      *
-     * @param parentMetadata
-     * @return
+     * @param parentMetadata the metadata of the parent tracing span
+     * @return the metadata created for this profiling span entry
      */
     private Metadata createProfileSpanEntry(Metadata parentMetadata) {
       entryMetadata = new Metadata(parentMetadata);
@@ -398,8 +398,8 @@ public class Profiler {
     /**
      * Records and reports (if not omitted) the stack trace provided by in the parameters
      *
-     * @param thread
-     * @param stack
+     * @param thread the thread whose stack trace is being recorded
+     * @param stack the stack trace elements captured at collection time
      * @param collectionTime time in microseconde when a snapshot was collected
      */
     public void record(Thread thread, StackTraceElement[] stack, long collectionTime) {
@@ -478,8 +478,8 @@ public class Profiler {
      * Trim the stack by removing top frames that matches ProfilerSetting.getExcludePackages or if
      * it's deeper than MAX_REPORTED_FRAME_DEPTH
      *
-     * @param stack
-     * @return
+     * @param stack the stack trace to trim
+     * @return the trimmed stack trace with excluded frames removed
      */
     private StackTraceElement[] trimStack(StackTraceElement[] stack) {
       StackTraceElement[] trimmedStack;
@@ -521,9 +521,9 @@ public class Profiler {
     /**
      * Starts profiling on a thread with the parent (tracing) span
      *
-     * @param thread
-     * @param parentMetadata
-     * @return
+     * @param thread the thread to start profiling
+     * @param parentMetadata the metadata of the parent tracing span
+     * @return true if profiling was started, false if the thread was already being tracked
      */
     boolean startProfilingOnThread(Thread thread, Metadata parentMetadata) {
       if (!snapshotTrackersByThread.containsKey(thread)) {
@@ -539,8 +539,8 @@ public class Profiler {
     /**
      * Stops profiling on this particular thread
      *
-     * @param thread
-     * @return
+     * @param thread the thread to stop profiling
+     * @return true if profiling was stopped, false if the thread was not being tracked
      */
     boolean stopProfilingOnThread(Thread thread) {
       SnapshotTracker tracker = snapshotTrackersByThread.remove(thread);
@@ -552,7 +552,9 @@ public class Profiler {
     }
 
     private void createProfileSpanExit(SnapshotTracker tracker) {
-      if (!sampled) return;
+      if (!sampled) {
+        return;
+      }
       Event snapshotExit = Context.createEventWithContext(tracker.metadata);
       snapshotExit.addInfo(
           "Label", "exit",
@@ -568,7 +570,7 @@ public class Profiler {
     /**
      * Get a list of threads currently tracked by this Profile
      *
-     * @return
+     * @return the set of threads currently being profiled
      */
     public Set<Thread> getActiveThreads() {
       return new HashSet<Thread>(snapshotTrackersByThread.keySet());
@@ -704,8 +706,8 @@ public class Profiler {
      * returns `nextPause` then `nextPause` is multiplied by `PAUSE_MULTIPLIER` When transition to
      * or in "Restored but broken recently" state, `getPause` returns 0
      *
-     * @param duration
-     * @return
+     * @param duration the duration of the most recent operation in milliseconds
+     * @return the pause duration in milliseconds, or 0 if no pause is needed
      */
     public long getPause(long duration) {
       long pause = 0;

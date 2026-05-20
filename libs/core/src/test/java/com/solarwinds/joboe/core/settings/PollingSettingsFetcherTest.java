@@ -16,10 +16,17 @@
 
 package com.solarwinds.joboe.core.settings;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.solarwinds.joboe.core.Event;
-import com.solarwinds.joboe.core.rpc.*;
+import com.solarwinds.joboe.core.rpc.Client;
+import com.solarwinds.joboe.core.rpc.ClientException;
+import com.solarwinds.joboe.core.rpc.Result;
+import com.solarwinds.joboe.core.rpc.ResultCode;
+import com.solarwinds.joboe.core.rpc.RpcSettings;
+import com.solarwinds.joboe.core.rpc.SettingsResult;
 import com.solarwinds.joboe.sampling.Settings;
 import com.solarwinds.joboe.sampling.SettingsArg;
 import com.solarwinds.joboe.sampling.SettingsFetcher;
@@ -27,8 +34,15 @@ import com.solarwinds.joboe.sampling.SettingsListener;
 import com.solarwinds.joboe.sampling.TraceDecisionUtil;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 public class PollingSettingsFetcherTest {
@@ -124,7 +138,6 @@ public class PollingSettingsFetcherTest {
     TimeUnit.SECONDS.sleep(
         3); // sleep for 3 more seconds, now it's TTL + 2 (and 2 is bigger than REFRESH_INTERVAL),
     // hence the Settings should be expired
-    System.out.println("waking up");
     settings = fetcher.getSettings(); // second hit after record expired, should return null
     assertNull(settings);
 
@@ -272,7 +285,6 @@ public class PollingSettingsFetcherTest {
       fetcher.isSettingsAvailableLatch().await(10, TimeUnit.SECONDS);
       return fetcher;
     } catch (InterruptedException e) {
-      e.printStackTrace();
       return null;
     }
   }
@@ -302,11 +314,7 @@ public class PollingSettingsFetcherTest {
       return null; // not used
     }
 
-    /**
-     * Clone the settings as the buffer within the original settings cannot be shared
-     *
-     * @return
-     */
+    /** Clone the settings as the buffer within the original settings cannot be shared */
     protected List<Settings> getClonedSettings() {
       List<Settings> clonedSettings = new ArrayList<Settings>();
       for (Settings settingsEntry : settings) {

@@ -36,28 +36,28 @@ public class ReporterFactory {
   private ReporterFactory() {}
 
   /**
-   * Builds a {@link UDPReporter}. Take note that this might create a singleton if the system has
+   * Builds a {@link UdpReporter}. Take note that this might create a singleton if the system has
    * restrictions on UDP bind address/port, in such an environment, the singleton will have the
    * host/port set to the first call to this method, any other calls following with different host
    * and port would NOT reset the host/port
    *
    * @param host Destination host
    * @param port Destination port
-   * @return
-   * @throws IOException
+   * @return the created UdpReporter, or null if host or port is null
+   * @throws IOException if the UDP socket cannot be created
    */
-  UDPReporter createUdpReporter(String host, Integer port) throws IOException {
+  UdpReporter createUdpReporter(String host, Integer port) throws IOException {
     if (host == null || port == null) {
-      logger.error("Cannot build UDPReporter. Host and/or port params are null!");
+      logger.error("Cannot build UdpReporter. Host and/or port params are null!");
       return null;
     }
-    return new UDPReporter(host, port);
+    return new UdpReporter(host, port);
   }
 
   /**
    * Builds a {@link TestReporter}, take note that this reporter collects events from all threads
    *
-   * @return
+   * @return a new TestReporter that collects events from all threads
    */
   public TestReporter createTestReporter() {
     return createTestReporter(false);
@@ -69,7 +69,7 @@ public class ReporterFactory {
    *
    * @param isThreadLocal whether the <code>TestReporter</code> built should work in thread local
    *     manner
-   * @return
+   * @return a new TestReporter configured for the specified thread-local mode
    */
   public TestReporter createTestReporter(boolean isThreadLocal) {
     return isThreadLocal ? new TestReporter() : new NonThreadLocalTestReporter();

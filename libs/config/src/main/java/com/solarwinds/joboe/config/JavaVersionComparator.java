@@ -39,7 +39,8 @@ public class JavaVersionComparator {
     }
 
     int compare(Version other) {
-      int selfIdx = 0, otherIdx = 0;
+      int selfIdx = 0;
+      int otherIdx = 0;
       while (selfIdx < versions.size() && otherIdx < other.versions.size()) {
         int selfVersion = versions.get(selfIdx);
         int otherVersion = other.versions.get(otherIdx);
@@ -50,7 +51,9 @@ public class JavaVersionComparator {
         selfIdx++;
         otherIdx++;
       }
-      if (selfIdx == versions.size() && otherIdx == other.versions.size()) return 0;
+      if (selfIdx == versions.size() && otherIdx == other.versions.size()) {
+        return 0;
+      }
       return selfIdx == versions.size() ? -1 : 1;
     }
   }

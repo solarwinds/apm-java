@@ -27,7 +27,10 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -74,8 +77,8 @@ public class SslUtils {
    * `SslParameters#setEndpointIdentificationAlgorithm("HTTPS")` or when there's cert host name
    * override
    *
-   * @param trustManagers
-   * @param host
+   * @param trustManagers the array of trust managers to wrap
+   * @param host the expected hostname to check against certificates
    * @return an array of one manager, which wraps all the input trust managers
    */
   private static TrustManager[] explicitHostCheckManager(
@@ -148,7 +151,7 @@ public class SslUtils {
    * that is NOT TLSv1, it will just return SSLContext with the default SSL version
    *
    * @return SSLContext that prefers protocol version higher than TLSv1
-   * @throws GeneralSecurityException
+   * @throws GeneralSecurityException if the SSL context cannot be created
    */
   private static SSLContext getSslContext(TrustManager[] trustManagers)
       throws GeneralSecurityException {
@@ -156,7 +159,7 @@ public class SslUtils {
     context.init(null, trustManagers, null);
 
     try {
-      if (isDefaultTLSv1(context)) { // we should try higher version
+      if (isDefaultTlsV1(context)) { // we should try higher version
         List<String> supportedProtocols =
             Arrays.asList(context.getSupportedSSLParameters().getProtocols());
         if (supportedProtocols.contains("TLSv1.2")) {
@@ -181,7 +184,7 @@ public class SslUtils {
   }
 
   /** Returns whether the only enabled SSL protocol is TLSv1 */
-  private static boolean isDefaultTLSv1(SSLContext context) {
+  private static boolean isDefaultTlsV1(SSLContext context) {
     List<String> enabledProtocols =
         new ArrayList<String>(
             Arrays.asList(

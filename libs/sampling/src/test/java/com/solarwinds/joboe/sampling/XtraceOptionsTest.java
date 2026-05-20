@@ -34,12 +34,12 @@ public class XtraceOptionsTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testGetXTraceOptions() throws Exception {
-    assertNull(XtraceOptions.getXTraceOptions(null, null));
+  public void testGetXtraceOptions() throws Exception {
+    assertNull(XtraceOptions.getXtraceOptions(null, null));
 
     String swKeys = "lo:se";
     XtraceOptions options =
-        XtraceOptions.getXTraceOptions(
+        XtraceOptions.getXtraceOptions(
             XtraceOption.TRIGGER_TRACE.getKey()
                 + XtraceOptions.ENTRY_SEPARATOR
                 + XtraceOption.SW_KEYS.getKey()
@@ -73,7 +73,7 @@ public class XtraceOptionsTest {
 
     // no trigger-trace option
     options =
-        XtraceOptions.getXTraceOptions(
+        XtraceOptions.getXtraceOptions(
             XtraceOption.SW_KEYS.getKey()
                 + XtraceOptions.KEY_VALUE_SEPARATOR
                 + swKeys
@@ -101,7 +101,7 @@ public class XtraceOptionsTest {
     String swKeys = "lo:se";
     // leading and trailing whitespace
     options =
-        XtraceOptions.getXTraceOptions(
+        XtraceOptions.getXtraceOptions(
             "      "
                 + XtraceOption.TRIGGER_TRACE.getKey()
                 + XtraceOptions.ENTRY_SEPARATOR
@@ -116,7 +116,7 @@ public class XtraceOptionsTest {
     // space in between kv pairs are trimmed
     // leading and trailing whitespace
     options =
-        XtraceOptions.getXTraceOptions(
+        XtraceOptions.getXtraceOptions(
             XtraceOption.TRIGGER_TRACE.getKey()
                 + " "
                 + XtraceOptions.ENTRY_SEPARATOR
@@ -131,18 +131,18 @@ public class XtraceOptionsTest {
     assertEquals(Boolean.TRUE, options.getOptionValue(XtraceOption.TRIGGER_TRACE));
 
     // space in key is considered invalid
-    options = XtraceOptions.getXTraceOptions("trigger trace", null);
+    options = XtraceOptions.getXtraceOptions("trigger trace", null);
     assertEquals(Boolean.FALSE, options.getOptionValue(XtraceOption.TRIGGER_TRACE));
     assertEquals(
         "trigger trace",
-        ((XtraceOptions.UnknownXTraceOptionException) options.getExceptions().get(0))
+        ((XtraceOptions.UnknownXtraceOptionException) options.getExceptions().get(0))
             .getInvalidOptionKey());
 
     // key/value separator (=) in value is okay
     String customKey = XtraceOption.CUSTOM_KV_PREFIX + "1";
     String customValue = "foo" + XtraceOptions.KEY_VALUE_SEPARATOR + "5";
     options =
-        XtraceOptions.getXTraceOptions(
+        XtraceOptions.getXtraceOptions(
             customKey + XtraceOptions.KEY_VALUE_SEPARATOR + customValue, null);
     assertEquals(0, options.getExceptions().size());
     assertEquals(1, options.getCustomKvs().size());
@@ -154,7 +154,7 @@ public class XtraceOptionsTest {
   @SuppressWarnings("unchecked")
   public void testDuplicatedOption() {
     XtraceOptions options =
-        XtraceOptions.getXTraceOptions(
+        XtraceOptions.getXtraceOptions(
             XtraceOption.SW_KEYS.getKey()
                 + XtraceOptions.KEY_VALUE_SEPARATOR
                 + "p1"
@@ -184,9 +184,9 @@ public class XtraceOptionsTest {
   }
 
   @Test
-  public void testGetXTraceOptionsExceptions() throws Exception {
+  public void testGetXtraceOptionsExceptions() throws Exception {
     XtraceOptions options =
-        XtraceOptions.getXTraceOptions(
+        XtraceOptions.getXtraceOptions(
             XtraceOption.TRIGGER_TRACE.getKey()
                 + XtraceOptions.ENTRY_SEPARATOR
                 + "unknown-tag1"
@@ -200,16 +200,16 @@ public class XtraceOptionsTest {
     assertEquals(2, options.getExceptions().size());
     assertEquals(
         "unknown-tag1",
-        ((XtraceOptions.UnknownXTraceOptionException) options.getExceptions().get(0))
+        ((XtraceOptions.UnknownXtraceOptionException) options.getExceptions().get(0))
             .getInvalidOptionKey());
     assertEquals(
         "unknown-tag2",
-        ((XtraceOptions.UnknownXTraceOptionException) options.getExceptions().get(1))
+        ((XtraceOptions.UnknownXtraceOptionException) options.getExceptions().get(1))
             .getInvalidOptionKey());
 
     // test invalid format
     options =
-        XtraceOptions.getXTraceOptions(
+        XtraceOptions.getXtraceOptions(
             XtraceOption.TRIGGER_TRACE.getKey()
                 + XtraceOptions.KEY_VALUE_SEPARATOR
                 + "1"
@@ -220,26 +220,26 @@ public class XtraceOptionsTest {
     assertEquals(Boolean.FALSE, options.getOptionValue(XtraceOption.TRIGGER_TRACE));
     assertEquals(
         XtraceOption.TRIGGER_TRACE.getKey(),
-        ((XtraceOptions.InvalidFormatXTraceOptionException) options.getExceptions().get(0))
+        ((XtraceOptions.InvalidFormatXtraceOptionException) options.getExceptions().get(0))
             .getInvalidOptionKey());
     assertEquals(
         XtraceOption.CUSTOM_KV_PREFIX + "1",
-        ((XtraceOptions.InvalidFormatXTraceOptionException) options.getExceptions().get(1))
+        ((XtraceOptions.InvalidFormatXtraceOptionException) options.getExceptions().get(1))
             .getInvalidOptionKey());
 
     // test invalid value
     options =
-        XtraceOptions.getXTraceOptions(
+        XtraceOptions.getXtraceOptions(
             XtraceOption.TS.getKey() + XtraceOptions.KEY_VALUE_SEPARATOR + "abc",
             null); // ts should be a long
     assertEquals(
         XtraceOption.TS.getKey(),
-        ((XtraceOptions.InvalidValueXTraceOptionException) options.getExceptions().get(0))
+        ((XtraceOptions.InvalidValueXtraceOptionException) options.getExceptions().get(0))
             .getInvalidOptionKey());
 
     // parse some options either though others are bad
     options =
-        XtraceOptions.getXTraceOptions("trigger-trace;custom-foo=' bar;bar' ;custom-bar=foo", null);
+        XtraceOptions.getXtraceOptions("trigger-trace;custom-foo=' bar;bar' ;custom-bar=foo", null);
     assertEquals(Boolean.TRUE, options.getOptionValue(XtraceOption.TRIGGER_TRACE));
     assertEquals(2, options.getCustomKvs().size());
     Iterator<XtraceOption<String>> customKeyIterator = options.getCustomKvs().keySet().iterator();
@@ -252,11 +252,11 @@ public class XtraceOptionsTest {
 
     assertEquals(
         "bar'",
-        ((XtraceOptions.UnknownXTraceOptionException) options.getExceptions().get(0))
+        ((XtraceOptions.UnknownXtraceOptionException) options.getExceptions().get(0))
             .getInvalidOptionKey());
 
     options =
-        XtraceOptions.getXTraceOptions(
+        XtraceOptions.getXtraceOptions(
             ";trigger-trace;custom-something=value_thing;sw-keys=02973r70:9wqj21,0d9j1;1;2;=custom-key=val?;=",
             null);
     assertEquals(Boolean.TRUE, options.getOptionValue(XtraceOption.TRIGGER_TRACE));
@@ -274,16 +274,16 @@ public class XtraceOptionsTest {
     // will be ignored
     assertEquals(
         "1",
-        ((XtraceOptions.UnknownXTraceOptionException) options.getExceptions().get(0))
+        ((XtraceOptions.UnknownXtraceOptionException) options.getExceptions().get(0))
             .getInvalidOptionKey());
     assertEquals(
         "2",
-        ((XtraceOptions.UnknownXTraceOptionException) options.getExceptions().get(1))
+        ((XtraceOptions.UnknownXtraceOptionException) options.getExceptions().get(1))
             .getInvalidOptionKey());
 
     // skip sequel ;
     options =
-        XtraceOptions.getXTraceOptions(
+        XtraceOptions.getXtraceOptions(
             "custom-something=value_thing;sw-keys=02973r70;;;;custom-key=val", null);
     assertEquals("02973r70", options.getOptionValue(XtraceOption.SW_KEYS));
     assertEquals(2, options.getCustomKvs().size());
@@ -295,20 +295,20 @@ public class XtraceOptionsTest {
     assertEquals("val", customValueIterator.next());
 
     // case sensitive
-    options = XtraceOptions.getXTraceOptions("Trigger-Trace;Custom-something=value_thing", null);
+    options = XtraceOptions.getXtraceOptions("Trigger-Trace;Custom-something=value_thing", null);
     assertEquals(Boolean.FALSE, options.getOptionValue(XtraceOption.TRIGGER_TRACE));
     assertEquals(2, options.getExceptions().size());
     assertEquals(
         "Trigger-Trace",
-        ((XtraceOptions.UnknownXTraceOptionException) options.getExceptions().get(0))
+        ((XtraceOptions.UnknownXtraceOptionException) options.getExceptions().get(0))
             .getInvalidOptionKey());
     assertEquals(
         "Custom-something",
-        ((XtraceOptions.UnknownXTraceOptionException) options.getExceptions().get(1))
+        ((XtraceOptions.UnknownXtraceOptionException) options.getExceptions().get(1))
             .getInvalidOptionKey());
 
     // no X-Trace-Options but has signature
-    options = XtraceOptions.getXTraceOptions(null, "abc");
+    options = XtraceOptions.getXtraceOptions(null, "abc");
     assertNull(options);
   }
 

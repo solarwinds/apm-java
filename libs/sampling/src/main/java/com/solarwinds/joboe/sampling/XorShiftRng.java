@@ -27,7 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Daniel Dyer
  * @since 1.2
  */
-public class XorShiftRNG extends Random {
+public class XorShiftRng extends Random {
   private static final long serialVersionUID = 1L;
   private static final int SEED_SIZE_BYTES = 20; // Needs 5 32-bit integers.
 
@@ -51,7 +51,7 @@ public class XorShiftRNG extends Random {
    *     RNG.
    * @throws SeedException If there is a problem generating a seed.
    */
-  public XorShiftRNG(SeedGenerator seedGenerator) throws SeedException {
+  public XorShiftRng(SeedGenerator seedGenerator) throws SeedException {
     this(seedGenerator.generateSeed(SEED_SIZE_BYTES));
   }
 
@@ -60,7 +60,7 @@ public class XorShiftRNG extends Random {
    *
    * @param seed The seed data used to initialise the RNG.
    */
-  public XorShiftRNG(byte[] seed) {
+  public XorShiftRng(byte[] seed) {
     if (seed == null || seed.length != SEED_SIZE_BYTES) {
       throw new IllegalArgumentException("XOR shift RNG requires 160 bits of seed data.");
     }

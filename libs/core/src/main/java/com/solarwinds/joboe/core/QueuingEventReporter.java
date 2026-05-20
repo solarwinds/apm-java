@@ -229,7 +229,7 @@ public class QueuingEventReporter implements EventReporter {
   /**
    * Gets and clears the current reporter stats
    *
-   * @return
+   * @return the current reporter stats snapshot
    */
   @Override
   public EventReporterStats consumeStats() {
@@ -254,16 +254,16 @@ public class QueuingEventReporter implements EventReporter {
       client.close();
       boolean termination = executorService.awaitTermination(5, TimeUnit.SECONDS);
       logger.debug(String.format("Event reporter service shut down: [%s]", termination));
-    } catch (InterruptedException ignore) {
+    } catch (InterruptedException ignored) {
     }
   }
 
   /**
    * This should only return upon completion of sending all the provided events (success or failure)
    *
-   * @param events
-   * @return
-   * @throws Exception
+   * @param events the list of events to send synchronously
+   * @return the result of the send operation
+   * @throws Exception if the send operation fails
    */
   public Result synchronousSend(List<Event> events) throws Exception {
     return client

@@ -19,7 +19,11 @@ package com.solarwinds.joboe.core.util;
 import com.solarwinds.joboe.core.HostId;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
 import lombok.Getter;
 
 /**
@@ -43,8 +47,9 @@ public class HostInfoUtils {
   }
 
   public static String getAzureInstanceId() {
-    if (reader instanceof AzureInstanceIdReader)
+    if (reader instanceof AzureInstanceIdReader) {
       return ((AzureInstanceIdReader) reader).getAzureInstanceId();
+    }
     return "unknown-azure-instance";
   }
 
@@ -100,7 +105,7 @@ public class HostInfoUtils {
   /**
    * Get a map of host information
    *
-   * @return
+   * @return a map of host metadata key-value pairs
    */
   public static Map<String, Object> getHostMetadata() {
     if (reader instanceof HostMetadataReader) {

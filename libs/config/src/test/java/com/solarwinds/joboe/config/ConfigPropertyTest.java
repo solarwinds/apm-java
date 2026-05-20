@@ -33,11 +33,13 @@ public class ConfigPropertyTest {
     Arrays.stream(ConfigProperty.values())
         .forEach(
             configProperty -> {
-              if (configProperty.getConfigFileKey() != null)
+              if (configProperty.getConfigFileKey() != null) {
                 fileKey.add(configProperty.getConfigFileKey());
+              }
 
-              if (configProperty.getEnvironmentVariableKey() != null)
+              if (configProperty.getEnvironmentVariableKey() != null) {
                 envKey.add(configProperty.getEnvironmentVariableKey());
+              }
             });
 
     long fileKeyCount = fileKey.stream().distinct().count();

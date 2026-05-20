@@ -36,12 +36,13 @@ public class TestLoggerProcess {
       for (int i = 0; i < iterationCount; i++) {
         loggerStream.println(printString);
       }
-    } catch (Throwable e) {
-      e.printStackTrace();
+    } catch (Throwable ignored) {
     } finally {
       loggerStream.close(10);
     }
     long end = System.currentTimeMillis();
+    // CHECKSTYLE:OFF
     System.out.println("Per operation : " + (end - start) * 1.0 / iterationCount);
+    // CHECKSTYLE:ON
   }
 }

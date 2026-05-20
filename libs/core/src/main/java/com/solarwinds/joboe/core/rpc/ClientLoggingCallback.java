@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentMap;
  * <p>Takes into consideration of the current Logger's logging verbosity level
  *
  * @author pluk
- * @param <T>
+ * @param <T> the type of Result this callback handles
  */
 public class ClientLoggingCallback<T extends Result> implements Callback<T> {
   private final Logger logger = LoggerFactory.getLogger();

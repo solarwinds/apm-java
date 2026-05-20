@@ -22,24 +22,24 @@ package com.solarwinds.joboe.sampling;
  * @author pluk
  */
 public abstract class Settings {
-  public static final short OBOE_SETTINGS_FLAG_INVALID = 0x1,
-      OBOE_SETTINGS_FLAG_OVERRIDE = 0x2,
-      OBOE_SETTINGS_FLAG_SAMPLE_START = 0x4,
-      OBOE_SETTINGS_FLAG_SAMPLE_THROUGH = 0x8,
-      OBOE_SETTINGS_FLAG_SAMPLE_THROUGH_ALWAYS = 0x10,
-      OBOE_SETTINGS_FLAG_TRIGGER_TRACE_ENABLED = 0x20,
-      OBOE_SETTINGS_FLAG_PROFILING = 0x40;
-  public static final short OBOE_SETTINGS_TYPE_SKIP = 0,
-      OBOE_SETTINGS_TYPE_STOP = 1,
-      OBOE_SETTINGS_TYPE_DEFAULT_SAMPLE_RATE = 2,
-      OBOE_SETTINGS_TYPE_LAYER_SAMPLE_RATE = 3,
-      OBOE_SETTINGS_TYPE_LAYER_APP_SAMPLE_RATE = 4, // not used
-      OBOE_SETTINGS_TYPE_LAYER_HTTPHOST_SAMPLE_RATE = 5;
+  public static final short OBOE_SETTINGS_FLAG_INVALID = 0x1;
+  public static final short OBOE_SETTINGS_FLAG_OVERRIDE = 0x2;
+  public static final short OBOE_SETTINGS_FLAG_SAMPLE_START = 0x4;
+  public static final short OBOE_SETTINGS_FLAG_SAMPLE_THROUGH = 0x8;
+  public static final short OBOE_SETTINGS_FLAG_SAMPLE_THROUGH_ALWAYS = 0x10;
+  public static final short OBOE_SETTINGS_FLAG_TRIGGER_TRACE_ENABLED = 0x20;
+  public static final short OBOE_SETTINGS_FLAG_PROFILING = 0x40;
+  public static final short OBOE_SETTINGS_TYPE_SKIP = 0;
+  public static final short OBOE_SETTINGS_TYPE_STOP = 1;
+  public static final short OBOE_SETTINGS_TYPE_DEFAULT_SAMPLE_RATE = 2;
+  public static final short OBOE_SETTINGS_TYPE_LAYER_SAMPLE_RATE = 3;
+  public static final short OBOE_SETTINGS_TYPE_LAYER_APP_SAMPLE_RATE = 4; // not used
+  public static final short OBOE_SETTINGS_TYPE_LAYER_HTTPHOST_SAMPLE_RATE = 5;
 
   /**
    * Returns value, or null if value is invalid (indicating refresh is required.)
    *
-   * @return
+   * @return the settings sample rate value
    */
   public abstract long getValue();
 

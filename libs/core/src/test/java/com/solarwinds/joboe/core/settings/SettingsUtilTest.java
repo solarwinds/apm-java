@@ -16,7 +16,8 @@
 
 package com.solarwinds.joboe.core.settings;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -51,7 +52,7 @@ class SettingsUtilTest {
   }
 
   @Test
-  void testTransformToKVSetting() {
+  void testTransformToKvSetting() {
     when(settingsMock.getTtl()).thenReturn(60L);
     SettingsResult settingsResult =
         new SettingsResult(ResultCode.OK, "arg", "we up", Collections.singletonList(settingsMock));

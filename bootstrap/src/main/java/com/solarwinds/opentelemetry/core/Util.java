@@ -64,11 +64,11 @@ public class Util {
    */
   public static Metadata buildSpanExitMetadata(SpanContext context) {
     final Metadata entryContext = buildMetadata(context);
-    final byte[] exitOpId = Arrays.copyOf(entryContext.getOpID(), entryContext.getOpID().length);
+    final byte[] exitOpId = Arrays.copyOf(entryContext.getOpId(), entryContext.getOpId().length);
     exitOpId[exitOpId.length - 1] =
         (byte) (exitOpId[exitOpId.length - 1] ^ EXIT_OP_ID_MASK); // flip the last byte
     final Metadata exitContext = new Metadata(entryContext);
-    exitContext.setOpID(exitOpId);
+    exitContext.setOpId(exitOpId);
     return exitContext;
   }
 

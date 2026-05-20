@@ -117,9 +117,9 @@ public class TestReporter implements EventReporter {
    * Event does not provide getInfo method, so we need this helper method to get the info in order
    * to verify the result
    *
-   * @param event
-   * @param key
-   * @return
+   * @param event the event to read the value from
+   * @param key the key to look up in the event
+   * @return the value associated with the given key in the event
    */
   public static Object getValueFromEvent(Event event, String key) {
     ByteBuffer buffer =
