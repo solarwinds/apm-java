@@ -50,8 +50,8 @@ dependencies {
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator")
 
-  testImplementation("org.springframework:spring-webmvc:5.3.30")
-  testImplementation("org.springframework:spring-test:5.3.30")
+  testImplementation("org.springframework:spring-webmvc:7.0.7")
+  testImplementation("org.springframework:spring-test:7.0.7")
   testImplementation("javax.servlet:javax.servlet-api:3.1.0")
 }
 

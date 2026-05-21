@@ -34,12 +34,12 @@ muzzle {
 }
 
 dependencies {
-  compileOnly("org.springframework:spring-webmvc:6.0.0")
+  compileOnly("org.springframework:spring-webmvc:7.0.7")
   compileOnly("jakarta.servlet:jakarta.servlet-api:5.0.0")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator")
 
-  testImplementation("org.springframework:spring-webmvc:6.0.0")
-  testImplementation("org.springframework:spring-test:6.0.0")
+  testImplementation("org.springframework:spring-webmvc:7.0.7")
+  testImplementation("org.springframework:spring-test:7.0.7")
   testImplementation("jakarta.servlet:jakarta.servlet-api:5.0.0")
   testImplementation("org.apache.tomcat.embed:tomcat-embed-core:10.1.0")
 }
