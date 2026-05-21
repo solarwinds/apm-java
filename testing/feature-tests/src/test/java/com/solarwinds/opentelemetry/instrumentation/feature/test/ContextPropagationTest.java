@@ -32,7 +32,7 @@ class ContextPropagationTest {
   static final AgentInstrumentationExtension testing = AgentInstrumentationExtension.create();
 
   @Test
-  void verifyTraceContextPropagatesViaW3CHeaders() {
+  void verifyTraceContextPropagatesViaW3cHeaders() {
     testing.runWithSpan(
         "service-a",
         () -> {
