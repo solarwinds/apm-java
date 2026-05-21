@@ -29,6 +29,10 @@ tasks.named("compileTestJava") {
   dependsOn(project(":solarwinds-otel-sdk").tasks.named("shadowJar"))
 }
 
+tasks.withType<Test>().configureEach {
+  jvmArgs("-Dotel.propagators=tracecontext,baggage,solarwinds")
+}
+
 swoJava {
   minJavaVersionSupported.set(JavaVersion.VERSION_17)
 }
