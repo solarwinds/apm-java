@@ -70,6 +70,7 @@ dependencies {
     api("io.opentelemetry:opentelemetry-api-incubator:$opentelemetryAlpha")
     api("io.opentelemetry:opentelemetry-exporter-otlp:$otelSdkVersion")
     api("io.opentelemetry:opentelemetry-sdk-extension-incubator:$opentelemetryAlpha")
+    api("io.opentelemetry:opentelemetry-sdk-extension-declarative-config:$opentelemetryAlpha")
 
     api("org.junit.jupiter:junit-jupiter-params:$junit5")
     api("dev.cel:cel:0.13.0")
