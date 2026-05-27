@@ -61,7 +61,7 @@ dependencies {
 
     api("org.json:json:20250517")
     api("com.google.code.gson:gson:2.14.0")
-    api("com.github.ben-manes.caffeine:caffeine:2.9.3")
+    api("com.github.ben-manes.caffeine:caffeine:3.2.4")
 
     api("io.opentelemetry.contrib:opentelemetry-span-stacktrace:$otelJavaContribVersion")
     api("io.opentelemetry.contrib:opentelemetry-cel-sampler:$otelJavaContribVersion")
