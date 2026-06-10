@@ -46,12 +46,12 @@ muzzle {
 
 dependencies {
   compileOnly("javax.servlet:javax.servlet-api:3.1.0")
-  compileOnly("org.springframework:spring-webmvc:3.1.0.RELEASE")
+  compileOnly("org.springframework:spring-webmvc:7.0.8")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator")
 
-  testImplementation("org.springframework:spring-webmvc:5.3.30")
-  testImplementation("org.springframework:spring-test:5.3.30")
+  testImplementation("org.springframework:spring-webmvc:7.0.8")
+  testImplementation("org.springframework:spring-test:7.0.8")
   testImplementation("javax.servlet:javax.servlet-api:3.1.0")
 }
 
