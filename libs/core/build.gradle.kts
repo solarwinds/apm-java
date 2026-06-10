@@ -4,7 +4,7 @@ plugins {
 
 description = "core"
 
-val grpcVersion = "1.81.0"
+val grpcVersion = "1.82.0"
 
 dependencies {
   implementation(project(":libs:logging"))
