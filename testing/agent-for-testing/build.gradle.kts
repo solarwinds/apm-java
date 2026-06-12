@@ -46,6 +46,7 @@ dependencies {
 
   bootstrapLibs(project(":bootstrap"))
   bootstrapLibs(project(":libs:core"))
+  bootstrapLibs(project(path = ":libs:resource", configuration = "shadow"))
 
   bootstrapLibs(project(":libs:config"))
   bootstrapLibs(project(":libs:sampling"))

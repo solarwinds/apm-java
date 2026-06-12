@@ -19,6 +19,11 @@ dependencies {
   compileOnly("io.opentelemetry:opentelemetry-api")
   compileOnly("io.opentelemetry:opentelemetry-context")
 
+  // Azure resource detection is provided by the shaded :libs:resource module. Only the facade
+  // (plain JDK types) is needed at compile time; the relocated, self-contained shaded jar is
+  // placed on the bootstrap class loader by the agent build at runtime.
+  compileOnly(project(":libs:resource"))
+
   implementation("javax.xml.bind:jaxb-api:2.3.1")
 
   implementation("com.solarwinds:apm-proto:1.0.8") {
@@ -32,6 +37,7 @@ dependencies {
   testImplementation("org.json:json")
   testImplementation("io.opentelemetry:opentelemetry-api")
   testImplementation("io.opentelemetry:opentelemetry-context")
+  testRuntimeOnly(project(path = ":libs:resource", configuration = "shadow"))
 }
 
 sourceSets {

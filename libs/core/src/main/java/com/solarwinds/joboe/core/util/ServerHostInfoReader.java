@@ -21,6 +21,7 @@ import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.core.HostId;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
+import com.solarwinds.joboe.resource.AzureResourceReader;
 import io.opentelemetry.api.internal.InstrumentationUtil;
 import java.io.BufferedReader;
 import java.io.File;
@@ -1098,7 +1099,6 @@ public class ServerHostInfoReader
     @Getter(lazy = true)
     private static final AzureReader instance = new AzureReader();
 
-    private static final String DEFAULT_METADATA_VERSION = "2021-12-13";
     private final String appInstanceId;
 
     private final HostId.AzureVmMetadata azureVmMetadata;
@@ -1107,63 +1107,96 @@ public class ServerHostInfoReader
       return getInstance().appInstanceId;
     }
 
-    private HostId.AzureVmMetadata getVmMetadata() {
-      Integer timeout =
-          ConfigManager.getConfigOptional(
-              ConfigProperty.AGENT_AZURE_VM_METADATA_TIMEOUT, TIMEOUT_DEFAULT);
-      String metadataVersionCfg =
-          (String) ConfigManager.getConfig(ConfigProperty.AGENT_AZURE_VM_METADATA_VERSION);
+    private static HostId.AzureVmMetadata buildVmMetadata(Map<String, String> attrs) {
+      String hostId = attrs.get("host.id");
+      if (hostId == null) {
+        return null;
+      }
+      String cloudAccountId = null;
+      String azureResourceGroupName = null;
+      String resourceId = attrs.get("cloud.resource_id");
+      if (resourceId != null) {
+        String[] parts = resourceId.split("/");
+        if (parts.length > 2) {
+          cloudAccountId = parts[2];
+        }
+        if (parts.length > 4) {
+          azureResourceGroupName = parts[4];
+        }
+      }
+      String hostName = attrs.get("host.name");
+      return HostId.AzureVmMetadata.builder()
+          .cloudPlatform("azure.vm")
+          .cloudRegion(attrs.get("cloud.region"))
+          .hostId(hostId)
+          .hostName(hostName)
+          .azureVmName(hostName)
+          .cloudAccountId(cloudAccountId)
+          .azureVmSize(attrs.get("azure.vm.sku"))
+          .azureVmScaleSetName(attrs.get("azure.vm.scaleset.name"))
+          .azureResourceGroupName(azureResourceGroupName)
+          .build();
+    }
 
-      final String metadataVersion =
-          metadataVersionCfg != null ? metadataVersionCfg : DEFAULT_METADATA_VERSION;
-      AtomicReference<HostId.AzureVmMetadata> result = new AtomicReference<>();
+    private static HostId.AzureVmMetadata buildAppServiceMetadata(Map<String, String> attrs) {
+      String cloudAccountId = null;
+      String azureResourceGroupName = null;
+      String resourceId = attrs.get("cloud.resource_id");
+      if (resourceId != null) {
+        String[] parts = resourceId.split("/");
+        if (parts.length > 2) {
+          cloudAccountId = parts[2];
+        }
+        if (parts.length > 4) {
+          azureResourceGroupName = parts[4];
+        }
+      }
+      return HostId.AzureVmMetadata.builder()
+          .cloudPlatform("azure.app_service")
+          .cloudRegion(attrs.get("cloud.region"))
+          .hostId(attrs.get("service.instance.id"))
+          .hostName(attrs.get("host.id"))
+          .cloudAccountId(cloudAccountId)
+          .azureResourceGroupName(azureResourceGroupName)
+          .build();
+    }
 
+    private static HostId.AzureVmMetadata buildFunctionsMetadata(Map<String, String> attrs) {
+      return HostId.AzureVmMetadata.builder()
+          .cloudPlatform("azure.functions")
+          .cloudRegion(attrs.get("cloud.region"))
+          .hostId(attrs.get("faas.instance"))
+          .hostName(attrs.get("faas.name"))
+          .build();
+    }
+
+    private static HostId.AzureVmMetadata buildContainerAppMetadata(Map<String, String> attrs) {
+      return HostId.AzureVmMetadata.builder()
+          .cloudPlatform("azure.container_apps")
+          .hostId(attrs.get("service.instance.id"))
+          .hostName(attrs.get("service.name"))
+          .build();
+    }
+
+    private HostId.AzureVmMetadata getAzureMetadata(String platform) {
+      AtomicReference<Map<String, String>> attrsRef = new AtomicReference<>();
       InstrumentationUtil.suppressInstrumentation(
-          () -> {
-            HttpURLConnection connection = null;
-            try {
-              URL url =
-                  new URL(
-                      String.format(
-                          "%s%s%s",
-                          METADATA_SERVICE_URL,
-                          "/metadata/instance?api-version=",
-                          metadataVersion));
-
-              connection = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
-              connection.setRequestMethod("GET");
-              connection.setReadTimeout(timeout);
-
-              connection.setConnectTimeout(timeout);
-              connection.setRequestProperty("Metadata", "true");
-              int statusCode = connection.getResponseCode();
-
-              logger.debug(String.format("Azure IMDS status code: %s", statusCode));
-              if (statusCode >= 200 && statusCode < 300) {
-                try (BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-                  StringBuilder sb = new StringBuilder();
-
-                  String line;
-                  while ((line = reader.readLine()) != null) {
-                    sb.append(line);
-                  }
-
-                  String payload = sb.toString();
-                  logger.debug(String.format("Azure IMDS payload: %s", payload));
-                  result.set(HostId.AzureVmMetadata.fromJson(payload));
-                }
-              }
-
-            } catch (IOException | JSONException exception) {
-              logger.debug("Error retrieving vmId from IMDS", exception);
-            } finally {
-              if (connection != null) {
-                connection.disconnect();
-              }
-            }
-          });
-      return result.get();
+          () -> attrsRef.set(AzureResourceReader.detectAttributes()));
+      Map<String, String> attrs = attrsRef.get();
+      if (attrs == null || attrs.isEmpty()) {
+        return null;
+      }
+      switch (platform) {
+        case "APP_SERVICE":
+          return buildAppServiceMetadata(attrs);
+        case "FUNCTIONS":
+          return buildFunctionsMetadata(attrs);
+        case "CONTAINER_APP":
+          return buildContainerAppMetadata(attrs);
+        case "NONE":
+        default:
+          return buildVmMetadata(attrs);
+      }
     }
 
     private AzureReader() {
@@ -1171,7 +1204,8 @@ public class ServerHostInfoReader
       if (this.appInstanceId != null) {
         logger.debug("Found Azure instance ID: " + this.appInstanceId);
       }
-      azureVmMetadata = getVmMetadata();
+      String platform = AzureResourceReader.detectPlatform();
+      this.azureVmMetadata = getAzureMetadata(platform);
       logger.debug(String.format("Azure vm metadata: %s", azureVmMetadata));
     }
   }
