@@ -50,6 +50,7 @@ dependencies {
   testImplementation(project(":libs:sampling"))
   testImplementation(project(":libs:shared"))
   testImplementation(project(":libs:core"))
+  testRuntimeOnly(project(path = ":libs:resource", configuration = "shadow"))
 
   testImplementation("io.opentelemetry:opentelemetry-api-incubator")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-incubator")

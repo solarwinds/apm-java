@@ -37,8 +37,10 @@ dependencies {
     api("org.junit.jupiter:junit-jupiter-engine:$junit5")
 
     api("io.opentelemetry:opentelemetry-api:$otelSdkVersion")
+    api("io.opentelemetry:opentelemetry-api-incubator:$opentelemetryAlpha")
     api("io.opentelemetry.javaagent:opentelemetry-javaagent:$otelAgentVersion")
     api("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$otelSdkVersion")
+    api("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi:$otelSdkVersion")
 
     api("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:$otelAgentVersion")
     api("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:$opentelemetryJavaagentAlpha")
@@ -65,6 +67,7 @@ dependencies {
 
     api("io.opentelemetry.contrib:opentelemetry-span-stacktrace:$otelJavaContribVersion")
     api("io.opentelemetry.contrib:opentelemetry-cel-sampler:$otelJavaContribVersion")
+    api("io.opentelemetry.contrib:opentelemetry-azure-resources:$otelJavaContribVersion")
     api("io.opentelemetry.semconv:opentelemetry-semconv-incubating:$opentelemetrySemconvAlpha")
 
     api("io.opentelemetry:opentelemetry-api-incubator:$opentelemetryAlpha")
