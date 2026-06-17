@@ -10,7 +10,7 @@ val byteBuddyVersion = "1.18.8"
 
 val opentelemetryJavaagentAlpha = "$otelAgentVersion-alpha"
 val opentelemetryAlpha = "$otelSdkVersion-alpha"
-val opentelemetrySemconv = "1.40.0"
+val opentelemetrySemconv = "1.42.0"
 val opentelemetrySemconvAlpha = "$opentelemetrySemconv-alpha"
 
 val autoservice = "1.1.1"
