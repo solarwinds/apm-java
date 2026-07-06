@@ -21,11 +21,11 @@ import com.solarwinds.joboe.core.util.ServerHostInfoReader;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.semconv.ContainerAttributes;
+import io.opentelemetry.semconv.K8sAttributes;
 import io.opentelemetry.semconv.ServiceAttributes;
 import io.opentelemetry.semconv.incubating.CloudIncubatingAttributes;
-import io.opentelemetry.semconv.incubating.ContainerIncubatingAttributes;
 import io.opentelemetry.semconv.incubating.HostIncubatingAttributes;
-import io.opentelemetry.semconv.incubating.K8sIncubatingAttributes;
 import io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes;
 
 public final class HostIdResourceUtil {
@@ -35,7 +35,7 @@ public final class HostIdResourceUtil {
     AttributesBuilder builder = Attributes.builder();
 
     HostId hostId = ServerHostInfoReader.INSTANCE.getHostId();
-    builder.put(ContainerIncubatingAttributes.CONTAINER_ID, hostId.getDockerContainerId());
+    builder.put(ContainerAttributes.CONTAINER_ID, hostId.getDockerContainerId());
     builder.put(ProcessIncubatingAttributes.PROCESS_PID, (long) hostId.getPid());
     builder.put(AttributeKey.stringArrayKey("mac.addresses"), hostId.getMacAddresses());
 
@@ -49,9 +49,9 @@ public final class HostIdResourceUtil {
 
     HostId.K8sMetadata k8sMetadata = hostId.getK8sMetadata();
     if (k8sMetadata != null) {
-      builder.put(K8sIncubatingAttributes.K8S_POD_UID, k8sMetadata.getPodUid());
-      builder.put(K8sIncubatingAttributes.K8S_NAMESPACE_NAME, k8sMetadata.getNamespace());
-      builder.put(K8sIncubatingAttributes.K8S_POD_NAME, k8sMetadata.getPodName());
+      builder.put(K8sAttributes.K8S_POD_UID, k8sMetadata.getPodUid());
+      builder.put(K8sAttributes.K8S_NAMESPACE_NAME, k8sMetadata.getNamespace());
+      builder.put(K8sAttributes.K8S_POD_NAME, k8sMetadata.getPodName());
     }
 
     HostId.AwsMetadata awsMetadata = hostId.getAwsMetadata();
