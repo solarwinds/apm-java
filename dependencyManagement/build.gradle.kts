@@ -2,8 +2,8 @@ plugins {
   `java-platform`
 }
 
-val otelAgentVersion = "2.27.0"
-val otelSdkVersion = "1.61.0"
+val otelAgentVersion = "2.29.0"
+val otelSdkVersion = "1.63.0"
 
 val mockitoVersion = "5.2.0"
 val byteBuddyVersion = "1.18.8"
@@ -69,7 +69,7 @@ dependencies {
 
     api("io.opentelemetry:opentelemetry-api-incubator:$opentelemetryAlpha")
     api("io.opentelemetry:opentelemetry-exporter-otlp:$otelSdkVersion")
-    api("io.opentelemetry:opentelemetry-sdk-extension-incubator:$opentelemetryAlpha")
+    api("io.opentelemetry:opentelemetry-sdk-extension-declarative-config:$opentelemetryAlpha")
 
     api("org.junit.jupiter:junit-jupiter-params:$junit5")
     api("dev.cel:cel:0.13.0")

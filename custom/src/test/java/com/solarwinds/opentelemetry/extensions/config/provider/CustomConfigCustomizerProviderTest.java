@@ -24,10 +24,11 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
 
 import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.TracerProviderModel;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
@@ -59,7 +60,9 @@ class CustomConfigCustomizerProviderTest {
           .thenReturn(true);
 
       OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-          new OpenTelemetryConfigurationModel().withTracerProvider(new TracerProviderModel());
+          new OpenTelemetryConfigurationModel()
+              .withTracerProvider(
+                  new TracerProviderModel().withProcessors(Collections.emptyList()));
 
       doNothing()
           .when(declarativeConfigurationCustomizerMock)
@@ -89,7 +92,9 @@ class CustomConfigCustomizerProviderTest {
           .thenReturn(false);
 
       OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-          new OpenTelemetryConfigurationModel().withTracerProvider(new TracerProviderModel());
+          new OpenTelemetryConfigurationModel()
+              .withTracerProvider(
+                  new TracerProviderModel().withProcessors(Collections.emptyList()));
 
       doNothing()
           .when(declarativeConfigurationCustomizerMock)

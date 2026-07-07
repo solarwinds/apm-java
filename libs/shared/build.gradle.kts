@@ -53,7 +53,7 @@ dependencies {
 
   compileOnly("io.opentelemetry:opentelemetry-api-incubator")
   compileOnly("io.opentelemetry:opentelemetry-exporter-otlp")
-  compileOnly("io.opentelemetry:opentelemetry-sdk-extension-incubator")
+  compileOnly("io.opentelemetry:opentelemetry-sdk-extension-declarative-config")
 
   testImplementation("org.json:json")
   testImplementation(project(":libs:config"))
@@ -62,7 +62,7 @@ dependencies {
   testImplementation("io.opentelemetry:opentelemetry-exporter-otlp")
 
   testImplementation("io.opentelemetry:opentelemetry-api-incubator")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-extension-incubator")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-extension-declarative-config")
 }
 
 val otelAgentVersion: String by rootProject.extra
