@@ -25,7 +25,7 @@ javaPlatform {
 }
 
 dependencies {
-  api(platform("io.netty:netty-bom:4.1.133.Final"))
+  api(platform("io.netty:netty-bom:4.1.135.Final"))
 
   constraints {
     api("org.mockito:mockito-core:$mockitoVersion")
