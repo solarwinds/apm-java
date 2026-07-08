@@ -25,30 +25,30 @@ import static org.mockito.Mockito.doNothing;
 
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.AttributeLimitsModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.BatchLogRecordProcessorModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.BatchSpanProcessorModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalInstrumentationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordExporterModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordExporterPropertyModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordProcessorModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LoggerProviderModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.MeterProviderModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.MetricReaderModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PeriodicMetricReaderModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PropagatorModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SamplerModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SimpleLogRecordProcessorModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SimpleSpanProcessorModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanExporterModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanExporterPropertyModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorPropertyModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.AttributeLimitsModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.BatchLogRecordProcessorModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.BatchSpanProcessorModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.ExperimentalInstrumentationModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.ExperimentalLanguageSpecificInstrumentationModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LogRecordExporterModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LogRecordExporterPropertyModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LogRecordProcessorModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LoggerProviderModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.MeterProviderModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.MetricReaderModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PeriodicMetricReaderModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PropagatorModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SamplerModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SimpleLogRecordProcessorModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SimpleSpanProcessorModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanExporterModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanExporterPropertyModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorPropertyModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.TracerProviderModel;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -77,8 +77,8 @@ class SharedConfigCustomizerProviderTest {
   void testCustomize() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
-            .withTracerProvider(new TracerProviderModel())
-            .withLoggerProvider(new LoggerProviderModel())
+            .withTracerProvider(new TracerProviderModel().withProcessors(Collections.emptyList()))
+            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
             .withInstrumentationDevelopment(
                 new ExperimentalInstrumentationModel()
                     .withJava(
@@ -145,7 +145,7 @@ class SharedConfigCustomizerProviderTest {
   void testCustomize1() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
-            .withTracerProvider(new TracerProviderModel())
+            .withTracerProvider(new TracerProviderModel().withProcessors(Collections.emptyList()))
             .withInstrumentationDevelopment(
                 new ExperimentalInstrumentationModel()
                     .withJava(
@@ -332,7 +332,7 @@ class SharedConfigCustomizerProviderTest {
   void testCustomizeSetsExperimentalStacktraceWhenNotSet() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
-            .withTracerProvider(new TracerProviderModel())
+            .withTracerProvider(new TracerProviderModel().withProcessors(Collections.emptyList()))
             .withInstrumentationDevelopment(
                 new ExperimentalInstrumentationModel()
                     .withJava(
@@ -409,7 +409,7 @@ class SharedConfigCustomizerProviderTest {
   void testCustomize2() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
-            .withLoggerProvider(new LoggerProviderModel())
+            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
             .withInstrumentationDevelopment(
                 new ExperimentalInstrumentationModel()
                     .withJava(
@@ -540,7 +540,7 @@ class SharedConfigCustomizerProviderTest {
   void UrlShouldNotChangeWhenNotApm() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
-            .withLoggerProvider(new LoggerProviderModel())
+            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
             .withInstrumentationDevelopment(
                 new ExperimentalInstrumentationModel()
                     .withJava(
@@ -581,7 +581,7 @@ class SharedConfigCustomizerProviderTest {
   void UrlShouldNotChangeWhenNotApm2() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
-            .withLoggerProvider(new LoggerProviderModel())
+            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
             .withInstrumentationDevelopment(
                 new ExperimentalInstrumentationModel()
                     .withJava(
@@ -622,7 +622,7 @@ class SharedConfigCustomizerProviderTest {
   void tracesNotConfiguredWhenTracerProviderAbsent() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
-            .withLoggerProvider(new LoggerProviderModel())
+            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
             .withInstrumentationDevelopment(
                 new ExperimentalInstrumentationModel()
                     .withJava(
@@ -656,7 +656,10 @@ class SharedConfigCustomizerProviderTest {
 
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
-            .withTracerProvider(new TracerProviderModel().withSampler(userSampler))
+            .withTracerProvider(
+                new TracerProviderModel()
+                    .withProcessors(Collections.emptyList())
+                    .withSampler(userSampler))
             .withInstrumentationDevelopment(
                 new ExperimentalInstrumentationModel()
                     .withJava(
@@ -689,7 +692,7 @@ class SharedConfigCustomizerProviderTest {
   void logsNotConfiguredWhenLoggerProviderAbsent() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
-            .withTracerProvider(new TracerProviderModel())
+            .withTracerProvider(new TracerProviderModel().withProcessors(Collections.emptyList()))
             .withInstrumentationDevelopment(
                 new ExperimentalInstrumentationModel()
                     .withJava(

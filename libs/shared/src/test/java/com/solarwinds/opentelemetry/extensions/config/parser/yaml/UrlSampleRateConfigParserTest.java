@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.sampling.TraceConfigs;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfiguration;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfiguration;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.stream.Stream;

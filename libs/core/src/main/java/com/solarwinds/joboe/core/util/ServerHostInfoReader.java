@@ -21,7 +21,7 @@ import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.core.HostId;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
-import io.opentelemetry.api.internal.InstrumentationUtil;
+import io.opentelemetry.api.impl.InstrumentationUtil;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;

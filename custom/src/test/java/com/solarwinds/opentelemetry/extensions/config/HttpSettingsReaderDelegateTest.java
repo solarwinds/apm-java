@@ -32,7 +32,7 @@ import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.config.ProxyConfig;
 import com.solarwinds.joboe.sampling.Settings;
-import io.opentelemetry.api.internal.InstrumentationUtil;
+import io.opentelemetry.api.impl.InstrumentationUtil;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
