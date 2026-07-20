@@ -43,6 +43,8 @@ public class SolarwindsPropertiesSupplier implements Supplier<Map<String, String
           "base2_exponential_bucket_histogram");
       PROPERTIES.put(
           "otel.instrumentation.runtime-telemetry.emit-experimental-jfr-metrics", "true");
+      PROPERTIES.put("otel.resource.providers.azure.enabled", "true");
+      PROPERTIES.put("otel.resource.providers.aws.enabled", "true");
     } else {
       PROPERTIES.put("otel.sdk.disabled", "true");
     }

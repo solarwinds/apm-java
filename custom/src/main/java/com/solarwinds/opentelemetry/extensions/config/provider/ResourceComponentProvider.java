@@ -33,7 +33,11 @@ public class ResourceComponentProvider implements ComponentProvider {
 
   public static final String COMPONENT_NAME = "swo/resource";
 
-  @Getter @Setter private static Resource resource = null;
+  // Accumulated statically: create() merges into this field in place, and
+  // HostIdResourceComponentProvider reads it via getResource().merge(...). Assumes create() is
+  // invoked once; merging identical attributes is idempotent, but any new writer of this field
+  // must be aware the result is order-dependent.
+  @Getter @Setter private static Resource resource = Resource.getDefault();
 
   @Override
   public Class<Resource> getType() {
@@ -50,7 +54,7 @@ public class ResourceComponentProvider implements ComponentProvider {
     Attributes resourceAttributes =
         Attributes.of(moduleKey, "apm", versionKey, BuildConfig.SOLARWINDS_AGENT_VERSION);
 
-    resource = Resource.create(resourceAttributes);
+    resource = resource.merge(Resource.create(resourceAttributes));
     return resource;
   }
 }

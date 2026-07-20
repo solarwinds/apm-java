@@ -67,7 +67,11 @@ public class CustomConfigCustomizerProvider implements DeclarativeConfigurationC
       detectors = new ArrayList<>();
     }
 
-    List<ExperimentalResourceDetectorModel> newDetectors = new ArrayList<>(detectors);
+    // Ordering matters: SWO detectors are added first, then upstream detectors (e.g. aws/azure)
+    // are appended so they run last. With last-writer-wins merge semantics this lets upstream
+    // cloud attributes override our host-id attributes. Do not reorder without accounting for
+    // which detector's attributes should survive the merge.
+    List<ExperimentalResourceDetectorModel> newDetectors = new ArrayList<>();
     newDetectors.add(
         new ExperimentalResourceDetectorModel()
             .withAdditionalProperty(
@@ -79,6 +83,8 @@ public class CustomConfigCustomizerProvider implements DeclarativeConfigurationC
             .withAdditionalProperty(
                 HostIdResourceComponentProvider.COMPONENT_NAME,
                 new ExperimentalResourceDetectorPropertyModel()));
+
+    newDetectors.addAll(detectors);
     detectionDevelopment.withDetectors(newDetectors);
   }
 
