@@ -23,8 +23,6 @@ import com.solarwinds.joboe.core.settings.SettingsReader;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.Settings;
-import com.solarwinds.opentelemetry.extensions.ResourceArbiter;
-import io.opentelemetry.semconv.incubating.HostIncubatingAttributes;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,15 +49,12 @@ public class HttpSettingsReader implements SettingsReader {
     String serviceName = ServiceKeyUtils.getServiceName(serviceKey);
 
     String apiToken = ServiceKeyUtils.getApiKey(serviceKey);
-    String hostname = ResourceArbiter.resource().getAttribute(HostIncubatingAttributes.HOST_NAME);
-    String settingsUrl = String.format("%s/v1/settings/%s/%s", collectorUrl, serviceName, hostname);
+    String settingsUrl = String.format("%s/v1/settings/%s", collectorUrl, serviceName);
 
     String tokenHeader = String.format("Bearer %s", apiToken);
     Settings fetchedSettings = delegate.fetchSettings(settingsUrl, tokenHeader);
     logger.debug(
-        String.format(
-            "Got settings from http: %s, serviceName: %s, hostname: %s",
-            fetchedSettings, serviceName, hostname));
+        String.format("Got settings from http: %s, serviceName: %s", fetchedSettings, serviceName));
 
     return fetchedSettings;
   }
