@@ -29,4 +29,9 @@ public class HostIdResourceProvider implements ResourceProvider {
   public Resource createResource(ConfigProperties configProperties) {
     return Resource.create(HostIdResourceUtil.createAttribute());
   }
+
+  @Override
+  public int order() {
+    return Integer.MIN_VALUE;
+  }
 }

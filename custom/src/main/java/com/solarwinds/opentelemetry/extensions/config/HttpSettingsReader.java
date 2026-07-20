@@ -56,7 +56,10 @@ public class HttpSettingsReader implements SettingsReader {
 
     String tokenHeader = String.format("Bearer %s", apiToken);
     Settings fetchedSettings = delegate.fetchSettings(settingsUrl, tokenHeader);
-    logger.debug(String.format("Got settings from http: %s", fetchedSettings));
+    logger.debug(
+        String.format(
+            "Got settings from http: %s, serviceName: %s, hostname: %s",
+            fetchedSettings, serviceName, hostname));
 
     return fetchedSettings;
   }
