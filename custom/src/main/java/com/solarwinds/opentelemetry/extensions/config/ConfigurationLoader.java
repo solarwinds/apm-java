@@ -165,32 +165,6 @@ public class ConfigurationLoader {
         logger.info("failed to follow Otel's log file config." + e.getMessage());
       }
     }
-
-    String serviceName = System.getProperty("otel.service.name");
-    if (serviceName == null) {
-      serviceName = System.getenv("OTEL_SERVICE_NAME");
-    }
-
-    String serviceKey = (String) configs.get(ConfigProperty.AGENT_SERVICE_KEY);
-    if (serviceName == null) {
-      if (serviceKey != null) {
-        String name = ServiceKeyUtils.getServiceName(serviceKey);
-        if (name != null) {
-          System.setProperty("otel.service.name", name);
-        }
-      }
-
-    } else {
-      if (serviceKey != null) {
-        try {
-          String key = String.format("%s:%s", ServiceKeyUtils.getApiKey(serviceKey), serviceName);
-          configs.put(ConfigProperty.AGENT_SERVICE_KEY, key, true);
-        } catch (InvalidConfigException e) {
-          LoggerFactory.getLogger()
-              .warn(String.format("Unable to update service name to %s", serviceName));
-        }
-      }
-    }
   }
 
   static void configureOtel(ConfigContainer container) throws InvalidConfigException {
