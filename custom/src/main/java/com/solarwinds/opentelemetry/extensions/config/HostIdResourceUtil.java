@@ -42,7 +42,6 @@ public final class HostIdResourceUtil {
       builder.put(K8sAttributes.K8S_POD_NAME, k8sMetadata.getPodName());
     }
 
-    builder.put(HostIncubatingAttributes.HOST_NAME, hostId.getHostname());
     return builder.build();
   }
 }
