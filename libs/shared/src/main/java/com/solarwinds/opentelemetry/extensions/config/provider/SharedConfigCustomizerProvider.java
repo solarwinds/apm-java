@@ -329,7 +329,13 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
     return Objects.requireNonNull(
         configProperties
             .getStructured("distribution", DeclarativeConfigProperties.empty())
-            .getStructured("solarwinds"),
+            .getStructured(
+                "solarwinds",
+                configProperties
+                    .getStructured(
+                        "instrumentation/development", DeclarativeConfigProperties.empty())
+                    .getStructured("java", DeclarativeConfigProperties.empty())
+                    .getStructured("solarwinds")),
         "Solarwinds configuration cannot be null.");
   }
 }
