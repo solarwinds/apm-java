@@ -126,18 +126,14 @@ class DeclarativeLoaderTest {
 
   @Test
   public void testCustomizeWithEmptyModelThrows() {
-    // No source node is present, so both are skipped and processConfigs runs against an empty
-    // container, which fails because the service key is required.
     OpenTelemetryConfigurationModel model = new OpenTelemetryConfigurationModel();
 
-    assertThrows(RuntimeException.class, () -> customize(model));
+    assertThrows(NullPointerException.class, () -> customize(model));
     assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
   }
 
   @Test
   public void testCustomizeSkipsEmptySolarwindsNode() {
-    // distribution.solarwinds is present but has no properties, so it is skipped; configuration is
-    // still loaded from the instrumentation node.
     OpenTelemetryConfigurationModel model =
         new OpenTelemetryConfigurationModel()
             .withDistribution(

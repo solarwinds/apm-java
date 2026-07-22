@@ -29,7 +29,8 @@ import java.util.Set;
  * across languages in a multi-language deployment) and/or under the language-specific {@code
  * instrumentation/development.java.solarwinds} node. When both are present they are merged per key:
  * the distribution node takes precedence for any key it defines and the instrumentation node fills
- * in the rest. A present-but-empty node is treated as absent.
+ * in the rest. A node counts as present when it exists in the tree, even if it carries no
+ * properties; only a node that is entirely absent is skipped (see {@link #resolve}).
  *
  * <p>This is the single source of truth for that precedence so every consumer resolves the same
  * effective config for a given tree.
