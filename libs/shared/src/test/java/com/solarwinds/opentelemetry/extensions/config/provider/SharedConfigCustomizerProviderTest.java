@@ -29,6 +29,8 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigura
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.AttributeLimitsModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.BatchLogRecordProcessorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.BatchSpanProcessorModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.ExperimentalInstrumentationModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.ExperimentalLanguageSpecificInstrumentationModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
@@ -778,5 +780,166 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(openTelemetryConfigurationModel.getMeterProvider());
     assertFalse((Boolean) ConfigManager.getConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED));
+  }
+
+  @Test
+  void readsSolarwindsConfigFromDistributionNode() {
+    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+        new OpenTelemetryConfigurationModel()
+            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
+            .withDistribution(
+                new DistributionModel()
+                    .withAdditionalProperty(
+                        "solarwinds",
+                        new DistributionPropertyModel()
+                            .withAdditionalProperty(
+                                ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                "token:service")
+                            .withAdditionalProperty(
+                                ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                "apm.collector.com")));
+
+    doNothing()
+        .when(declarativeConfigurationCustomizerMock)
+        .addModelCustomizer(functionArgumentCaptor.capture());
+
+    tested.customize(declarativeConfigurationCustomizerMock);
+    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+
+    Map<String, Object> logConfigs = logExporterConfigs(openTelemetryConfigurationModel);
+    assertEquals("https://otel.collector.com/v1/logs", logConfigs.get("endpoint"));
+    assertEquals("authorization=Bearer token", logConfigs.get("headers_list"));
+  }
+
+  @Test
+  void distributionNodeTakesPrecedenceOverInstrumentationNode() {
+    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+        new OpenTelemetryConfigurationModel()
+            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
+            .withDistribution(
+                new DistributionModel()
+                    .withAdditionalProperty(
+                        "solarwinds",
+                        new DistributionPropertyModel()
+                            .withAdditionalProperty(
+                                ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                "token:service")
+                            .withAdditionalProperty(
+                                ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                "apm.distribution.com")))
+            .withInstrumentationDevelopment(
+                new ExperimentalInstrumentationModel()
+                    .withJava(
+                        new ExperimentalLanguageSpecificInstrumentationModel()
+                            .withAdditionalProperty(
+                                "solarwinds",
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                        "token:service")
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                        "apm.instrumentation.com"))));
+
+    doNothing()
+        .when(declarativeConfigurationCustomizerMock)
+        .addModelCustomizer(functionArgumentCaptor.capture());
+
+    tested.customize(declarativeConfigurationCustomizerMock);
+    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+
+    Map<String, Object> logConfigs = logExporterConfigs(openTelemetryConfigurationModel);
+    assertEquals("https://otel.distribution.com/v1/logs", logConfigs.get("endpoint"));
+  }
+
+  @Test
+  void emptyDistributionSolarwindsFallsBackToInstrumentationNode() {
+    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+        new OpenTelemetryConfigurationModel()
+            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
+            .withDistribution(
+                new DistributionModel()
+                    .withAdditionalProperty("solarwinds", new DistributionPropertyModel()))
+            .withInstrumentationDevelopment(
+                new ExperimentalInstrumentationModel()
+                    .withJava(
+                        new ExperimentalLanguageSpecificInstrumentationModel()
+                            .withAdditionalProperty(
+                                "solarwinds",
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                        "token:service")
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                        "apm.instrumentation.com"))));
+
+    doNothing()
+        .when(declarativeConfigurationCustomizerMock)
+        .addModelCustomizer(functionArgumentCaptor.capture());
+
+    tested.customize(declarativeConfigurationCustomizerMock);
+    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+
+    Map<String, Object> logConfigs = logExporterConfigs(openTelemetryConfigurationModel);
+    assertEquals("https://otel.instrumentation.com/v1/logs", logConfigs.get("endpoint"));
+  }
+
+  @Test
+  void partialDistributionConfigIsFilledFromInstrumentationNode() {
+    // distribution supplies only the collector; the service key must still be picked up from the
+    // instrumentation node so the merged config is complete.
+    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+        new OpenTelemetryConfigurationModel()
+            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
+            .withDistribution(
+                new DistributionModel()
+                    .withAdditionalProperty(
+                        "solarwinds",
+                        new DistributionPropertyModel()
+                            .withAdditionalProperty(
+                                ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                "apm.distribution.com")))
+            .withInstrumentationDevelopment(
+                new ExperimentalInstrumentationModel()
+                    .withJava(
+                        new ExperimentalLanguageSpecificInstrumentationModel()
+                            .withAdditionalProperty(
+                                "solarwinds",
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                        "token:service")
+                                    .withAdditionalProperty(
+                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                        "apm.instrumentation.com"))));
+
+    doNothing()
+        .when(declarativeConfigurationCustomizerMock)
+        .addModelCustomizer(functionArgumentCaptor.capture());
+
+    tested.customize(declarativeConfigurationCustomizerMock);
+    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+
+    Map<String, Object> logConfigs = logExporterConfigs(openTelemetryConfigurationModel);
+    // collector comes from distribution (wins per key)...
+    assertEquals("https://otel.distribution.com/v1/logs", logConfigs.get("endpoint"));
+    // ...and the service key is filled in from the instrumentation node.
+    assertEquals("authorization=Bearer token", logConfigs.get("headers_list"));
+  }
+
+  private static Map<String, Object> logExporterConfigs(
+      OpenTelemetryConfigurationModel openTelemetryConfigurationModel) {
+    LoggerProviderModel loggerProvider = openTelemetryConfigurationModel.getLoggerProvider();
+    LogRecordProcessorModel logRecordProcessorModel = loggerProvider.getProcessors().get(0);
+    BatchLogRecordProcessorModel batch = logRecordProcessorModel.getBatch();
+
+    assertNotNull(batch);
+    LogRecordExporterModel exporter = batch.getExporter();
+    LogRecordExporterPropertyModel logExporterProperty =
+        exporter.getAdditionalProperties().get(LogExporterComponentProvider.COMPONENT_NAME);
+
+    assertNotNull(logExporterProperty);
+    return logExporterProperty.getAdditionalProperties();
   }
 }

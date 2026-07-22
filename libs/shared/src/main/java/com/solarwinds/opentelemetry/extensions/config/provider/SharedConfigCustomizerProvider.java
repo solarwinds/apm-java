@@ -24,6 +24,7 @@ import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.config.ProxyConfig;
 import com.solarwinds.joboe.config.ServiceKeyUtils;
+import com.solarwinds.opentelemetry.extensions.config.SolarwindsConfigResolver;
 import com.solarwinds.opentelemetry.extensions.config.parser.yaml.ProxyParser;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfiguration;
@@ -327,15 +328,7 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
         DeclarativeConfiguration.toConfigProperties(model);
 
     return Objects.requireNonNull(
-        configProperties
-            .getStructured("distribution", DeclarativeConfigProperties.empty())
-            .getStructured(
-                "solarwinds",
-                configProperties
-                    .getStructured(
-                        "instrumentation/development", DeclarativeConfigProperties.empty())
-                    .getStructured("java", DeclarativeConfigProperties.empty())
-                    .getStructured("solarwinds")),
+        SolarwindsConfigResolver.resolve(configProperties),
         "Solarwinds configuration cannot be null.");
   }
 }

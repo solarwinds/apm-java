@@ -30,8 +30,7 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigura
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Objects;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
 public class DeclarativeLoader implements DeclarativeConfigurationCustomizerProvider {
@@ -50,26 +49,21 @@ public class DeclarativeLoader implements DeclarativeConfigurationCustomizerProv
     DeclarativeConfigProperties configProperties =
         DeclarativeConfiguration.toConfigProperties(configurationModel);
 
-    // Sources are parsed in order into a single container; the first source to define a given
-    // key wins (see ConfigContainer#put), so distribution takes precedence over the
-    // instrumentation node.
-    List<DeclarativeConfigProperties> sources =
-        Arrays.asList(
-            getDistributionConfig(configProperties), getInstrumentationConfig(configProperties));
+    // SolarwindsConfigResolver merges the distribution and instrumentation nodes per key
+    // (distribution takes precedence, instrumentation fills the rest); it returns null when
+    // neither node carries any properties.
+    DeclarativeConfigProperties solarwinds =
+        Objects.requireNonNull(
+            SolarwindsConfigResolver.resolve(configProperties),
+            "Solarwinds configuration cannot be null.");
 
     ConfigContainer configContainer = new ConfigContainer();
     DeclarativeConfigParser declarativeConfigParser = new DeclarativeConfigParser(configContainer);
 
-    for (DeclarativeConfigProperties source : sources) {
-      if (source == null || source.getPropertyKeys().isEmpty()) {
-        continue;
-      }
-
-      try {
-        declarativeConfigParser.parse(source);
-      } catch (InvalidConfigException e) {
-        throw new RuntimeException(e);
-      }
+    try {
+      declarativeConfigParser.parse(solarwinds);
+    } catch (InvalidConfigException e) {
+      throw new RuntimeException(e);
     }
 
     try {
@@ -88,20 +82,5 @@ public class DeclarativeLoader implements DeclarativeConfigurationCustomizerProv
               "Profiling is not supported for Java runtime version: %s . The lowest Java version supported for profiling is %s.",
               System.getProperty("java.version"), JavaRuntimeVersionChecker.minVersionSupported));
     }
-  }
-
-  private DeclarativeConfigProperties getDistributionConfig(
-      DeclarativeConfigProperties configProperties) {
-    return configProperties
-        .getStructured("distribution", DeclarativeConfigProperties.empty())
-        .getStructured("solarwinds");
-  }
-
-  private DeclarativeConfigProperties getInstrumentationConfig(
-      DeclarativeConfigProperties configProperties) {
-    return configProperties
-        .getStructured("instrumentation/development", DeclarativeConfigProperties.empty())
-        .getStructured("java", DeclarativeConfigProperties.empty())
-        .getStructured("solarwinds");
   }
 }
