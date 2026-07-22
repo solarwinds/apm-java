@@ -180,7 +180,10 @@ public class Logger {
 
   private static String getFormattedMessage(Level level, String message) {
     String timestamp = DATE_FORMAT.get().format(Calendar.getInstance().getTime());
-    String label = timestamp + " " + level.toString() + " " + SOLARWINDSS_TAG + " ";
+    String label =
+        String.format(
+            "%s %s %s [%s] ",
+            timestamp, level.toString(), SOLARWINDSS_TAG, Thread.currentThread().getName());
 
     return message != null ? label + message : label;
   }
