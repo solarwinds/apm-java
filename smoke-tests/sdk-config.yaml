@@ -21,6 +21,14 @@ resource:
     - name: test.app
       value: java-apm-smoke-test-v2
 
+# Provide shared config for multi-langauge deployment
+distribution:
+  solarwinds:
+    agent.serviceKey: ${SW_APM_SERVICE_KEY}
+    agent.collector: apm.collector.na-01.st-ssp.solarwinds.com
+    agent.logging:
+      level: trace
+
 # Configure general attribute limits. See also tracer_provider.limits, logger_provider.limits.
 attribute_limits:
   # Configure max attribute value size.
@@ -130,8 +138,6 @@ instrumentation/development:
           - com.sun
           - sun
           - sunw
-      agent.logging:
-        level: trace
       agent.sqlTag: true
       agent.sqlTagPrepared: true
       agent.sqlTagDatabases:
