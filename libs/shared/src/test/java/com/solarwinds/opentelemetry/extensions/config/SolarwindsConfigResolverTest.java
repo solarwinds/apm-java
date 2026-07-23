@@ -89,7 +89,8 @@ class SolarwindsConfigResolverTest {
                         .withAdditionalProperty(
                             "solarwinds",
                             new DistributionPropertyModel()
-                                .withAdditionalProperty("agent.collector", "distribution.collector")))
+                                .withAdditionalProperty(
+                                    "agent.collector", "distribution.collector")))
                 .withInstrumentationDevelopment(
                     instrumentation("instrumentation-key", "instrumentation.collector")));
 
@@ -108,7 +109,8 @@ class SolarwindsConfigResolverTest {
                         .withAdditionalProperty(
                             "solarwinds",
                             new DistributionPropertyModel()
-                                .withAdditionalProperty("agent.collector", "distribution.collector")))
+                                .withAdditionalProperty(
+                                    "agent.collector", "distribution.collector")))
                 .withInstrumentationDevelopment(
                     new ExperimentalInstrumentationModel()
                         .withJava(
