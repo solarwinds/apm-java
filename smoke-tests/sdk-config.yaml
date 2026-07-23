@@ -21,7 +21,7 @@ resource:
     - name: test.app
       value: java-apm-smoke-test-v2
 
-# Provide shared config for multi-langauge deployment
+# Provide shared config for multi-language deployment
 distribution:
   solarwinds:
     agent.serviceKey: ${SW_APM_SERVICE_KEY}
