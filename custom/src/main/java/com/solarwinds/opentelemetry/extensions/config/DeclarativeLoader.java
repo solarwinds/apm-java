@@ -25,53 +25,62 @@ import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.opentelemetry.extensions.LoggingConfigProvider;
 import com.solarwinds.opentelemetry.extensions.config.parser.yaml.DeclarativeConfigParser;
-import io.opentelemetry.api.incubator.ExtendedOpenTelemetry;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
-import io.opentelemetry.sdk.OpenTelemetrySdk;
-import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfiguration;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizerProvider;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
+import java.util.Objects;
 
-@AutoService(BeforeAgentListener.class)
-public class DeclarativeLoader implements BeforeAgentListener {
+@AutoService(DeclarativeConfigurationCustomizerProvider.class)
+public class DeclarativeLoader implements DeclarativeConfigurationCustomizerProvider {
   private static final Logger logger = LoggerFactory.getLogger();
 
   @Override
-  public void beforeAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
-    OpenTelemetrySdk openTelemetrySdk = autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk();
-    if (!(openTelemetrySdk instanceof ExtendedOpenTelemetry)) {
-      // Shouldn't happen in practice, but just in case
-      logger.warn(
-          "OpenTelemetrySdk is not an instance of ExtendedOpenTelemetry. Declarative configuration will not be applied.");
-      return;
+  public void customize(DeclarativeConfigurationCustomizer customizer) {
+    customizer.addModelCustomizer(
+        configurationModel -> {
+          loadConfig(configurationModel);
+          return configurationModel;
+        });
+  }
+
+  private void loadConfig(OpenTelemetryConfigurationModel configurationModel) {
+    DeclarativeConfigProperties configProperties =
+        DeclarativeConfiguration.toConfigProperties(configurationModel);
+
+    // SolarwindsConfigResolver merges the distribution and instrumentation nodes per key
+    // (distribution takes precedence, instrumentation fills the rest); it returns null when
+    // neither node carries any properties.
+    DeclarativeConfigProperties solarwinds =
+        Objects.requireNonNull(
+            SolarwindsConfigResolver.resolve(configProperties),
+            "Solarwinds configuration cannot be null.");
+
+    ConfigContainer configContainer = new ConfigContainer();
+    DeclarativeConfigParser declarativeConfigParser = new DeclarativeConfigParser(configContainer);
+
+    try {
+      declarativeConfigParser.parse(solarwinds);
+    } catch (InvalidConfigException e) {
+      throw new RuntimeException(e);
     }
 
-    ExtendedOpenTelemetry extendedOpenTelemetry = (ExtendedOpenTelemetry) openTelemetrySdk;
-    DeclarativeConfigProperties solarwinds =
-        extendedOpenTelemetry.getInstrumentationConfig("solarwinds");
+    try {
+      ConfigurationLoader.processConfigs(configContainer);
+      ConfigContainer agentConfig = configContainer.subset(ConfigGroup.AGENT);
+      LoggerFactory.init(LoggingConfigProvider.getLoggerConfiguration(agentConfig));
 
-    if (solarwinds != null && !solarwinds.getPropertyKeys().isEmpty()) {
-      try {
-        ConfigContainer configContainer = new ConfigContainer();
-        DeclarativeConfigParser declarativeConfigParser =
-            new DeclarativeConfigParser(configContainer);
+      logger.info("Loaded via declarative config");
+    } catch (InvalidConfigException e) {
+      throw new RuntimeException(e);
+    }
 
-        declarativeConfigParser.parse(solarwinds);
-        ConfigurationLoader.processConfigs(configContainer);
-
-        ConfigContainer agentConfig = configContainer.subset(ConfigGroup.AGENT);
-        LoggerFactory.init(LoggingConfigProvider.getLoggerConfiguration(agentConfig));
-        logger.info("Loaded via declarative config");
-
-      } catch (InvalidConfigException e) {
-        throw new RuntimeException(e);
-      }
-
-      if (!JavaRuntimeVersionChecker.isJdkVersionSupported()) {
-        logger.warn(
-            String.format(
-                "Profiling is not supported for Java runtime version: %s . The lowest Java version supported for profiling is %s.",
-                System.getProperty("java.version"), JavaRuntimeVersionChecker.minVersionSupported));
-      }
+    if (!JavaRuntimeVersionChecker.isJdkVersionSupported()) {
+      logger.warn(
+          String.format(
+              "Profiling is not supported for Java runtime version: %s . The lowest Java version supported for profiling is %s.",
+              System.getProperty("java.version"), JavaRuntimeVersionChecker.minVersionSupported));
     }
   }
 }

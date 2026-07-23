@@ -19,17 +19,28 @@ resource:
     - name: service.name
       value: swi-test-app
 
+# Provide shared config for multi-language deployment
+distribution:
+  solarwinds:
+    agent.serviceKey: ""
+    agent.collector: ""
+    agent.logging:
+      level: info
+
 # Configure general attribute limits. See also tracer_provider.limits, logger_provider.limits.
 attribute_limits:
 
 # Configure tracer provider.
 tracer_provider:
+  processors:
 
 # Configure meter provider.
 meter_provider:
+  readers:
 
 # Configure logger provider. Remove to disable log export
 logger_provider:
+  processors:
 
 instrumentation/development:
   java:
@@ -47,6 +58,3 @@ instrumentation/development:
           - com.sun
           - sun
           - sunw
-      agent.logging:
-        level: info
-      agent.serviceKey: ""

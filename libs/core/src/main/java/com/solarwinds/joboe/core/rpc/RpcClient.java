@@ -377,7 +377,7 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
   private void asyncInitClient() {
     ExecutorService executorService =
         Executors.newSingleThreadExecutor(DaemonThreadFactory.newInstance("init-rpc-client"));
-    executorService.submit(() -> initClient());
+    executorService.submit(this::initClient);
     executorService.shutdown();
   }
 
