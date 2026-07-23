@@ -19,7 +19,7 @@ resource:
     - name: service.name
       value: swi-test-app
 
-# Provide shared config for multi-langauge deployment
+# Provide shared config for multi-language deployment
 distribution:
   solarwinds:
     agent.serviceKey: ""
