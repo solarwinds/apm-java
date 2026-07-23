@@ -60,7 +60,6 @@ public class SmokeTestV2 {
                     "hostId:.*[0-9a-z-]+",
                     "Extension attached!",
                     "trace_id=[a-z0-9]+\\s+span_id=[a-z0-9]+\\s+trace_flags=[0-9a-f]{2}",
-                    "This log line is used for validation only: service.name: java-apm-smoke-test",
                     "Applying instrumentation: sw-jdbc",
                     "Clearing transaction name buffer. Unique transaction count: \\d+")
             , new Slf4jLogConsumer(LoggerFactory.getLogger("k6")));

@@ -16,18 +16,25 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
+import com.solarwinds.joboe.config.ConfigManager;
+import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.config.ServiceKeyUtils;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.resources.ResourceBuilder;
 import io.opentelemetry.semconv.ServiceAttributes;
+import io.opentelemetry.semconv.incubating.CloudIncubatingAttributes;
 import io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import lombok.Getter;
 
 public class ResourceCustomizer implements BiFunction<Resource, ConfigProperties, Resource> {
-  private static Resource resource;
+
+  @Getter private static Resource resource;
 
   @Override
   public Resource apply(Resource resource, ConfigProperties configProperties) {
@@ -51,16 +58,47 @@ public class ResourceCustomizer implements BiFunction<Resource, ConfigProperties
       resourceBuilder.put(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS, args);
     }
 
+    String serviceName = getServiceName(resource, configProperties);
+    updateServiceKey(serviceName);
+    resourceBuilder.put(ServiceAttributes.SERVICE_NAME, serviceName);
+
+    LoggerFactory.getLogger().info("Resolved service name: " + serviceName);
     ResourceCustomizer.resource = resourceBuilder.build();
-    LoggerFactory.getLogger()
-        .debug(
-            String.format(
-                "This log line is used for validation only: service.name: %s",
-                resource.getAttribute(ServiceAttributes.SERVICE_NAME)));
     return ResourceCustomizer.resource;
   }
 
-  public static Resource getResource() {
-    return resource;
+  private String getServiceName(Resource resource, ConfigProperties configProperties) {
+    String serviceKeyName = null;
+    String serviceKey = ConfigManager.getConfigOptional(ConfigProperty.AGENT_SERVICE_KEY, null);
+    if (serviceKey != null) {
+      serviceKeyName = ServiceKeyUtils.getServiceName(serviceKey);
+    }
+
+    // Only allow detected name for azure app service
+    if (!"azure.app_service".equals(resource.getAttribute(CloudIncubatingAttributes.CLOUD_PLATFORM))
+        && configProperties.getString("otel.service.name") == null) {
+      return serviceKeyName;
+    }
+
+    String serviceName = resource.getAttribute(ServiceAttributes.SERVICE_NAME);
+    if (serviceKeyName != null && (serviceName == null || serviceName.startsWith("unknown_"))) {
+      serviceName = serviceKeyName;
+    }
+
+    return serviceName;
+  }
+
+  private void updateServiceKey(String serviceName) {
+    if (serviceName != null) {
+      String serviceKey = ConfigManager.getConfigOptional(ConfigProperty.AGENT_SERVICE_KEY, ":");
+      String apiKey = ServiceKeyUtils.getApiKey(serviceKey);
+
+      try {
+        ConfigManager.setConfig(
+            ConfigProperty.AGENT_SERVICE_KEY, String.format("%s:%s", apiKey, serviceName));
+      } catch (InvalidConfigException ignore) {
+        LoggerFactory.getLogger().debug("Failed to update service key with name: " + serviceName);
+      }
+    }
   }
 }

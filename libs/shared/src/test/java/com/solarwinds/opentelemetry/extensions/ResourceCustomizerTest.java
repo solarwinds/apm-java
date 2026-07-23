@@ -18,14 +18,21 @@ package com.solarwinds.opentelemetry.extensions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+import com.solarwinds.joboe.config.ConfigManager;
+import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.config.InvalidConfigException;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.semconv.ServiceAttributes;
+import io.opentelemetry.semconv.incubating.CloudIncubatingAttributes;
 import io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,6 +42,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ResourceCustomizerTest {
 
   @InjectMocks private ResourceCustomizer tested;
+
+  @AfterEach
+  void tearDown() {
+    ConfigManager.reset();
+  }
 
   private final Resource resource =
       Resource.create(
@@ -103,5 +115,114 @@ class ResourceCustomizerTest {
     assertEquals(
         Arrays.asList("-Duser.country=US", "-Duser.language=en"),
         actual.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS));
+  }
+
+  @Test
+  void verifyThatServiceKeyNameIsPreferredOverDetectedNameByDefault()
+      throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.AGENT_SERVICE_KEY, "token:key-service");
+    Resource resource =
+        Resource.create(
+            Attributes.builder().put(ServiceAttributes.SERVICE_NAME, "my-service").build());
+
+    Resource actual =
+        tested.apply(resource, DefaultConfigProperties.createFromMap(Collections.emptyMap()));
+    assertEquals("key-service", actual.getAttribute(ServiceAttributes.SERVICE_NAME));
+  }
+
+  @Test
+  void verifyThatDetectedServiceNameIsUsedForAzureAppService() throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.AGENT_SERVICE_KEY, "token:key-service");
+    Resource resource =
+        Resource.create(
+            Attributes.builder()
+                .put(CloudIncubatingAttributes.CLOUD_PLATFORM, "azure.app_service")
+                .put(ServiceAttributes.SERVICE_NAME, "my-service")
+                .build());
+
+    Resource actual =
+        tested.apply(resource, DefaultConfigProperties.createFromMap(Collections.emptyMap()));
+    assertEquals("my-service", actual.getAttribute(ServiceAttributes.SERVICE_NAME));
+  }
+
+  @Test
+  void verifyThatServiceKeyNameIsUsedForAzureAppServiceWhenDetectedNameIsUnknown()
+      throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.AGENT_SERVICE_KEY, "token:key-service");
+    Resource resource =
+        Resource.create(
+            Attributes.builder()
+                .put(CloudIncubatingAttributes.CLOUD_PLATFORM, "azure.app_service")
+                .put(ServiceAttributes.SERVICE_NAME, "unknown_service:java")
+                .build());
+
+    Resource actual =
+        tested.apply(resource, DefaultConfigProperties.createFromMap(Collections.emptyMap()));
+    assertEquals("key-service", actual.getAttribute(ServiceAttributes.SERVICE_NAME));
+  }
+
+  @Test
+  void verifyThatServiceKeyNameIsUsedForAzureAppServiceWhenDetectedNameIsNull()
+      throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.AGENT_SERVICE_KEY, "token:key-service");
+    Resource resource =
+        Resource.create(
+            Attributes.builder()
+                .put(CloudIncubatingAttributes.CLOUD_PLATFORM, "azure.app_service")
+                .build());
+
+    Resource actual =
+        tested.apply(resource, DefaultConfigProperties.createFromMap(Collections.emptyMap()));
+    assertEquals("key-service", actual.getAttribute(ServiceAttributes.SERVICE_NAME));
+  }
+
+  @Test
+  void verifyThatServiceKeyNameIsUsedByDefaultWhenResourceHasNoServiceName()
+      throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.AGENT_SERVICE_KEY, "token:key-service");
+    Resource resource = Resource.create(Attributes.empty());
+
+    Resource actual =
+        tested.apply(resource, DefaultConfigProperties.createFromMap(Collections.emptyMap()));
+    assertEquals("key-service", actual.getAttribute(ServiceAttributes.SERVICE_NAME));
+  }
+
+  @Test
+  void verifyThatServiceNameIsNullWhenNotInResourceAndNoServiceKeyConfigured() {
+    Resource resource = Resource.create(Attributes.empty());
+    Resource actual =
+        tested.apply(resource, DefaultConfigProperties.createFromMap(Collections.emptyMap()));
+
+    assertNull(actual.getAttribute(ServiceAttributes.SERVICE_NAME));
+  }
+
+  @Test
+  void verifyThatServiceKeyIsUpdatedWithConfiguredServiceNameWhenNotOnAppService()
+      throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.AGENT_SERVICE_KEY, "token:old-name");
+    Resource resource =
+        Resource.create(
+            Attributes.builder().put(ServiceAttributes.SERVICE_NAME, "new-name").build());
+
+    tested.apply(
+        resource,
+        DefaultConfigProperties.createFromMap(
+            Collections.singletonMap("otel.service.name", "new-name")));
+    assertEquals("token:new-name", ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
+  }
+
+  @Test
+  void verifyThatServiceKeyIsUpdatedWithServiceNameWhenOnAppService()
+      throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.AGENT_SERVICE_KEY, "token:old-name");
+    Resource resource =
+        Resource.create(
+            Attributes.builder()
+                .put(CloudIncubatingAttributes.CLOUD_PLATFORM, "azure.app_service")
+                .put(ServiceAttributes.SERVICE_NAME, "new-name")
+                .build());
+
+    tested.apply(resource, DefaultConfigProperties.createFromMap(Collections.emptyMap()));
+    assertEquals("token:new-name", ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
   }
 }

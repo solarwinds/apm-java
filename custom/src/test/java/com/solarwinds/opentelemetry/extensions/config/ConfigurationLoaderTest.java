@@ -23,10 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.solarwinds.joboe.config.ConfigContainer;
-import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
-import com.solarwinds.joboe.config.ServiceKeyUtils;
 import com.solarwinds.opentelemetry.extensions.DefaultNamingScheme;
 import com.solarwinds.opentelemetry.extensions.NamingScheme;
 import com.solarwinds.opentelemetry.extensions.SpanAttributeNamingScheme;
@@ -131,27 +129,6 @@ class ConfigurationLoaderTest {
 
     assertNull(ConfigurationLoader.getConfigurationFileDir());
     assertNull(ConfigurationLoader.getRuntimeConfigFilename());
-  }
-
-  @Test
-  @ClearSystemProperty(key = "otel.service.name")
-  void verifyThatOtelServiceNameSystemPropertyIsWhenNotExplicitlySet()
-      throws InvalidConfigException {
-    ConfigurationLoader.load();
-    assertEquals(
-        "name" /*name is from custom/build.gradle test task*/,
-        System.getProperty("otel.service.name"));
-  }
-
-  @Test
-  @SetSystemProperty(key = "otel.service.name", value = "test")
-  void verifyThatServiceKeyIsUpdatedWithOtelServiceNameWhenSystemPropertyIsSet()
-      throws InvalidConfigException {
-    ConfigurationLoader.load();
-    String serviceKeyAfter = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
-
-    assertEquals("test", ServiceKeyUtils.getServiceName(serviceKeyAfter));
-    assertEquals("token:test", serviceKeyAfter);
   }
 
   @Test
