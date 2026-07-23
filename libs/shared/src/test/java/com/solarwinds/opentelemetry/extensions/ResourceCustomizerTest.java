@@ -197,7 +197,8 @@ class ResourceCustomizerTest {
   }
 
   @Test
-  void verifyThatServiceKeyIsUpdatedWithServiceName() throws InvalidConfigException {
+  void verifyThatServiceKeyIsUpdatedWithConfiguredServiceNameWhenNotOnAppService()
+      throws InvalidConfigException {
     ConfigManager.setConfig(ConfigProperty.AGENT_SERVICE_KEY, "token:old-name");
     Resource resource =
         Resource.create(
