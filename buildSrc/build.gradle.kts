@@ -43,7 +43,7 @@ dependencies {
   implementation("io.freefair.gradle:lombok-plugin:9.5.0")
 
   implementation("io.opentelemetry.instrumentation:gradle-plugins:2.27.0-alpha")
-  implementation("com.gradleup.shadow:shadow-gradle-plugin:9.4.1")
+  implementation("com.gradleup.shadow:shadow-gradle-plugin:9.6.1")
   implementation("com.github.gmazzo.buildconfig:com.github.gmazzo.buildconfig.gradle.plugin:6.0.7")
   implementation("com.github.spotbugs:com.github.spotbugs.gradle.plugin:6.4.8")
 }
