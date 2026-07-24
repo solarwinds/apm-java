@@ -88,13 +88,13 @@ tasks {
 
     // exclude known bootstrap dependencies - they can't appear in the inst/ directory
     dependencies {
-      exclude("org.slf4j:slf4j-api")
-      exclude("io.opentelemetry:opentelemetry-api")
-      exclude("io.opentelemetry:opentelemetry-api-logs")
-      exclude("io.opentelemetry:opentelemetry-context")
-      exclude("io.opentelemetry:opentelemetry-semconv")
-      exclude("io.opentelemetry.semconv:opentelemetry-semconv-incubating")
-      exclude("io.opentelemetry:opentelemetry-api-incubator")
+      exclude(dependency("org.slf4j:slf4j-api"))
+      exclude(dependency("io.opentelemetry:opentelemetry-api"))
+      exclude(dependency("io.opentelemetry:opentelemetry-api-logs"))
+      exclude(dependency("io.opentelemetry:opentelemetry-context"))
+      exclude(dependency("io.opentelemetry:opentelemetry-semconv"))
+      exclude(dependency("io.opentelemetry.semconv:opentelemetry-semconv-incubating"))
+      exclude(dependency("io.opentelemetry:opentelemetry-api-incubator"))
     }
   }
 
