@@ -25,10 +25,10 @@ import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfiguration;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionPropertyModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.ExperimentalInstrumentationModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.ExperimentalLanguageSpecificInstrumentationModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalInstrumentationModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalLanguageSpecificInstrumentationModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalLanguageSpecificInstrumentationPropertyModel;
 import org.junit.jupiter.api.Test;
 
 class SolarwindsConfigResolverTest {
