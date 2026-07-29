@@ -142,7 +142,7 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
       Map<String, Object> additionalProperties =
           spanProcessorPropertyModel.getAdditionalProperties();
       if (!additionalProperties.containsKey("filter")) {
-        spanProcessorModel.setAdditionalProperty(
+        spanProcessorModel.withAdditionalProperty(
             experimentalStacktrace,
             spanProcessorPropertyModel.withAdditionalProperty(
                 "filter", SPAN_STACKTRACE_FILTER_CLASS));

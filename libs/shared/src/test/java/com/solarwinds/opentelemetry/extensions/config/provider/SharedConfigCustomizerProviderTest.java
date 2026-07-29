@@ -31,9 +31,6 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.BatchLogRecord
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.BatchSpanProcessorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionPropertyModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.ExperimentalInstrumentationModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.ExperimentalLanguageSpecificInstrumentationModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LogRecordExporterModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LogRecordExporterPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LogRecordProcessorModel;
@@ -51,6 +48,9 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanExporterPr
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.TracerProviderModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalInstrumentationModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalLanguageSpecificInstrumentationModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalLanguageSpecificInstrumentationPropertyModel;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
