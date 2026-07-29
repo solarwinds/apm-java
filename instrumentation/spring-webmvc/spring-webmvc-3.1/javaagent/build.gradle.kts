@@ -28,7 +28,7 @@ muzzle {
     skip("1.2.1", "1.2.2", "1.2.3", "1.2.4")
     // 3.2.1.RELEASE has transitive dependencies like spring-web as "provided" instead of "compile"
     skip("3.2.1.RELEASE")
-    extraDependency("javax.servlet:javax.servlet-api:3.0.1")
+    extraDependency("javax.servlet:javax.servlet-api:4.0.1")
     assertInverse.set(true)
   }
 
@@ -40,19 +40,19 @@ muzzle {
     // these versions depend on org.springframework:spring-web which has a bad dependency on
     // javax.faces:jsf-api:1.1 which was released as pom only
     skip("1.2.1", "1.2.2", "1.2.3", "1.2.4")
-    extraDependency("javax.servlet:javax.servlet-api:3.0.1")
+    extraDependency("javax.servlet:javax.servlet-api:4.0.1")
   }
 }
 
 dependencies {
-  compileOnly("javax.servlet:javax.servlet-api:3.1.0")
+  compileOnly("javax.servlet:javax.servlet-api:4.0.1")
   compileOnly("org.springframework:spring-webmvc:3.1.0.RELEASE")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator")
 
   testImplementation("org.springframework:spring-webmvc:5.3.30")
   testImplementation("org.springframework:spring-test:5.3.30")
-  testImplementation("javax.servlet:javax.servlet-api:3.1.0")
+  testImplementation("javax.servlet:javax.servlet-api:4.0.1")
 }
 
 swoJava {
