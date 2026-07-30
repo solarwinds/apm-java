@@ -6,7 +6,7 @@ val otelAgentVersion = "2.30.0"
 val otelSdkVersion = "1.64.0"
 
 val mockitoVersion = "5.2.0"
-val byteBuddyVersion = "1.18.8"
+val byteBuddyVersion = "1.18.11"
 
 val opentelemetryJavaagentAlpha = "$otelAgentVersion-alpha"
 val opentelemetryAlpha = "$otelSdkVersion-alpha"
