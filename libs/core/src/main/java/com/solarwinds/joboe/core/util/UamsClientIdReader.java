@@ -54,7 +54,7 @@ public class UamsClientIdReader {
     } else {
       uamsClientIdPath = Paths.get("/", "opt", "solarwinds", "uamsclient", "var", "uamsclientid");
     }
-    logger.debug("Set uamsclientid path to " + uamsClientIdPath);
+    logger.debug(() -> "Set uamsclientid path to " + uamsClientIdPath);
   }
 
   public static String getUamsClientId() {
@@ -64,10 +64,15 @@ public class UamsClientIdReader {
         lastModified.set(modifiedTime);
         uamsClientId.set(sanitize(readFirstLine(uamsClientIdPath)));
         logger.debug(
-            "Updated uamsclientid to " + uamsClientId.get() + ", lastModifiedTime=" + modifiedTime);
+            () ->
+                "Updated uamsclientid to "
+                    + uamsClientId.get()
+                    + ", lastModifiedTime="
+                    + modifiedTime);
       }
     } catch (IOException e) {
-      logger.debug(String.format("Cannot read the file[%s] due error: %s", uamsClientIdPath, e));
+      logger.debug(
+          () -> String.format("Cannot read the file[%s] due error: %s", uamsClientIdPath, e));
       getUamsClientIdViaRestApi().ifPresent(uamsClientId::set);
     }
     return uamsClientId.get();
@@ -100,18 +105,21 @@ public class UamsClientIdReader {
               String clientId = jsonPayload.getString("uamsclient_id");
 
               logger.debug(
-                  String.format(
-                      "Got UAMS client ID(%s) from API, using hardcoded endpoint", clientId));
+                  () ->
+                      String.format(
+                          "Got UAMS client ID(%s) from API, using hardcoded endpoint", clientId));
               result.set(Optional.ofNullable(clientId));
             } else {
               logger.debug(
-                  String.format(
-                      "Request to UAMS REST endpoint failed. Status=%d, payload=%s",
-                      statusCode, null));
+                  () ->
+                      String.format(
+                          "Request to UAMS REST endpoint failed. Status=%d, payload=%s",
+                          statusCode, null));
             }
 
           } catch (IOException | JSONException exception) {
-            logger.debug(String.format("Error reading from UAMS REST endpoint\n%s", exception));
+            logger.debug(
+                () -> String.format("Error reading from UAMS REST endpoint\n%s", exception));
           } finally {
             if (connection != null) {
               connection.disconnect();
@@ -142,7 +150,7 @@ public class UamsClientIdReader {
       }
       res = id;
     } catch (IllegalArgumentException e) {
-      logger.debug("Discarded invalid UAMS client id: " + id, e);
+      logger.debug(() -> "Discarded invalid UAMS client id: " + id, e);
     }
     return res;
   }

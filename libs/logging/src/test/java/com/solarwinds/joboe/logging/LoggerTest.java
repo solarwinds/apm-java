@@ -17,10 +17,15 @@
 package com.solarwinds.joboe.logging;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import lombok.Getter;
 import org.junit.jupiter.api.Test;
 
@@ -272,6 +277,70 @@ public class LoggerTest {
     assertEquals(0, countOccurrence(errMessage, "error-exception"));
     assertEquals(0, countOccurrence(errMessage, "fatal-message"));
     assertEquals(0, countOccurrence(errMessage, "fatal-exception"));
+  }
+
+  @Test
+  public void testLazyMessageNotEvaluatedWhenBelowLevel() throws Exception {
+    Logger logger = new Logger();
+    logger.configure(
+        LoggerConfiguration.builder().logSetting(getLogSetting(Logger.Level.INFO)).build());
+
+    ProxyLoggerStream proxyOutStream = new ProxyLoggerStream();
+    ProxyLoggerStream proxyErrStream = new ProxyLoggerStream();
+    setProxyStreams(logger, proxyOutStream, proxyErrStream);
+
+    AtomicBoolean evaluated = new AtomicBoolean(false);
+    Supplier<String> supplier =
+        () -> {
+          evaluated.set(true);
+          return "debug-lazy-message";
+        };
+
+    logger.debug(supplier);
+    logger.debug(supplier, new Exception("debug-lazy-exception"));
+
+    assertFalse(
+        evaluated.get(), "message supplier should not be evaluated when below the logging level");
+    assertEquals(0, countOccurrence(proxyOutStream.getProxyOutput().toString(), "debug-lazy"));
+  }
+
+  @Test
+  public void testLazyMessageEvaluatedWhenAtLevel() throws Exception {
+    Logger logger = new Logger();
+    logger.configure(
+        LoggerConfiguration.builder().logSetting(getLogSetting(Logger.Level.DEBUG)).build());
+
+    ProxyLoggerStream proxyOutStream = new ProxyLoggerStream();
+    ProxyLoggerStream proxyErrStream = new ProxyLoggerStream();
+    setProxyStreams(logger, proxyOutStream, proxyErrStream);
+
+    AtomicBoolean evaluated = new AtomicBoolean(false);
+    Supplier<String> supplier =
+        () -> {
+          evaluated.set(true);
+          return "debug-lazy-message";
+        };
+
+    logger.debug(supplier);
+    logger.debug(supplier, new Exception("debug-lazy-exception"));
+
+    String outMessage = proxyOutStream.getProxyOutput().toString();
+    assertTrue(evaluated.get(), "message supplier should be evaluated when at the logging level");
+    assertEquals(2, countOccurrence(outMessage, "debug-lazy-message"));
+    assertEquals(1, countOccurrence(outMessage, "debug-lazy-exception"));
+  }
+
+  @Test
+  public void testLazyMessageRejectsNullSupplier() throws Exception {
+    Logger logger = new Logger();
+    logger.configure(
+        LoggerConfiguration.builder().logSetting(getLogSetting(Logger.Level.DEBUG)).build());
+
+    Supplier<String> nullSupplier = null;
+    assertThrows(NullPointerException.class, () -> logger.debug(nullSupplier));
+    assertThrows(
+        NullPointerException.class,
+        () -> logger.debug(nullSupplier, new Exception("debug-lazy-exception")));
   }
 
   private void sendTestMessages(Logger logger) {

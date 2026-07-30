@@ -138,9 +138,10 @@ public class EventValueConverter {
 
     if (converter == null) {
       logger.debug(
-          "Class ["
-              + parameter.getClass().getName()
-              + "] is not in the expected list of classes for PreparedStatement parameter. Using the default handler");
+          () ->
+              "Class ["
+                  + parameter.getClass().getName()
+                  + "] is not in the expected list of classes for PreparedStatement parameter. Using the default handler");
       converter = DEFAULT_HANDLER;
     }
 

@@ -53,7 +53,7 @@ public class RpcSettingsReader implements SettingsReader {
     try {
       result = rpcClient.getSettings(SSL_CLIENT_VERSION, loggingCallback).get();
       if (result.getResultCode() == ResultCode.OK) {
-        logger.debug("Got settings from collector: " + result.getSettings().get(0));
+        logger.debug(() -> "Got settings from collector: " + result.getSettings().get(0));
         return result.getSettings().get(0);
       }
     } catch (Exception e) {

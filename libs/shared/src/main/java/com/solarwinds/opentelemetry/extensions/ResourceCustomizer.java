@@ -97,7 +97,8 @@ public class ResourceCustomizer implements BiFunction<Resource, ConfigProperties
         ConfigManager.setConfig(
             ConfigProperty.AGENT_SERVICE_KEY, String.format("%s:%s", apiKey, serviceName));
       } catch (InvalidConfigException ignore) {
-        LoggerFactory.getLogger().debug("Failed to update service key with name: " + serviceName);
+        LoggerFactory.getLogger()
+            .debug(() -> "Failed to update service key with name: " + serviceName);
       }
     }
   }
