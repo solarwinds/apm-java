@@ -116,8 +116,6 @@ tasks {
       compilerArgs.addAll(
         listOf(
           "-Xlint:all",
-          // disable annotation ownership warnings
-          "-Xlint:-processing",
           "-Werror"
         )
       )

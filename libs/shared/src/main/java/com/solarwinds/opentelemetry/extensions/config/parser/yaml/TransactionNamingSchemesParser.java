@@ -17,7 +17,6 @@
 package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.config.ConfigParser;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.opentelemetry.extensions.TransactionNamingScheme;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
@@ -25,10 +24,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("rawtypes")
-@AutoService(ConfigParser.class)
-public final class TransactionNamingSchemesParser
-    implements ConfigParser<DeclarativeConfigProperties, List<TransactionNamingScheme>> {
+@AutoService(DeclarativeConfigPropertyParser.class)
+public final class TransactionNamingSchemesParser implements DeclarativeConfigPropertyParser {
   private static final String CONFIG_KEY = "agent.transactionNameSchemes";
 
   @Override

@@ -17,7 +17,6 @@
 package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.config.ConfigParser;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.sampling.ResourceMatcher;
@@ -39,10 +38,8 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import org.json.JSONException;
 
-@SuppressWarnings("rawtypes")
-@AutoService(ConfigParser.class)
-public class TransactionSettingsConfigParser
-    implements ConfigParser<DeclarativeConfigProperties, TraceConfigs> {
+@AutoService(DeclarativeConfigPropertyParser.class)
+public class TransactionSettingsConfigParser implements DeclarativeConfigPropertyParser {
   private static final String TRACING_KEY = "tracing";
   private static final String REGEX_KEY = "regex";
   private static final String EXTENSIONS_KEY = "com/solarwinds/opentelemetry/extensions";

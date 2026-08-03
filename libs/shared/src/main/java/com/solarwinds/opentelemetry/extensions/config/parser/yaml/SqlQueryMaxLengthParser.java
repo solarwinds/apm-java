@@ -17,15 +17,13 @@
 package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.config.ConfigParser;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.opentelemetry.extensions.Constants;
 import com.solarwinds.opentelemetry.extensions.config.parser.json.RangeValidationParser;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 
-@SuppressWarnings("rawtypes")
-@AutoService(ConfigParser.class)
-public class SqlQueryMaxLengthParser implements ConfigParser<DeclarativeConfigProperties, Integer> {
+@AutoService(DeclarativeConfigPropertyParser.class)
+public class SqlQueryMaxLengthParser implements DeclarativeConfigPropertyParser {
   private static final String CONFIG_KEY = "agent.sqlQueryMaxLength";
 
   private static final RangeValidationParser<Integer> RANGE_VALIDATOR =
