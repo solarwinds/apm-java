@@ -41,7 +41,7 @@ dependencies {
   testImplementation("org.springframework:spring-webmvc:6.0.0")
   testImplementation("org.springframework:spring-test:6.0.0")
   testImplementation("jakarta.servlet:jakarta.servlet-api:5.0.0")
-  testImplementation("org.apache.tomcat.embed:tomcat-embed-core:10.1.0")
+  testImplementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.24")
 }
 
 swoJava {
