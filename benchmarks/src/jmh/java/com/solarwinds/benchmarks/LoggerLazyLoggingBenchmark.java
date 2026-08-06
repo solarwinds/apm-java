@@ -38,7 +38,7 @@ import org.openjdk.jmh.annotations.Warmup;
 /**
  * Compares eager {@code debug(String)} against lazy {@code debug(Supplier<String>)} logging.
  *
- * <p>Four scenarios are driven by the {@link #loggerLevel} parameter:
+  * <p>Two scenarios are driven by the {@link #loggerLevel} parameter:
  *
  * <ul>
  *   <li><b>INFO</b> — the {@code DEBUG} level is <em>disabled</em>. This is where lazy logging pays
