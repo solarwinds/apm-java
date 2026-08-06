@@ -17,7 +17,6 @@
 package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.config.ConfigParser;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.sampling.ResourceMatcher;
 import com.solarwinds.joboe.sampling.SampleRateSource;
@@ -34,10 +33,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-@SuppressWarnings("rawtypes")
-@AutoService(ConfigParser.class)
-public class UrlSampleRateConfigParser
-    implements ConfigParser<DeclarativeConfigProperties, TraceConfigs> {
+@AutoService(DeclarativeConfigPropertyParser.class)
+public class UrlSampleRateConfigParser implements DeclarativeConfigPropertyParser {
 
   private static final String SAMPLE_RATE = "sampleRate";
   private static final String TRACING_MODE = "tracingMode";

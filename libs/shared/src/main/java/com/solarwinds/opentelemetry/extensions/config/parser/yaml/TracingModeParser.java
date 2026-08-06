@@ -17,15 +17,13 @@
 package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.config.ConfigParser;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.sampling.TracingMode;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 
-@SuppressWarnings("rawtypes")
-@AutoService(ConfigParser.class)
-public class TracingModeParser implements ConfigParser<DeclarativeConfigProperties, TracingMode> {
+@AutoService(DeclarativeConfigPropertyParser.class)
+public class TracingModeParser implements DeclarativeConfigPropertyParser {
   private static final String CONFIG_KEY = "agent.tracingMode";
 
   @Override

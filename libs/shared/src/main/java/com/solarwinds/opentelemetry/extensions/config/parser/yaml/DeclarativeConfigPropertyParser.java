@@ -16,20 +16,8 @@
 
 package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
-import com.google.auto.service.AutoService;
+import com.solarwinds.joboe.config.ConfigParser;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 
-@AutoService(DeclarativeConfigPropertyParser.class)
-public class TriggerTraceParser implements DeclarativeConfigPropertyParser {
-  private static final String CONFIG_KEY = "agent.triggerTrace";
-
-  @Override
-  public Boolean convert(DeclarativeConfigProperties declarativeConfigProperties) {
-    return declarativeConfigProperties.getBoolean(CONFIG_KEY, true);
-  }
-
-  @Override
-  public String configKey() {
-    return CONFIG_KEY;
-  }
-}
+public interface DeclarativeConfigPropertyParser
+    extends ConfigParser<DeclarativeConfigProperties, Object> {}

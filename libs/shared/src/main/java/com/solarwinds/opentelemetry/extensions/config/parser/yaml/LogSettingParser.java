@@ -17,7 +17,6 @@
 package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.config.ConfigParser;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.logging.LogSetting;
 import com.solarwinds.joboe.logging.Logger;
@@ -26,9 +25,8 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-@SuppressWarnings("rawtypes")
-@AutoService(ConfigParser.class)
-public class LogSettingParser implements ConfigParser<DeclarativeConfigProperties, LogSetting> {
+@AutoService(DeclarativeConfigPropertyParser.class)
+public class LogSettingParser implements DeclarativeConfigPropertyParser {
   private static final String CONFIG_KEY = "agent.logging";
 
   @Override

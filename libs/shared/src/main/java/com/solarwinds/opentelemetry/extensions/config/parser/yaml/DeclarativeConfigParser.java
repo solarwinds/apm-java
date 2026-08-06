@@ -33,12 +33,13 @@ public final class DeclarativeConfigParser {
   private final Map<String, ConfigParser<DeclarativeConfigProperties, Object>> register =
       new HashMap<>();
 
-  @SuppressWarnings("unchecked")
   public DeclarativeConfigParser(ConfigContainer configContainer) {
     this.configContainer = configContainer;
-    for (ConfigParser<?, ?> parser :
-        ServiceLoader.load(ConfigParser.class, DeclarativeConfigParser.class.getClassLoader())) {
-      register.put(parser.configKey(), (ConfigParser<DeclarativeConfigProperties, Object>) parser);
+    for (DeclarativeConfigPropertyParser parser :
+        ServiceLoader.load(
+            DeclarativeConfigPropertyParser.class,
+            DeclarativeConfigParser.class.getClassLoader())) {
+      register.put(parser.configKey(), parser);
     }
   }
 

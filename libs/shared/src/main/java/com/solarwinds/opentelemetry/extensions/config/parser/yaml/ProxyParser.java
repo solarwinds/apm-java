@@ -17,15 +17,13 @@
 package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.config.ConfigParser;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.config.ProxyConfig;
 import com.solarwinds.opentelemetry.extensions.config.parser.json.ProxyConfigParser;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 
-@SuppressWarnings("rawtypes")
-@AutoService(ConfigParser.class)
-public class ProxyParser implements ConfigParser<DeclarativeConfigProperties, ProxyConfig> {
+@AutoService(DeclarativeConfigPropertyParser.class)
+public class ProxyParser implements DeclarativeConfigPropertyParser {
 
   private static final String CONFIG_KEY = "agent.proxy";
 

@@ -17,7 +17,6 @@
 package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.config.ConfigParser;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import java.util.Collections;
@@ -25,10 +24,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@SuppressWarnings("rawtypes")
-@AutoService(ConfigParser.class)
-public class SqlTagDatabasesParser
-    implements ConfigParser<DeclarativeConfigProperties, Set<String>> {
+@AutoService(DeclarativeConfigPropertyParser.class)
+public class SqlTagDatabasesParser implements DeclarativeConfigPropertyParser {
   private static final String CONFIG_KEY = "agent.sqlTagDatabases";
 
   @Override

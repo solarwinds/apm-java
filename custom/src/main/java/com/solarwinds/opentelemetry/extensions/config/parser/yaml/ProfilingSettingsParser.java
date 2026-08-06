@@ -17,7 +17,6 @@
 package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.config.ConfigParser;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
@@ -25,10 +24,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
-@SuppressWarnings("rawtypes")
-@AutoService(ConfigParser.class)
-public class ProfilingSettingsParser
-    implements ConfigParser<DeclarativeConfigProperties, ProfilerSetting> {
+@AutoService(DeclarativeConfigPropertyParser.class)
+public class ProfilingSettingsParser implements DeclarativeConfigPropertyParser {
   private static final String CONFIG_KEY = "profiler";
 
   @Override
