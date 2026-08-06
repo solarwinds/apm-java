@@ -180,7 +180,7 @@ public class Logger {
     }
   }
 
-  public void log(Level level, Supplier<String> messageSupplier) {
+  private void log(Level level, Supplier<String> messageSupplier) {
     log(level, messageSupplier, null);
   }
 
