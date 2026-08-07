@@ -35,7 +35,7 @@ public class ClientManagerProvider {
   }
 
   public static Optional<RpcClientManager> getClientManager(Client.ClientType clientType) {
-    logger.debug("Using " + clientType + " for rpc calls");
+    logger.debug(() -> "Using " + clientType + " for rpc calls");
     return Optional.ofNullable(registeredManagers.get(clientType));
   }
 

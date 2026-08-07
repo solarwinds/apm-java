@@ -47,7 +47,7 @@ public class AwsLambdaSettingsFetcher implements SettingsFetcher {
 
       } catch (SamplingException e) {
         logger.debug(
-            "Failed to get settings : " + e.getMessage(),
+            () -> "Failed to get settings : " + e.getMessage(),
             e); // Should not be too noisy as this might happen for intermittent connection problem
       }
 

@@ -40,7 +40,8 @@ public class KeepAliveMonitor implements HeartbeatScheduler {
               protocolClient.get().doPing(serviceKey);
               schedule(); // reschedule another keep alive ping
             } catch (Exception e) {
-              LoggerFactory.getLogger().debug("Keep alive ping failed [" + e.getMessage() + "]", e);
+              LoggerFactory.getLogger()
+                  .debug(() -> "Keep alive ping failed [" + e.getMessage() + "]", e);
               // do not re-schedule another keep alive ping if it was having issues
             }
           }

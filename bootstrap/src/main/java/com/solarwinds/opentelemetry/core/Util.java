@@ -139,7 +139,7 @@ public class Util {
       try {
         return new URL(url).getPath();
       } catch (MalformedURLException e) {
-        logger.debug("Cannot parse URL " + url);
+        logger.debug(() -> "Cannot parse URL " + url);
       }
     }
     return null;

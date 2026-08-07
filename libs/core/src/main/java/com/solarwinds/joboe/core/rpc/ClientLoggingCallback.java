@@ -83,13 +83,14 @@ public class ClientLoggingCallback<T extends Result> implements Callback<T> {
                 + "]");
       } else {
         logger.debug(
-            "Completed operation ["
-                + operation
-                + "] with Result code ["
-                + resultCode
-                + "] arg ["
-                + arg
-                + "]");
+            () ->
+                "Completed operation ["
+                    + operation
+                    + "] with Result code ["
+                    + resultCode
+                    + "] arg ["
+                    + arg
+                    + "]");
       }
     }
 

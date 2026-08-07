@@ -115,8 +115,9 @@ public class TimeUtils {
                   }
                 } catch (InterruptedException e) {
                   logger.debug(
-                      "Adjust time worker thread interrupted, probably due to shutdown : "
-                          + e.getMessage());
+                      () ->
+                          "Adjust time worker thread interrupted, probably due to shutdown : "
+                              + e.getMessage());
                 }
               })
           .start();
@@ -155,8 +156,9 @@ public class TimeUtils {
             >= BAD_TIMESTAMP_THRESHOLD) { // avoid endless looping if a system never manage to get 2
           // timestamps within a millisecond
           logger.debug(
-              "Aborting current time adjustment as system appears to be busy. Will try again in next cycle. Bad diffs: "
-                  + badDiffs);
+              () ->
+                  "Aborting current time adjustment as system appears to be busy. Will try again in next cycle. Bad diffs: "
+                      + badDiffs);
           return;
         }
       } else if (diff

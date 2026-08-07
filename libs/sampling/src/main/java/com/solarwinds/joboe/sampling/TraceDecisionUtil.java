@@ -161,14 +161,14 @@ public class TraceDecisionUtil {
 
   private static Metadata validateMetadata(String inXtraceId) {
     if (!Metadata.isCompatible(inXtraceId)) {
-      logger.debug("Not accepting X-Trace ID [" + inXtraceId + "] for trace continuation");
+      logger.debug(() -> "Not accepting X-Trace ID [" + inXtraceId + "] for trace continuation");
       return null;
     }
 
     try {
       Metadata inMetadata = new Metadata(inXtraceId);
       if (!inMetadata.isValid()) {
-        logger.debug("Invalid incoming x-trace ID [" + inXtraceId + "]");
+        logger.debug(() -> "Invalid incoming x-trace ID [" + inXtraceId + "]");
         return null;
       }
       return inMetadata;
@@ -287,7 +287,7 @@ public class TraceDecisionUtil {
   private static double getBucketSettingsArg(Settings settings, SettingsArg<Double> arg) {
     Double value = settings.getArgValue(arg);
     if (value == null) {
-      logger.debug("Cannot read settings arg " + arg);
+      logger.debug(() -> "Cannot read settings arg " + arg);
       return 0;
     } else if (value < 0) {
       logger.warn("Invalid negative value in settings arg " + arg);

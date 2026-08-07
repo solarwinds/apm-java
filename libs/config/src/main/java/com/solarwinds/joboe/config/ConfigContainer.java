@@ -125,15 +125,17 @@ public class ConfigContainer {
     if (!override
         && configMap.containsKey(
             propertyKey)) { // the key was already inserted before, do NOT overwrite
-      if (!configMap.get(propertyKey).equals(value)) {
+      Object existingValue = configMap.get(propertyKey);
+      if (!existingValue.equals(value)) {
         logger.debug(
-            "key ["
-                + propertyKey
-                + "] is already defined with value ["
-                + configMap.get(propertyKey)
-                + "]. Ignoring new value ["
-                + value
-                + "]");
+            () ->
+                "key ["
+                    + propertyKey
+                    + "] is already defined with value ["
+                    + existingValue
+                    + "]. Ignoring new value ["
+                    + value
+                    + "]");
       }
     } else {
       if (value == null) { // Do not allow null via put by string value

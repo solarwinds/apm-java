@@ -60,9 +60,10 @@ public class ConfigManager {
   public static Object getConfig(ConfigProperty configKey) {
     if (SINGLETON.configs == null) {
       logger.debug(
-          "Failed to read config property ["
-              + configKey
-              + "] as agent is not initialized properly, config is null!");
+          () ->
+              "Failed to read config property ["
+                  + configKey
+                  + "] as agent is not initialized properly, config is null!");
       return null;
     }
 
@@ -73,9 +74,10 @@ public class ConfigManager {
   public static <T> T getConfigOptional(ConfigProperty configKey, T defaultValue) {
     if (SINGLETON.configs == null) {
       logger.debug(
-          "Failed to read config property ["
-              + configKey
-              + "] as agent is not initialized properly, config is null!");
+          () ->
+              "Failed to read config property ["
+                  + configKey
+                  + "] as agent is not initialized properly, config is null!");
       return defaultValue;
     }
     Object value = SINGLETON.configs.get(configKey);

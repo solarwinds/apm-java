@@ -85,7 +85,7 @@ class FileLoggerStream implements LoggerStream, Closeable {
     } else {
       this.logFileLockPath = Paths.get(logFilePath.toString() + ".lock");
     }
-    Logger.INSTANCE.debug("Using " + logFileLockPath + " for log file lock for file rolling");
+    Logger.INSTANCE.debug(() -> "Using " + logFileLockPath + " for log file lock for file rolling");
 
     this.maxSize = maxSizeInBytes;
     this.maxBackup = maxBackup;
@@ -150,7 +150,7 @@ class FileLoggerStream implements LoggerStream, Closeable {
     } catch (RejectedExecutionException e) {
       // use STD_STREAM_LOGGER as we do not want to submit more messages to this file logger
       STD_STREAM_LOGGER.debug(
-          "Failed to log message to file as queue is full " + e.getMessage(), e);
+          () -> "Failed to log message to file as queue is full " + e.getMessage(), e);
     }
   }
 
@@ -168,7 +168,7 @@ class FileLoggerStream implements LoggerStream, Closeable {
     } catch (RejectedExecutionException e) {
       // use STD_STREAM_LOGGER as we do not want to submit more messages to this file logger
       STD_STREAM_LOGGER.debug(
-          "Failed to log message to file as queue is full " + e.getMessage(), e);
+          () -> "Failed to log message to file as queue is full " + e.getMessage(), e);
     }
   }
 
@@ -231,11 +231,12 @@ class FileLoggerStream implements LoggerStream, Closeable {
       try {
         if (shouldRollFile()) { // then see if files should be rolled
           Logger.INSTANCE.debug(
-              "Log file ["
-                  + logFilePath
-                  + "] exceeds "
-                  + (maxSize / 1024 / 1024)
-                  + " MB, attempt to roll the log files.");
+              () ->
+                  "Log file ["
+                      + logFilePath
+                      + "] exceeds "
+                      + (maxSize / 1024 / 1024)
+                      + " MB, attempt to roll the log files.");
           boolean rolled = lockAndRollFile();
           forcedReset = rolled; // always reset the channel if the rolling was successful
         }
@@ -348,7 +349,7 @@ class FileLoggerStream implements LoggerStream, Closeable {
           return new FileLockAndChannel(lock, lockChannel);
         }
       } catch (IOException e) {
-        Logger.INSTANCE.debug("Failed to obtain lockChannel : " + e.getMessage(), e);
+        Logger.INSTANCE.debug(() -> "Failed to obtain lockChannel : " + e.getMessage(), e);
       }
       try {
         TimeUnit.MILLISECONDS.sleep(LOCK_RETRY_SLEEP);

@@ -177,11 +177,12 @@ public class GrpcClient implements ProtocolClient {
               .setIdentity(hostId)
               .setEncoding(Collector.EncodingType.BSON);
       logger.debug(
-          postAction.getDescription()
-              + " "
-              + itemsAsByteString.size()
-              + " item(s) using gRPC client hostId="
-              + hostId);
+          () ->
+              postAction.getDescription()
+                  + " "
+                  + itemsAsByteString.size()
+                  + " item(s) using gRPC client hostId="
+                  + hostId);
       try {
         builder.addAllMessages(itemsAsByteString);
         resultMessage =
@@ -289,7 +290,7 @@ public class GrpcClient implements ProtocolClient {
           ((String) ConfigManager.getConfig(ConfigProperty.AGENT_GRPC_COMPRESSION));
       compression =
           compressionString != null ? compressionString.toLowerCase() : DEFAULT_COMPRESSION;
-      logger.debug("Using compression " + compression + " for gRPC client");
+      logger.debug(() -> "Using compression " + compression + " for gRPC client");
     }
 
     GrpcProtocolClientFactory(URL serverCertLocation) throws IOException, GeneralSecurityException {

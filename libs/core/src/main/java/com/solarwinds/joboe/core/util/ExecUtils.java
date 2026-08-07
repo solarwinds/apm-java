@@ -59,7 +59,7 @@ public class ExecUtils {
       String standardResult = inputStreamFuture.get(EXEC_TIMEOUT, TimeUnit.SECONDS);
 
       if (!errorResult.isEmpty()) {
-        logger.debug("exec " + command + " output to error stream : " + errorResult);
+        logger.debug(() -> "exec " + command + " output to error stream : " + errorResult);
       }
 
       return standardResult;

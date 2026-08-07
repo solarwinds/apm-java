@@ -46,7 +46,7 @@ public class StatementTruncator {
         getAttribute.setAccessible(true);
         sql = (String) getAttribute.invoke(span, DbAttributes.DB_QUERY_TEXT);
       } catch (Throwable throwable) {
-        logger.debug("Cannot execute method getAttribute: " + throwable);
+        logger.debug(() -> "Cannot execute method getAttribute: " + throwable);
       }
       if (sql == null) {
         return;
@@ -60,12 +60,14 @@ public class StatementTruncator {
         sql = sql.substring(0, sqlMaxLength);
         span.setAttribute(QueryTruncatedAttributeKey.KEY, true);
         span.setAttribute(DbAttributes.DB_QUERY_TEXT, sql);
+        int truncatedLength = sql.length();
         logger.debug(
-            "SQL Query trimmed as its length ["
-                + sql.length()
-                + "] exceeds max ["
-                + sqlMaxLength
-                + "]");
+            () ->
+                "SQL Query trimmed as its length ["
+                    + truncatedLength
+                    + "] exceeds max ["
+                    + sqlMaxLength
+                    + "]");
       }
     }
   }

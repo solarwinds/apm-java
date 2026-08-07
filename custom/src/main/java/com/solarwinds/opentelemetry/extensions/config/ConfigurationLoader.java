@@ -426,7 +426,8 @@ public class ConfigurationLoader {
                 + ServiceKeyUtils.maskServiceKey(serviceKey));
         configs.put(ConfigProperty.AGENT_SERVICE_KEY, serviceKey, true);
       }
-      logger.debug("Service key (masked) is [" + ServiceKeyUtils.maskServiceKey(serviceKey) + "]");
+      logger.debug(
+          () -> "Service key (masked) is [" + ServiceKeyUtils.maskServiceKey(serviceKey) + "]");
 
     } else {
       if (!configs.containsProperty(ConfigProperty.AGENT_SERVICE_KEY)) {

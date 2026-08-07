@@ -210,7 +210,7 @@ public class ServerHostInfoReader
       }
       String name = line.substring(0, statusStartPoint).trim();
       NicStatus status = NicStatus.fromDesc(line.substring(statusStartPoint).trim());
-      logger.debug("Get device display name=" + name + ", status=" + status);
+      logger.debug(() -> "Get device display name=" + name + ", status=" + status);
       nicStatusMap.put(name, status);
     }
   }
@@ -238,23 +238,25 @@ public class ServerHostInfoReader
           Collections.list(NetworkInterface.getNetworkInterfaces())) {
         try {
           logger.debug(
-              "Found network interface "
-                  + networkInterface.getName()
-                  + " "
-                  + networkInterface.getDisplayName());
+              () ->
+                  "Found network interface "
+                      + networkInterface.getName()
+                      + " "
+                      + networkInterface.getDisplayName());
           if (!networkInterface.isLoopback()
               && !networkInterface.isPointToPoint()
               && isPhysicalInterface(networkInterface)
               && !isGhostHyperV(networkInterface)) {
             logger.debug(
-                "Processing physical network interface "
-                    + networkInterface.getName()
-                    + " "
-                    + networkInterface.getDisplayName());
+                () ->
+                    "Processing physical network interface "
+                        + networkInterface.getName()
+                        + " "
+                        + networkInterface.getDisplayName());
             boolean hasIp = false;
             for (InetAddress address : Collections.list(networkInterface.getInetAddresses())) {
               String ipAddress = address.getHostAddress();
-              logger.debug("Found ip address " + ipAddress);
+              logger.debug(() -> "Found ip address " + ipAddress);
               if (!ips.contains(ipAddress)) {
                 ips.add(ipAddress);
               }
@@ -265,19 +267,21 @@ public class ServerHostInfoReader
               // https://github.com/librato/joboe/pull/1090 for details
               NicStatus status = nicStatusMap.get(networkInterface.getDisplayName());
               logger.debug(
-                  "Checking "
-                      + networkInterface.getName()
-                      + ", "
-                      + networkInterface.getDisplayName()
-                      + ", status="
-                      + status);
+                  () ->
+                      "Checking "
+                          + networkInterface.getName()
+                          + ", "
+                          + networkInterface.getDisplayName()
+                          + ", status="
+                          + status);
               if (!(NicStatus.UP.equals(status) || NicStatus.DISCONNECTED.equals(status))) {
                 // ignore disabled/null NIC on Windows when "-Djava.net.preferIPv4Stack=true" is set
                 logger.debug(
-                    "Ignore disabled/null network adapter "
-                        + networkInterface.getDisplayName()
-                        + ", status="
-                        + status);
+                    () ->
+                        "Ignore disabled/null network adapter "
+                            + networkInterface.getDisplayName()
+                            + ", status="
+                            + status);
                 continue;
               }
               // We cannot simply filter out NICs without an IP for all the scenarios. This is
@@ -291,19 +295,21 @@ public class ServerHostInfoReader
               // it doesn't have an IP address.
               if (NicStatus.UP.equals(status) && !hasIp) {
                 logger.debug(
-                    "Ignore network adapter which is up but no IP assigned: "
-                        + networkInterface.getDisplayName());
+                    () ->
+                        "Ignore network adapter which is up but no IP assigned: "
+                            + networkInterface.getDisplayName());
                 continue;
               }
             } else if (!hasIp) {
-              logger.debug("Ignore network adapter without an IP: " + networkInterface.getName());
+              logger.debug(
+                  () -> "Ignore network adapter without an IP: " + networkInterface.getName());
               continue;
             }
             // add mac addresses too
             byte[] hwAddr = networkInterface.getHardwareAddress();
             if ((hwAddr != null) && (hwAddr.length != 0)) {
               String macAddress = getMacAddressFromBytes(hwAddr);
-              logger.debug("Found MAC address " + macAddress);
+              logger.debug(() -> "Found MAC address " + macAddress);
               if (!macAddresses.contains(macAddress)) {
                 macAddresses.add(macAddress);
               }
@@ -311,18 +317,20 @@ public class ServerHostInfoReader
           }
         } catch (NoSuchMethodError e) {
           logger.debug(
-              "Failed to get network info for "
-                  + networkInterface.getName()
-                  + ", probably running JDK 1.5 or earlier");
+              () ->
+                  "Failed to get network info for "
+                      + networkInterface.getName()
+                      + ", probably running JDK 1.5 or earlier");
         } catch (SocketException e) {
           logger.debug(
-              "Failed to get network info for "
-                  + networkInterface.getName()
-                  + ":"
-                  + e.getMessage());
+              () ->
+                  "Failed to get network info for "
+                      + networkInterface.getName()
+                      + ":"
+                      + e.getMessage());
         }
       }
-      logger.debug("All MAC addresses accepted: " + Arrays.toString(macAddresses.toArray()));
+      logger.debug(() -> "All MAC addresses accepted: " + Arrays.toString(macAddresses.toArray()));
       return new HostInfoUtils.NetworkAddressInfo(ips, macAddresses);
     } catch (SocketException e) {
       logger.warn("Failed to get network info : " + e.getMessage());
@@ -381,7 +389,7 @@ public class ServerHostInfoReader
           && displayName.startsWith(hyperVprefix)
           && !networkInterface.isUp();
     } catch (SocketException e) {
-      logger.debug("Cannot call isUp on " + networkInterface.getDisplayName(), e);
+      logger.debug(() -> "Cannot call isUp on " + networkInterface.getDisplayName(), e);
       return false;
     }
   }
@@ -794,7 +802,8 @@ public class ServerHostInfoReader
       if (instanceId != null) { // only proceed if instance id can be found
         availabilityZone = getResourceOnEndpoint(AVAILABILITY_ZONE_PATH, token);
         logger.debug(
-            "Found EC2 instance id " + instanceId + " availability zone: " + availabilityZone);
+            () ->
+                "Found EC2 instance id " + instanceId + " availability zone: " + availabilityZone);
       }
 
       awsMetadata = getMetadata(token);
@@ -824,17 +833,20 @@ public class ServerHostInfoReader
                   }
 
                   String payload = sb.toString();
-                  logger.debug(String.format("Retrieved metadata using IMDSv1: %s", payload));
+                  logger.debug(() -> String.format("Retrieved metadata using IMDSv1: %s", payload));
                   result.set(payload);
                 }
               } else {
                 logger.debug(
-                    String.format(
-                        "Failed to retrieved metadata using IMDSv1: status code=%d", statusCode));
+                    () ->
+                        String.format(
+                            "Failed to retrieved metadata using IMDSv1: status code=%d",
+                            statusCode));
               }
 
             } catch (IOException exception) {
-              logger.debug(String.format("Error retrieving metadata using IMDSv1: %s", exception));
+              logger.debug(
+                  () -> String.format("Error retrieving metadata using IMDSv1: %s", exception));
             } finally {
               if (connection != null) {
                 connection.disconnect();
@@ -877,12 +889,14 @@ public class ServerHostInfoReader
                 }
               } else {
                 logger.debug(
-                    String.format(
-                        "Failed to retrieved metadata request token: status code=%d", statusCode));
+                    () ->
+                        String.format(
+                            "Failed to retrieved metadata request token: status code=%d",
+                            statusCode));
               }
 
             } catch (IOException e) {
-              logger.debug(String.format("Error getting token for IMDSv2: %s", e));
+              logger.debug(() -> String.format("Error getting token for IMDSv2: %s", e));
             } finally {
               if (connection != null) {
                 connection.disconnect();
@@ -916,17 +930,19 @@ public class ServerHostInfoReader
                     sb.append(line);
                   }
                   String payload = sb.toString();
-                  logger.debug(String.format("Retrieved metadata using IMDSv2: %s", payload));
+                  logger.debug(() -> String.format("Retrieved metadata using IMDSv2: %s", payload));
                   result.set(payload);
                 }
               } else {
                 logger.debug(
-                    String.format(
-                        "Failed to retrieved metadata using IMDSv2: status code=%d", statusCode));
+                    () ->
+                        String.format(
+                            "Failed to retrieved metadata using IMDSv2: status code=%d",
+                            statusCode));
               }
 
             } catch (IOException e) {
-              logger.debug(String.format("Error retrieving metadata using IMDSv2: %s", e));
+              logger.debug(() -> String.format("Error retrieving metadata using IMDSv2: %s", e));
             } finally {
               if (connection != null) {
                 connection.disconnect();
@@ -955,12 +971,13 @@ public class ServerHostInfoReader
           HostId.AwsMetadata metadata =
               HostId.AwsMetadata.fromJson(
                   payload, getResourceOnEndpoint("latest/meta-data/hostname", token));
-          logger.debug(String.format("Aws Metadata: %s", metadata));
+          logger.debug(() -> String.format("Aws Metadata: %s", metadata));
           return metadata;
 
         } catch (JSONException e) {
           logger.debug(
-              String.format("Error converting json to AwsMetadata model: %s\n %s", payload, e));
+              () ->
+                  String.format("Error converting json to AwsMetadata model: %s\n %s", payload, e));
         }
       }
       return null;
@@ -994,7 +1011,7 @@ public class ServerHostInfoReader
       }
 
       if (dockerId != null) {
-        logger.debug("Found Docker instance ID :" + this.dockerId);
+        logger.debug(() -> "Found Docker instance ID :" + this.dockerId);
       } else {
         logger.debug("Cannot locate Docker id, not a Docker container");
       }
@@ -1038,7 +1055,7 @@ public class ServerHostInfoReader
         return Optional.of(containerId);
 
       } else {
-        logger.debug(String.format("No container id in line: {%s}", line));
+        logger.debug(() -> String.format("No container id in line: {%s}", line));
         return Optional.empty();
       }
     }
@@ -1087,7 +1104,7 @@ public class ServerHostInfoReader
     private HerokuDynoReader() {
       this.dynoId = System.getenv(DYNO_ENV_VARIABLE);
       if (this.dynoId != null) {
-        logger.debug("Found Heroku Dyno ID: " + this.dynoId);
+        logger.debug(() -> "Found Heroku Dyno ID: " + this.dynoId);
       }
     }
   }
@@ -1138,7 +1155,7 @@ public class ServerHostInfoReader
               connection.setRequestProperty("Metadata", "true");
               int statusCode = connection.getResponseCode();
 
-              logger.debug(String.format("Azure IMDS status code: %s", statusCode));
+              logger.debug(() -> String.format("Azure IMDS status code: %s", statusCode));
               if (statusCode >= 200 && statusCode < 300) {
                 try (BufferedReader reader =
                     new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
@@ -1150,7 +1167,7 @@ public class ServerHostInfoReader
                   }
 
                   String payload = sb.toString();
-                  logger.debug(String.format("Azure IMDS payload: %s", payload));
+                  logger.debug(() -> String.format("Azure IMDS payload: %s", payload));
                   result.set(HostId.AzureVmMetadata.fromJson(payload));
                 }
               }
@@ -1169,10 +1186,10 @@ public class ServerHostInfoReader
     private AzureReader() {
       this.appInstanceId = System.getenv(INSTANCE_ID_ENV_VARIABLE);
       if (this.appInstanceId != null) {
-        logger.debug("Found Azure instance ID: " + this.appInstanceId);
+        logger.debug(() -> "Found Azure instance ID: " + this.appInstanceId);
       }
       azureVmMetadata = getVmMetadata();
-      logger.debug(String.format("Azure vm metadata: %s", azureVmMetadata));
+      logger.debug(() -> String.format("Azure vm metadata: %s", azureVmMetadata));
     }
   }
 
@@ -1231,7 +1248,7 @@ public class ServerHostInfoReader
               podId = line.substring(matcher.start(), matcher.end());
               logger.info(String.format("Found pod uid: %s", podId));
             } else {
-              logger.debug(String.format("Pod uid not found on line: %s", line));
+              logger.debug(() -> String.format("Pod uid not found on line: %s", line));
             }
             return Optional.ofNullable(podId);
           });
@@ -1257,7 +1274,7 @@ public class ServerHostInfoReader
               .orElse(Optional.empty());
 
     } catch (IOException e) {
-      logger.debug(String.format("Error reading file(%s).  %s", filepath, e.getMessage()));
+      logger.debug(() -> String.format("Error reading file(%s).  %s", filepath, e.getMessage()));
     }
     return value.orElse(null);
   }

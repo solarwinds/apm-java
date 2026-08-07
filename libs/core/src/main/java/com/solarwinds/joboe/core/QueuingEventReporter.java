@@ -96,7 +96,7 @@ public class QueuingEventReporter implements EventReporter {
   static void setFlushInterval(int eventsFlushInterval) {
     if (eventsFlushInterval >= 0) {
       flushInterval = eventsFlushInterval;
-      logger.debug("Event flush interval set to " + eventsFlushInterval + "s");
+      logger.debug(() -> "Event flush interval set to " + eventsFlushInterval + "s");
     } else {
       logger.warn("Event flush interval value " + eventsFlushInterval + " is not valid");
     }
@@ -141,7 +141,7 @@ public class QueuingEventReporter implements EventReporter {
           ResultCode resultCode = result.getResultCode();
 
           if (resultCode.isError()) {
-            logger.debug("Failed to send out " + sendingEvents.size() + " events");
+            logger.debug(() -> "Failed to send out " + sendingEvents.size() + " events");
             stats.incrementFailedCount(sendingEvents.size());
           } else {
             stats.incrementSentCount(sendingEvents.size());
@@ -150,10 +150,11 @@ public class QueuingEventReporter implements EventReporter {
         } catch (Exception e) {
           // do not retry the message, just log the problem
           logger.debug(
-              "Failed to send "
-                  + sendingEvents.size()
-                  + " events, exception found: "
-                  + e.getMessage()); // Should not be too noisy
+              () ->
+                  "Failed to send "
+                      + sendingEvents.size()
+                      + " events, exception found: "
+                      + e.getMessage()); // Should not be too noisy
           stats.incrementFailedCount(sendingEvents.size());
         } finally {
           stats.incrementProcessedCount(sendingEvents.size());
@@ -253,7 +254,7 @@ public class QueuingEventReporter implements EventReporter {
     try {
       client.close();
       boolean termination = executorService.awaitTermination(5, TimeUnit.SECONDS);
-      logger.debug(String.format("Event reporter service shut down: [%s]", termination));
+      logger.debug(() -> String.format("Event reporter service shut down: [%s]", termination));
     } catch (InterruptedException ignored) {
     }
   }

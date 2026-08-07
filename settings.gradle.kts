@@ -50,4 +50,5 @@ include("libs:config")
 include("libs:logging")
 include("libs:sampling")
 include("testing:feature-tests")
+include("benchmarks")
 

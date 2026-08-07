@@ -54,7 +54,7 @@ public class TestReporter implements EventReporter {
   public void send(Event event) {
     try {
       byte[] buf = event.toBytes();
-      logger.debug("Sent " + buf.length + " bytes");
+      logger.debug(() -> "Sent " + buf.length + " bytes");
       byteBufList.get().add(buf);
     } catch (BsonBufferException e) {
       logger.error("Failed to send events : " + e.getMessage(), e);
