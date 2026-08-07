@@ -343,6 +343,69 @@ public class LoggerTest {
         () -> logger.debug(nullSupplier, new Exception("debug-lazy-exception")));
   }
 
+  @Test
+  public void testTraceLazyMessageNotEvaluatedWhenAboveLevel() throws Exception {
+    Logger logger = new Logger();
+    logger.configure(
+        LoggerConfiguration.builder().logSetting(getLogSetting(Logger.Level.DEBUG)).build());
+
+    ProxyLoggerStream proxyOutStream = new ProxyLoggerStream();
+    ProxyLoggerStream proxyErrStream = new ProxyLoggerStream();
+    setProxyStreams(logger, proxyOutStream, proxyErrStream);
+
+    AtomicBoolean evaluated = new AtomicBoolean(false);
+    Supplier<String> supplier =
+        () -> {
+          evaluated.set(true);
+          return "trace-lazy-message";
+        };
+
+    logger.trace(supplier);
+    logger.trace(supplier, new Exception("trace-lazy-exception"));
+
+    assertFalse(
+        evaluated.get(), "message supplier should not be evaluated when below the logging level");
+    assertEquals(0, countOccurrence(proxyOutStream.getProxyOutput().toString(), "trace-lazy"));
+  }
+
+  @Test
+  public void testTraceLazyMessageEvaluatedWhenAtLevel() throws Exception {
+    Logger logger = new Logger();
+    logger.configure(
+        LoggerConfiguration.builder().logSetting(getLogSetting(Logger.Level.TRACE)).build());
+
+    ProxyLoggerStream proxyOutStream = new ProxyLoggerStream();
+    ProxyLoggerStream proxyErrStream = new ProxyLoggerStream();
+    setProxyStreams(logger, proxyOutStream, proxyErrStream);
+
+    AtomicBoolean evaluated = new AtomicBoolean(false);
+    Supplier<String> supplier =
+        () -> {
+          evaluated.set(true);
+          return "trace-lazy-message";
+        };
+
+    logger.trace(supplier);
+    logger.trace(supplier, new Exception("trace-lazy-exception"));
+
+    String outMessage = proxyOutStream.getProxyOutput().toString();
+    assertTrue(evaluated.get(), "message supplier should be evaluated when at the logging level");
+    assertEquals(2, countOccurrence(outMessage, "trace-lazy-message"));
+    assertEquals(1, countOccurrence(outMessage, "trace-lazy-exception"));
+  }
+
+  @Test
+  public void testTraceLazyMessageRejectsNullSupplier() {
+    Logger logger = new Logger();
+    logger.configure(
+        LoggerConfiguration.builder().logSetting(getLogSetting(Logger.Level.TRACE)).build());
+
+    assertThrows(NullPointerException.class, () -> logger.trace((Supplier<String>) null));
+    assertThrows(
+        NullPointerException.class,
+        () -> logger.trace((Supplier<String>) null, new Exception("trace-lazy-exception")));
+  }
+
   private void sendTestMessages(Logger logger) {
     logger.trace("trace-message");
     logger.trace("trace-message", new Exception("trace-exception"));
