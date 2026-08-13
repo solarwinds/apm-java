@@ -151,14 +151,16 @@ public class TransactionNameManager {
     }
 
     if (!transactionName.equalsIgnoreCase(inputTransactionName)) {
+      String truncatedName = transactionName;
       logger.debug(
-          "Transaction name ["
-              + inputTransactionName
-              + "] was truncated to ["
-              + transactionName
-              + "] because it exceeds "
-              + MAX_TRANSACTION_NAME_LENGTH
-              + " characters.");
+          () ->
+              "Transaction name ["
+                  + inputTransactionName
+                  + "] was truncated to ["
+                  + truncatedName
+                  + "] because it exceeds "
+                  + MAX_TRANSACTION_NAME_LENGTH
+                  + " characters.");
     }
 
     return transactionName;
@@ -168,19 +170,21 @@ public class TransactionNameManager {
     Attributes spanAttributes = spanData.getAttributes();
     String transactionName = spanAttributes.get(TRANSACTION_NAME_KEY);
     if (transactionName != null && !transactionName.isEmpty()) {
-      logger.trace(String.format("Using pre-computed transaction name -> %s", transactionName));
+      String preComputedName = transactionName;
+      logger.trace(
+          () -> String.format("Using pre-computed transaction name -> %s", preComputedName));
       return transactionName;
     }
 
     String custName = CustomTransactionNameDict.get(spanData.getTraceId());
     if (custName != null) {
-      logger.trace(String.format("Using custom transaction name -> %s", custName));
+      logger.trace(() -> String.format("Using custom transaction name -> %s", custName));
       return custName;
     }
 
     String name = namingScheme.createName(spanAttributes);
     if (name != null && !name.isEmpty()) {
-      logger.trace(String.format("Using scheme derived transaction name -> %s", name));
+      logger.trace(() -> String.format("Using scheme derived transaction name -> %s", name));
       return name;
     }
 
@@ -188,14 +192,15 @@ public class TransactionNameManager {
     // MVC)
     String handlerName = spanAttributes.get(handlerNameKey);
     if (handlerName != null) {
-      logger.trace(String.format("Using HandlerName(%s) as the transaction name", handlerName));
+      logger.trace(
+          () -> String.format("Using HandlerName(%s) as the transaction name", handlerName));
       return handlerName;
     }
 
     // use "http.route"
     String httpRoute = spanAttributes.get(HttpAttributes.HTTP_ROUTE);
     if (httpRoute != null) {
-      logger.trace(String.format("Using http.route (%s) as the transaction name", httpRoute));
+      logger.trace(() -> String.format("Using http.route (%s) as the transaction name", httpRoute));
       return httpRoute;
     }
 
@@ -213,10 +218,12 @@ public class TransactionNameManager {
               path, customTransactionNamePattern, false, CUSTOM_TRANSACTION_NAME_PATTERN_SEPARATOR);
 
       if (transactionName != null) {
+        String customPatternName = transactionName;
         logger.trace(
-            String.format(
-                "Using custom configure pattern to extract transaction name: (%s)",
-                transactionName));
+            () ->
+                String.format(
+                    "Using custom configure pattern to extract transaction name: (%s)",
+                    customPatternName));
         return transactionName;
       }
     }
@@ -230,13 +237,15 @@ public class TransactionNameManager {
             DEFAULT_TRANSACTION_NAME_PATTERN_SEPARATOR);
     if (transactionNameByUrl != null) {
       logger.trace(
-          String.format(
-              "Using token name pattern to extract transaction name: (%s)", transactionNameByUrl));
+          () ->
+              String.format(
+                  "Using token name pattern to extract transaction name: (%s)",
+                  transactionNameByUrl));
       return transactionNameByUrl;
     }
 
     String spanName = spanData.getName();
-    logger.trace(String.format("Using span name as the transaction name: (%s)", spanName));
+    logger.trace(() -> String.format("Using span name as the transaction name: (%s)", spanName));
     return spanName;
   }
 
@@ -333,9 +342,10 @@ public class TransactionNameManager {
 
   public static void clearTransactionNames() {
     logger.trace(
-        String.format(
-            "Clearing transaction name buffer. Unique transaction count: %d. Note: This log line is used for validation",
-            EXISTING_TRANSACTION_NAMES.size()));
+        () ->
+            String.format(
+                "Clearing transaction name buffer. Unique transaction count: %d. Note: This log line is used for validation",
+                EXISTING_TRANSACTION_NAMES.size()));
     synchronized (EXISTING_TRANSACTION_NAMES) {
       EXISTING_TRANSACTION_NAMES.clear();
 

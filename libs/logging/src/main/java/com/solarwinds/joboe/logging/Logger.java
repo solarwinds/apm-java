@@ -27,7 +27,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 import lombok.Getter;
 
 /**
@@ -136,12 +138,28 @@ public class Logger {
     this.log(Level.DEBUG, message, throwable);
   }
 
+  public void debug(Supplier<String> messageSupplier) {
+    this.log(Level.DEBUG, messageSupplier);
+  }
+
+  public void debug(Supplier<String> messageSupplier, Throwable throwable) {
+    this.log(Level.DEBUG, messageSupplier, throwable);
+  }
+
   public void trace(String message) {
     this.log(Level.TRACE, message);
   }
 
   public void trace(String message, Throwable throwable) {
     this.log(Level.TRACE, message, throwable);
+  }
+
+  public void trace(Supplier<String> messageSupplier) {
+    this.log(Level.TRACE, messageSupplier);
+  }
+
+  public void trace(Supplier<String> messageSupplier, Throwable throwable) {
+    this.log(Level.TRACE, messageSupplier, throwable);
   }
 
   public void log(Level level, String message) {
@@ -159,6 +177,32 @@ public class Logger {
       }
     } else if (shouldLog(level)) {
       print(level, message, t);
+    }
+  }
+
+  private void log(Level level, Supplier<String> messageSupplier) {
+    log(level, messageSupplier, null);
+  }
+
+  /**
+   * Logs a message produced by the given supplier. The supplier is only evaluated when the message
+   * would actually be logged for the given {@code level}, avoiding the cost of constructing the
+   * message (e.g. string concatenation) when it would be discarded.
+   */
+  public void log(Level level, Supplier<String> messageSupplier, Throwable t) {
+    Objects.requireNonNull(messageSupplier, "messageSupplier");
+    if (level == null) {
+      if (shouldLog(Level.ERROR)) { // missing level in the input has severity level of Level.ERROR
+        print(Level.ERROR, "Missing log Level for this log message!");
+      }
+
+      if (shouldLog(
+          DEFAULT_LOGGING)) { // the logging message itself takes the default logging level
+        print(DEFAULT_LOGGING, messageSupplier.get(), t);
+      }
+
+    } else if (shouldLog(level)) {
+      print(level, messageSupplier.get(), t);
     }
   }
 

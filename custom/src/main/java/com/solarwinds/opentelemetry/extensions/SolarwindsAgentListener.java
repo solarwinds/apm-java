@@ -84,10 +84,11 @@ public class SolarwindsAgentListener implements AgentListener {
                         : Collections.<String>emptyList();
 
                 logger.debug(
-                    "Detected host id: "
-                        + HostInfoUtils.getHostId()
-                        + " ip addresses: "
-                        + ipAddresses);
+                    () ->
+                        "Detected host id: "
+                            + HostInfoUtils.getHostId()
+                            + " ip addresses: "
+                            + ipAddresses);
 
                 CountDownLatch settingsLatch =
                     SettingsManager.initialize(
@@ -101,7 +102,7 @@ public class SolarwindsAgentListener implements AgentListener {
                 if (JavaRuntimeVersionChecker.isJdkVersionSupported()
                     && profilerSetting != null
                     && profilerSetting.isEnabled()) {
-                  logger.debug("Profiler is enabled, local settings : " + profilerSetting);
+                  logger.debug(() -> "Profiler is enabled, local settings : " + profilerSetting);
                   Profiler.initialize(
                       profilerSetting,
                       ReporterFactory.getInstance()

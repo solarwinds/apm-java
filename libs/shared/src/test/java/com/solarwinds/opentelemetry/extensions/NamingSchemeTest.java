@@ -19,7 +19,7 @@ package com.solarwinds.opentelemetry.extensions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
@@ -76,7 +76,7 @@ class NamingSchemeTest {
   void verifyThatNullSchemeIsIgnored() {
     try (MockedStatic<LoggerFactory> loggerFactoryMockedStatic = mockStatic(LoggerFactory.class)) {
       loggerFactoryMockedStatic.when(LoggerFactory::getLogger).thenReturn(loggerMock);
-      doNothing().when(loggerMock).debug(any());
+      doNothing().when(loggerMock).debug(anyString());
 
       NamingScheme.createDecisionChain(Collections.singletonList(null));
 

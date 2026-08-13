@@ -95,15 +95,17 @@ public class SolarwindsProfilingSpanProcessor implements ExtendedSpanProcessor {
           if (profile.isSampled()) {
             readWriteSpan.setAttribute(SW_KEY_PREFIX + "profile.spans", 1);
             logger.debug(
-                String.format(
-                    "Profiling stopped with sw.profile.spans=1, trace_id=%s span_id=%s",
-                    spanContext.getTraceId(), spanContext.getSpanId()));
+                () ->
+                    String.format(
+                        "Profiling stopped with sw.profile.spans=1, trace_id=%s span_id=%s",
+                        spanContext.getTraceId(), spanContext.getSpanId()));
           } else {
             readWriteSpan.setAttribute(SW_KEY_PREFIX + "profile.spans", 0);
             logger.debug(
-                String.format(
-                    "Profiling stopped with sw.profile.spans=0, trace_id=%s span_id=%s",
-                    spanContext.getTraceId(), spanContext.getSpanId()));
+                () ->
+                    String.format(
+                        "Profiling stopped with sw.profile.spans=0, trace_id=%s span_id=%s",
+                        spanContext.getTraceId(), spanContext.getSpanId()));
           }
         }
       }

@@ -263,8 +263,9 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
                   } catch (Exception e) {
                     if (RpcClient.this.isClosing) {
                       logger.debug(
-                          "Found exception during collector Client shutdown. This is probably not critical as the client is shutting down : "
-                              + e.getMessage(),
+                          () ->
+                              "Found exception during collector Client shutdown. This is probably not critical as the client is shutting down : "
+                                  + e.getMessage(),
                           e);
                       return null;
                     } else if (e instanceof ClientRecoverableException) {
@@ -392,10 +393,10 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
 
     boolean initClient = !RpcClient.this.isClosing;
     while (initClient) {
-      logger.debug("Creating collector client  : " + host + ":" + port);
+      logger.debug(() -> "Creating collector client  : " + host + ":" + port);
       try {
         protocolClient = protocolClientFactory.buildClient(host, port);
-        logger.debug("Created collector client  : " + host + ":" + port);
+        logger.debug(() -> "Created collector client  : " + host + ":" + port);
 
         connectionStatus = Status.OK;
         return;
@@ -851,14 +852,20 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
       shouldRetry = maxRetryCount == null || retryCount <= maxRetryCount;
       if (!shouldRetry) {
         logger.debug(
-            "Not going to retry message as max retry count ["
-                + maxRetryCount
-                + "] is exceeded, cause: "
-                + retryType);
+            () ->
+                "Not going to retry message as max retry count ["
+                    + maxRetryCount
+                    + "] is exceeded, cause: "
+                    + retryType);
         activeDelay = 0;
       } else {
+        int flaggedDelay = delay;
         logger.debug(
-            "Flagging to retry message with delay [" + delay + "] ms, cause: " + retryType);
+            () ->
+                "Flagging to retry message with delay ["
+                    + flaggedDelay
+                    + "] ms, cause: "
+                    + retryType);
         activeDelay = delay;
       }
 
@@ -894,11 +901,12 @@ public class RpcClient implements com.solarwinds.joboe.core.rpc.Client {
       if (shouldRetry) {
         try {
           if (activeDelay > 0) {
-            logger.debug("Collector client retry sleeping for " + activeDelay + " millisecs");
+            logger.debug(() -> "Collector client retry sleeping for " + activeDelay + " millisecs");
             TimeUnit.MILLISECONDS.sleep(activeDelay);
           }
         } catch (InterruptedException e) {
-          logger.debug("Collector client retry sleep is interrupted, message: " + e.getMessage());
+          logger.debug(
+              () -> "Collector client retry sleep is interrupted, message: " + e.getMessage());
           return false; // should not retry if sleep is interrupted
         } finally {
           activeDelay = 0;

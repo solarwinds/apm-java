@@ -130,8 +130,9 @@ public class XtraceOptions {
 
       if (optionKey.isEmpty()) { // skip empty key
         if (!optionEntry.isEmpty()) {
+          String emptyKeyEntry = optionEntry;
           logger.debug(
-              "Skipped entry [" + optionEntry + "] in X-Trace-Options as the key is empty");
+              () -> "Skipped entry [" + emptyKeyEntry + "] in X-Trace-Options as the key is empty");
         }
         continue;
       }
@@ -146,9 +147,10 @@ public class XtraceOptions {
               options.put(option, true);
             } else {
               logger.debug(
-                  "Duplicated option ["
-                      + option.getKey()
-                      + "] found in X-Trace-Options, ignoring...");
+                  () ->
+                      "Duplicated option ["
+                          + option.getKey()
+                          + "] found in X-Trace-Options, ignoring...");
             }
           }
         } else {
@@ -161,11 +163,12 @@ public class XtraceOptions {
               options.put(option, option.parseValueFromString(optionValueString));
             } else {
               logger.debug(
-                  "Duplicated option ["
-                      + option.getKey()
-                      + "] with value ["
-                      + optionValueString
-                      + "] found in X-Trace-Options, ignoring...");
+                  () ->
+                      "Duplicated option ["
+                          + option.getKey()
+                          + "] with value ["
+                          + optionValueString
+                          + "] found in X-Trace-Options, ignoring...");
             }
           } catch (InvalidValueXtraceOptionException e) {
             exceptions.add(e);

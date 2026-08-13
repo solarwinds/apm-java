@@ -122,7 +122,7 @@ public class PollingSettingsFetcher implements SettingsFetcher {
                 newSettings = reader.getSettings();
               } catch (OboeSettingsException e) {
                 logger.debug(
-                    "Failed to get settings : " + e.getMessage(),
+                    () -> "Failed to get settings : " + e.getMessage(),
                     e); // Should not be too noisy as this might happen for intermittent connection
                 // problem
               }
@@ -144,9 +144,10 @@ public class PollingSettingsFetcher implements SettingsFetcher {
                 TimeUnit.SECONDS.sleep(refreshInterval); // sleep for the defined interval
               } catch (InterruptedException e) {
                 logger.debug(
-                    PollingSettingsFetcher.class.getName()
-                        + " worker is interrupted : "
-                        + e.getMessage());
+                    () ->
+                        PollingSettingsFetcher.class.getName()
+                            + " worker is interrupted : "
+                            + e.getMessage());
                 running = false;
               }
             }

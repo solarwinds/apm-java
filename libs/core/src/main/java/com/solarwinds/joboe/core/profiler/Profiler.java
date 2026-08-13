@@ -139,10 +139,11 @@ public class Profiler {
       Profiler.reporter = reporter;
 
       if (interval != 0) {
-        logger.debug("Starting profiler worker, previous status: " + status);
+        logger.debug(() -> "Starting profiler worker, previous status: " + status);
         start();
       } else {
-        logger.debug("No profiling started. Profiler is on standby, previous status: " + status);
+        logger.debug(
+            () -> "No profiling started. Profiler is on standby, previous status: " + status);
       }
 
       addIntervalChangeListener(); // add listener here to avoid race condition on starting the
@@ -206,8 +207,9 @@ public class Profiler {
                   }
                 } catch (InterruptedException e) {
                   logger.debug(
-                      "Profiler interrupted: "
-                          + e.getMessage()); // hard to tell whether this is triggered by JVM
+                      () ->
+                          "Profiler interrupted: "
+                              + e.getMessage()); // hard to tell whether this is triggered by JVM
                   // shutdown
                   status = Status.STOPPING; // flag it to stop
                 } catch (Throwable e) {
@@ -289,7 +291,9 @@ public class Profiler {
 
     if (status != Status.RUNNING) {
       logger.debug(
-          "Add profile thread operation skipped as profiler is not running, status : " + status);
+          () ->
+              "Add profile thread operation skipped as profiler is not running, status : "
+                  + status);
       return false;
     }
 
@@ -302,12 +306,13 @@ public class Profiler {
 
     if (profile.startProfilingOnThread(thread, metadata)) {
       logger.debug(
-          "Started profiling on Thread id: "
-              + thread.getId()
-              + " name: "
-              + thread.getName()
-              + " for trace: "
-              + traceId);
+          () ->
+              "Started profiling on Thread id: "
+                  + thread.getId()
+                  + " name: "
+                  + thread.getName()
+                  + " for trace: "
+                  + traceId);
       return true;
     } else {
       return false;

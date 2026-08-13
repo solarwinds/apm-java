@@ -35,9 +35,10 @@ public class BackTraceUtil {
 
     if (startPosition >= stackTrace.length) {
       logger.debug(
-          "Attempt to skip ["
-              + skipElements
-              + "] elements in addBackTrace is invalid, no stack trace element is left!");
+          () ->
+              "Attempt to skip ["
+                  + skipElements
+                  + "] elements in addBackTrace is invalid, no stack trace element is left!");
       return new StackTraceElement[0];
     }
 

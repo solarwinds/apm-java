@@ -548,7 +548,7 @@ public class Metadata {
       new Metadata(traceIdHex);
       return true;
     } catch (SamplingException e) {
-      logger.debug("X-Trace ID [" + traceIdHex + "] not compatible : " + e.getMessage());
+      logger.debug(() -> "X-Trace ID [" + traceIdHex + "] not compatible : " + e.getMessage());
       return false;
     }
   }
@@ -620,7 +620,8 @@ public class Metadata {
         random = new XorShiftRng(new DevUrandomSeedGenerator());
       } catch (SeedException e) {
         logger.debug(
-            "Failed to use /dev/urandom as seed generator. Error message : " + e.getMessage());
+            () ->
+                "Failed to use /dev/urandom as seed generator. Error message : " + e.getMessage());
         // try using the SecureRandomSeedGenerator instead
         random = new XorShiftRng(new SecureRandomSeedGenerator());
       }

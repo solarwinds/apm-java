@@ -88,7 +88,7 @@ public class RpcSettings extends com.solarwinds.joboe.sampling.Settings {
     for (Entry<String, ByteBuffer> inputArg : inputArgs.entrySet()) {
       SettingsArg<?> arg = SettingsArg.fromKey(inputArg.getKey());
       if (arg == null) {
-        logger.debug("Cannot recognize argument [" + inputArg.getKey() + "], ignoring...");
+        logger.debug(() -> "Cannot recognize argument [" + inputArg.getKey() + "], ignoring...");
       } else {
         args.put(arg, arg.readFromByteBuffer(inputArg.getValue()));
       }
@@ -112,7 +112,7 @@ public class RpcSettings extends com.solarwinds.joboe.sampling.Settings {
       } else if ("PROFILING".equals(flagToken)) {
         flags |= OBOE_SETTINGS_FLAG_PROFILING;
       } else {
-        logger.debug("Unknown flag found from settings: " + flagToken);
+        logger.debug(() -> "Unknown flag found from settings: " + flagToken);
       }
     }
     return flags;

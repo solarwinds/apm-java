@@ -244,7 +244,7 @@ public class EventImpl extends Event {
     try {
       addEdge(new Metadata(hexstr));
     } catch (SamplingException ex) {
-      logger.debug("Invalid XTrace ID: " + hexstr, ex);
+      logger.debug(() -> "Invalid XTrace ID: " + hexstr, ex);
     }
   }
 
@@ -308,9 +308,10 @@ public class EventImpl extends Event {
       }
     } catch (EventReporterException e) {
       logger.trace(
-          "Failed to send out event, exception message ["
-              + e.getMessage()
-              + "]. Please take note that existing code flow should not be affected, this might only impact the instrumentation of current trace");
+          () ->
+              "Failed to send out event, exception message ["
+                  + e.getMessage()
+                  + "]. Please take note that existing code flow should not be affected, this might only impact the instrumentation of current trace");
     } catch (Throwable ex) {
       logger.error(
           "Failed to send out event, exception message ["
@@ -433,10 +434,11 @@ public class EventImpl extends Event {
     // will not fully utilize all the space available.
 
     logger.debug(
-        "Trimming KVs on other key count "
-            + otherKeyValues.size()
-            + " maxBytePerKeyValue "
-            + maxBytePerKeyValue);
+        () ->
+            "Trimming KVs on other key count "
+                + otherKeyValues.size()
+                + " maxBytePerKeyValue "
+                + maxBytePerKeyValue);
 
     // test buffer to check accumulative size of the bson document to be built
     ByteBuffer testBuffer =
@@ -506,13 +508,15 @@ public class EventImpl extends Event {
         }
       } else { // not string or object[], not going to trim
         try {
+          int bsonByteSize = getBsonByteSize(entry.getValue());
           logger.debug(
-              "Skip "
-                  + entry.getKey()
-                  + " for trimming as it is type "
-                  + (entry.getValue() != null ? entry.getValue().getClass().getName() : "null ")
-                  + ". Estimated size is "
-                  + getBsonByteSize(entry.getValue()));
+              () ->
+                  "Skip "
+                      + entry.getKey()
+                      + " for trimming as it is type "
+                      + (entry.getValue() != null ? entry.getValue().getClass().getName() : "null ")
+                      + ". Estimated size is "
+                      + bsonByteSize);
         } catch (IllegalArgumentException e) {
           logger.warn(
               "Skip "

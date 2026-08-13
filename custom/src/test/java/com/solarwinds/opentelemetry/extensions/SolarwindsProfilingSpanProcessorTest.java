@@ -259,7 +259,6 @@ class SolarwindsProfilingSpanProcessorTest {
     when(mockSpan.getSpanContext()).thenReturn(mockSpanContext);
     when(mockSpanContext.isSampled()).thenReturn(true);
     when(mockSpanContext.getTraceId()).thenReturn(traceId);
-    when(mockSpanContext.getSpanId()).thenReturn(spanId);
     profilerMock.when(Profiler::hasActiveProfiles).thenReturn(true);
 
     when(mockSpan.toSpanData()).thenReturn(mockSpanData);
@@ -283,7 +282,6 @@ class SolarwindsProfilingSpanProcessorTest {
     profilerMock.when(Profiler::hasActiveProfiles).thenReturn(true);
 
     when(mockSpanContext.getTraceId()).thenReturn(traceId);
-    when(mockSpanContext.getSpanId()).thenReturn(spanId);
     when(mockSpan.toSpanData()).thenReturn(mockSpanData);
 
     when(mockSpanData.getParentSpanContext()).thenReturn(mockParentSpanContext);

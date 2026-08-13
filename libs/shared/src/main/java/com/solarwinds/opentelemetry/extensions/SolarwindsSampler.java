@@ -164,7 +164,7 @@ public class SolarwindsSampler implements Sampler {
         TraceStateSamplingResult.wrap(
             samplingResult, additionalAttributesBuilder.build(), xtraceOptionsResponseStr);
 
-    logger.trace(String.format("Sampling decision: %s", result.getDecision()));
+    logger.trace(() -> String.format("Sampling decision: %s", result.getDecision()));
     return result;
   }
 
@@ -191,7 +191,8 @@ public class SolarwindsSampler implements Sampler {
       url = builder.toString();
     }
 
-    logger.trace(String.format("Constructed url: %s", url));
+    String constructedUrl = url;
+    logger.trace(() -> String.format("Constructed url: %s", constructedUrl));
     return url;
   }
 

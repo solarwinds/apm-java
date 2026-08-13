@@ -51,14 +51,14 @@ public class FileSettingsReader {
       List<Settings> kvSetting =
           JsonSettingWrapper.fromJsonSettings(
               gson.fromJson(new String(bytes, StandardCharsets.UTF_8), type));
-      logger.debug(String.format("Got settings from file: %s", kvSetting));
+      logger.debug(() -> String.format("Got settings from file: %s", kvSetting));
 
       if (!kvSetting.isEmpty()) {
         settings = kvSetting.get(0);
       }
 
     } catch (IOException e) {
-      logger.debug(String.format("Failed to read settings from file, error: %s", e));
+      logger.debug(() -> String.format("Failed to read settings from file, error: %s", e));
       throw new SamplingException("Error reading settings from file");
     }
     return settings;
