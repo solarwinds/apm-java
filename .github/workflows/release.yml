@@ -86,7 +86,7 @@ jobs:
           VERSION=$(unzip -p agent/build/libs/solarwinds-apm-agent.jar META-INF/MANIFEST.MF | grep Implementation-Version | awk '{ print $2 }')
           VERSION=$(echo $VERSION | sed 's/[^a-z0-9.-]//g') # remove illegal characters
           echo "Current version is $VERSION"
-          
+
           echo "version: $VERSION" > /tmp/version.txt
           SHA256=$(sha256sum agent/build/libs/solarwinds-apm-agent.jar | awk '{print $1}')
           echo "sha256: $SHA256" > /tmp/checksum.txt
@@ -99,6 +99,54 @@ jobs:
             /tmp/checksum.txt \
             agent/build/libs/solarwinds-apm-agent.jar \
             libs/shared/src/main/resources/solarwinds-apm-config.json
+  release-notification:
+    needs:
+      - github_release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set agent version
+        id: set_version
+        run: |
+          TAG=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+          VERSION=${TAG#v}
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Save release url
+        id: release
+        run: |
+          RELEASE_URL=$(gh release view "v${VERSION}" --json url --jq '.url')
+          echo "release_url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
+        env:
+          VERSION: ${{ steps.set_version.outputs.version }}
+
+      - name: Create JIRA Ticket
+        id: jira
+        continue-on-error: true
+        run: |
+          RELEASE_DATE=$(date +"%B %-d, %Y")
+          DESCRIPTION="${RELEASE_DATE} - APM Java ${VERSION}"$'\n'"${RELEASE_URL}"
+          JIRA_URL=$(.github/scripts/create-jira-ticket.sh "$VERSION" "$DESCRIPTION")
+          echo "jira_url=$JIRA_URL" >> "$GITHUB_OUTPUT"
+        env:
+          JIRA_BASE_URL: ${{ vars.JIRA_BASE_URL }}
+          JIRA_PROJECT_KEY: ${{ vars.JIRA_PROJECT_KEY }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_ASSIGNEE_ID: ${{ secrets.JIRA_ASSIGNEE_ID }}
+          VERSION: ${{ steps.set_version.outputs.version }}
+          RELEASE_URL: ${{ steps.release.outputs.release_url }}
+
+      - name: Notify Slack
+        run: |
+          .github/scripts/notify-slack.sh "$VERSION" "$RELEASE_URL" "$JIRA_URL"
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL: ${{ vars.SLACK_CHANNEL }}
+          RELEASE_URL: ${{ steps.release.outputs.release_url }}
+          JIRA_URL: ${{ steps.jira.outputs.jira_url }}
+          VERSION: ${{ steps.set_version.outputs.version }}
 
   s3-prod-upload:  # this job uploads the jar and default config json to prod s3
     if: inputs.run_s3_upload
