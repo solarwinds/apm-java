@@ -44,7 +44,7 @@ get_commits_by_prefix() {
   local prefix="$1"
   local last_tag
   last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-  git log --reverse --perl-regexp --pretty=format:"%s" --author='^(?!dependabot\[bot\] )' "${last_tag}..HEAD" \
+  git log --reverse --pretty=format:"%s" "${last_tag}..HEAD" \
     | grep -E "^${prefix}" \
     | sed -E "s/^${prefix}[[:space:]]*//" \
     | sed -E "s/^NH-[0-9]+[[:space:]]*//" \
