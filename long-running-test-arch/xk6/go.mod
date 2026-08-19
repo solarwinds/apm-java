@@ -3,7 +3,7 @@ module xk6-otel-output
 go 1.25.0
 
 require (
-	go.k6.io/k6 v1.8.0
+	go.k6.io/k6 v1.8.1
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.45.0
 	go.opentelemetry.io/otel/sdk v1.45.0
 	go.opentelemetry.io/otel/sdk/metric v1.45.0
