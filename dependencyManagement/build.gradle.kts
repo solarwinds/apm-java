@@ -59,7 +59,7 @@ dependencies {
     api("net.bytebuddy:byte-buddy:${byteBuddyVersion}")
     api("com.google.auto.service:auto-service:$autoservice")
 
-    api("org.json:json:20260719")
+    api("org.json:json:20260814")
     api("com.google.code.gson:gson:2.14.0")
     api("com.github.ben-manes.caffeine:caffeine:2.9.3")
 
