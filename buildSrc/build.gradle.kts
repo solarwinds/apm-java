@@ -42,7 +42,7 @@ dependencies {
   implementation("com.diffplug.spotless:spotless-plugin-gradle:8.9.0")
   implementation("io.freefair.gradle:lombok-plugin:9.5.0")
 
-  implementation("io.opentelemetry.instrumentation:gradle-plugins:2.27.0-alpha")
+  implementation("io.opentelemetry.instrumentation:gradle-plugins:2.30.0-alpha")
   implementation("com.gradleup.shadow:shadow-gradle-plugin:9.6.1")
   implementation("com.github.gmazzo.buildconfig:com.github.gmazzo.buildconfig.gradle.plugin:6.0.10")
   implementation("com.github.spotbugs:com.github.spotbugs.gradle.plugin:6.4.8")
