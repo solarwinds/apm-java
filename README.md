@@ -1,20 +1,20 @@
 [![Status](https://img.shields.io/badge/status-stable-informational?style=for-the-badge)](https://github.com/solarwinds/apm-java)
-[![OTEL](https://img.shields.io/badge/otel-2.25.0-blueviolet?style=for-the-badge)](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.25.0)
+[![Build](https://img.shields.io/github/actions/workflow/status/solarwinds/apm-java/push.yml?branch=main&style=for-the-badge&label=build)](https://github.com/solarwinds/apm-java/actions/workflows/push.yml)
+[![OTEL](https://img.shields.io/github/v/release/open-telemetry/opentelemetry-java-instrumentation?label=otel&color=blueviolet&style=for-the-badge)](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases)
 [![SWO](https://img.shields.io/github/v/release/solarwinds/apm-java?include_prereleases&style=for-the-badge)](https://github.com/solarwinds/apm-java/releases)
-[![SWO SDK](https://img.shields.io/maven-central/v/io.github.appoptics/solarwinds-otel-sdk?style=for-the-badge)](https://maven-badges.herokuapp.com/maven-central/io.github.appoptics/solarwinds-otel-sdk)
+[![SWO SDK](https://img.shields.io/maven-central/v/com.solarwinds/solarwinds-otel-sdk?style=for-the-badge)](https://maven-badges.herokuapp.com/maven-central/com.solarwinds/solarwinds-otel-sdk)
 [![License](https://img.shields.io/badge/License-Apache_2.0-red.svg?style=for-the-badge)](https://github.com/solarwinds/apm-java/blob/main/LICENSE)
-<!-- [![CircleCI](https://circleci.com/gh/solarwinds/apm-java.svg?style=svg)](https://circleci.com/gh/solarwinds/apm-java)
--->
 
 
 
 # Solarwinds Distribution of OpenTelemetry Java
 
+
 The Solarwinds Distribution of [OpenTelemetry Instrumentation for
 Java](https://github.com/open-telemetry/opentelemetry-java-instrumentation)
 provides a Java agent that automatically instruments your Java application to capture and report
 distributed traces and other telemetries to [Solarwinds Observability APM](https://documentation.solarwinds.com/en/success_center/observability/content/intro/services.htm).
----
+
 
 ## Requirements
 
