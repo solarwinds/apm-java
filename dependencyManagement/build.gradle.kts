@@ -26,6 +26,7 @@ javaPlatform {
 
 dependencies {
   api(platform("io.netty:netty-bom:4.2.17.Final"))
+  api(platform("com.google.protobuf:protobuf-bom:4.36.0"))
 
   constraints {
     api("org.mockito:mockito-core:$mockitoVersion")
@@ -72,7 +73,6 @@ dependencies {
     api("io.opentelemetry:opentelemetry-sdk-extension-declarative-config:$opentelemetryAlpha")
 
     api("org.junit.jupiter:junit-jupiter-params:$junit5")
-    api("dev.cel:cel:0.13.1")
-
+    api("dev.cel:cel:0.14.0")
   }
 }
