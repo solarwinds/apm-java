@@ -57,7 +57,15 @@ tracer_provider:
             timeout: 10000
             # Configure headers. Entries have higher priority than entries from .headers_list.
             headers_list: ${OTEL_EXPORTER_OTLP_HEADERS}
-
+  sampler:
+    parent_based:
+      root:
+        cel_based:
+          fallback_sampler:
+            swo/sampler:
+          expressions:
+            - action: DROP
+              expression: spanKind == 'SERVER' && attribute['http.request.method'] == 'HEAD'
 # Configure meter provider.
 meter_provider:
   # Configure metric readers.
