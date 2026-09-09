@@ -13,7 +13,7 @@ dependencies {
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")
 
   testImplementation("org.hibernate:hibernate-core:6.0.0.Final")
-  testImplementation("com.h2database:h2:2.4.240")
+  testImplementation("com.h2database:h2:2.5.250")
 }
 
 tasks.withType<JavaCompile>().configureEach {
