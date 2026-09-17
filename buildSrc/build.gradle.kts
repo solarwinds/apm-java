@@ -1,6 +1,6 @@
 plugins {
   `kotlin-dsl`
-  id("com.diffplug.spotless") version "8.10.1"
+  id("com.diffplug.spotless") version "8.10.2"
 }
 
 spotless {
@@ -39,7 +39,7 @@ repositories {
 
 dependencies {
   implementation(gradleApi())
-  implementation("com.diffplug.spotless:spotless-plugin-gradle:8.10.1")
+  implementation("com.diffplug.spotless:spotless-plugin-gradle:8.10.2")
   implementation("io.freefair.gradle:lombok-plugin:9.5.0")
 
   implementation("io.opentelemetry.instrumentation:gradle-plugins:2.31.0-alpha")
