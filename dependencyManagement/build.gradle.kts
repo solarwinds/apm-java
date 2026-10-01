@@ -25,7 +25,7 @@ javaPlatform {
 }
 
 dependencies {
-  api(platform("io.netty:netty-bom:4.2.17.Final"))
+  api(platform("io.netty:netty-bom:4.2.18.Final"))
   api(platform("com.google.protobuf:protobuf-bom:4.36.2"))
 
   constraints {
