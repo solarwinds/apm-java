@@ -37,7 +37,7 @@ public class HttpSettingsFetcher implements SettingsFetcher {
   private final CountDownLatch latch = new CountDownLatch(1);
 
   ScheduledExecutorService scheduledExecutorService =
-      Executors.newSingleThreadScheduledExecutor(DaemonThreadFactory.newInstance("poll-settings"));
+      Executors.newSingleThreadScheduledExecutor(DaemonThreadFactory.newInstance("http-settings"));
 
   public HttpSettingsFetcher(HttpSettingsReader httpSettingsReader, long interval) {
     this.interval = interval;
