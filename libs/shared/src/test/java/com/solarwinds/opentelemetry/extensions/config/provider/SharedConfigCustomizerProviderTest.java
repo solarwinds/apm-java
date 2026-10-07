@@ -30,9 +30,7 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.AttributeLimit
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.BatchLogRecordProcessorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.BatchSpanProcessorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LogRecordExporterModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LogRecordExporterPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LogRecordProcessorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LoggerProviderModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.MeterProviderModel;
@@ -44,14 +42,14 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SamplerModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SimpleLogRecordProcessorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SimpleSpanProcessorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanExporterModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanExporterPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.TracerProviderModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalInstrumentationModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalLanguageSpecificInstrumentationModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalLanguageSpecificInstrumentationPropertyModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.OpenTelemetryConfigurationModelAccessor;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -78,22 +76,23 @@ class SharedConfigCustomizerProviderTest {
   @Test
   void testCustomize() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withTracerProvider(new TracerProviderModel().withProcessors(Collections.emptyList()))
-            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "apm.collector.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setTracerProvider(new TracerProviderModel().setProcessors(Collections.emptyList()))
+                .setLoggerProvider(
+                    new LoggerProviderModel().setProcessors(Collections.emptyList())),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "apm.collector.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -103,13 +102,13 @@ class SharedConfigCustomizerProviderTest {
     functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
 
     AttributeLimitsModel attributeLimits = openTelemetryConfigurationModel.getAttributeLimits();
-    assertEquals(new AttributeLimitsModel().withAttributeCountLimit(128), attributeLimits);
+    assertEquals(new AttributeLimitsModel().setAttributeCountLimit(128), attributeLimits);
 
     TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
     assertNotNull(tracerProvider);
 
     SamplerModel sampler = tracerProvider.getSampler();
-    assertNotNull(sampler.getAdditionalProperties().get(SamplerComponentProvider.COMPONENT_NAME));
+    assertNotNull(sampler.getExtensionProperties().get(SamplerComponentProvider.COMPONENT_NAME));
     assertEquals(3, tracerProvider.getProcessors().size());
 
     assertTrue(
@@ -124,7 +123,7 @@ class SharedConfigCustomizerProviderTest {
     assertNotNull(
         periodic
             .getExporter()
-            .getAdditionalProperties()
+            .getExtensionProperties()
             .get(MetricExporterComponentProvider.COMPONENT_NAME));
 
     LoggerProviderModel loggerProvider = openTelemetryConfigurationModel.getLoggerProvider();
@@ -133,11 +132,11 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(batch);
     LogRecordExporterModel exporter = batch.getExporter();
-    LogRecordExporterPropertyModel logExporterProperty =
-        exporter.getAdditionalProperties().get(LogExporterComponentProvider.COMPONENT_NAME);
+    Map<String, Object> logExporterProperty =
+        asMap(exporter.getExtensionProperties().get(LogExporterComponentProvider.COMPONENT_NAME));
 
     assertNotNull(logExporterProperty);
-    Map<String, Object> logConfigs = logExporterProperty.getAdditionalProperties();
+    Map<String, Object> logConfigs = logExporterProperty;
     assertEquals("https://otel.collector.com/v1/logs", logConfigs.get("endpoint"));
     assertEquals("authorization=Bearer token", logConfigs.get("headers_list"));
     assertEquals("gzip", logConfigs.get("compression"));
@@ -146,21 +145,22 @@ class SharedConfigCustomizerProviderTest {
   @Test
   void testCustomize1() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withTracerProvider(new TracerProviderModel().withProcessors(Collections.emptyList()))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "apm.collector.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setTracerProvider(
+                    new TracerProviderModel().setProcessors(Collections.emptyList())),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "apm.collector.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -170,13 +170,13 @@ class SharedConfigCustomizerProviderTest {
     functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
 
     AttributeLimitsModel attributeLimits = openTelemetryConfigurationModel.getAttributeLimits();
-    assertEquals(new AttributeLimitsModel().withAttributeCountLimit(128), attributeLimits);
+    assertEquals(new AttributeLimitsModel().setAttributeCountLimit(128), attributeLimits);
 
     TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
     assertNotNull(tracerProvider);
 
     SamplerModel sampler = tracerProvider.getSampler();
-    assertNotNull(sampler.getAdditionalProperties().get(SamplerComponentProvider.COMPONENT_NAME));
+    assertNotNull(sampler.getExtensionProperties().get(SamplerComponentProvider.COMPONENT_NAME));
     assertEquals(3, tracerProvider.getProcessors().size());
 
     assertTrue(
@@ -188,11 +188,11 @@ class SharedConfigCustomizerProviderTest {
         openTelemetryConfigurationModel.getMeterProvider().getReaders().get(0).getPeriodic();
 
     Map<String, Object> configs =
-        periodic
-            .getExporter()
-            .getAdditionalProperties()
-            .get(MetricExporterComponentProvider.COMPONENT_NAME)
-            .getAdditionalProperties();
+        asMap(
+            periodic
+                .getExporter()
+                .getExtensionProperties()
+                .get(MetricExporterComponentProvider.COMPONENT_NAME));
 
     assertNotNull(configs);
     assertEquals(10000, configs.get("timeout"));
@@ -210,23 +210,23 @@ class SharedConfigCustomizerProviderTest {
   @Test
   void customizeShouldNotSetMetricReaderWhenOneIsSpecified() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withMeterProvider(
-                new MeterProviderModel()
-                    .withReaders(Collections.singletonList(new MetricReaderModel())))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "apm.collector.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setMeterProvider(
+                    new MeterProviderModel()
+                        .setReaders(Collections.singletonList(new MetricReaderModel()))),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "apm.collector.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -243,28 +243,28 @@ class SharedConfigCustomizerProviderTest {
   @Test
   void customizeShouldNotSetTraceExporterWhenBatchIsSpecified() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withTracerProvider(
-                new TracerProviderModel()
-                    .withProcessors(
-                        Collections.singletonList(
-                            new SpanProcessorModel()
-                                .withBatch(
-                                    new BatchSpanProcessorModel()
-                                        .withExporter(new SpanExporterModel())))))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "apm.collector.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setTracerProvider(
+                    new TracerProviderModel()
+                        .setProcessors(
+                            Collections.singletonList(
+                                new SpanProcessorModel()
+                                    .setBatch(
+                                        new BatchSpanProcessorModel()
+                                            .setExporter(new SpanExporterModel()))))),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "apm.collector.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -279,8 +279,8 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(batch);
     SpanExporterModel exporter = batch.getExporter();
-    SpanExporterPropertyModel spanExporterPropertyModel =
-        exporter.getAdditionalProperties().get(SpanExporterComponentProvider.COMPONENT_NAME);
+    Map<String, Object> spanExporterPropertyModel =
+        asMap(exporter.getExtensionProperties().get(SpanExporterComponentProvider.COMPONENT_NAME));
 
     assertNull(spanExporterPropertyModel);
   }
@@ -288,28 +288,28 @@ class SharedConfigCustomizerProviderTest {
   @Test
   void customizeShouldNotSetTraceExporterWhenSimpleIsSpecified() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withTracerProvider(
-                new TracerProviderModel()
-                    .withProcessors(
-                        Collections.singletonList(
-                            new SpanProcessorModel()
-                                .withSimple(
-                                    new SimpleSpanProcessorModel()
-                                        .withExporter(new SpanExporterModel())))))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "apm.collector.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setTracerProvider(
+                    new TracerProviderModel()
+                        .setProcessors(
+                            Collections.singletonList(
+                                new SpanProcessorModel()
+                                    .setSimple(
+                                        new SimpleSpanProcessorModel()
+                                            .setExporter(new SpanExporterModel()))))),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "apm.collector.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -324,8 +324,8 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(simple);
     SpanExporterModel exporter = simple.getExporter();
-    SpanExporterPropertyModel spanExporterPropertyModel =
-        exporter.getAdditionalProperties().get(SpanExporterComponentProvider.COMPONENT_NAME);
+    Map<String, Object> spanExporterPropertyModel =
+        asMap(exporter.getExtensionProperties().get(SpanExporterComponentProvider.COMPONENT_NAME));
 
     assertNull(spanExporterPropertyModel);
   }
@@ -333,15 +333,16 @@ class SharedConfigCustomizerProviderTest {
   @Test
   void testCustomizeSetsExperimentalStacktraceWhenNotSet() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withTracerProvider(new TracerProviderModel().withProcessors(Collections.emptyList()))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel())));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setTracerProvider(
+                    new TracerProviderModel().setProcessors(Collections.emptyList())),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel())));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -356,30 +357,28 @@ class SharedConfigCustomizerProviderTest {
         tracerProvider.getProcessors().stream()
             .anyMatch(
                 processorModel ->
-                    processorModel
-                        .getAdditionalProperties()
-                        .containsKey("stacktrace/development")));
+                    processorModel.getExtensionProperties().containsKey("stacktrace/development")));
   }
 
   @Test
   @SuppressWarnings("unchecked")
   void testCustomizeSetExperimentalStacktraceFilterWhenNotSet() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withTracerProvider(
-                new TracerProviderModel()
-                    .withProcessors(
-                        Collections.singletonList(
-                            new SpanProcessorModel()
-                                .withAdditionalProperty(
-                                    "stacktrace/development", new SpanProcessorPropertyModel()))))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel())));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setTracerProvider(
+                    new TracerProviderModel()
+                        .setProcessors(
+                            Collections.singletonList(
+                                new SpanProcessorModel()
+                                    .setExtensionProperty(
+                                        "stacktrace/development", new HashMap<String, Object>())))),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel())));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -394,13 +393,10 @@ class SharedConfigCustomizerProviderTest {
         tracerProvider.getProcessors().stream()
             .filter(
                 processorModel ->
-                    processorModel.getAdditionalProperties().containsKey("stacktrace/development"))
+                    processorModel.getExtensionProperties().containsKey("stacktrace/development"))
             .map(
                 processorModel ->
-                    processorModel
-                        .getAdditionalProperties()
-                        .get("stacktrace/development")
-                        .getAdditionalProperties())
+                    asMap(processorModel.getExtensionProperties().get("stacktrace/development")))
             .findFirst();
 
     assertTrue(map.isPresent());
@@ -408,23 +404,86 @@ class SharedConfigCustomizerProviderTest {
   }
 
   @Test
+  void testCustomizeSetsStacktraceFilterWhenStacktraceValueIsNotAMap() {
+    Map<String, Object> stacktrace = customizeWithStacktrace(null);
+
+    assertNotNull(stacktrace.get("filter"));
+  }
+
+  @Test
+  void testCustomizeKeepsUserStacktraceFilterAndOtherProperties() {
+    Map<String, Object> userProperties = new HashMap<>();
+    userProperties.put("filter", "com.example.UserFilter");
+    userProperties.put("min_duration", 5);
+
+    Map<String, Object> stacktrace = customizeWithStacktrace(userProperties);
+
+    assertEquals("com.example.UserFilter", stacktrace.get("filter"));
+    assertEquals(5, stacktrace.get("min_duration"));
+  }
+
+  @Test
+  void testCustomizeAddsStacktraceFilterAndKeepsOtherProperties() {
+    Map<String, Object> userProperties = new HashMap<>();
+    userProperties.put("min_duration", 5);
+
+    Map<String, Object> stacktrace = customizeWithStacktrace(userProperties);
+
+    assertNotNull(stacktrace.get("filter"));
+    assertEquals(5, stacktrace.get("min_duration"));
+  }
+
+  private Map<String, Object> customizeWithStacktrace(Object stacktraceValue) {
+    OpenTelemetryConfigurationModel model =
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setTracerProvider(
+                    new TracerProviderModel()
+                        .setProcessors(
+                            Collections.singletonList(
+                                new SpanProcessorModel()
+                                    .setExtensionProperty(
+                                        "stacktrace/development", stacktraceValue)))),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel())));
+
+    doNothing()
+        .when(declarativeConfigurationCustomizerMock)
+        .addModelCustomizer(functionArgumentCaptor.capture());
+
+    tested.customize(declarativeConfigurationCustomizerMock);
+    functionArgumentCaptor.getValue().apply(model);
+
+    return model.getTracerProvider().getProcessors().stream()
+        .filter(p -> p.getExtensionProperties().containsKey("stacktrace/development"))
+        .map(p -> asMap(p.getExtensionProperties().get("stacktrace/development")))
+        .findFirst()
+        .orElseThrow(AssertionError::new);
+  }
+
+  @Test
   void testCustomize2() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "http://apm.collector.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setLoggerProvider(
+                    new LoggerProviderModel().setProcessors(Collections.emptyList())),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "http://apm.collector.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -439,11 +498,11 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(batch);
     LogRecordExporterModel exporter = batch.getExporter();
-    LogRecordExporterPropertyModel logExporterProperty =
-        exporter.getAdditionalProperties().get(LogExporterComponentProvider.COMPONENT_NAME);
+    Map<String, Object> logExporterProperty =
+        asMap(exporter.getExtensionProperties().get(LogExporterComponentProvider.COMPONENT_NAME));
 
     assertNotNull(logExporterProperty);
-    Map<String, Object> logConfigs = logExporterProperty.getAdditionalProperties();
+    Map<String, Object> logConfigs = logExporterProperty;
     assertEquals("https://otel.collector.com/v1/logs", logConfigs.get("endpoint"));
     assertEquals("authorization=Bearer token", logConfigs.get("headers_list"));
   }
@@ -451,28 +510,28 @@ class SharedConfigCustomizerProviderTest {
   @Test
   void customizeShouldNotSetLogExporterWhenBatchIsSpecified() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withLoggerProvider(
-                new LoggerProviderModel()
-                    .withProcessors(
-                        Collections.singletonList(
-                            new LogRecordProcessorModel()
-                                .withBatch(
-                                    new BatchLogRecordProcessorModel()
-                                        .withExporter(new LogRecordExporterModel())))))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "http://apm.collector.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setLoggerProvider(
+                    new LoggerProviderModel()
+                        .setProcessors(
+                            Collections.singletonList(
+                                new LogRecordProcessorModel()
+                                    .setBatch(
+                                        new BatchLogRecordProcessorModel()
+                                            .setExporter(new LogRecordExporterModel()))))),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "http://apm.collector.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -487,8 +546,8 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(batch);
     LogRecordExporterModel exporter = batch.getExporter();
-    LogRecordExporterPropertyModel logExporterProperty =
-        exporter.getAdditionalProperties().get(LogExporterComponentProvider.COMPONENT_NAME);
+    Map<String, Object> logExporterProperty =
+        asMap(exporter.getExtensionProperties().get(LogExporterComponentProvider.COMPONENT_NAME));
 
     assertNull(logExporterProperty);
   }
@@ -496,28 +555,28 @@ class SharedConfigCustomizerProviderTest {
   @Test
   void customizeShouldNotSetLogExporterWhenSimpleIsSpecified() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withLoggerProvider(
-                new LoggerProviderModel()
-                    .withProcessors(
-                        Collections.singletonList(
-                            new LogRecordProcessorModel()
-                                .withSimple(
-                                    new SimpleLogRecordProcessorModel()
-                                        .withExporter(new LogRecordExporterModel())))))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "http://apm.collector.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setLoggerProvider(
+                    new LoggerProviderModel()
+                        .setProcessors(
+                            Collections.singletonList(
+                                new LogRecordProcessorModel()
+                                    .setSimple(
+                                        new SimpleLogRecordProcessorModel()
+                                            .setExporter(new LogRecordExporterModel()))))),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "http://apm.collector.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -532,8 +591,8 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(simple);
     LogRecordExporterModel exporter = simple.getExporter();
-    LogRecordExporterPropertyModel logExporterProperty =
-        exporter.getAdditionalProperties().get(LogExporterComponentProvider.COMPONENT_NAME);
+    Map<String, Object> logExporterProperty =
+        asMap(exporter.getExtensionProperties().get(LogExporterComponentProvider.COMPONENT_NAME));
 
     assertNull(logExporterProperty);
   }
@@ -541,21 +600,22 @@ class SharedConfigCustomizerProviderTest {
   @Test
   void UrlShouldNotChangeWhenNotApm() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "http://example.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setLoggerProvider(
+                    new LoggerProviderModel().setProcessors(Collections.emptyList())),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "http://example.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -570,11 +630,11 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(batch);
     LogRecordExporterModel exporter = batch.getExporter();
-    LogRecordExporterPropertyModel logExporterProperty =
-        exporter.getAdditionalProperties().get(LogExporterComponentProvider.COMPONENT_NAME);
+    Map<String, Object> logExporterProperty =
+        asMap(exporter.getExtensionProperties().get(LogExporterComponentProvider.COMPONENT_NAME));
 
     assertNotNull(logExporterProperty);
-    Map<String, Object> logConfigs = logExporterProperty.getAdditionalProperties();
+    Map<String, Object> logConfigs = logExporterProperty;
     assertEquals("http://example.com/v1/logs", logConfigs.get("endpoint"));
     assertEquals("authorization=Bearer token", logConfigs.get("headers_list"));
   }
@@ -582,21 +642,22 @@ class SharedConfigCustomizerProviderTest {
   @Test
   void UrlShouldNotChangeWhenNotApm2() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "http://localhost:4317"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setLoggerProvider(
+                    new LoggerProviderModel().setProcessors(Collections.emptyList())),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "http://localhost:4317"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -611,11 +672,11 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(batch);
     LogRecordExporterModel exporter = batch.getExporter();
-    LogRecordExporterPropertyModel logExporterProperty =
-        exporter.getAdditionalProperties().get(LogExporterComponentProvider.COMPONENT_NAME);
+    Map<String, Object> logExporterProperty =
+        asMap(exporter.getExtensionProperties().get(LogExporterComponentProvider.COMPONENT_NAME));
 
     assertNotNull(logExporterProperty);
-    Map<String, Object> logConfigs = logExporterProperty.getAdditionalProperties();
+    Map<String, Object> logConfigs = logExporterProperty;
     assertEquals("http://localhost:4317/v1/logs", logConfigs.get("endpoint"));
     assertEquals("authorization=Bearer token", logConfigs.get("headers_list"));
   }
@@ -623,21 +684,22 @@ class SharedConfigCustomizerProviderTest {
   @Test
   void tracesNotConfiguredWhenTracerProviderAbsent() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "apm.collector.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setLoggerProvider(
+                    new LoggerProviderModel().setProcessors(Collections.emptyList())),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "apm.collector.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -654,27 +716,27 @@ class SharedConfigCustomizerProviderTest {
 
   @Test
   void customizeShouldNotOverrideSamplerWhenOneIsAlreadyConfigured() {
-    SamplerModel userSampler = new SamplerModel().withAdditionalProperty("cel", null);
+    SamplerModel userSampler = new SamplerModel().setExtensionProperty("cel", null);
 
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withTracerProvider(
-                new TracerProviderModel()
-                    .withProcessors(Collections.emptyList())
-                    .withSampler(userSampler))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "apm.collector.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setTracerProvider(
+                    new TracerProviderModel()
+                        .setProcessors(Collections.emptyList())
+                        .setSampler(userSampler)),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "apm.collector.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -686,28 +748,29 @@ class SharedConfigCustomizerProviderTest {
     TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
     SamplerModel sampler = tracerProvider.getSampler();
 
-    assertNull(sampler.getAdditionalProperties().get(SamplerComponentProvider.COMPONENT_NAME));
-    assertTrue(sampler.getAdditionalProperties().containsKey("cel"));
+    assertNull(sampler.getExtensionProperties().get(SamplerComponentProvider.COMPONENT_NAME));
+    assertTrue(sampler.getExtensionProperties().containsKey("cel"));
   }
 
   @Test
   void logsNotConfiguredWhenLoggerProviderAbsent() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withTracerProvider(new TracerProviderModel().withProcessors(Collections.emptyList()))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "apm.collector.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setTracerProvider(
+                    new TracerProviderModel().setProcessors(Collections.emptyList())),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "apm.collector.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -725,21 +788,21 @@ class SharedConfigCustomizerProviderTest {
   @Test
   void propagatorsAppendedToExistingCompositeList() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withPropagator(new PropagatorModel().withCompositeList("tracecontext,baggage"))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "apm.collector.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setPropagator(new PropagatorModel().setCompositeList("tracecontext,baggage")),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "apm.collector.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -756,20 +819,20 @@ class SharedConfigCustomizerProviderTest {
   @Test
   void metricsExportDisabledWhenMeterProviderAbsent() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "apm.collector.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel(),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "apm.collector.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -786,16 +849,16 @@ class SharedConfigCustomizerProviderTest {
   void readsSolarwindsConfigFromDistributionNode() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
         new OpenTelemetryConfigurationModel()
-            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
-            .withDistribution(
+            .setLoggerProvider(new LoggerProviderModel().setProcessors(Collections.emptyList()))
+            .setDistribution(
                 new DistributionModel()
-                    .withAdditionalProperty(
+                    .setExtensionProperty(
                         "solarwinds",
-                        new DistributionPropertyModel()
-                            .withAdditionalProperty(
+                        new DistributionProperties()
+                            .setAdditionalProperty(
                                 ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
                                 "token:service")
-                            .withAdditionalProperty(
+                            .setAdditionalProperty(
                                 ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
                                 "apm.collector.com")));
 
@@ -814,32 +877,32 @@ class SharedConfigCustomizerProviderTest {
   @Test
   void distributionNodeTakesPrecedenceOverInstrumentationNode() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
-            .withDistribution(
-                new DistributionModel()
-                    .withAdditionalProperty(
-                        "solarwinds",
-                        new DistributionPropertyModel()
-                            .withAdditionalProperty(
-                                ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                "token:service")
-                            .withAdditionalProperty(
-                                ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                "apm.distribution.com")))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "apm.instrumentation.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setLoggerProvider(new LoggerProviderModel().setProcessors(Collections.emptyList()))
+                .setDistribution(
+                    new DistributionModel()
+                        .setExtensionProperty(
+                            "solarwinds",
+                            new DistributionProperties()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "apm.distribution.com"))),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "apm.instrumentation.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -855,24 +918,24 @@ class SharedConfigCustomizerProviderTest {
   @Test
   void emptyDistributionSolarwindsFallsBackToInstrumentationNode() {
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
-            .withDistribution(
-                new DistributionModel()
-                    .withAdditionalProperty("solarwinds", new DistributionPropertyModel()))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "apm.instrumentation.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setLoggerProvider(new LoggerProviderModel().setProcessors(Collections.emptyList()))
+                .setDistribution(
+                    new DistributionModel()
+                        .setExtensionProperty("solarwinds", new DistributionProperties())),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "apm.instrumentation.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -890,29 +953,29 @@ class SharedConfigCustomizerProviderTest {
     // distribution supplies only the collector; the service key must still be picked up from the
     // instrumentation node so the merged config is complete.
     OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        new OpenTelemetryConfigurationModel()
-            .withLoggerProvider(new LoggerProviderModel().withProcessors(Collections.emptyList()))
-            .withDistribution(
-                new DistributionModel()
-                    .withAdditionalProperty(
-                        "solarwinds",
-                        new DistributionPropertyModel()
-                            .withAdditionalProperty(
-                                ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                "apm.distribution.com")))
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "apm.instrumentation.com"))));
+        withInstrumentation(
+            new OpenTelemetryConfigurationModel()
+                .setLoggerProvider(new LoggerProviderModel().setProcessors(Collections.emptyList()))
+                .setDistribution(
+                    new DistributionModel()
+                        .setExtensionProperty(
+                            "solarwinds",
+                            new DistributionProperties()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "apm.distribution.com"))),
+            new ExperimentalInstrumentationModel()
+                .setJava(
+                    new ExperimentalLanguageSpecificInstrumentationModel()
+                        .setAdditionalProperty(
+                            "solarwinds",
+                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
+                                    "token:service")
+                                .setAdditionalProperty(
+                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
+                                    "apm.instrumentation.com"))));
 
     doNothing()
         .when(declarativeConfigurationCustomizerMock)
@@ -936,10 +999,28 @@ class SharedConfigCustomizerProviderTest {
 
     assertNotNull(batch);
     LogRecordExporterModel exporter = batch.getExporter();
-    LogRecordExporterPropertyModel logExporterProperty =
-        exporter.getAdditionalProperties().get(LogExporterComponentProvider.COMPONENT_NAME);
+    Map<String, Object> logExporterProperty =
+        asMap(exporter.getExtensionProperties().get(LogExporterComponentProvider.COMPONENT_NAME));
 
     assertNotNull(logExporterProperty);
-    return logExporterProperty.getAdditionalProperties();
+    return logExporterProperty;
+  }
+
+  private static OpenTelemetryConfigurationModel withInstrumentation(
+      OpenTelemetryConfigurationModel model, ExperimentalInstrumentationModel instrumentation) {
+    return OpenTelemetryConfigurationModelAccessor.setInstrumentation(model, instrumentation);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> asMap(Object value) {
+    return (Map<String, Object>) value;
+  }
+
+  @SuppressWarnings("serial")
+  private static class DistributionProperties extends HashMap<String, Object> {
+    DistributionProperties setAdditionalProperty(String key, Object value) {
+      put(key, value);
+      return this;
+    }
   }
 }

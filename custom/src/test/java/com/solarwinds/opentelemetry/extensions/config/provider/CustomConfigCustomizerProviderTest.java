@@ -16,6 +16,7 @@
 
 package com.solarwinds.opentelemetry.extensions.config.provider;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -26,8 +27,13 @@ import static org.mockito.Mockito.mockStatic;
 import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.ResourceModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.TracerProviderModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalResourceDetectionModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalResourceDetectorModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalResourceDetectorPropertyModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ResourceModelAccessor;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -61,8 +67,7 @@ class CustomConfigCustomizerProviderTest {
 
       OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
           new OpenTelemetryConfigurationModel()
-              .withTracerProvider(
-                  new TracerProviderModel().withProcessors(Collections.emptyList()));
+              .setTracerProvider(new TracerProviderModel().setProcessors(Collections.emptyList()));
 
       doNothing()
           .when(declarativeConfigurationCustomizerMock)
@@ -78,7 +83,7 @@ class CustomConfigCustomizerProviderTest {
       assertNotNull(
           processors
               .get(0)
-              .getAdditionalProperties()
+              .getExtensionProperties()
               .get(ProfilingSpanProcessorComponentProvider.COMPONENT_NAME));
     }
   }
@@ -93,8 +98,7 @@ class CustomConfigCustomizerProviderTest {
 
       OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
           new OpenTelemetryConfigurationModel()
-              .withTracerProvider(
-                  new TracerProviderModel().withProcessors(Collections.emptyList()));
+              .setTracerProvider(new TracerProviderModel().setProcessors(Collections.emptyList()));
 
       doNothing()
           .when(declarativeConfigurationCustomizerMock)
@@ -130,13 +134,55 @@ class CustomConfigCustomizerProviderTest {
       functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
 
       assertNotNull(openTelemetryConfigurationModel.getResource());
-      assertNotNull(openTelemetryConfigurationModel.getResource().getDetectionDevelopment());
-      assertFalse(
-          openTelemetryConfigurationModel
-              .getResource()
-              .getDetectionDevelopment()
-              .getDetectors()
-              .isEmpty());
+      ExperimentalResourceDetectionModel detection =
+          ResourceModelAccessor.getDetection(openTelemetryConfigurationModel.getResource());
+      assertNotNull(detection);
+      assertFalse(detection.getDetectors().isEmpty());
+    }
+  }
+
+  @Test
+  void verifyThatExistingResourceDetectorsArePreservedAfterOurs() {
+    try (MockedStatic<JavaRuntimeVersionChecker> javaRuntimeVersionCheckerMockedStatic =
+        mockStatic(JavaRuntimeVersionChecker.class)) {
+      javaRuntimeVersionCheckerMockedStatic
+          .when(JavaRuntimeVersionChecker::isJdkVersionSupported)
+          .thenReturn(false);
+
+      ResourceModel resourceModel = new ResourceModel();
+      ResourceModelAccessor.setDetection(
+          resourceModel,
+          new ExperimentalResourceDetectionModel()
+              .setDetectors(
+                  Collections.singletonList(
+                      new ExperimentalResourceDetectorModel()
+                          .setAdditionalProperty(
+                              "upstream", new ExperimentalResourceDetectorPropertyModel()))));
+      OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
+          new OpenTelemetryConfigurationModel().setResource(resourceModel);
+
+      doNothing()
+          .when(declarativeConfigurationCustomizerMock)
+          .addModelCustomizer(functionArgumentCaptor.capture());
+
+      tested.customize(declarativeConfigurationCustomizerMock);
+      functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
+
+      List<ExperimentalResourceDetectorModel> detectors =
+          ResourceModelAccessor.getDetection(openTelemetryConfigurationModel.getResource())
+              .getDetectors();
+      assertEquals(3, detectors.size());
+      assertTrue(
+          detectors
+              .get(0)
+              .getAdditionalProperties()
+              .containsKey(ResourceComponentProvider.COMPONENT_NAME));
+      assertTrue(
+          detectors
+              .get(1)
+              .getAdditionalProperties()
+              .containsKey(HostIdResourceComponentProvider.COMPONENT_NAME));
+      assertTrue(detectors.get(2).getAdditionalProperties().containsKey("upstream"));
     }
   }
 
