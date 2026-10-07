@@ -28,8 +28,6 @@ import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.ResourceModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.TracerProviderModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalResourceDetectionModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalResourceDetectorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalResourceDetectorPropertyModel;
@@ -56,64 +54,6 @@ class CustomConfigCustomizerProviderTest {
   @Captor
   private ArgumentCaptor<Function<OpenTelemetryConfigurationModel, OpenTelemetryConfigurationModel>>
       functionArgumentCaptor;
-
-  @Test
-  void verifyThatProfilingProcessorIsAddedWhenJdkVersionIsSupported() {
-    try (MockedStatic<JavaRuntimeVersionChecker> javaRuntimeVersionCheckerMockedStatic =
-        mockStatic(JavaRuntimeVersionChecker.class)) {
-      javaRuntimeVersionCheckerMockedStatic
-          .when(JavaRuntimeVersionChecker::isJdkVersionSupported)
-          .thenReturn(true);
-
-      OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-          new OpenTelemetryConfigurationModel()
-              .setTracerProvider(new TracerProviderModel().setProcessors(Collections.emptyList()));
-
-      doNothing()
-          .when(declarativeConfigurationCustomizerMock)
-          .addModelCustomizer(functionArgumentCaptor.capture());
-
-      tested.customize(declarativeConfigurationCustomizerMock);
-      functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
-
-      TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
-      assertNotNull(tracerProvider);
-
-      List<SpanProcessorModel> processors = tracerProvider.getProcessors();
-      assertNotNull(
-          processors
-              .get(0)
-              .getExtensionProperties()
-              .get(ProfilingSpanProcessorComponentProvider.COMPONENT_NAME));
-    }
-  }
-
-  @Test
-  void verifyThatProfilingProcessorIsNotAddedWhenJdkVersionIsNotSupported() {
-    try (MockedStatic<JavaRuntimeVersionChecker> javaRuntimeVersionCheckerMockedStatic =
-        mockStatic(JavaRuntimeVersionChecker.class)) {
-      javaRuntimeVersionCheckerMockedStatic
-          .when(JavaRuntimeVersionChecker::isJdkVersionSupported)
-          .thenReturn(false);
-
-      OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-          new OpenTelemetryConfigurationModel()
-              .setTracerProvider(new TracerProviderModel().setProcessors(Collections.emptyList()));
-
-      doNothing()
-          .when(declarativeConfigurationCustomizerMock)
-          .addModelCustomizer(functionArgumentCaptor.capture());
-
-      tested.customize(declarativeConfigurationCustomizerMock);
-      functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
-
-      TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
-      assertNotNull(tracerProvider);
-
-      List<SpanProcessorModel> processors = tracerProvider.getProcessors();
-      assertTrue(processors.isEmpty());
-    }
-  }
 
   @Test
   void verifyThatResourceDetectorIsAlwaysAdded() {

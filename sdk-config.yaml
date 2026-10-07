@@ -33,6 +33,15 @@ attribute_limits:
 # Configure tracer provider.
 tracer_provider:
   processors:
+    - swo_profiler:
+        enabled: false
+        interval: 20
+        exclude_packages:
+          - java
+          - javax
+          - com.sun
+          - sun
+          - sunw
 
 # Configure meter provider.
 meter_provider:
@@ -48,13 +57,3 @@ instrumentation/development:
       emit_experimental_jfr_metrics/development: true
     common:
       default-enabled: true
-    solarwinds:
-      profiler:
-        enabled: false
-        interval: 20
-        excludePackages:
-          - java
-          - javax
-          - com.sun
-          - sun
-          - sunw
