@@ -34,7 +34,6 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.AttributeLimit
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.BatchLogRecordProcessorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.BatchSpanProcessorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LogRecordExporterModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LogRecordExporterPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LogRecordProcessorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LoggerProviderModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.MeterProviderModel;
@@ -43,16 +42,14 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryC
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PeriodicMetricReaderModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PropagatorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PushMetricExporterModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PushMetricExporterPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SamplerModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SamplerPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanExporterModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanExporterPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.TracerProviderModel;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -72,23 +69,24 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
           setServiceKeyAndEndpoint(configurationModel);
           parseProxyConfig(configurationModel);
 
-          configurationModel.withAttributeLimits(
-              new AttributeLimitsModel().withAttributeCountLimit(128));
+          configurationModel.setAttributeLimits(
+              new AttributeLimitsModel().setAttributeCountLimit(128));
 
           MeterProviderModel meterProvider = configurationModel.getMeterProvider();
           TracerProviderModel tracerProvider = configurationModel.getTracerProvider();
           LoggerProviderModel loggerProvider = configurationModel.getLoggerProvider();
 
           if (meterProvider == null) {
-            meterProvider = new MeterProviderModel().withReaders(Collections.emptyList());
-            configurationModel.withMeterProvider(meterProvider);
+            meterProvider = new MeterProviderModel().setReaders(Collections.emptyList());
+            configurationModel.setMeterProvider(meterProvider);
+
             try {
               ConfigManager.setConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, false);
             } catch (InvalidConfigException ignored) {
             }
           }
-          addMetricExporter(configurationModel);
 
+          addMetricExporter(configurationModel);
           if (tracerProvider != null) {
             addSampler(tracerProvider);
             addProcessors(tracerProvider);
@@ -103,7 +101,7 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
           PropagatorModel propagatorModel = configurationModel.getPropagator();
           if (propagatorModel == null) {
             propagatorModel = new PropagatorModel();
-            configurationModel.withPropagator(propagatorModel);
+            configurationModel.setPropagator(propagatorModel);
           }
 
           addContextPropagators(propagatorModel);
@@ -111,64 +109,76 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
         });
   }
 
+  private static Map<String, Object> properties(Object... keyValues) {
+    Map<String, Object> properties = new LinkedHashMap<>();
+    for (int i = 0; i < keyValues.length; i += 2) {
+      properties.put((String) keyValues[i], keyValues[i + 1]);
+    }
+
+    return properties;
+  }
+
   private void addProcessors(TracerProviderModel model) {
-    ArrayList<SpanProcessorModel> allProcessors = new ArrayList<>(model.getProcessors());
+    List<SpanProcessorModel> spanProcessorModels = model.getProcessors();
+    if (spanProcessorModels == null) {
+      spanProcessorModels = new ArrayList<>();
+    }
+
+    ArrayList<SpanProcessorModel> allProcessors = new ArrayList<>(spanProcessorModels);
     allProcessors.add(
         new SpanProcessorModel()
-            .withAdditionalProperty(
+            .setExtensionProperty(
                 InboundMeasurementMetricsComponentProvider.COMPONENT_NAME,
-                new SpanProcessorPropertyModel()));
+                new HashMap<String, Object>()));
 
     String experimentalStacktrace = "stacktrace/development";
     Optional<SpanProcessorModel> modelOptional =
-        model.getProcessors().stream()
+        spanProcessorModels.stream()
             .filter(
                 processorModel ->
-                    processorModel.getAdditionalProperties().containsKey(experimentalStacktrace))
+                    processorModel.getExtensionProperties().containsKey(experimentalStacktrace))
             .findFirst();
 
     if (!modelOptional.isPresent()) {
       allProcessors.add(
           new SpanProcessorModel()
-              .withAdditionalProperty(
-                  experimentalStacktrace,
-                  new SpanProcessorPropertyModel()
-                      .withAdditionalProperty("filter", SPAN_STACKTRACE_FILTER_CLASS)));
+              .setExtensionProperty(
+                  experimentalStacktrace, properties("filter", SPAN_STACKTRACE_FILTER_CLASS)));
     } else {
       SpanProcessorModel spanProcessorModel = modelOptional.get();
-      SpanProcessorPropertyModel spanProcessorPropertyModel =
-          spanProcessorModel.getAdditionalProperties().get(experimentalStacktrace);
+      Object existing = spanProcessorModel.getExtensionProperties().get(experimentalStacktrace);
+      Map<String, Object> stacktraceProperties = new LinkedHashMap<>();
 
-      Map<String, Object> additionalProperties =
-          spanProcessorPropertyModel.getAdditionalProperties();
-      if (!additionalProperties.containsKey("filter")) {
-        spanProcessorModel.withAdditionalProperty(
-            experimentalStacktrace,
-            spanProcessorPropertyModel.withAdditionalProperty(
-                "filter", SPAN_STACKTRACE_FILTER_CLASS));
+      if (existing instanceof Map) {
+        ((Map<?, ?>) existing).forEach((k, v) -> stacktraceProperties.put(String.valueOf(k), v));
+      }
+
+      if (!stacktraceProperties.containsKey("filter")) {
+        stacktraceProperties.put("filter", SPAN_STACKTRACE_FILTER_CLASS);
+        spanProcessorModel.setExtensionProperty(experimentalStacktrace, stacktraceProperties);
       }
     }
 
-    model.withProcessors(allProcessors);
+    model.setProcessors(allProcessors);
   }
 
   private void addSampler(TracerProviderModel model) {
     SamplerModel sampler = model.getSampler();
     if (sampler == null) {
-      model.withSampler(
+      model.setSampler(
           new SamplerModel()
-              .withAdditionalProperty(
-                  SamplerComponentProvider.COMPONENT_NAME, new SamplerPropertyModel()));
+              .setExtensionProperty(
+                  SamplerComponentProvider.COMPONENT_NAME, new HashMap<String, Object>()));
     }
   }
 
   private void addContextPropagators(PropagatorModel model) {
     String compositeList = model.getCompositeList();
     if (compositeList != null) {
-      model.withCompositeList(
+      model.setCompositeList(
           String.format("%s,%s", compositeList, ContextPropagatorComponentProvider.COMPONENT_NAME));
     } else {
-      model.withCompositeList(
+      model.setCompositeList(
           String.format(
               "tracecontext,baggage,%s", ContextPropagatorComponentProvider.COMPONENT_NAME));
     }
@@ -177,6 +187,11 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
   private void addSpanExporter(OpenTelemetryConfigurationModel model) {
     TracerProviderModel tracerProvider = Objects.requireNonNull(model.getTracerProvider());
     List<SpanProcessorModel> processors = tracerProvider.getProcessors();
+
+    if (processors == null) {
+      processors = new ArrayList<>();
+    }
+
     boolean hasExporter =
         processors.stream()
             .anyMatch(
@@ -187,76 +202,86 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
     if (hasExporter) {
       return;
     }
+
     SpanProcessorModel spanProcessorModel =
         new SpanProcessorModel()
-            .withBatch(
+            .setBatch(
                 new BatchSpanProcessorModel()
-                    .withExportTimeout(60000)
-                    .withMaxQueueSize(1024)
-                    .withMaxExportBatchSize(512)
-                    .withExporter(
+                    .setExportTimeout(60000)
+                    .setMaxQueueSize(1024)
+                    .setMaxExportBatchSize(512)
+                    .setExporter(
                         new SpanExporterModel()
-                            .withAdditionalProperty(
+                            .setExtensionProperty(
                                 SpanExporterComponentProvider.COMPONENT_NAME,
-                                new SpanExporterPropertyModel()
-                                    .withAdditionalProperty("timeout", 10000)
-                                    .withAdditionalProperty("protocol", "http/protobuf")
-                                    .withAdditionalProperty("compression", "gzip")
-                                    .withAdditionalProperty(
-                                        "endpoint", serviceKeyAndEndpoint[1] + "/v1/traces")
-                                    .withAdditionalProperty(
-                                        "headers_list",
-                                        String.format(
-                                            "authorization=Bearer %s",
-                                            serviceKeyAndEndpoint[0])))));
+                                properties(
+                                    "timeout",
+                                    10000,
+                                    "protocol",
+                                    "http/protobuf",
+                                    "compression",
+                                    "gzip",
+                                    "endpoint",
+                                    serviceKeyAndEndpoint[1] + "/v1/traces",
+                                    "headers_list",
+                                    String.format(
+                                        "authorization=Bearer %s", serviceKeyAndEndpoint[0])))));
 
     ArrayList<SpanProcessorModel> spanProcessorModels = new ArrayList<>(processors);
     spanProcessorModels.add(spanProcessorModel);
-    tracerProvider.withProcessors(spanProcessorModels);
+    tracerProvider.setProcessors(spanProcessorModels);
   }
 
   private void addMetricExporter(OpenTelemetryConfigurationModel model) {
     MeterProviderModel meterProvider = model.getMeterProvider();
     List<MetricReaderModel> readers = Objects.requireNonNull(meterProvider).getReaders();
+
+    if (readers == null) {
+      readers = new ArrayList<>();
+    }
+
     if (!readers.isEmpty()) {
       return;
     }
 
-    model.withMeterProvider(
-        new MeterProviderModel()
-            .withReaders(
-                Collections.singletonList(
-                    new MetricReaderModel()
-                        .withPeriodic(
-                            new PeriodicMetricReaderModel()
-                                .withTimeout(30000)
-                                .withInterval(60000)
-                                .withExporter(
-                                    new PushMetricExporterModel()
-                                        .withAdditionalProperty(
-                                            MetricExporterComponentProvider.COMPONENT_NAME,
-                                            new PushMetricExporterPropertyModel()
-                                                .withAdditionalProperty("timeout", 10000)
-                                                .withAdditionalProperty("protocol", "http/protobuf")
-                                                .withAdditionalProperty("compression", "gzip")
-                                                .withAdditionalProperty(
-                                                    "endpoint",
-                                                    serviceKeyAndEndpoint[1] + "/v1/metrics")
-                                                .withAdditionalProperty(
-                                                    "temporality_preference", "delta")
-                                                .withAdditionalProperty(
-                                                    "default_histogram_aggregation",
-                                                    "base2_exponential_bucket_histogram")
-                                                .withAdditionalProperty(
-                                                    "headers_list",
-                                                    String.format(
-                                                        "authorization=Bearer %s",
-                                                        serviceKeyAndEndpoint[0]))))))));
+    model.setMeterProvider(
+        meterProvider.setReaders(
+            Collections.singletonList(
+                new MetricReaderModel()
+                    .setPeriodic(
+                        new PeriodicMetricReaderModel()
+                            .setTimeout(30000)
+                            .setInterval(60000)
+                            .setExporter(
+                                new PushMetricExporterModel()
+                                    .setExtensionProperty(
+                                        MetricExporterComponentProvider.COMPONENT_NAME,
+                                        properties(
+                                            "timeout",
+                                            10000,
+                                            "protocol",
+                                            "http/protobuf",
+                                            "compression",
+                                            "gzip",
+                                            "endpoint",
+                                            serviceKeyAndEndpoint[1] + "/v1/metrics",
+                                            "temporality_preference",
+                                            "delta",
+                                            "default_histogram_aggregation",
+                                            "base2_exponential_bucket_histogram",
+                                            "headers_list",
+                                            String.format(
+                                                "authorization=Bearer %s",
+                                                serviceKeyAndEndpoint[0]))))))));
   }
 
   private void addLogExporter(OpenTelemetryConfigurationModel model) {
     LoggerProviderModel loggerProvider = Objects.requireNonNull(model.getLoggerProvider());
     List<LogRecordProcessorModel> processors = loggerProvider.getProcessors();
+
+    if (processors == null) {
+      processors = new ArrayList<>();
+    }
 
     boolean hasExporter =
         processors.stream()
@@ -271,31 +296,32 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
 
     LogRecordProcessorModel logRecordProcessorModel =
         new LogRecordProcessorModel()
-            .withBatch(
+            .setBatch(
                 new BatchLogRecordProcessorModel()
-                    .withScheduleDelay(1000)
-                    .withMaxExportBatchSize(512)
-                    .withMaxQueueSize(1024)
-                    .withExportTimeout(30000)
-                    .withExporter(
+                    .setScheduleDelay(1000)
+                    .setMaxExportBatchSize(512)
+                    .setMaxQueueSize(1024)
+                    .setExportTimeout(30000)
+                    .setExporter(
                         new LogRecordExporterModel()
-                            .withAdditionalProperty(
+                            .setExtensionProperty(
                                 LogExporterComponentProvider.COMPONENT_NAME,
-                                new LogRecordExporterPropertyModel()
-                                    .withAdditionalProperty("timeout", 10000)
-                                    .withAdditionalProperty("protocol", "http/protobuf")
-                                    .withAdditionalProperty("compression", "gzip")
-                                    .withAdditionalProperty(
-                                        "endpoint", serviceKeyAndEndpoint[1] + "/v1/logs")
-                                    .withAdditionalProperty(
-                                        "headers_list",
-                                        String.format(
-                                            "authorization=Bearer %s",
-                                            serviceKeyAndEndpoint[0])))));
+                                properties(
+                                    "timeout",
+                                    10000,
+                                    "protocol",
+                                    "http/protobuf",
+                                    "compression",
+                                    "gzip",
+                                    "endpoint",
+                                    serviceKeyAndEndpoint[1] + "/v1/logs",
+                                    "headers_list",
+                                    String.format(
+                                        "authorization=Bearer %s", serviceKeyAndEndpoint[0])))));
 
     ArrayList<LogRecordProcessorModel> logRecordProcessorModels = new ArrayList<>(processors);
     logRecordProcessorModels.add(logRecordProcessorModel);
-    loggerProvider.withProcessors(logRecordProcessorModels);
+    loggerProvider.setProcessors(logRecordProcessorModels);
   }
 
   private void setServiceKeyAndEndpoint(OpenTelemetryConfigurationModel model) {

@@ -26,11 +26,14 @@ import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalInstrumentationModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalLanguageSpecificInstrumentationModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalLanguageSpecificInstrumentationPropertyModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.OpenTelemetryConfigurationModelAccessor;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,19 +68,7 @@ class DeclarativeLoaderTest {
 
   @Test
   public void testCustomizeLoadsDistributionConfig() {
-    OpenTelemetryConfigurationModel model =
-        new OpenTelemetryConfigurationModel()
-            .withDistribution(
-                new DistributionModel()
-                    .withAdditionalProperty(
-                        "solarwinds",
-                        new DistributionPropertyModel()
-                            .withAdditionalProperty(
-                                ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                "token:service")
-                            .withAdditionalProperty(
-                                ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                "apm.collector.com")));
+    OpenTelemetryConfigurationModel model = model(distribution("token:service"), null);
 
     OpenTelemetryConfigurationModel returned = customize(model);
 
@@ -88,21 +79,7 @@ class DeclarativeLoaderTest {
 
   @Test
   public void testCustomizeLoadsInstrumentationConfig() {
-    OpenTelemetryConfigurationModel model =
-        new OpenTelemetryConfigurationModel()
-            .withInstrumentationDevelopment(
-                new ExperimentalInstrumentationModel()
-                    .withJava(
-                        new ExperimentalLanguageSpecificInstrumentationModel()
-                            .withAdditionalProperty(
-                                "solarwinds",
-                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                        "token:service")
-                                    .withAdditionalProperty(
-                                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                        "apm.collector.com"))));
+    OpenTelemetryConfigurationModel model = model(null, instrumentation("token:service"));
 
     customize(model);
 
@@ -113,9 +90,9 @@ class DeclarativeLoaderTest {
   @Test
   public void testDistributionTakesPrecedenceWhenBothNodesPresent() {
     OpenTelemetryConfigurationModel model =
-        new OpenTelemetryConfigurationModel()
-            .withDistribution(distribution("distribution-token:distribution-service"))
-            .withInstrumentationDevelopment(instrumentation("instrumentation-token:inst-service"));
+        model(
+            distribution("distribution-token:distribution-service"),
+            instrumentation("instrumentation-token:inst-service"));
 
     customize(model);
 
@@ -135,11 +112,9 @@ class DeclarativeLoaderTest {
   @Test
   public void testCustomizeSkipsEmptySolarwindsNode() {
     OpenTelemetryConfigurationModel model =
-        new OpenTelemetryConfigurationModel()
-            .withDistribution(
-                new DistributionModel()
-                    .withAdditionalProperty("solarwinds", new DistributionPropertyModel()))
-            .withInstrumentationDevelopment(instrumentation("token:service"));
+        model(
+            new DistributionModel().setExtensionProperty("solarwinds", new HashMap<>()),
+            instrumentation("token:service"));
 
     customize(model);
 
@@ -149,13 +124,11 @@ class DeclarativeLoaderTest {
   @Test
   public void testCustomizeThrowsOnUnknownKey() {
     OpenTelemetryConfigurationModel model =
-        new OpenTelemetryConfigurationModel()
-            .withDistribution(
-                new DistributionModel()
-                    .withAdditionalProperty(
-                        "solarwinds",
-                        new DistributionPropertyModel()
-                            .withAdditionalProperty("not_a_real_config_key", "value")));
+        model(
+            new DistributionModel()
+                .setExtensionProperty(
+                    "solarwinds", Collections.singletonMap("not_a_real_config_key", "value")),
+            null);
 
     assertThrows(RuntimeException.class, () -> customize(model));
   }
@@ -163,40 +136,47 @@ class DeclarativeLoaderTest {
   @Test
   public void testCustomizeThrowsWhenServiceKeyMissing() {
     OpenTelemetryConfigurationModel model =
-        new OpenTelemetryConfigurationModel()
-            .withDistribution(
-                new DistributionModel()
-                    .withAdditionalProperty(
-                        "solarwinds",
-                        new DistributionPropertyModel()
-                            .withAdditionalProperty(
-                                ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                "apm.collector.com")));
+        model(
+            new DistributionModel()
+                .setExtensionProperty(
+                    "solarwinds",
+                    Collections.singletonMap(
+                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(), "apm.collector.com")),
+            null);
 
     assertThrows(RuntimeException.class, () -> customize(model));
   }
 
+  private static OpenTelemetryConfigurationModel model(
+      DistributionModel distribution, ExperimentalInstrumentationModel instrumentation) {
+    OpenTelemetryConfigurationModel model = new OpenTelemetryConfigurationModel();
+    if (distribution != null) {
+      model.setDistribution(distribution);
+    }
+
+    if (instrumentation != null) {
+      OpenTelemetryConfigurationModelAccessor.setInstrumentation(model, instrumentation);
+    }
+    return model;
+  }
+
   private static DistributionModel distribution(String serviceKey) {
-    return new DistributionModel()
-        .withAdditionalProperty(
-            "solarwinds",
-            new DistributionPropertyModel()
-                .withAdditionalProperty(
-                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(), serviceKey)
-                .withAdditionalProperty(
-                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(), "apm.collector.com"));
+    Map<String, Object> properties = new HashMap<>();
+    properties.put(ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(), serviceKey);
+    properties.put(ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(), "apm.collector.com");
+    return new DistributionModel().setExtensionProperty("solarwinds", properties);
   }
 
   private static ExperimentalInstrumentationModel instrumentation(String serviceKey) {
     return new ExperimentalInstrumentationModel()
-        .withJava(
+        .setJava(
             new ExperimentalLanguageSpecificInstrumentationModel()
-                .withAdditionalProperty(
+                .setAdditionalProperty(
                     "solarwinds",
                     new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                        .withAdditionalProperty(
+                        .setAdditionalProperty(
                             ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(), serviceKey)
-                        .withAdditionalProperty(
+                        .setAdditionalProperty(
                             ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
                             "apm.collector.com")));
   }

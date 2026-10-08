@@ -24,11 +24,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfiguration;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalInstrumentationModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalLanguageSpecificInstrumentationModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalLanguageSpecificInstrumentationPropertyModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.OpenTelemetryConfigurationModelAccessor;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class SolarwindsConfigResolverTest {
@@ -41,9 +44,7 @@ class SolarwindsConfigResolverTest {
   @Test
   void resolveReturnsDistributionWhenOnlyDistributionPresent() {
     DeclarativeConfigProperties resolved =
-        resolve(
-            new OpenTelemetryConfigurationModel()
-                .withDistribution(distribution("service-key", "distribution.collector")));
+        resolve(model(distribution("service-key", "distribution.collector"), null));
 
     assertNotNull(resolved);
     assertEquals("service-key", resolved.getString("agent.serviceKey"));
@@ -53,10 +54,7 @@ class SolarwindsConfigResolverTest {
   @Test
   void resolveReturnsInstrumentationWhenOnlyInstrumentationPresent() {
     DeclarativeConfigProperties resolved =
-        resolve(
-            new OpenTelemetryConfigurationModel()
-                .withInstrumentationDevelopment(
-                    instrumentation("service-key", "instrumentation.collector")));
+        resolve(model(null, instrumentation("service-key", "instrumentation.collector")));
 
     assertNotNull(resolved);
     assertEquals("service-key", resolved.getString("agent.serviceKey"));
@@ -67,12 +65,9 @@ class SolarwindsConfigResolverTest {
   void presentButEmptyDistributionNodeIsHonoredAndDefersEveryKeyToInstrumentation() {
     DeclarativeConfigProperties resolved =
         resolve(
-            new OpenTelemetryConfigurationModel()
-                .withDistribution(
-                    new DistributionModel()
-                        .withAdditionalProperty("solarwinds", new DistributionPropertyModel()))
-                .withInstrumentationDevelopment(
-                    instrumentation("service-key", "instrumentation.collector")));
+            model(
+                new DistributionModel().setExtensionProperty("solarwinds", new HashMap<>()),
+                instrumentation("service-key", "instrumentation.collector")));
 
     assertNotNull(resolved);
     assertEquals("service-key", resolved.getString("agent.serviceKey"));
@@ -83,16 +78,12 @@ class SolarwindsConfigResolverTest {
   void distributionWinsPerKeyAndInstrumentationFillsTheRest() {
     DeclarativeConfigProperties resolved =
         resolve(
-            new OpenTelemetryConfigurationModel()
-                .withDistribution(
-                    new DistributionModel()
-                        .withAdditionalProperty(
-                            "solarwinds",
-                            new DistributionPropertyModel()
-                                .withAdditionalProperty(
-                                    "agent.collector", "distribution.collector")))
-                .withInstrumentationDevelopment(
-                    instrumentation("instrumentation-key", "instrumentation.collector")));
+            model(
+                new DistributionModel()
+                    .setExtensionProperty(
+                        "solarwinds",
+                        Collections.singletonMap("agent.collector", "distribution.collector")),
+                instrumentation("instrumentation-key", "instrumentation.collector")));
 
     assertNotNull(resolved);
     assertEquals("distribution.collector", resolved.getString("agent.collector"));
@@ -103,27 +94,36 @@ class SolarwindsConfigResolverTest {
   void getPropertyKeysIsTheUnionOfBothNodes() {
     DeclarativeConfigProperties resolved =
         resolve(
-            new OpenTelemetryConfigurationModel()
-                .withDistribution(
-                    new DistributionModel()
-                        .withAdditionalProperty(
-                            "solarwinds",
-                            new DistributionPropertyModel()
-                                .withAdditionalProperty(
-                                    "agent.collector", "distribution.collector")))
-                .withInstrumentationDevelopment(
-                    new ExperimentalInstrumentationModel()
-                        .withJava(
-                            new ExperimentalLanguageSpecificInstrumentationModel()
-                                .withAdditionalProperty(
-                                    "solarwinds",
-                                    new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                        .withAdditionalProperty(
-                                            "agent.serviceKey", "instrumentation-key")))));
+            model(
+                new DistributionModel()
+                    .setExtensionProperty(
+                        "solarwinds",
+                        Collections.singletonMap("agent.collector", "distribution.collector")),
+                new ExperimentalInstrumentationModel()
+                    .setJava(
+                        new ExperimentalLanguageSpecificInstrumentationModel()
+                            .setAdditionalProperty(
+                                "solarwinds",
+                                new ExperimentalLanguageSpecificInstrumentationPropertyModel()
+                                    .setAdditionalProperty(
+                                        "agent.serviceKey", "instrumentation-key")))));
 
     assertNotNull(resolved);
     assertTrue(resolved.getPropertyKeys().contains("agent.collector"));
     assertTrue(resolved.getPropertyKeys().contains("agent.serviceKey"));
+  }
+
+  private static OpenTelemetryConfigurationModel model(
+      DistributionModel distribution, ExperimentalInstrumentationModel instrumentation) {
+    OpenTelemetryConfigurationModel model = new OpenTelemetryConfigurationModel();
+    if (distribution != null) {
+      model.setDistribution(distribution);
+    }
+
+    if (instrumentation != null) {
+      OpenTelemetryConfigurationModelAccessor.setInstrumentation(model, instrumentation);
+    }
+    return model;
   }
 
   private static DeclarativeConfigProperties resolve(OpenTelemetryConfigurationModel model) {
@@ -131,23 +131,21 @@ class SolarwindsConfigResolverTest {
   }
 
   private static DistributionModel distribution(String serviceKey, String collector) {
-    return new DistributionModel()
-        .withAdditionalProperty(
-            "solarwinds",
-            new DistributionPropertyModel()
-                .withAdditionalProperty("agent.serviceKey", serviceKey)
-                .withAdditionalProperty("agent.collector", collector));
+    Map<String, Object> properties = new HashMap<>();
+    properties.put("agent.serviceKey", serviceKey);
+    properties.put("agent.collector", collector);
+    return new DistributionModel().setExtensionProperty("solarwinds", properties);
   }
 
   private static ExperimentalInstrumentationModel instrumentation(
       String serviceKey, String collector) {
     return new ExperimentalInstrumentationModel()
-        .withJava(
+        .setJava(
             new ExperimentalLanguageSpecificInstrumentationModel()
-                .withAdditionalProperty(
+                .setAdditionalProperty(
                     "solarwinds",
                     new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                        .withAdditionalProperty("agent.serviceKey", serviceKey)
-                        .withAdditionalProperty("agent.collector", collector)));
+                        .setAdditionalProperty("agent.serviceKey", serviceKey)
+                        .setAdditionalProperty("agent.collector", collector)));
   }
 }

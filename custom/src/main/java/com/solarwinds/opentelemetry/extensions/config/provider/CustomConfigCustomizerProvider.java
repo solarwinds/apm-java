@@ -22,13 +22,14 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigura
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.ResourceModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.TracerProviderModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalResourceDetectionModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalResourceDetectorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalResourceDetectorPropertyModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ResourceModelAccessor;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
@@ -46,7 +47,7 @@ public class CustomConfigCustomizerProvider implements DeclarativeConfigurationC
           ResourceModel resourceModel = configurationModel.getResource();
           if (resourceModel == null) {
             resourceModel = new ResourceModel();
-            configurationModel.withResource(resourceModel);
+            configurationModel.setResource(resourceModel);
           }
 
           addResourceDetector(resourceModel);
@@ -56,10 +57,9 @@ public class CustomConfigCustomizerProvider implements DeclarativeConfigurationC
 
   private void addResourceDetector(ResourceModel resourceModel) {
     ExperimentalResourceDetectionModel detectionDevelopment =
-        resourceModel.getDetectionDevelopment();
+        ResourceModelAccessor.getDetection(resourceModel);
     if (detectionDevelopment == null) {
       detectionDevelopment = new ExperimentalResourceDetectionModel();
-      resourceModel.withDetectionDevelopment(detectionDevelopment);
     }
 
     List<ExperimentalResourceDetectorModel> detectors = detectionDevelopment.getDetectors();
@@ -74,18 +74,19 @@ public class CustomConfigCustomizerProvider implements DeclarativeConfigurationC
     List<ExperimentalResourceDetectorModel> newDetectors = new ArrayList<>();
     newDetectors.add(
         new ExperimentalResourceDetectorModel()
-            .withAdditionalProperty(
+            .setAdditionalProperty(
                 ResourceComponentProvider.COMPONENT_NAME,
                 new ExperimentalResourceDetectorPropertyModel()));
 
     newDetectors.add(
         new ExperimentalResourceDetectorModel()
-            .withAdditionalProperty(
+            .setAdditionalProperty(
                 HostIdResourceComponentProvider.COMPONENT_NAME,
                 new ExperimentalResourceDetectorPropertyModel()));
 
     newDetectors.addAll(detectors);
-    detectionDevelopment.withDetectors(newDetectors);
+    detectionDevelopment.setDetectors(newDetectors);
+    ResourceModelAccessor.setDetection(resourceModel, detectionDevelopment);
   }
 
   private void addProcessors(TracerProviderModel model) {
@@ -93,13 +94,18 @@ public class CustomConfigCustomizerProvider implements DeclarativeConfigurationC
       List<SpanProcessorModel> processors =
           Collections.singletonList(
               new SpanProcessorModel()
-                  .withAdditionalProperty(
+                  .setExtensionProperty(
                       ProfilingSpanProcessorComponentProvider.COMPONENT_NAME,
-                      new SpanProcessorPropertyModel()));
+                      new HashMap<String, Object>()));
 
-      ArrayList<SpanProcessorModel> allProcessors = new ArrayList<>(model.getProcessors());
+      List<SpanProcessorModel> spanProcessorModels = model.getProcessors();
+      if (spanProcessorModels == null) {
+        spanProcessorModels = new ArrayList<>();
+      }
+
+      ArrayList<SpanProcessorModel> allProcessors = new ArrayList<>(spanProcessorModels);
       allProcessors.addAll(processors);
-      model.withProcessors(allProcessors);
+      model.setProcessors(allProcessors);
     }
   }
 }
