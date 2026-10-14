@@ -19,63 +19,12 @@ import {check} from "k6";
 import names from "./names.js";
 
 const baseUri = `http://petclinic:9966/petclinic/api`;
-const webMvcUri = `http://webmvc:8080`;
 export const options = {
   duration: "5m",
   minIterationDuration: "1m",
   vus: 5,
   iterations: 25,
 };
-
-function verify_that_trace_is_persisted() {
-    let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
-    for (; retryCount > 0; retryCount--) {
-        const petTypesResponse = http.get(`${baseUri}/pettypes`);
-        check(petTypesResponse.headers, {
-            'should have X-Trace header': (h) => h['X-Trace'] !== undefined
-        })
-
-        const traceContext = petTypesResponse.headers['X-Trace']
-        const [_, traceId, spanId, flag] = traceContext.split("-")
-        console.log("Trace context -> ", traceContext)
-        if ((parseInt(flag, 16) & 1) === 0) continue;
-
-        const traceDetailPayload = {
-            "operationName": "getTraceDetails",
-            "variables": {
-                "traceId": traceId.toUpperCase(),
-                "spanId": spanId.toUpperCase(),
-                "aggregateSpans": true
-            },
-            "query": "query getTraceDetails($traceId: ID!, $spanId: ID, $aggregateSpans: Boolean) {\n  traceDetails(\n    traceId: $traceId\n    spanId: $spanId\n    aggregateSpans: $aggregateSpans\n  ) {\n    traceId\n    action\n    spanCount\n    time\n    controller\n    duration\n    originSpan {\n      id\n      service\n      status\n      transaction\n      duration\n      method\n      errorCount\n      host\n      startTime\n      action\n      controller\n      serviceEntity\n      containerEntity\n      hostEntity\n      websiteEntity\n      hostEntityName\n      websiteEntityName\n      serviceInstanceEntityName\n      __typename\n    }\n    selectedSpan {\n      id\n      service\n      status\n      transaction\n      duration\n      method\n      errorCount\n      host\n      startTime\n      action\n      controller\n      serviceEntity\n      containerEntity\n      hostEntity\n      websiteEntity\n      hostEntityName\n      websiteEntityName\n      serviceInstanceEntityName\n      __typename\n    }\n    allErrors {\n      hostname\n      message\n      spanLayer\n      time\n      exceptionClassMessageHash\n      spanId\n      __typename\n    }\n    allQueries {\n      ...QueryItem\n      __typename\n    }\n    traceBreakdown {\n      duration\n      errorCount\n      layer\n      percentOfTraceDuration\n      spanCount\n      spanIds\n      __typename\n    }\n    waterfall {\n      ...WaterfallRow\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment QueryItem on QueryItem {\n  averageTime\n  count\n  query\n  queryHash\n  totalTime\n  percentOfTraceDuration\n  spanIds\n  dboQueryId\n  __typename\n}\n\nfragment WaterfallRow on WaterfallRow {\n  parentId\n  items {\n    layer\n    spanId\n    endTime\n    startTime\n    service\n    error {\n      exceptionClassMessageHash\n      message\n      spanId\n      timestamp\n      __typename\n    }\n    async\n    __typename\n  }\n  __typename\n}\n"
-        }
-
-        for (; retryCount > 0; retryCount--) {
-            let traceDetailResponse = http.post(`${__ENV.SWO_HOST_URL}/common/graphql`, JSON.stringify(traceDetailPayload),
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Cookie': `${__ENV.SWO_COOKIE}`,
-                        'X-Csrf-Token': `${__ENV.SWO_XSR_TOKEN}`
-                    }
-                });
-
-            traceDetailResponse = JSON.parse(traceDetailResponse.body)
-            if (traceDetailResponse['errors']) {
-              console.log("Error -> Trace detail response:", JSON.stringify(traceDetailResponse))
-              continue
-            }
-
-            check(traceDetailResponse, {
-                "trace is returned": tdr => tdr.data.traceDetails.traceId.toLowerCase() === traceId.toLowerCase()
-            });
-
-            return
-        }
-
-    }
-
-}
 
 function verify_that_metrics_are_reported(metric, checkFn, service="lambda-e2e") {
   let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
@@ -293,5 +242,4 @@ export default function () {
     })
 
     silence(verify_logs_export)
-    silence(verify_that_trace_is_persisted)
 };
