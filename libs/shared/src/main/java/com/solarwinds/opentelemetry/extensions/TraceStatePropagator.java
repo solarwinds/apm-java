@@ -18,7 +18,6 @@ package com.solarwinds.opentelemetry.extensions;
 
 import static com.solarwinds.opentelemetry.extensions.SamplingUtil.SW_XTRACE_OPTIONS_RESP_KEY;
 
-import com.solarwinds.joboe.sampling.XtraceOptions;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceState;
@@ -33,13 +32,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class SolarwindsContextPropagator implements TextMapPropagator {
+public class TraceStatePropagator implements TextMapPropagator {
   private static final String SWI_TRACE_STATE_KEY = "sw";
   static final String TRACE_PARENT = "traceparent";
   static final String TRACE_STATE = "tracestate";
   static final String W3C_TRACE_CONTEXT_HEADER = "sw.trace_context";
-  static final String X_TRACE_OPTIONS = "X-Trace-Options";
-  static final String X_TRACE_OPTIONS_SIGNATURE = "X-Trace-Options-Signature";
   private static final List<String> FIELDS =
       Collections.unmodifiableList(
           Arrays.asList(TRACE_PARENT, TRACE_STATE, W3C_TRACE_CONTEXT_HEADER));
@@ -55,8 +52,8 @@ public class SolarwindsContextPropagator implements TextMapPropagator {
   }
 
   /**
-   * Injects the both the Solarwinds x-trace ID and the updated w3c `tracestate` with our x-trace ID
-   * prepended into the carrier with values provided by current context
+   * Injects the updated w3c `tracestate` with our x-trace ID prepended into the carrier with values
+   * provided by current context
    *
    * @param context trace context
    * @param carrier the input to the method being instrumented. Usually a request of some kind
@@ -75,16 +72,6 @@ public class SolarwindsContextPropagator implements TextMapPropagator {
     final String swTraceStateValue =
         spanContext.getSpanId() + "-" + spanContext.getTraceFlags().asHex();
     setter.set(carrier, TRACE_STATE, updateTraceState(traceState, swTraceStateValue));
-
-    final String traceOptions = context.get(TriggerTraceContextKey.XTRACE_OPTIONS);
-    final String traceOptionsSignature =
-        context.get(TriggerTraceContextKey.XTRACE_OPTIONS_SIGNATURE);
-    if (traceOptions != null) {
-      setter.set(carrier, X_TRACE_OPTIONS, traceOptions);
-    }
-    if (traceOptionsSignature != null) {
-      setter.set(carrier, X_TRACE_OPTIONS_SIGNATURE, traceOptionsSignature);
-    }
   }
 
   /**
@@ -146,12 +133,13 @@ public class SolarwindsContextPropagator implements TextMapPropagator {
         }
       }
     }
+
     return traceStateBuilder.toString();
   }
 
   /**
-   * Extracts x-trace-options and tracestate from carrier and populates the extracted data into the
-   * current trace context.
+   * Extracts tracestate from carrier and populates the extracted data into the current trace
+   * context.
    *
    * @param context trace context
    * @param carrier the input to the method being instrumented. Usually a request of some kind
@@ -160,27 +148,16 @@ public class SolarwindsContextPropagator implements TextMapPropagator {
    */
   @Override
   public <C> Context extract(Context context, C carrier, TextMapGetter<C> getter) {
-    final String traceOptions = getter.get(carrier, X_TRACE_OPTIONS);
-    final String traceOptionsSignature = getter.get(carrier, X_TRACE_OPTIONS_SIGNATURE);
-    final XtraceOptions xTraceOptions =
-        XtraceOptions.getXtraceOptions(traceOptions, traceOptionsSignature);
-    if (xTraceOptions != null) {
-      context = context.with(TriggerTraceContextKey.KEY, xTraceOptions);
-      context = context.with(TriggerTraceContextKey.XTRACE_OPTIONS, traceOptions);
-      if (traceOptionsSignature != null) {
-        context =
-            context.with(TriggerTraceContextKey.XTRACE_OPTIONS_SIGNATURE, traceOptionsSignature);
-      }
-    }
-
     final String traceState = getter.get(carrier, TRACE_STATE);
     if (traceState != null) {
       boolean anyMatch =
           Arrays.stream(traceState.split(",")).anyMatch(info -> !info.startsWith("sw="));
+
       if (anyMatch) {
         context = context.with(TraceStateKey.KEY, traceState);
       }
     }
+
     return context;
   }
 }

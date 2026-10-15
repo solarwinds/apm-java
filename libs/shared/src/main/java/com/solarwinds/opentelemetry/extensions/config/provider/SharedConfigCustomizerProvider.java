@@ -40,7 +40,6 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.MeterProviderM
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.MetricReaderModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PeriodicMetricReaderModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PropagatorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PushMetricExporterModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SamplerModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanExporterModel;
@@ -98,13 +97,6 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
             addLogExporter(configurationModel);
           }
 
-          PropagatorModel propagatorModel = configurationModel.getPropagator();
-          if (propagatorModel == null) {
-            propagatorModel = new PropagatorModel();
-            configurationModel.setPropagator(propagatorModel);
-          }
-
-          addContextPropagators(propagatorModel);
           return configurationModel;
         });
   }
@@ -169,18 +161,6 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
           new SamplerModel()
               .setExtensionProperty(
                   SamplerComponentProvider.COMPONENT_NAME, new HashMap<String, Object>()));
-    }
-  }
-
-  private void addContextPropagators(PropagatorModel model) {
-    String compositeList = model.getCompositeList();
-    if (compositeList != null) {
-      model.setCompositeList(
-          String.format("%s,%s", compositeList, ContextPropagatorComponentProvider.COMPONENT_NAME));
-    } else {
-      model.setCompositeList(
-          String.format(
-              "tracecontext,baggage,%s", ContextPropagatorComponentProvider.COMPONENT_NAME));
     }
   }
 
