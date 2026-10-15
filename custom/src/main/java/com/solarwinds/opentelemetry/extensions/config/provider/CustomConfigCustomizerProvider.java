@@ -17,19 +17,14 @@
 package com.solarwinds.opentelemetry.extensions.config.provider;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.ResourceModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.TracerProviderModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalResourceDetectionModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalResourceDetectorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalResourceDetectorPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ResourceModelAccessor;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
@@ -39,11 +34,6 @@ public class CustomConfigCustomizerProvider implements DeclarativeConfigurationC
   public void customize(DeclarativeConfigurationCustomizer customizer) {
     customizer.addModelCustomizer(
         configurationModel -> {
-          TracerProviderModel tracerProvider = configurationModel.getTracerProvider();
-          if (tracerProvider != null) {
-            addProcessors(tracerProvider);
-          }
-
           ResourceModel resourceModel = configurationModel.getResource();
           if (resourceModel == null) {
             resourceModel = new ResourceModel();
@@ -87,25 +77,5 @@ public class CustomConfigCustomizerProvider implements DeclarativeConfigurationC
     newDetectors.addAll(detectors);
     detectionDevelopment.setDetectors(newDetectors);
     ResourceModelAccessor.setDetection(resourceModel, detectionDevelopment);
-  }
-
-  private void addProcessors(TracerProviderModel model) {
-    if (JavaRuntimeVersionChecker.isJdkVersionSupported()) {
-      List<SpanProcessorModel> processors =
-          Collections.singletonList(
-              new SpanProcessorModel()
-                  .setExtensionProperty(
-                      ProfilingSpanProcessorComponentProvider.COMPONENT_NAME,
-                      new HashMap<String, Object>()));
-
-      List<SpanProcessorModel> spanProcessorModels = model.getProcessors();
-      if (spanProcessorModels == null) {
-        spanProcessorModels = new ArrayList<>();
-      }
-
-      ArrayList<SpanProcessorModel> allProcessors = new ArrayList<>(spanProcessorModels);
-      allProcessors.addAll(processors);
-      model.setProcessors(allProcessors);
-    }
   }
 }

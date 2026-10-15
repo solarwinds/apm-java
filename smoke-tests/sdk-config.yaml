@@ -41,6 +41,15 @@ attribute_limits:
 tracer_provider:
   # Configure span processors.
   processors:
+    - swo_profiler:
+        enabled: true
+        interval: 20
+        exclude_packages:
+          - java
+          - javax
+          - com.sun
+          - sun
+          - sunw
     - stacktrace/development:
         min_duration: 0
     - # Configure a batch span processor.
@@ -137,15 +146,6 @@ instrumentation/development:
     common:
       default-enabled: true
     solarwinds:
-      profiler:
-        enabled: true
-        interval: 20
-        excludePackages:
-          - java
-          - javax
-          - com.sun
-          - sun
-          - sunw
       agent.sqlTag: true
       agent.sqlTagPrepared: true
       agent.sqlTagDatabases:

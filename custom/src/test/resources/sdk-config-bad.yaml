@@ -19,11 +19,8 @@ resource:
     - name: service.name
       value: java-apm-smoke-test
 
-instrumentation/development:
-  java:
-    common:
-      default-enabled: true
-    solarwinds:
-      profiler:
+tracer_provider:
+  processors:
+    - swo_profiler:
         enabled: true
         interval: 1

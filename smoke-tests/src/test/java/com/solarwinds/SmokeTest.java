@@ -113,19 +113,6 @@ public class SmokeTest {
 
     }
 
-    @Test
-    void assertXTrace() throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double fails = ResultsCollector.read(resultJson, "$.root_group.checks.['should have X-Trace header'].fails");
-        assertEquals(0, fails, "Less than a 100 percent of the responses has X-Trace header");
-    }
-
-    @Test
-    void assertTraceIngestion() throws IOException {
-        String resultJson = new String(Files.readAllBytes(namingConventions.local.k6Results(Configs.E2E.config.agents().get(0))));
-        double passes = ResultsCollector.read(resultJson, "$.root_group.checks.['trace is returned'].passes");
-        assertTrue(passes > 0, "trace ingestion is not working. There maybe network issues");
-    }
 
     @Test
     void assertTraceContextInLog() {

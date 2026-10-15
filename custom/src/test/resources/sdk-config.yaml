@@ -52,7 +52,8 @@ tracer_provider:
             # Configure headers. Entries have higher priority than entries from .headers_list.
             headers_list: ${OTEL_EXPORTER_OTLP_HEADERS}
     - swo/inboundMetricSpanProcessor:
-    - swo/profilingSpanProcessor:
+    - swo_profiler:
+        enabled: true
     - swo/inboundMeasurementMetrics:
     - swo/spanStacktrace:
         duration: 2
@@ -148,5 +149,3 @@ instrumentation/development:
         level: trace
       agent.sqlTag: true
       agent.tracingMode: enabled
-      profiler:
-        enabled: true
