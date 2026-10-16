@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package com.solarwinds.opentelemetry.extensions;
+package com.solarwinds.opentelemetry.extensions.config.provider;
 
-import com.solarwinds.opentelemetry.extensions.config.provider.ResourceComponentProvider;
-import io.opentelemetry.sdk.resources.Resource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public final class ResourceArbiter {
-  private ResourceArbiter() {}
+import org.junit.jupiter.api.Test;
 
-  public static Resource resource() {
-    Resource resource = ResourceCustomizer.getResource();
-    return resource == null ? ResourceComponentProvider.getResource() : resource;
+class UamsResourceComponentProviderTest {
+  private final UamsResourceComponentProvider tested = new UamsResourceComponentProvider();
+
+  @Test
+  void testName() {
+    assertEquals("swo_uams", tested.getName());
   }
 }

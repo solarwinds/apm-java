@@ -18,6 +18,12 @@ resource:
   attributes:
     - name: service.name
       value: java-apm-smoke-test
+  # Configure resource detectors. SolarWinds detectors are listed first so upstream detectors can override their attributes.
+  detection/development:
+    detectors:
+      - swo_apm:
+      - swo_uams:
+      - swo_k8s:
 
 tracer_provider:
   processors:

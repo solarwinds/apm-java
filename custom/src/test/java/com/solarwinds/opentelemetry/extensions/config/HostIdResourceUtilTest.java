@@ -16,18 +16,55 @@
 
 package com.solarwinds.opentelemetry.extensions.config;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.solarwinds.joboe.core.HostId;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
-import java.util.List;
+import io.opentelemetry.semconv.K8sAttributes;
 import org.junit.jupiter.api.Test;
 
 class HostIdResourceUtilTest {
   @Test
-  void testCreateAttributes() {
-    Attributes attribute = HostIdResourceUtil.createAttribute();
-    List<String> macAddresses = attribute.get(AttributeKey.stringArrayKey("mac.addresses"));
-    assertNotNull(macAddresses);
+  void uamsAttributesDoNotIncludeDroppedKeys() {
+    Attributes attributes = HostIdResourceUtil.createUamsAttributes();
+    assertNull(attributes.get(AttributeKey.stringArrayKey("mac.addresses")));
+    assertNull(attributes.get(AttributeKey.stringKey("host.id")));
+  }
+
+  @Test
+  void k8sAttributesOnlyContainK8sKeys() {
+    HostIdResourceUtil.createK8sAttributes()
+        .forEach((key, value) -> assertTrue(key.getKey().startsWith("k8s.")));
+  }
+
+  @Test
+  void uamsAttributesContainClientId() {
+    HostId hostId = HostId.builder().uamsClientId("client-id").herokuDynoId("dyno").build();
+    Attributes attributes = HostIdResourceUtil.createUamsAttributes(hostId);
+
+    assertEquals("client-id", attributes.get(AttributeKey.stringKey("sw.uams.client.id")));
+    assertEquals(1, attributes.size());
+  }
+
+  @Test
+  void k8sAttributesAreMappedFromMetadata() {
+    HostId hostId =
+        HostId.builder()
+            .k8sMetadata(
+                HostId.K8sMetadata.builder().namespace("ns").podName("pod").podUid("uid").build())
+            .build();
+    Attributes attributes = HostIdResourceUtil.createK8sAttributes(hostId);
+
+    assertEquals("ns", attributes.get(K8sAttributes.K8S_NAMESPACE_NAME));
+    assertEquals("pod", attributes.get(K8sAttributes.K8S_POD_NAME));
+    assertEquals("uid", attributes.get(K8sAttributes.K8S_POD_UID));
+  }
+
+  @Test
+  void k8sAttributesEmptyWithoutMetadata() {
+    assertEquals(0, HostIdResourceUtil.createK8sAttributes(HostId.builder().build()).size());
   }
 }

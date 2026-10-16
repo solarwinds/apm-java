@@ -25,19 +25,11 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.resources.Resource;
-import lombok.Getter;
-import lombok.Setter;
 
 @AutoService(ComponentProvider.class)
-public class ResourceComponentProvider implements ComponentProvider {
+public class ApmResourceComponentProvider implements ComponentProvider {
 
-  public static final String COMPONENT_NAME = "swo/resource";
-
-  // Accumulated statically: create() merges into this field in place, and
-  // HostIdResourceComponentProvider reads it via getResource().merge(...). Assumes create() is
-  // invoked once; merging identical attributes is idempotent, but any new writer of this field
-  // must be aware the result is order-dependent.
-  @Getter @Setter private static Resource resource = Resource.getDefault();
+  public static final String COMPONENT_NAME = "swo_apm";
 
   @Override
   public Class<Resource> getType() {
@@ -54,7 +46,6 @@ public class ResourceComponentProvider implements ComponentProvider {
     Attributes resourceAttributes =
         Attributes.of(moduleKey, "apm", versionKey, BuildConfig.SOLARWINDS_AGENT_VERSION);
 
-    resource = resource.merge(Resource.create(resourceAttributes));
-    return resource;
+    return Resource.create(resourceAttributes);
   }
 }
