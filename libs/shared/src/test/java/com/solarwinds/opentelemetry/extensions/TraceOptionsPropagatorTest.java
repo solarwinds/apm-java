@@ -20,10 +20,8 @@ import static com.solarwinds.opentelemetry.extensions.TriggerTraceContextKey.XTR
 import static com.solarwinds.opentelemetry.extensions.TriggerTraceContextKey.XTRACE_OPTIONS_SIGNATURE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -41,7 +39,6 @@ import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapSetter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -52,9 +49,9 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SolarwindsContextPropagatorTest {
+class TraceOptionsPropagatorTest {
 
-  @InjectMocks private SolarwindsContextPropagator solarwindsContextPropagator;
+  @InjectMocks private TraceOptionsPropagator traceOptionsPropagator;
 
   @Mock private TextMapSetter<Map<?, ?>> textMapSetterMock;
 
@@ -77,57 +74,14 @@ class SolarwindsContextPropagatorTest {
 
   @Test
   void verifyThatInjectReturnsSuccessfullyWhenCarrierIsNull() {
-    solarwindsContextPropagator.inject(Context.current(), null, textMapSetterMock);
+    traceOptionsPropagator.inject(Context.current(), null, textMapSetterMock);
     verify(textMapSetterMock, never()).set(any(), anyString(), anyString());
   }
 
   @Test
   void verifyThatInjectReturnsSuccessfullyWhenSpanIsInvalid() {
-    solarwindsContextPropagator.inject(Context.current(), new HashMap<>(), textMapSetterMock);
+    traceOptionsPropagator.inject(Context.current(), new HashMap<>(), textMapSetterMock);
     verify(textMapSetterMock, never()).set(any(), anyString(), anyString());
-  }
-
-  @Test
-  void verifyThatTracestateIsUpdatedAndInjectedMaintainingLeftmostInserts() {
-    try (MockedStatic<Span> spanMockedStatic = mockStatic(Span.class)) {
-      spanMockedStatic.when(() -> Span.fromContext(any())).thenReturn(spanMock);
-      when(spanMock.getSpanContext()).thenReturn(spanContext);
-
-      solarwindsContextPropagator.inject(Context.current(), new HashMap<>(), textMapSetterMock);
-      verify(textMapSetterMock, atMostOnce())
-          .set(any(), anyString(), stringArgumentCaptor.capture());
-      assertEquals(
-          String.format("sw=%s-00,test-key=test-value", "a2d8376f3cab2837"),
-          stringArgumentCaptor.getValue());
-    }
-  }
-
-  @Test
-  void verifyThatTracestateThatExceeds512CharactersIsTruncatedAndInjected() {
-    try (MockedStatic<Span> spanMockedStatic = mockStatic(Span.class)) {
-      StringBuilder builder = new StringBuilder();
-      new Random().ints(512L).mapToObj(Integer::toString).forEach(builder::append);
-
-      SpanContext spanContext =
-          SpanContext.create(
-              traceId,
-              spanId,
-              TraceFlags.getDefault(),
-              TraceState.builder()
-                  .put("test-key", "test-value")
-                  .put("test-key-0", builder.toString())
-                  .build());
-
-      spanMockedStatic.when(() -> Span.fromContext(any())).thenReturn(spanMock);
-      when(spanMock.getSpanContext()).thenReturn(spanContext);
-
-      solarwindsContextPropagator.inject(Context.current(), new HashMap<>(), textMapSetterMock);
-      verify(textMapSetterMock, atMostOnce())
-          .set(any(), anyString(), stringArgumentCaptor.capture());
-      assertEquals(
-          String.format("sw=%s-00,test-key=test-value", "a2d8376f3cab2837"),
-          stringArgumentCaptor.getValue());
-    }
   }
 
   @Test
@@ -139,9 +93,9 @@ class SolarwindsContextPropagatorTest {
       spanMockedStatic.when(() -> Span.fromContext(context)).thenReturn(spanMock);
       when(spanMock.getSpanContext()).thenReturn(spanContext);
 
-      solarwindsContextPropagator.inject(context, new HashMap<>(), textMapSetterMock);
-      verify(textMapSetterMock, times(2)).set(any(), anyString(), stringArgumentCaptor.capture());
-      assertEquals(xtraceOptions, stringArgumentCaptor.getAllValues().get(1));
+      traceOptionsPropagator.inject(context, new HashMap<>(), textMapSetterMock);
+      verify(textMapSetterMock, times(1)).set(any(), anyString(), stringArgumentCaptor.capture());
+      assertEquals(xtraceOptions, stringArgumentCaptor.getValue());
     }
   }
 
@@ -154,9 +108,9 @@ class SolarwindsContextPropagatorTest {
       spanMockedStatic.when(() -> Span.fromContext(context)).thenReturn(spanMock);
       when(spanMock.getSpanContext()).thenReturn(spanContext);
 
-      solarwindsContextPropagator.inject(context, new HashMap<>(), textMapSetterMock);
-      verify(textMapSetterMock, times(2)).set(any(), anyString(), stringArgumentCaptor.capture());
-      assertEquals(xtraceOptions, stringArgumentCaptor.getAllValues().get(1));
+      traceOptionsPropagator.inject(context, new HashMap<>(), textMapSetterMock);
+      verify(textMapSetterMock, times(1)).set(any(), anyString(), stringArgumentCaptor.capture());
+      assertEquals(xtraceOptions, stringArgumentCaptor.getValue());
     }
   }
 
@@ -172,7 +126,7 @@ class SolarwindsContextPropagatorTest {
         };
 
     Context newContext =
-        solarwindsContextPropagator.extract(Context.current(), carrier, textMapGetterStub);
+        traceOptionsPropagator.extract(Context.current(), carrier, textMapGetterStub);
     XtraceOptions xtraceOptions = newContext.get(TriggerTraceContextKey.KEY);
 
     assertEquals(String.format("%s=%s;", key, value), newContext.get(XTRACE_OPTIONS));
@@ -199,35 +153,7 @@ class SolarwindsContextPropagatorTest {
         };
 
     Context newContext =
-        solarwindsContextPropagator.extract(Context.current(), carrier, textMapGetterStub);
+        traceOptionsPropagator.extract(Context.current(), carrier, textMapGetterStub);
     assertEquals("test-sig", newContext.get(XTRACE_OPTIONS_SIGNATURE));
-  }
-
-  @Test
-  void verifyThatTracestateIsExtractedAndPutIntoContext() {
-    final Map<String, String> carrier =
-        new HashMap<String, String>() {
-          {
-            put("tracestate", "trigger-trace=ok");
-          }
-        };
-
-    Context newContext =
-        solarwindsContextPropagator.extract(Context.current(), carrier, textMapGetterStub);
-    assertEquals("trigger-trace=ok", newContext.get(TraceStateKey.KEY));
-  }
-
-  @Test
-  void verifyThatTracestateIsNotPutIntoContextWhenNoVendorInfo() {
-    final Map<String, String> carrier =
-        new HashMap<String, String>() {
-          {
-            put("tracestate", "sw=blah");
-          }
-        };
-
-    Context newContext =
-        solarwindsContextPropagator.extract(Context.current(), carrier, textMapGetterStub);
-    assertNull(newContext.get(TraceStateKey.KEY));
   }
 }

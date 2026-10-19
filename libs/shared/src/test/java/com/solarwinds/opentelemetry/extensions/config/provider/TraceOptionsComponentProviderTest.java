@@ -17,16 +17,26 @@
 package com.solarwinds.opentelemetry.extensions.config.provider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
+import com.solarwinds.opentelemetry.extensions.TraceOptionsPropagator;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
-class ContextPropagatorComponentProviderTest {
+class TraceOptionsComponentProviderTest {
 
-  private final ContextPropagatorComponentProvider tested =
-      new ContextPropagatorComponentProvider();
+  private final TraceOptionsComponentProvider tested = new TraceOptionsComponentProvider();
 
   @Test
   void testName() {
-    assertEquals("swo/contextPropagator", tested.getName());
+    assertEquals("swo_xtraceoptions", tested.getName());
+  }
+
+  @Test
+  void createReturnsExpectedPropagator() {
+    assertInstanceOf(
+        TraceOptionsPropagator.class,
+        tested.create(Mockito.mock(DeclarativeConfigProperties.class)));
   }
 }

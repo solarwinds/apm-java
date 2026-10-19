@@ -17,15 +17,15 @@
 package com.solarwinds.opentelemetry.extensions.config.provider;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.opentelemetry.extensions.SolarwindsContextPropagator;
+import com.solarwinds.opentelemetry.extensions.TraceOptionsPropagator;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 
 @AutoService(ComponentProvider.class)
-public class ContextPropagatorComponentProvider implements ComponentProvider {
+public class TraceOptionsComponentProvider implements ComponentProvider {
 
-  public static final String COMPONENT_NAME = "swo/contextPropagator";
+  public static final String COMPONENT_NAME = "swo_xtraceoptions";
 
   @Override
   public Class<TextMapPropagator> getType() {
@@ -39,6 +39,6 @@ public class ContextPropagatorComponentProvider implements ComponentProvider {
 
   @Override
   public TextMapPropagator create(DeclarativeConfigProperties declarativeConfigProperties) {
-    return new SolarwindsContextPropagator();
+    return new TraceOptionsPropagator();
   }
 }

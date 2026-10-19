@@ -29,7 +29,11 @@ attribute_limits:
 # Configure text map context propagators.
 propagator:
   # Configure the set of propagators to include in the composite text map propagator.
-  composite: [ tracecontext, baggage, swo/contextPropagator ]
+  composite:
+    - tracecontext:
+    - baggage:
+    - swo_tracestate:
+    - swo_xtraceoptions:
 
 # Configure tracer provider.
 tracer_provider:

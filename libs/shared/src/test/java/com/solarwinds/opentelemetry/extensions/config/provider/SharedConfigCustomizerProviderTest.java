@@ -37,7 +37,6 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.MeterProviderM
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.MetricReaderModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PeriodicMetricReaderModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PropagatorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SamplerModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SimpleLogRecordProcessorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SimpleSpanProcessorModel;
@@ -111,11 +110,6 @@ class SharedConfigCustomizerProviderTest {
     assertNotNull(sampler.getExtensionProperties().get(SamplerComponentProvider.COMPONENT_NAME));
     assertEquals(3, tracerProvider.getProcessors().size());
 
-    assertTrue(
-        openTelemetryConfigurationModel
-            .getPropagator()
-            .getCompositeList()
-            .contains(ContextPropagatorComponentProvider.COMPONENT_NAME));
     PeriodicMetricReaderModel periodic =
         openTelemetryConfigurationModel.getMeterProvider().getReaders().get(0).getPeriodic();
 
@@ -179,11 +173,6 @@ class SharedConfigCustomizerProviderTest {
     assertNotNull(sampler.getExtensionProperties().get(SamplerComponentProvider.COMPONENT_NAME));
     assertEquals(3, tracerProvider.getProcessors().size());
 
-    assertTrue(
-        openTelemetryConfigurationModel
-            .getPropagator()
-            .getCompositeList()
-            .contains(ContextPropagatorComponentProvider.COMPONENT_NAME));
     PeriodicMetricReaderModel periodic =
         openTelemetryConfigurationModel.getMeterProvider().getReaders().get(0).getPeriodic();
 
@@ -711,7 +700,6 @@ class SharedConfigCustomizerProviderTest {
     assertNull(openTelemetryConfigurationModel.getTracerProvider());
     assertNotNull(openTelemetryConfigurationModel.getLoggerProvider());
     assertNotNull(openTelemetryConfigurationModel.getMeterProvider());
-    assertNotNull(openTelemetryConfigurationModel.getPropagator());
   }
 
   @Test
@@ -783,37 +771,6 @@ class SharedConfigCustomizerProviderTest {
     assertNotNull(openTelemetryConfigurationModel.getTracerProvider());
     assertNotNull(openTelemetryConfigurationModel.getTracerProvider().getSampler());
     assertNotNull(openTelemetryConfigurationModel.getMeterProvider());
-  }
-
-  @Test
-  void propagatorsAppendedToExistingCompositeList() {
-    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        withInstrumentation(
-            new OpenTelemetryConfigurationModel()
-                .setPropagator(new PropagatorModel().setCompositeList("tracecontext,baggage")),
-            new ExperimentalInstrumentationModel()
-                .setJava(
-                    new ExperimentalLanguageSpecificInstrumentationModel()
-                        .setAdditionalProperty(
-                            "solarwinds",
-                            new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                                .setAdditionalProperty(
-                                    ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(),
-                                    "token:service")
-                                .setAdditionalProperty(
-                                    ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                                    "apm.collector.com"))));
-
-    doNothing()
-        .when(declarativeConfigurationCustomizerMock)
-        .addModelCustomizer(functionArgumentCaptor.capture());
-
-    tested.customize(declarativeConfigurationCustomizerMock);
-    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
-
-    assertEquals(
-        "tracecontext,baggage," + ContextPropagatorComponentProvider.COMPONENT_NAME,
-        openTelemetryConfigurationModel.getPropagator().getCompositeList());
   }
 
   @Test

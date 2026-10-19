@@ -28,7 +28,7 @@ public class SolarwindsContextPropagatorProvider implements ConfigurablePropagat
 
   @Override
   public TextMapPropagator getPropagator(ConfigProperties config) {
-    return new SolarwindsContextPropagator();
+    return TextMapPropagator.composite(new TraceStatePropagator(), new TraceOptionsPropagator());
   }
 
   @Override
