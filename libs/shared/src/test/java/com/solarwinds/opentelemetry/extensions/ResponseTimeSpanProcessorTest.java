@@ -46,9 +46,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class InboundMeasurementMetricsGeneratorTest {
+class ResponseTimeSpanProcessorTest {
 
-  @InjectMocks private InboundMeasurementMetricsGenerator tested;
+  @InjectMocks private ResponseTimeSpanProcessor tested;
 
   @Mock private LongHistogram responseTime;
 

@@ -17,15 +17,18 @@
 package com.solarwinds.opentelemetry.extensions.config.provider;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.opentelemetry.extensions.InboundMeasurementMetricsGenerator;
+import com.solarwinds.joboe.config.ConfigManager;
+import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.opentelemetry.extensions.ResponseTimeSpanProcessor;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 
 @AutoService(ComponentProvider.class)
-public class InboundMeasurementMetricsComponentProvider implements ComponentProvider {
+public class ResponseTimeComponentProvider implements ComponentProvider {
 
-  public static final String COMPONENT_NAME = "swo/inboundMeasurementMetrics";
+  public static final String COMPONENT_NAME = "swo_response_time";
 
   @Override
   public Class<SpanProcessor> getType() {
@@ -39,6 +42,15 @@ public class InboundMeasurementMetricsComponentProvider implements ComponentProv
 
   @Override
   public SpanProcessor create(DeclarativeConfigProperties declarativeConfigProperties) {
-    return new InboundMeasurementMetricsGenerator();
+    String transactionName = declarativeConfigProperties.getString("transaction_name");
+    if (transactionName != null && !transactionName.isEmpty()) {
+      try {
+        ConfigManager.setConfig(ConfigProperty.AGENT_TRANSACTION_NAME, transactionName);
+      } catch (InvalidConfigException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    return new ResponseTimeSpanProcessor();
   }
 }

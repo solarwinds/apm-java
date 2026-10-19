@@ -61,7 +61,8 @@ tracer_provider:
             headers_list: ${OTEL_EXPORTER_OTLP_HEADERS}
     - swo/inboundMetricSpanProcessor:
     - swo/profilingSpanProcessor:
-    - swo/inboundMeasurementMetrics:
+    - swo_response_time:
+        transaction_name: custom-name
     - swo/spanStacktrace:
         duration: 2
 

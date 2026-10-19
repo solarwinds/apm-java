@@ -64,7 +64,7 @@ tracer_provider:
     - swo/inboundMetricSpanProcessor:
     - swo_profiler:
         enabled: true
-    - swo/inboundMeasurementMetrics:
+    - swo_response_time:
     - swo/spanStacktrace:
         duration: 2
 

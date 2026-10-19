@@ -28,6 +28,6 @@ public class TraceProviderCustomizer
       SdkTracerProviderBuilder sdkTracerProviderBuilder, ConfigProperties configProperties) {
     return sdkTracerProviderBuilder
         .setSampler(new SolarwindsSampler())
-        .addSpanProcessor(new InboundMeasurementMetricsGenerator());
+        .addSpanProcessor(new ResponseTimeSpanProcessor());
   }
 }

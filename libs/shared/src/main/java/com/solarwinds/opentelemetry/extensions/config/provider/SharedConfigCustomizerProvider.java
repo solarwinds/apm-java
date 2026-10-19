@@ -120,8 +120,7 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
     allProcessors.add(
         new SpanProcessorModel()
             .setExtensionProperty(
-                InboundMeasurementMetricsComponentProvider.COMPONENT_NAME,
-                new HashMap<String, Object>()));
+                ResponseTimeComponentProvider.COMPONENT_NAME, new HashMap<String, Object>()));
 
     String experimentalStacktrace = "stacktrace/development";
     Optional<SpanProcessorModel> modelOptional =
