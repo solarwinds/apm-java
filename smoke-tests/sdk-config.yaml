@@ -20,6 +20,12 @@ resource:
       value: java-apm-smoke-test
     - name: test.app
       value: java-apm-smoke-test-v2
+  # Configure resource detectors. SolarWinds detectors are listed first so upstream detectors can override their attributes.
+  detection/development:
+    detectors:
+      - swo_apm:
+      - swo_uams:
+      - swo_k8s:
 
 # Provide shared config for multi-language deployment
 distribution:

@@ -19,7 +19,7 @@ package com.solarwinds.opentelemetry.extensions.provider;
 import static com.solarwinds.opentelemetry.extensions.ApmResourceProvider.moduleKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.solarwinds.opentelemetry.extensions.config.provider.ResourceComponentProvider;
+import com.solarwinds.opentelemetry.extensions.config.provider.ApmResourceComponentProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import org.junit.jupiter.api.Test;
@@ -28,15 +28,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ResourceComponentProviderTest {
+class ApmResourceComponentProviderTest {
 
-  private final ResourceComponentProvider tested = new ResourceComponentProvider();
+  private final ApmResourceComponentProvider tested = new ApmResourceComponentProvider();
 
   @Mock private DeclarativeConfigProperties declarativeConfigPropertiesMock;
 
   @Test
   void testName() {
-    assertEquals("swo/resource", tested.getName());
+    assertEquals("swo_apm", tested.getName());
   }
 
   @Test

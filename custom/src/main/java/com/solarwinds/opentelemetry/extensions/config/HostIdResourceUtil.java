@@ -22,18 +22,26 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.semconv.K8sAttributes;
-import io.opentelemetry.semconv.incubating.HostIncubatingAttributes;
 
 public final class HostIdResourceUtil {
   private HostIdResourceUtil() {}
 
-  public static Attributes createAttribute() {
-    AttributesBuilder builder = Attributes.builder();
-    HostId hostId = ServerHostInfoReader.INSTANCE.getHostId();
-    builder.put(AttributeKey.stringArrayKey("mac.addresses"), hostId.getMacAddresses());
+  public static Attributes createUamsAttributes() {
+    return createUamsAttributes(ServerHostInfoReader.INSTANCE.getHostId());
+  }
 
-    builder.put(HostIncubatingAttributes.HOST_ID, hostId.getHerokuDynoId());
-    builder.put(AttributeKey.stringKey("sw.uams.client.id"), hostId.getUamsClientId());
+  static Attributes createUamsAttributes(HostId hostId) {
+    return Attributes.builder()
+        .put(AttributeKey.stringKey("sw.uams.client.id"), hostId.getUamsClientId())
+        .build();
+  }
+
+  public static Attributes createK8sAttributes() {
+    return createK8sAttributes(ServerHostInfoReader.INSTANCE.getHostId());
+  }
+
+  static Attributes createK8sAttributes(HostId hostId) {
+    AttributesBuilder builder = Attributes.builder();
     HostId.K8sMetadata k8sMetadata = hostId.getK8sMetadata();
 
     if (k8sMetadata != null) {
@@ -43,5 +51,9 @@ public final class HostIdResourceUtil {
     }
 
     return builder.build();
+  }
+
+  public static Attributes createAttribute() {
+    return createUamsAttributes().toBuilder().putAll(createK8sAttributes()).build();
   }
 }

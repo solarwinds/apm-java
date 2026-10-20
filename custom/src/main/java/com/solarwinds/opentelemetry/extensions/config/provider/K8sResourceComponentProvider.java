@@ -18,15 +18,17 @@ package com.solarwinds.opentelemetry.extensions.config.provider;
 
 import com.google.auto.service.AutoService;
 import com.solarwinds.opentelemetry.extensions.config.HostIdResourceUtil;
-import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.semconv.K8sAttributes;
 
 @AutoService(ComponentProvider.class)
-public class HostIdResourceComponentProvider implements ComponentProvider {
+public class K8sResourceComponentProvider implements ComponentProvider {
 
-  public static final String COMPONENT_NAME = "swo/hostIdResource";
+  public static final String COMPONENT_NAME = "swo_k8s";
 
   @Override
   public Class<Resource> getType() {
@@ -39,10 +41,18 @@ public class HostIdResourceComponentProvider implements ComponentProvider {
   }
 
   @Override
-  public Resource create(DeclarativeConfigProperties declarativeConfigProperties) {
-    Attributes attribute = HostIdResourceUtil.createAttribute();
-    ResourceComponentProvider.setResource(
-        ResourceComponentProvider.getResource().merge(Resource.create(attribute)));
-    return Resource.create(attribute);
+  public Resource create(DeclarativeConfigProperties config) {
+    AttributesBuilder builder = HostIdResourceUtil.createK8sAttributes().toBuilder();
+    putIfConfigured(builder, K8sAttributes.K8S_NAMESPACE_NAME, config.getString("namespace"));
+    putIfConfigured(builder, K8sAttributes.K8S_POD_UID, config.getString("pod_uid"));
+    putIfConfigured(builder, K8sAttributes.K8S_POD_NAME, config.getString("pod_name"));
+    return Resource.create(builder.build());
+  }
+
+  private static void putIfConfigured(
+      AttributesBuilder builder, AttributeKey<String> key, String value) {
+    if (value != null && !value.isEmpty()) {
+      builder.put(key, value);
+    }
   }
 }
