@@ -20,10 +20,16 @@ import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.opentelemetry.extensions.NamingScheme;
 import com.solarwinds.opentelemetry.extensions.ResponseTimeSpanProcessor;
+import com.solarwinds.opentelemetry.extensions.TransactionNameManager;
+import com.solarwinds.opentelemetry.extensions.TransactionNamingScheme;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.trace.SpanProcessor;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @AutoService(ComponentProvider.class)
 public class ResponseTimeComponentProvider implements ComponentProvider {
@@ -51,6 +57,24 @@ public class ResponseTimeComponentProvider implements ComponentProvider {
       }
     }
 
+    List<TransactionNamingScheme> schemes =
+        declarativeConfigProperties
+            .getStructuredList("transaction_name_schemes", Collections.emptyList())
+            .stream()
+            .map(this::toScheme)
+            .collect(Collectors.toList());
+
+    if (!schemes.isEmpty()) {
+      TransactionNameManager.setNamingScheme(NamingScheme.createDecisionChain(schemes));
+    }
+
     return new ResponseTimeSpanProcessor();
+  }
+
+  private TransactionNamingScheme toScheme(DeclarativeConfigProperties properties) {
+    return new TransactionNamingScheme(
+        properties.getString("scheme"),
+        properties.getString("delimiter"),
+        properties.getScalarList("attributes", String.class, Collections.emptyList()));
   }
 }

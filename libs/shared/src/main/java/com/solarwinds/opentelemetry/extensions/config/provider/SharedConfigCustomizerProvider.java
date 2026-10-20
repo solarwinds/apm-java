@@ -117,11 +117,6 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
     }
 
     ArrayList<SpanProcessorModel> allProcessors = new ArrayList<>(spanProcessorModels);
-    allProcessors.add(
-        new SpanProcessorModel()
-            .setExtensionProperty(
-                ResponseTimeComponentProvider.COMPONENT_NAME, new HashMap<String, Object>()));
-
     String experimentalStacktrace = "stacktrace/development";
     Optional<SpanProcessorModel> modelOptional =
         spanProcessorModels.stream()

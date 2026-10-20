@@ -55,6 +55,14 @@ propagator:
 tracer_provider:
   # Configure span processors.
   processors:
+    - swo_response_time:
+        transaction_name_schemes:
+          - scheme: "spanAttribute"
+            delimiter: ":"
+            attributes:
+              - HandlerName
+              - http.request.method
+              - http.method
     - swo_profiler:
         enabled: true
         interval: 20
@@ -168,14 +176,6 @@ instrumentation/development:
         -
           regex: ".*/specialties"
           tracing: "disabled"
-      agent.transactionNameSchemes:
-        -
-          scheme: "spanAttribute"
-          delimiter: ":"
-          attributes:
-            - HandlerName
-            - http.request.method
-            - http.method
       agent.serviceKey: ${SW_APM_SERVICE_KEY}
       agent.collector: apm.collector.na-01.st-ssp.solarwinds.com
       agent.spanStacktraceFilters:

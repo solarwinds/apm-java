@@ -19,9 +19,20 @@ package com.solarwinds.opentelemetry.extensions;
 import java.util.List;
 import lombok.Value;
 
+/**
+ * A user-configured rule for deriving a transaction name from span attributes. Schemes are listed
+ * in priority order under {@code transaction_name_schemes} of the {@code swo_response_time}
+ * component and chained by {@link NamingScheme#createDecisionChain(List)}; the first scheme whose
+ * attributes are present on the span determines the name.
+ */
 @Value
 public class TransactionNamingScheme {
+  /** The scheme type, e.g. {@code spanAttribute}. Used for diagnostics only. */
   String scheme;
+
+  /** Separator placed between attribute values when composing the transaction name. */
   String delimiter;
+
+  /** Span attribute keys whose values make up the transaction name, in output order. */
   List<String> attributes;
 }
