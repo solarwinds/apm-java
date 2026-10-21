@@ -167,11 +167,12 @@ instrumentation/development:
       emit_experimental_jfr_metrics/development: true
     common:
       default-enabled: true
-    solarwinds:
-      agent.sqlTag: true
-      agent.sqlTagPrepared: true
-      agent.sqlTagDatabases:
+    swo_jdbc:
+      sql_tag: true
+      sql_tag_prepared: true
+      sql_tag_databases:
         - postgresql
+    solarwinds:
       agent.transactionSettings:
         -
           regex: ".*/specialties"
