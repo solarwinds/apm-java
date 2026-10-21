@@ -23,8 +23,13 @@ dependencies {
   compileOnly(project(":libs:config"))
   compileOnly(project(":libs:logging"))
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")
+  compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
+  compileOnly("io.opentelemetry:opentelemetry-api-incubator")
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
 
   testImplementation(project(":libs:config"))
+  testImplementation("io.opentelemetry:opentelemetry-api-incubator")
   testImplementation(project(":instrumentation:instrumentation-shared"))
 }
 

@@ -23,14 +23,15 @@ instrumentation/development:
   java:
     common:
       default-enabled: true
+    swo_jdbc:
+      sql_tag: true
+      sql_tag_prepared: true
+      sql_tag_databases:
+        - postgresql
     solarwinds:
       agent.logging:
         level: trace
-      agent.sqlTag: true
       agent.tracingMode: enabled
-      agent.sqlTagPrepared: true
-      agent.sqlTagDatabases:
-        - postgresql
       agent.spanStacktraceFilters:
         - http.request.method
       agent.transactionSettings:
