@@ -57,6 +57,6 @@ class TraceProviderCustomizerTest {
     verify(sdkTracerProviderBuilderMock).addSpanProcessor(processorArgumentCaptor.capture());
 
     assertTrue(samplerArgumentCaptor.getValue() instanceof SolarwindsSampler);
-    assertTrue(processorArgumentCaptor.getValue() instanceof InboundMeasurementMetricsGenerator);
+    assertTrue(processorArgumentCaptor.getValue() instanceof ResponseTimeSpanProcessor);
   }
 }

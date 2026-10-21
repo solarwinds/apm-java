@@ -20,14 +20,59 @@ import static com.solarwinds.opentelemetry.extensions.SharedNames.TRANSACTION_NA
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.sdk.testing.trace.TestSpanData;
 import io.opentelemetry.sdk.trace.data.StatusData;
+import java.util.Arrays;
+import java.util.Collections;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class TransactionNameManagerTest {
+
+  @AfterEach
+  void tearDown() {
+    TransactionNameManager.setNamingScheme(new DefaultNamingScheme(null));
+  }
+
+  @Test
+  void setNamingSchemeIgnoresNull() {
+    NamingScheme scheme =
+        new SpanAttributeNamingScheme(
+            new DefaultNamingScheme(null), ":", Collections.singletonList("HandlerName"));
+    TransactionNameManager.setNamingScheme(scheme);
+
+    TransactionNameManager.setNamingScheme(null);
+    assertSame(scheme, TransactionNameManager.getNamingScheme());
+  }
+
+  @Test
+  void buildTransactionNameUsesConfiguredNamingScheme() {
+    TransactionNameManager.setNamingScheme(
+        new SpanAttributeNamingScheme(
+            new DefaultNamingScheme(null), ":", Arrays.asList("HandlerName", "http.method")));
+
+    TestSpanData spanData =
+        TestSpanData.builder()
+            .setName("test")
+            .setKind(SpanKind.SERVER)
+            .setStartEpochNanos(0)
+            .setEndEpochNanos(10_000_000)
+            .setHasEnded(true)
+            .setStatus(StatusData.ok())
+            .setAttributes(
+                Attributes.builder()
+                    .put(AttributeKey.stringKey("http.method"), "GET")
+                    .put(AttributeKey.stringKey("HandlerName"), "owners")
+                    .build())
+            .build();
+
+    assertEquals("owners:GET", TransactionNameManager.buildTransactionName(spanData));
+  }
 
   @Test
   void buildTransactionNameReturnsPreComputedNameFromSpanAttribute() {

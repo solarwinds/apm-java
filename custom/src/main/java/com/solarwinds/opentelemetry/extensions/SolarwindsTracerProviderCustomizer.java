@@ -36,7 +36,7 @@ public class SolarwindsTracerProviderCustomizer
 
       tracerProvider
           .setSampler(new SolarwindsSampler())
-          .addSpanProcessor(new InboundMeasurementMetricsGenerator());
+          .addSpanProcessor(new ResponseTimeSpanProcessor());
     }
 
     return tracerProvider;

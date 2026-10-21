@@ -81,7 +81,7 @@ class SolarwindsTracerProviderCustomizerTest {
 
       tested.apply(tracerProviderBuilderMock, configPropertiesMock);
 
-      // Should add SolarwindsProfilingSpanProcessor and InboundMeasurementMetricsGenerator
+      // Should add SolarwindsProfilingSpanProcessor and ResponseTimeSpanProcessor
       verify(tracerProviderBuilderMock, times(2)).addSpanProcessor(any(SpanProcessor.class));
       verify(tracerProviderBuilderMock).setSampler(any(Sampler.class));
     }
@@ -107,7 +107,7 @@ class SolarwindsTracerProviderCustomizerTest {
 
       tested.apply(tracerProviderBuilderMock, configPropertiesMock);
 
-      // Should only add InboundMeasurementMetricsGenerator, not SolarwindsProfilingSpanProcessor
+      // Should only add ResponseTimeSpanProcessor, not SolarwindsProfilingSpanProcessor
       verify(tracerProviderBuilderMock, times(1)).addSpanProcessor(any(SpanProcessor.class));
       verify(tracerProviderBuilderMock).setSampler(any(Sampler.class));
     }

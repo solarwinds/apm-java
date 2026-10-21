@@ -59,11 +59,13 @@ tracer_provider:
             timeout: 10000
             # Configure headers. Entries have higher priority than entries from .headers_list.
             headers_list: ${OTEL_EXPORTER_OTLP_HEADERS}
-    - swo/inboundMetricSpanProcessor:
-    - swo/profilingSpanProcessor:
-    - swo/inboundMeasurementMetrics:
-    - swo/spanStacktrace:
-        duration: 2
+    - swo_response_time:
+        transaction_name: custom-name
+        transaction_name_schemes:
+          - scheme: "spanAttribute"
+            delimiter: ":"
+            attributes:
+              - HandlerName
 
   sampler:
     # Configure sampler.
@@ -154,12 +156,6 @@ instrumentation/development:
           example.com/greet:
             sampleRate: 100000000
             tracing: "enabled"
-      agent.transactionNameSchemes:
-        -
-          scheme: "spanAttribute"
-          delimiter: ":"
-          attributes:
-            - HandlerName
       agent.triggerTrace: true
       agent.sqlQueryMaxLength: 4096
       agent.serviceKey: ${SW_APM_SERVICE_KEY}

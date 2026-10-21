@@ -35,7 +35,7 @@ import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.internal.ExtendedSpanProcessor;
 import io.opentelemetry.semconv.HttpAttributes;
 
-public class InboundMeasurementMetricsGenerator implements ExtendedSpanProcessor {
+public class ResponseTimeSpanProcessor implements ExtendedSpanProcessor {
   private LongHistogram responseTime;
 
   private static final Logger logger = LoggerFactory.getLogger();

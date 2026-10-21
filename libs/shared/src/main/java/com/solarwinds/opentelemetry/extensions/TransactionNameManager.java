@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
 
 public class TransactionNameManager {
   private static final Logger logger = LoggerFactory.getLogger();
@@ -58,7 +59,7 @@ public class TransactionNameManager {
   private static volatile boolean limitExceeded;
   private static volatile int maxNameCount = DEFAULT_MAX_NAME_COUNT;
 
-  private static NamingScheme namingScheme = new DefaultNamingScheme(null);
+  @Getter private static NamingScheme namingScheme = new DefaultNamingScheme(null);
 
   private static final AttributeKey<String> handlerNameKey = AttributeKey.stringKey("HandlerName");
 
@@ -70,11 +71,11 @@ public class TransactionNameManager {
   }
 
   public static void setNamingScheme(NamingScheme namingScheme) {
-    TransactionNameManager.namingScheme = namingScheme;
-  }
+    if (namingScheme == null) {
+      return;
+    }
 
-  public static NamingScheme getNamingScheme() {
-    return namingScheme;
+    TransactionNameManager.namingScheme = namingScheme;
   }
 
   private static void addNameCountChangeListener() {
@@ -176,10 +177,10 @@ public class TransactionNameManager {
       return transactionName;
     }
 
-    String custName = CustomTransactionNameDict.get(spanData.getTraceId());
-    if (custName != null) {
-      logger.trace(() -> String.format("Using custom transaction name -> %s", custName));
-      return custName;
+    String customName = CustomTransactionNameDict.get(spanData.getTraceId());
+    if (customName != null) {
+      logger.trace(() -> String.format("Using custom transaction name -> %s", customName));
+      return customName;
     }
 
     String name = namingScheme.createName(spanAttributes);

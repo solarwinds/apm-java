@@ -108,7 +108,7 @@ class SharedConfigCustomizerProviderTest {
 
     SamplerModel sampler = tracerProvider.getSampler();
     assertNotNull(sampler.getExtensionProperties().get(SamplerComponentProvider.COMPONENT_NAME));
-    assertEquals(3, tracerProvider.getProcessors().size());
+    assertEquals(2, tracerProvider.getProcessors().size());
 
     PeriodicMetricReaderModel periodic =
         openTelemetryConfigurationModel.getMeterProvider().getReaders().get(0).getPeriodic();
@@ -171,7 +171,7 @@ class SharedConfigCustomizerProviderTest {
 
     SamplerModel sampler = tracerProvider.getSampler();
     assertNotNull(sampler.getExtensionProperties().get(SamplerComponentProvider.COMPONENT_NAME));
-    assertEquals(3, tracerProvider.getProcessors().size());
+    assertEquals(2, tracerProvider.getProcessors().size());
 
     PeriodicMetricReaderModel periodic =
         openTelemetryConfigurationModel.getMeterProvider().getReaders().get(0).getPeriodic();
