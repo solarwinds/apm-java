@@ -28,6 +28,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
@@ -107,6 +108,18 @@ class SpanStacktraceFilterTest {
                 .build());
 
     assertTrue(filter.test(span));
+  }
+
+  @Test
+  void explicitFiltersAreUsedWithDbSystemDefault() {
+    SpanStacktraceFilter filter = new SpanStacktraceFilter(Collections.singletonList("process.id"));
+
+    assertTrue(
+        filter.test(createSpanWithAttributes(Attributes.builder().put("process.id", 1).build())));
+    assertTrue(
+        filter.test(createSpanWithAttributes(Attributes.builder().put("db.system", "x").build())));
+    assertFalse(
+        filter.test(createSpanWithAttributes(Attributes.builder().put("other", "x").build())));
   }
 
   private ReadableSpan createSpanWithAttributes(Attributes attributes) {

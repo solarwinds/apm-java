@@ -31,8 +31,6 @@ instrumentation/development:
       agent.sqlTagPrepared: true
       agent.sqlTagDatabases:
         - postgresql
-      agent.spanStacktraceFilters:
-        - http.request.method
       agent.transactionSettings:
         -
           tracing: "disabled"

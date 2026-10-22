@@ -20,6 +20,7 @@ import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.trace.ReadableSpan;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,17 +28,28 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class SpanStacktraceFilter implements Predicate<ReadableSpan> {
+  private static final String DEFAULT_FILTER_ATTRIBUTE = "db.system";
+
   private Set<String> filterAttributes = new HashSet<>();
+
+  public SpanStacktraceFilter() {}
+
+  public SpanStacktraceFilter(Collection<String> configuredFilterAttributes) {
+    Set<String> effectiveFilterAttributes = new HashSet<>(configuredFilterAttributes);
+    effectiveFilterAttributes.add(DEFAULT_FILTER_ATTRIBUTE);
+    filterAttributes = effectiveFilterAttributes;
+  }
 
   @Override
   public boolean test(ReadableSpan readableSpan) {
     if (filterAttributes.isEmpty()) {
       Set<String> configuredFilterAttributes =
           ConfigManager.getConfigOptional(
-              ConfigProperty.AGENT_SPAN_STACKTRACE_FILTERS, Collections.singleton("db.system"));
+              ConfigProperty.AGENT_SPAN_STACKTRACE_FILTERS,
+              Collections.singleton(DEFAULT_FILTER_ATTRIBUTE));
 
       Set<String> effectiveFilterAttributes = new HashSet<>(configuredFilterAttributes);
-      effectiveFilterAttributes.add("db.system");
+      effectiveFilterAttributes.add(DEFAULT_FILTER_ATTRIBUTE);
       filterAttributes = effectiveFilterAttributes;
     }
 
