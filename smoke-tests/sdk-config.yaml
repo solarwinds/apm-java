@@ -72,8 +72,11 @@ tracer_provider:
           - com.sun
           - sun
           - sunw
-    - stacktrace/development:
+    - swo_stacktrace:
         min_duration: 0
+        filters:
+          - http.request.method
+          - process.pid
     - # Configure a batch span processor.
       simple:
         # Configure exporter.
@@ -179,6 +182,3 @@ instrumentation/development:
           tracing: "disabled"
       agent.serviceKey: ${SW_APM_SERVICE_KEY}
       agent.collector: apm.collector.na-01.st-ssp.solarwinds.com
-      agent.spanStacktraceFilters:
-        - http.request.method
-        - process.pid

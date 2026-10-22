@@ -50,7 +50,6 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.OpenT
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -108,7 +107,7 @@ class SharedConfigCustomizerProviderTest {
 
     SamplerModel sampler = tracerProvider.getSampler();
     assertNotNull(sampler.getExtensionProperties().get(SamplerComponentProvider.COMPONENT_NAME));
-    assertEquals(2, tracerProvider.getProcessors().size());
+    assertEquals(1, tracerProvider.getProcessors().size());
 
     PeriodicMetricReaderModel periodic =
         openTelemetryConfigurationModel.getMeterProvider().getReaders().get(0).getPeriodic();
@@ -171,7 +170,7 @@ class SharedConfigCustomizerProviderTest {
 
     SamplerModel sampler = tracerProvider.getSampler();
     assertNotNull(sampler.getExtensionProperties().get(SamplerComponentProvider.COMPONENT_NAME));
-    assertEquals(2, tracerProvider.getProcessors().size());
+    assertEquals(1, tracerProvider.getProcessors().size());
 
     PeriodicMetricReaderModel periodic =
         openTelemetryConfigurationModel.getMeterProvider().getReaders().get(0).getPeriodic();
@@ -317,141 +316,6 @@ class SharedConfigCustomizerProviderTest {
         asMap(exporter.getExtensionProperties().get(SpanExporterComponentProvider.COMPONENT_NAME));
 
     assertNull(spanExporterPropertyModel);
-  }
-
-  @Test
-  void testCustomizeSetsExperimentalStacktraceWhenNotSet() {
-    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        withInstrumentation(
-            new OpenTelemetryConfigurationModel()
-                .setTracerProvider(
-                    new TracerProviderModel().setProcessors(Collections.emptyList())),
-            new ExperimentalInstrumentationModel()
-                .setJava(
-                    new ExperimentalLanguageSpecificInstrumentationModel()
-                        .setAdditionalProperty(
-                            "solarwinds",
-                            new ExperimentalLanguageSpecificInstrumentationPropertyModel())));
-
-    doNothing()
-        .when(declarativeConfigurationCustomizerMock)
-        .addModelCustomizer(functionArgumentCaptor.capture());
-
-    tested.customize(declarativeConfigurationCustomizerMock);
-    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
-    TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
-
-    assertNotNull(tracerProvider);
-    assertTrue(
-        tracerProvider.getProcessors().stream()
-            .anyMatch(
-                processorModel ->
-                    processorModel.getExtensionProperties().containsKey("stacktrace/development")));
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  void testCustomizeSetExperimentalStacktraceFilterWhenNotSet() {
-    OpenTelemetryConfigurationModel openTelemetryConfigurationModel =
-        withInstrumentation(
-            new OpenTelemetryConfigurationModel()
-                .setTracerProvider(
-                    new TracerProviderModel()
-                        .setProcessors(
-                            Collections.singletonList(
-                                new SpanProcessorModel()
-                                    .setExtensionProperty(
-                                        "stacktrace/development", new HashMap<String, Object>())))),
-            new ExperimentalInstrumentationModel()
-                .setJava(
-                    new ExperimentalLanguageSpecificInstrumentationModel()
-                        .setAdditionalProperty(
-                            "solarwinds",
-                            new ExperimentalLanguageSpecificInstrumentationPropertyModel())));
-
-    doNothing()
-        .when(declarativeConfigurationCustomizerMock)
-        .addModelCustomizer(functionArgumentCaptor.capture());
-
-    tested.customize(declarativeConfigurationCustomizerMock);
-    functionArgumentCaptor.getValue().apply(openTelemetryConfigurationModel);
-    TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
-
-    assertNotNull(tracerProvider);
-    Optional<Map<String, Object>> map =
-        tracerProvider.getProcessors().stream()
-            .filter(
-                processorModel ->
-                    processorModel.getExtensionProperties().containsKey("stacktrace/development"))
-            .map(
-                processorModel ->
-                    asMap(processorModel.getExtensionProperties().get("stacktrace/development")))
-            .findFirst();
-
-    assertTrue(map.isPresent());
-    assertNotNull(map.get().get("filter"));
-  }
-
-  @Test
-  void testCustomizeSetsStacktraceFilterWhenStacktraceValueIsNotAMap() {
-    Map<String, Object> stacktrace = customizeWithStacktrace(null);
-
-    assertNotNull(stacktrace.get("filter"));
-  }
-
-  @Test
-  void testCustomizeKeepsUserStacktraceFilterAndOtherProperties() {
-    Map<String, Object> userProperties = new HashMap<>();
-    userProperties.put("filter", "com.example.UserFilter");
-    userProperties.put("min_duration", 5);
-
-    Map<String, Object> stacktrace = customizeWithStacktrace(userProperties);
-
-    assertEquals("com.example.UserFilter", stacktrace.get("filter"));
-    assertEquals(5, stacktrace.get("min_duration"));
-  }
-
-  @Test
-  void testCustomizeAddsStacktraceFilterAndKeepsOtherProperties() {
-    Map<String, Object> userProperties = new HashMap<>();
-    userProperties.put("min_duration", 5);
-
-    Map<String, Object> stacktrace = customizeWithStacktrace(userProperties);
-
-    assertNotNull(stacktrace.get("filter"));
-    assertEquals(5, stacktrace.get("min_duration"));
-  }
-
-  private Map<String, Object> customizeWithStacktrace(Object stacktraceValue) {
-    OpenTelemetryConfigurationModel model =
-        withInstrumentation(
-            new OpenTelemetryConfigurationModel()
-                .setTracerProvider(
-                    new TracerProviderModel()
-                        .setProcessors(
-                            Collections.singletonList(
-                                new SpanProcessorModel()
-                                    .setExtensionProperty(
-                                        "stacktrace/development", stacktraceValue)))),
-            new ExperimentalInstrumentationModel()
-                .setJava(
-                    new ExperimentalLanguageSpecificInstrumentationModel()
-                        .setAdditionalProperty(
-                            "solarwinds",
-                            new ExperimentalLanguageSpecificInstrumentationPropertyModel())));
-
-    doNothing()
-        .when(declarativeConfigurationCustomizerMock)
-        .addModelCustomizer(functionArgumentCaptor.capture());
-
-    tested.customize(declarativeConfigurationCustomizerMock);
-    functionArgumentCaptor.getValue().apply(model);
-
-    return model.getTracerProvider().getProcessors().stream()
-        .filter(p -> p.getExtensionProperties().containsKey("stacktrace/development"))
-        .map(p -> asMap(p.getExtensionProperties().get("stacktrace/development")))
-        .findFirst()
-        .orElseThrow(AssertionError::new);
   }
 
   @Test
