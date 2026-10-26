@@ -137,14 +137,16 @@ instrumentation/development:
   java:
     common:
       default-enabled: true
+    swo_jdbc:
+      sql_tag: true
+      sql_tag_prepared: true
+      sql_tag_databases:
+        - postgresql
+      sql_query_max_length: 4096
     solarwinds:
       agent.logging:
         level: trace
-      agent.sqlTag: true
       agent.tracingMode: enabled
-      agent.sqlTagPrepared: true
-      agent.sqlTagDatabases:
-        - postgresql
       agent.spanStacktraceFilters:
         - http.request.method
       agent.transactionSettings:
@@ -157,6 +159,5 @@ instrumentation/development:
             sampleRate: 100000000
             tracing: "enabled"
       agent.triggerTrace: true
-      agent.sqlQueryMaxLength: 4096
       agent.serviceKey: ${SW_APM_SERVICE_KEY}
       agent.collector: apm.collector.na-01.st-ssp.solarwinds.com

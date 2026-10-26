@@ -151,8 +151,9 @@ instrumentation/development:
   java:
     common:
       default-enabled: true
+    swo_jdbc:
+      sql_tag: true
     solarwinds:
       agent.logging:
         level: trace
-      agent.sqlTag: true
       agent.tracingMode: enabled
