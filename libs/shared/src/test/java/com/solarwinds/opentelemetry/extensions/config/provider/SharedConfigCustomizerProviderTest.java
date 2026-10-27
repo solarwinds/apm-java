@@ -25,6 +25,7 @@ import static org.mockito.Mockito.doNothing;
 
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.opentelemetry.extensions.SharedNames;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.AttributeLimitsModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.BatchLogRecordProcessorModel;
@@ -105,8 +106,7 @@ class SharedConfigCustomizerProviderTest {
     TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
     assertNotNull(tracerProvider);
 
-    SamplerModel sampler = tracerProvider.getSampler();
-    assertNotNull(sampler.getExtensionProperties().get(SamplerComponentProvider.COMPONENT_NAME));
+    assertNull(tracerProvider.getSampler());
     assertEquals(1, tracerProvider.getProcessors().size());
 
     PeriodicMetricReaderModel periodic =
@@ -168,8 +168,7 @@ class SharedConfigCustomizerProviderTest {
     TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
     assertNotNull(tracerProvider);
 
-    SamplerModel sampler = tracerProvider.getSampler();
-    assertNotNull(sampler.getExtensionProperties().get(SamplerComponentProvider.COMPONENT_NAME));
+    assertNull(tracerProvider.getSampler());
     assertEquals(1, tracerProvider.getProcessors().size());
 
     PeriodicMetricReaderModel periodic =
@@ -600,7 +599,7 @@ class SharedConfigCustomizerProviderTest {
     TracerProviderModel tracerProvider = openTelemetryConfigurationModel.getTracerProvider();
     SamplerModel sampler = tracerProvider.getSampler();
 
-    assertNull(sampler.getExtensionProperties().get(SamplerComponentProvider.COMPONENT_NAME));
+    assertNull(sampler.getExtensionProperties().get(SharedNames.HTTP_SAMPLER_NAME));
     assertTrue(sampler.getExtensionProperties().containsKey("cel"));
   }
 
@@ -633,7 +632,7 @@ class SharedConfigCustomizerProviderTest {
 
     assertNull(openTelemetryConfigurationModel.getLoggerProvider());
     assertNotNull(openTelemetryConfigurationModel.getTracerProvider());
-    assertNotNull(openTelemetryConfigurationModel.getTracerProvider().getSampler());
+    assertNull(openTelemetryConfigurationModel.getTracerProvider().getSampler());
     assertNotNull(openTelemetryConfigurationModel.getMeterProvider());
   }
 

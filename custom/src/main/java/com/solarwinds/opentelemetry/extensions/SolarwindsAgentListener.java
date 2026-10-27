@@ -61,6 +61,7 @@ public class SolarwindsAgentListener implements AgentListener {
           "Successfully submitted SolarwindsAPM OpenTelemetry extensions initialization tasks");
     } else {
       autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk().shutdown();
+      SettingsManager.reset();
     }
   }
 
@@ -90,11 +91,14 @@ public class SolarwindsAgentListener implements AgentListener {
                             + " ip addresses: "
                             + ipAddresses);
 
-                CountDownLatch settingsLatch =
-                    SettingsManager.initialize(
-                        new HttpSettingsFetcher(
-                            new HttpSettingsReader(new HttpSettingsReaderDelegate()), 60),
-                        SamplingConfigProvider.getSamplingConfiguration());
+                if (!SettingsManager.isInitialized()) {
+                  SettingsManager.initialize(
+                      new HttpSettingsFetcher(
+                          HttpSettingsReader.forSystemConfig(new HttpSettingsReaderDelegate()), 60),
+                      SamplingConfigProvider.getSamplingConfiguration());
+                }
+
+                CountDownLatch settingsLatch = SettingsManager.getSettingsAvailableLatch();
                 logger.debug("Initialized HostUtils");
 
                 ProfilerSetting profilerSetting =

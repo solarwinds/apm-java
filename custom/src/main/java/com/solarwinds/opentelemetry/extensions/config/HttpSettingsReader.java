@@ -23,6 +23,7 @@ import com.solarwinds.joboe.core.settings.SettingsReader;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.Settings;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,20 +33,44 @@ public class HttpSettingsReader implements SettingsReader {
 
   private static final Logger logger = LoggerFactory.getLogger();
 
+  private static final String DEFAULT_COLLECTOR = "apm.collector.na-01.cloud.solarwinds.com";
+
+  private static final String DEFAULT_SERVICE_KEY = ":unknown-java";
+
   private final HttpSettingsReaderDelegate delegate;
 
-  public HttpSettingsReader(HttpSettingsReaderDelegate delegate) {
+  private final Supplier<String> collector;
+
+  private final Supplier<String> serviceKey;
+
+  public static HttpSettingsReader forSystemConfig(HttpSettingsReaderDelegate delegate) {
+    return new HttpSettingsReader(
+        delegate,
+        () -> ConfigManager.getConfigOptional(ConfigProperty.AGENT_COLLECTOR, DEFAULT_COLLECTOR),
+        () ->
+            ConfigManager.getConfigOptional(ConfigProperty.AGENT_SERVICE_KEY, DEFAULT_SERVICE_KEY));
+  }
+
+  public static HttpSettingsReader forFileConfig(
+      HttpSettingsReaderDelegate delegate, String collector, String serviceKey) {
+    return new HttpSettingsReader(
+        delegate, () -> collector != null ? collector : DEFAULT_COLLECTOR, () -> serviceKey);
+  }
+
+  private HttpSettingsReader(
+      HttpSettingsReaderDelegate delegate,
+      Supplier<String> collector,
+      Supplier<String> serviceKey) {
+
     this.delegate = delegate;
+    this.collector = collector;
+    this.serviceKey = serviceKey;
   }
 
   @Override
   public Settings getSettings() {
-    String collectorUrl =
-        constructSettingsEndpoint(
-            ConfigManager.getConfigOptional(
-                ConfigProperty.AGENT_COLLECTOR, "apm.collector.na-01.cloud.solarwinds.com"));
-    String serviceKey =
-        ConfigManager.getConfigOptional(ConfigProperty.AGENT_SERVICE_KEY, ":unknown-java");
+    String collectorUrl = constructSettingsEndpoint(collector.get());
+    String serviceKey = this.serviceKey.get();
     String serviceName = ServiceKeyUtils.getServiceName(serviceKey);
 
     String apiToken = ServiceKeyUtils.getApiKey(serviceKey);

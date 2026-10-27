@@ -32,6 +32,7 @@ dependencies {
   compileOnly("io.opentelemetry:opentelemetry-api")
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
+  compileOnly("io.opentelemetry:opentelemetry-api-incubator")
 
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
@@ -41,6 +42,8 @@ dependencies {
   testImplementation(project(":libs:config"))
   testImplementation(project(":libs:sampling"))
   testImplementation(project(":libs:shared"))
+  testImplementation("io.opentelemetry:opentelemetry-api-incubator")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-extension-declarative-config")
 }
 
 tasks.named<JavaCompile>("compileJava") {

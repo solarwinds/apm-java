@@ -25,6 +25,10 @@ public final class SharedNames {
 
   public static final String COMPONENT_NAME = "solarwinds";
 
+  public static final String HTTP_SAMPLER_NAME = "swo_http";
+
+  public static final String JSON_SAMPLER_NAME = "swo_json";
+
   public static final String SPAN_STACKTRACE_FILTER_CLASS =
       "com.solarwinds.opentelemetry.extensions.SpanStacktraceFilter";
 
