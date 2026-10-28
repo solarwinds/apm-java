@@ -29,8 +29,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Drop-in replacement for {@code stacktrace/development} that defaults the span filter to {@link
- * SpanStacktraceFilter}. The span attribute keys that trigger capture are set with {@code filters};
- * {@code db.system} always applies.
+ * SpanStacktraceFilter}. The span attribute keys that trigger capture are set with {@code
+ * selectors}; {@code db.system} always applies.
  */
 @AutoService(ComponentProvider.class)
 public class StacktraceComponentProvider implements ComponentProvider {
@@ -62,9 +62,10 @@ public class StacktraceComponentProvider implements ComponentProvider {
       return new StackTraceComponentProvider().create(declarativeConfigProperties);
     }
 
-    List<String> filters =
-        declarativeConfigProperties.getScalarList("filters", String.class, Collections.emptyList());
-    SpanStacktraceFilter filter = new SpanStacktraceFilter(filters);
+    List<String> selectors =
+        declarativeConfigProperties.getScalarList(
+            "selectors", String.class, Collections.emptyList());
+    SpanStacktraceFilter filter = new SpanStacktraceFilter(selectors);
 
     return new StackTraceSpanProcessor(TimeUnit.MILLISECONDS.toNanos(minDurationMillis), filter);
   }

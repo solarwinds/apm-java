@@ -80,9 +80,9 @@ class StacktraceComponentProviderTest {
   }
 
   @Test
-  void capturesStacktraceForAttributeInFiltersProperty() {
+  void capturesStacktraceForAttributeInSelectorsProperty() {
     DeclarativeConfigProperties config = config(5, null);
-    when(config.getScalarList(eq("filters"), eq(String.class), anyList()))
+    when(config.getScalarList(eq("selectors"), eq(String.class), anyList()))
         .thenReturn(Collections.singletonList("http.request.method"));
     ReadWriteSpan span = span(TimeUnit.MILLISECONDS.toNanos(10), "http.request.method");
 
@@ -150,7 +150,7 @@ class StacktraceComponentProviderTest {
     when(config.getLong(eq("min_duration"), anyLong())).thenReturn(minDuration);
 
     when(config.getString("filter")).thenReturn(filter);
-    when(config.getScalarList(eq("filters"), eq(String.class), anyList()))
+    when(config.getScalarList(eq("selectors"), eq(String.class), anyList()))
         .thenAnswer(i -> i.getArgument(2));
     return config;
   }

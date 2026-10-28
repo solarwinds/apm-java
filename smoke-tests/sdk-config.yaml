@@ -74,7 +74,7 @@ tracer_provider:
           - sunw
     - swo_stacktrace:
         min_duration: 0
-        filters:
+        selectors:
           - http.request.method
           - process.pid
     - # Configure a batch span processor.
