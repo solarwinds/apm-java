@@ -147,8 +147,6 @@ instrumentation/development:
       agent.logging:
         level: trace
       agent.tracingMode: enabled
-      agent.spanStacktraceFilters:
-        - http.request.method
       agent.transactionSettings:
         -
           regex: ".*/specialties"

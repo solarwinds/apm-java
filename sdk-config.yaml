@@ -48,6 +48,7 @@ propagator:
 # Configure tracer provider.
 tracer_provider:
   processors:
+    - swo_stacktrace:
     - swo_response_time:
     - swo_profiler:
         enabled: false

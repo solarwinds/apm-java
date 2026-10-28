@@ -20,6 +20,7 @@ import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.trace.ReadableSpan;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,18 +28,29 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class SpanStacktraceFilter implements Predicate<ReadableSpan> {
-  private Set<String> filterAttributes = new HashSet<>();
+  private static final String DEFAULT_SELECTOR_ATTRIBUTE = "db.system";
+
+  private Set<String> selectorAttributes = new HashSet<>();
+
+  public SpanStacktraceFilter() {}
+
+  public SpanStacktraceFilter(Collection<String> configuredFilterAttributes) {
+    Set<String> effectiveFilterAttributes = new HashSet<>(configuredFilterAttributes);
+    effectiveFilterAttributes.add(DEFAULT_SELECTOR_ATTRIBUTE);
+    selectorAttributes = effectiveFilterAttributes;
+  }
 
   @Override
   public boolean test(ReadableSpan readableSpan) {
-    if (filterAttributes.isEmpty()) {
+    if (selectorAttributes.isEmpty()) {
       Set<String> configuredFilterAttributes =
           ConfigManager.getConfigOptional(
-              ConfigProperty.AGENT_SPAN_STACKTRACE_FILTERS, Collections.singleton("db.system"));
+              ConfigProperty.AGENT_SPAN_STACKTRACE_FILTERS,
+              Collections.singleton(DEFAULT_SELECTOR_ATTRIBUTE));
 
       Set<String> effectiveFilterAttributes = new HashSet<>(configuredFilterAttributes);
-      effectiveFilterAttributes.add("db.system");
-      filterAttributes = effectiveFilterAttributes;
+      effectiveFilterAttributes.add(DEFAULT_SELECTOR_ATTRIBUTE);
+      selectorAttributes = effectiveFilterAttributes;
     }
 
     Set<String> attributes =
@@ -46,6 +58,6 @@ public class SpanStacktraceFilter implements Predicate<ReadableSpan> {
             .map(AttributeKey::getKey)
             .collect(Collectors.toSet());
 
-    return filterAttributes.stream().anyMatch(attributes::contains);
+    return selectorAttributes.stream().anyMatch(attributes::contains);
   }
 }

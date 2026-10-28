@@ -16,8 +16,6 @@
 
 package com.solarwinds.opentelemetry.extensions.config.provider;
 
-import static com.solarwinds.opentelemetry.extensions.SharedNames.SPAN_STACKTRACE_FILTER_CLASS;
-
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
@@ -52,7 +50,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
 public class SharedConfigCustomizerProvider implements DeclarativeConfigurationCustomizerProvider {
@@ -88,7 +85,6 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
           addMetricExporter(configurationModel);
           if (tracerProvider != null) {
             addSampler(tracerProvider);
-            addProcessors(tracerProvider);
 
             addSpanExporter(configurationModel);
           }
@@ -108,44 +104,6 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
     }
 
     return properties;
-  }
-
-  private void addProcessors(TracerProviderModel model) {
-    List<SpanProcessorModel> spanProcessorModels = model.getProcessors();
-    if (spanProcessorModels == null) {
-      spanProcessorModels = new ArrayList<>();
-    }
-
-    ArrayList<SpanProcessorModel> allProcessors = new ArrayList<>(spanProcessorModels);
-    String experimentalStacktrace = "stacktrace/development";
-    Optional<SpanProcessorModel> modelOptional =
-        spanProcessorModels.stream()
-            .filter(
-                processorModel ->
-                    processorModel.getExtensionProperties().containsKey(experimentalStacktrace))
-            .findFirst();
-
-    if (!modelOptional.isPresent()) {
-      allProcessors.add(
-          new SpanProcessorModel()
-              .setExtensionProperty(
-                  experimentalStacktrace, properties("filter", SPAN_STACKTRACE_FILTER_CLASS)));
-    } else {
-      SpanProcessorModel spanProcessorModel = modelOptional.get();
-      Object existing = spanProcessorModel.getExtensionProperties().get(experimentalStacktrace);
-      Map<String, Object> stacktraceProperties = new LinkedHashMap<>();
-
-      if (existing instanceof Map) {
-        ((Map<?, ?>) existing).forEach((k, v) -> stacktraceProperties.put(String.valueOf(k), v));
-      }
-
-      if (!stacktraceProperties.containsKey("filter")) {
-        stacktraceProperties.put("filter", SPAN_STACKTRACE_FILTER_CLASS);
-        spanProcessorModel.setExtensionProperty(experimentalStacktrace, stacktraceProperties);
-      }
-    }
-
-    model.setProcessors(allProcessors);
   }
 
   private void addSampler(TracerProviderModel model) {
