@@ -16,8 +16,6 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
-import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
-
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
@@ -38,11 +36,14 @@ import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReader;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReaderDelegate;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 
 /**
  * Executes startup task after it's safe to do so. See <a
@@ -139,11 +140,6 @@ public class SolarwindsAgentListener implements AgentListener {
         new Thread("SolarwindsAPM-shutdown-hook") {
           @Override
           public void run() {
-            if (ReporterProvider.getEventReporter() != null) {
-              ReporterProvider.getEventReporter()
-                  .close(); // close event reporter properly to give it chance to send out pending
-              // events in queue
-            }
             ClientManagerProvider
                 .closeAllManagers(); // close all rpc client, this should flush out all messages or
             // stop immediately (if not connected)
