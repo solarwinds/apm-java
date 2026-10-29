@@ -21,8 +21,10 @@ import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
+import com.solarwinds.joboe.config.ProxyConfig;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;
 import com.solarwinds.opentelemetry.extensions.SolarwindsProfilingSpanProcessor;
+import com.solarwinds.opentelemetry.extensions.config.ProxyHelper;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.trace.SpanProcessor;
@@ -51,8 +53,8 @@ public class ProfilingSpanProcessorComponentProvider implements ComponentProvide
   @Override
   public SpanProcessor create(DeclarativeConfigProperties declarativeConfigProperties) {
     try {
-      ProfilerSetting convert = convert(declarativeConfigProperties);
-      ConfigManager.setConfig(ConfigProperty.PROFILER, convert);
+      ProfilerSetting profilerSetting = convert(declarativeConfigProperties);
+      ConfigManager.setConfig(ConfigProperty.PROFILER, profilerSetting);
     } catch (InvalidConfigException e) {
       throw new RuntimeException(e);
     }
@@ -81,6 +83,11 @@ public class ProfilingSpanProcessorComponentProvider implements ComponentProvide
               + ProfilerSetting.MIN_INTERVAL
               + " but found "
               + interval);
+    }
+
+    ProxyConfig proxyConfig = ProxyHelper.toProxyConfig(profilerSettings);
+    if (proxyConfig != null) {
+      ConfigManager.setConfig(ConfigProperty.AGENT_PROXY, proxyConfig);
     }
 
     List<String> excludePackages =

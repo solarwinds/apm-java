@@ -19,10 +19,9 @@ package com.solarwinds.opentelemetry.extensions.config.provider;
 import static io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil.DATA_TYPE_METRICS;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.config.ConfigManager;
-import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.ProxyConfig;
 import com.solarwinds.opentelemetry.extensions.DelegatingMetricExporter;
+import com.solarwinds.opentelemetry.extensions.config.ProxyHelper;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.api.metrics.MeterProvider;
 import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
@@ -37,7 +36,7 @@ import java.net.InetSocketAddress;
 @AutoService(ComponentProvider.class)
 public class MetricExporterComponentProvider implements ComponentProvider {
 
-  public static final String COMPONENT_NAME = "swo/metricExporter";
+  public static final String COMPONENT_NAME = "swo_otlp";
 
   @Override
   public Class<MetricExporter> getType() {
@@ -71,12 +70,13 @@ public class MetricExporterComponentProvider implements ComponentProvider {
 
     builder.setAggregationTemporalitySelector(AggregationTemporalitySelector.deltaPreferred());
 
-    ProxyConfig proxyConfig = (ProxyConfig) ConfigManager.getConfig(ConfigProperty.AGENT_PROXY);
+    ProxyConfig proxyConfig = ProxyHelper.toProxyConfig(config);
     if (proxyConfig != null) {
       builder.setProxyOptions(
           ProxyOptions.create(new InetSocketAddress(proxyConfig.getHost(), proxyConfig.getPort())));
     }
 
-    return new DelegatingMetricExporter(builder.build());
+    return new DelegatingMetricExporter(
+        builder.build(), config.getBoolean("metric_export_enabled", true));
   }
 }

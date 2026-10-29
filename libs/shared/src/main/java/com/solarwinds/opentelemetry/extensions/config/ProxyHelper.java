@@ -19,6 +19,9 @@ package com.solarwinds.opentelemetry.extensions.config;
 import static com.solarwinds.opentelemetry.extensions.SharedNames.SW_OTEL_PROXY_HOST_KEY;
 import static com.solarwinds.opentelemetry.extensions.SharedNames.SW_OTEL_PROXY_PORT_KEY;
 
+import com.solarwinds.joboe.config.ProxyConfig;
+import com.solarwinds.joboe.logging.LoggerFactory;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 
 public final class ProxyHelper {
@@ -27,5 +30,24 @@ public final class ProxyHelper {
   public static boolean isProxyConfigured(ConfigProperties properties) {
     return properties.getString(SW_OTEL_PROXY_HOST_KEY) != null
         && properties.getInt(SW_OTEL_PROXY_PORT_KEY) != null;
+  }
+
+  public static ProxyConfig toProxyConfig(DeclarativeConfigProperties properties) {
+
+    DeclarativeConfigProperties proxy = properties.getStructured("proxy");
+    if (proxy == null) {
+      return null;
+    }
+
+    String host = proxy.getString("host");
+    Integer port = proxy.getInt("port");
+    if (host == null || port == null || port < 1 || port > 65535) {
+      LoggerFactory.getLogger()
+          .warn(
+              "Proxy is specified but no host or port specified or port is specified 1-65535 range");
+      return null;
+    }
+
+    return new ProxyConfig(host, port, null, null);
   }
 }

@@ -84,9 +84,7 @@ meter_provider:
         # Configure exporter.
         exporter:
           # Configure exporter to be OTLP.
-          swo/metricExporter:
-            # Configure protocol.
-            protocol: grpc
+          swo_otlp:
             # Configure endpoint.
             endpoint: https://otel.collector.na-01.st-ssp.solarwinds.com
             # Configure certificate.

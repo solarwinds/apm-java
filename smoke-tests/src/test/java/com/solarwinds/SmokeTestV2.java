@@ -26,6 +26,7 @@ import com.solarwinds.containers.K6Container;
 import com.solarwinds.containers.PetClinicRestContainer;
 import com.solarwinds.containers.PostgresContainer;
 import com.solarwinds.containers.SpringBootWebMvcContainer;
+import com.solarwinds.containers.SquidContainer;
 import com.solarwinds.results.ResultsCollector;
 import com.solarwinds.util.LogStreamAnalyzer;
 import com.solarwinds.util.NamingConventions;
@@ -61,7 +62,9 @@ public class SmokeTestV2 {
                     "Extension attached!",
                     "trace_id=[a-z0-9]+\\s+span_id=[a-z0-9]+\\s+trace_flags=[0-9a-f]{2}",
                     "Applying instrumentation: sw-jdbc",
-                    "Clearing transaction name buffer. Unique transaction count: \\d+")
+                    "Clearing transaction name buffer. Unique transaction count: \\d+",
+                    "CONNECT otel.collector.na-01.st-ssp.solarwinds.com:443",
+                    "CONNECT apm.collector.na-01.st-ssp.solarwinds.com:443")
             , new Slf4jLogConsumer(LoggerFactory.getLogger("k6")));
 
 
@@ -81,6 +84,10 @@ public class SmokeTestV2 {
     }
 
     static void runAppOnce(Agent agent) throws Exception {
+        GenericContainer<?> squid = new SquidContainer(NETWORK).build();
+        squid.start();
+        squid.followOutput(logStreamAnalyzer);
+
         GenericContainer<?> webMvc = new SpringBootWebMvcContainer(new SwoAgentResolver(), NETWORK, agent).build();
         webMvc.start();
         webMvc.followOutput(logStreamAnalyzer);
@@ -102,6 +109,8 @@ public class SmokeTestV2 {
         petClinic.execInContainer("kill", "1");
         webMvc.execInContainer("kill", "1");
         webMvcAo.execInContainer("kill", "1");
+
+        squid.execInContainer("kill", "1");
         postgres.stop();
 
     }
@@ -163,5 +172,17 @@ public class SmokeTestV2 {
         double passes = ResultsCollector.read(resultJson,
                 "$.root_group.checks.['otel-metrics-17'].passes");
         assertTrue(passes > 0, "JVM 17+ runtime metric export is broken");
+    }
+
+    @Test
+    void assertThatProxyIsUsed() {
+        Boolean actual = logStreamAnalyzer.getAnswer().get("CONNECT otel.collector.na-01.st-ssp.solarwinds.com:443");
+        assertTrue(actual, "not using proxy");
+    }
+
+    @Test
+    void assertThatSamplerUsesProxy() {
+        Boolean actual = logStreamAnalyzer.getAnswer().get("CONNECT apm.collector.na-01.st-ssp.solarwinds.com:443");
+        assertTrue(actual, "sampler not using proxy");
     }
 }

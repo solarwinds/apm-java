@@ -19,9 +19,8 @@ package com.solarwinds.opentelemetry.extensions.config.provider;
 import static io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil.DATA_TYPE_LOGS;
 
 import com.google.auto.service.AutoService;
-import com.solarwinds.joboe.config.ConfigManager;
-import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.ProxyConfig;
+import com.solarwinds.opentelemetry.extensions.config.ProxyHelper;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.api.metrics.MeterProvider;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
@@ -35,7 +34,7 @@ import java.net.InetSocketAddress;
 @AutoService(ComponentProvider.class)
 public class LogExporterComponentProvider implements ComponentProvider {
 
-  public static final String COMPONENT_NAME = "swo/logExporter";
+  public static final String COMPONENT_NAME = "swo_otlp";
 
   @Override
   public Class<LogRecordExporter> getType() {
@@ -67,7 +66,7 @@ public class LogExporterComponentProvider implements ComponentProvider {
         builder::setInternalTelemetryVersion,
         () -> builder.setMeterProvider(MeterProvider::noop));
 
-    ProxyConfig proxyConfig = (ProxyConfig) ConfigManager.getConfig(ConfigProperty.AGENT_PROXY);
+    ProxyConfig proxyConfig = ProxyHelper.toProxyConfig(config);
     if (proxyConfig != null) {
       builder.setProxyOptions(
           ProxyOptions.create(new InetSocketAddress(proxyConfig.getHost(), proxyConfig.getPort())));

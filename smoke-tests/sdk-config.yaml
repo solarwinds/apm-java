@@ -65,6 +65,9 @@ tracer_provider:
               - http.method
     - swo_profiler:
         enabled: true
+        proxy:
+          host: squid-proxy
+          port: 3128
         interval: 20
         exclude_packages:
           - java
@@ -82,9 +85,13 @@ tracer_provider:
         # Configure exporter.
         exporter:
           # Configure exporter to be OTLP.
-          otlp_grpc:
+          swo_otlp:
             # Configure endpoint.
-            endpoint: https://otel.collector.na-01.st-ssp.solarwinds.com
+            endpoint: https://otel.collector.na-01.st-ssp.solarwinds.com/v1/traces
+            # Configure proxy.
+            proxy:
+              host: squid-proxy
+              port: 3128
             # Configure compression.
             compression: gzip
             # Configure max time (in milliseconds) to wait for each export.
@@ -99,6 +106,9 @@ tracer_provider:
             swo_http:
               service_key: ${SW_APM_SERVICE_KEY}
               collector: apm.collector.na-01.st-ssp.solarwinds.com
+              proxy:
+                host: squid-proxy
+                port: 3128
               transaction_settings:
                 - regex: ".*/specialties"
                   tracing: "disabled"
@@ -118,11 +128,13 @@ meter_provider:
         # Configure exporter.
         exporter:
           # Configure exporter to be OTLP.
-          swo/metricExporter:
-            # Configure protocol.
-            protocol: grpc
+          swo_otlp:
             # Configure endpoint.
-            endpoint: https://otel.collector.na-01.st-ssp.solarwinds.com
+            endpoint: https://otel.collector.na-01.st-ssp.solarwinds.com/v1/metrics
+            # Configure proxy.
+            proxy:
+              host: squid-proxy
+              port: 3128
             # Configure compression.
             compression: gzip
             # Configure max time (in milliseconds) to wait for each export.
@@ -151,9 +163,13 @@ logger_provider:
         # Configure exporter.
         exporter:
           # Configure exporter to be OTLP.
-          otlp_grpc:
+          swo_otlp:
             # Configure endpoint.
-            endpoint: https://otel.collector.na-01.st-ssp.solarwinds.com
+            endpoint: https://otel.collector.na-01.st-ssp.solarwinds.com/v1/logs
+            # Configure proxy.
+            proxy:
+              host: squid-proxy
+              port: 3128
             # Configure compression.
             compression: gzip
             # Configure max time (in milliseconds) to wait for each export.

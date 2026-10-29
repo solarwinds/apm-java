@@ -16,7 +16,9 @@
 
 package com.solarwinds.opentelemetry.extensions.config.provider;
 
+import static com.solarwinds.opentelemetry.extensions.config.provider.ExporterConfigs.exporterConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import org.junit.jupiter.api.Test;
@@ -26,11 +28,38 @@ class SpanExporterComponentProviderTest {
 
   @Test
   void testName() {
-    assertEquals("swo/spanExporter", tested.getName());
+    assertEquals("swo_otlp", tested.getName());
   }
 
   @Test
   void testGetType() {
     assertEquals(SpanExporter.class, tested.getType());
+  }
+
+  @Test
+  void testCreateWithProxy() {
+    SpanExporter exporter =
+        tested.create(
+            exporterConfig(
+                "swo_otlp:\n"
+                    + "  endpoint: https://localhost:4318/v1/traces\n"
+                    + "  proxy:\n"
+                    + "    host: localhost\n"
+                    + "    port: 3128\n"));
+
+    String description = exporter.toString();
+    exporter.shutdown();
+    assertTrue(description.contains("proxyOptions=ProxyOptions"), description);
+    assertTrue(description.contains(":3128}"), description);
+  }
+
+  @Test
+  void testCreateWithoutProxy() {
+    SpanExporter exporter =
+        tested.create(exporterConfig("swo_otlp:\n  endpoint: https://localhost:4318/v1/traces\n"));
+
+    String description = exporter.toString();
+    exporter.shutdown();
+    assertTrue(description.contains("proxyOptions=null"), description);
   }
 }

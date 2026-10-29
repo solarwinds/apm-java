@@ -26,6 +26,7 @@ import com.solarwinds.opentelemetry.extensions.SharedNames;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsFetcher;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReader;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReaderDelegate;
+import com.solarwinds.opentelemetry.extensions.config.ProxyHelper;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import java.util.function.Function;
@@ -101,7 +102,7 @@ public class HttpSamplerComponentProvider extends AbstractSamplerComponentProvid
     serviceKey = ServiceKeyUtils.transformServiceKey(serviceKey);
     return new HttpSettingsFetcher(
         HttpSettingsReader.forFileConfig(
-            delegateFactory.apply(parseProxy(properties)), collector, serviceKey),
+            delegateFactory.apply(ProxyHelper.toProxyConfig(properties)), collector, serviceKey),
         POLLING_INTERVAL_SECONDS);
   }
 
@@ -122,21 +123,5 @@ public class HttpSamplerComponentProvider extends AbstractSamplerComponentProvid
       throw new InvalidConfigException("Invalid sampler " + key + " config, value cannot be empty");
     }
     return value;
-  }
-
-  private ProxyConfig parseProxy(DeclarativeConfigProperties properties)
-      throws InvalidConfigException {
-    DeclarativeConfigProperties proxy = properties.getStructured(PROXY);
-    if (proxy == null) {
-      return null;
-    }
-
-    String host = proxy.getString(PROXY_HOST);
-    Integer port = proxy.getInt(PROXY_PORT);
-    if (host == null || host.isEmpty() || port == null || port < 1 || port > 65535) {
-      throw new InvalidConfigException(
-          "Invalid sampler proxy config, both proxy.host and a valid proxy.port are required");
-    }
-    return new ProxyConfig(host, port, null, null);
   }
 }
