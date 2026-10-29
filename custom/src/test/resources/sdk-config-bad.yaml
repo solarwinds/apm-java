@@ -29,4 +29,5 @@ tracer_provider:
   processors:
     - swo_profiler:
         enabled: true
+        service_key: token:service
         interval: 1

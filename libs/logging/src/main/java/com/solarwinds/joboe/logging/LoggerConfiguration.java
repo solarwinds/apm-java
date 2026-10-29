@@ -23,6 +23,7 @@ import lombok.Value;
 @Value
 @Builder
 public class LoggerConfiguration {
+
   @Builder.Default
   LogSetting logSetting = new LogSetting(Logger.Level.INFO, true, true, null, null, null);
 

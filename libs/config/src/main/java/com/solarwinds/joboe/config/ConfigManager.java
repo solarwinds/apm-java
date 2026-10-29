@@ -27,8 +27,19 @@ public class ConfigManager {
 
   private ConfigManager() {}
 
+  /**
+   * Initializes the configs. If configs were already set, {@code configs} is merged into them and
+   * takes precedence for keys present in both.
+   *
+   * @param configs the configs to initialize with
+   */
   public static void initialize(ConfigContainer configs) {
-    SINGLETON.configs = configs;
+    if (SINGLETON.configs == null) {
+      SINGLETON.configs = configs;
+    } else {
+      SINGLETON.configs.merge(configs);
+      logger.debug("ConfigManager already initialized, merged new configs");
+    }
   }
 
   /** For internal testing - reset the states of the ConfigManager */

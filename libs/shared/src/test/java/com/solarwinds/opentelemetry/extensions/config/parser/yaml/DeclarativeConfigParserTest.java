@@ -17,6 +17,7 @@
 package com.solarwinds.opentelemetry.extensions.config.parser.yaml;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -36,6 +37,8 @@ import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -53,65 +56,30 @@ class DeclarativeConfigParserTest {
     assertThrows(InvalidConfigException.class, () -> parser.parse(declarativeConfigPropertiesMock));
   }
 
-  @Test
-  void testStringParsing() throws InvalidConfigException {
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "agent.logging",
+        "agent.serviceKey",
+        "agent.collector",
+        "agent.sqlTagPrepared",
+        "agent.collectorTimeout",
+        "agent.configFileWatchPeriod"
+      })
+  void throwForKeysOtherThanLogging(String key) {
     ConfigContainer configContainer = new ConfigContainer();
     DeclarativeConfigParser parser = new DeclarativeConfigParser(configContainer);
-    Set<String> keys = new HashSet<>(Collections.singletonList("agent.serviceKey"));
 
-    when(declarativeConfigPropertiesMock.getPropertyKeys()).thenReturn(keys);
-    when(declarativeConfigPropertiesMock.getString(eq("agent.serviceKey")))
-        .thenReturn("token:service");
-
-    parser.parse(declarativeConfigPropertiesMock);
-    assertEquals("token:service", configContainer.get(ConfigProperty.AGENT_SERVICE_KEY));
-  }
-
-  @Test
-  void testBooleanParsing() throws InvalidConfigException {
-    ConfigContainer configContainer = new ConfigContainer();
-    DeclarativeConfigParser parser = new DeclarativeConfigParser(configContainer);
-    Set<String> keys = new HashSet<>(Collections.singletonList("agent.sqlTagPrepared"));
-
-    when(declarativeConfigPropertiesMock.getPropertyKeys()).thenReturn(keys);
-    when(declarativeConfigPropertiesMock.getBoolean(eq("agent.sqlTagPrepared"))).thenReturn(false);
-
-    parser.parse(declarativeConfigPropertiesMock);
-    assertEquals(false, configContainer.get(ConfigProperty.AGENT_SQL_TAG_PREPARED));
-  }
-
-  @Test
-  void testIntegerParsing() throws InvalidConfigException {
-    ConfigContainer configContainer = new ConfigContainer();
-    DeclarativeConfigParser parser = new DeclarativeConfigParser(configContainer);
-    Set<String> keys = new HashSet<>(Collections.singletonList("agent.collectorTimeout"));
-
-    when(declarativeConfigPropertiesMock.getPropertyKeys()).thenReturn(keys);
-    when(declarativeConfigPropertiesMock.getInt(eq("agent.collectorTimeout"))).thenReturn(10);
-
-    parser.parse(declarativeConfigPropertiesMock);
-    assertEquals(10, configContainer.get(ConfigProperty.AGENT_COLLECTOR_TIMEOUT));
-  }
-
-  @Test
-  void testLongParsing() throws InvalidConfigException {
-    ConfigContainer configContainer = new ConfigContainer();
-    DeclarativeConfigParser parser = new DeclarativeConfigParser(configContainer);
-    Set<String> keys = new HashSet<>(Collections.singletonList("agent.configFileWatchPeriod"));
-
-    when(declarativeConfigPropertiesMock.getPropertyKeys()).thenReturn(keys);
-    when(declarativeConfigPropertiesMock.getLong(eq("agent.configFileWatchPeriod")))
-        .thenReturn(1000000L);
-
-    parser.parse(declarativeConfigPropertiesMock);
-    assertEquals(1000000L, configContainer.get(ConfigProperty.AGENT_CONFIG_FILE_WATCH_PERIOD));
+    when(declarativeConfigPropertiesMock.getPropertyKeys()).thenReturn(Collections.singleton(key));
+    assertThrows(InvalidConfigException.class, () -> parser.parse(declarativeConfigPropertiesMock));
+    assertNull(configContainer.get(ConfigProperty.fromConfigFileKey(key)));
   }
 
   @Test
   void testStructuredParsing() throws InvalidConfigException {
     ConfigContainer configContainer = new ConfigContainer();
     DeclarativeConfigParser parser = new DeclarativeConfigParser(configContainer);
-    Set<String> keys = new HashSet<>(Collections.singletonList("agent.logging"));
+    Set<String> keys = new HashSet<>(Collections.singletonList("logging"));
 
     when(declarativeConfigPropertiesMock.getPropertyKeys()).thenReturn(keys);
     when(declarativeConfigPropertiesMock.getStructured(any(), any()))
@@ -121,8 +89,7 @@ class DeclarativeConfigParserTest {
     when(declarativeConfigPropertiesMock.getString(eq("level"), any())).thenReturn("debug");
     parser.parse(declarativeConfigPropertiesMock);
 
-    verify(declarativeConfigPropertiesMock, atLeastOnce())
-        .getStructured(eq("agent.logging"), any());
+    verify(declarativeConfigPropertiesMock, atLeastOnce()).getStructured(eq("logging"), any());
 
     LogSetting logSetting = (LogSetting) configContainer.get(ConfigProperty.AGENT_LOGGING);
     assertEquals(Logger.Level.DEBUG, logSetting.getLevel());

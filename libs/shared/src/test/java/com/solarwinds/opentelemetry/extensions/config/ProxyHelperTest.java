@@ -18,12 +18,19 @@ package com.solarwinds.opentelemetry.extensions.config;
 
 import static com.solarwinds.opentelemetry.extensions.SharedNames.SW_OTEL_PROXY_HOST_KEY;
 import static com.solarwinds.opentelemetry.extensions.SharedNames.SW_OTEL_PROXY_PORT_KEY;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import com.solarwinds.joboe.config.ProxyConfig;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfiguration;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -54,5 +61,39 @@ class ProxyHelperTest {
     when(configProperties.getInt(eq(SW_OTEL_PROXY_PORT_KEY))).thenReturn(null);
 
     assertFalse(ProxyHelper.isProxyConfigured(configProperties));
+  }
+
+  @Test
+  void shouldReturnProxyConfigWhenHostAndPortPresent() {
+    ProxyConfig proxyConfig =
+        ProxyHelper.toProxyConfig(
+            fromYaml("swo_otlp:\n  proxy:\n    host: proxy.local\n    port: 3128\n"));
+
+    assertEquals("proxy.local", proxyConfig.getHost());
+    assertEquals(3128, proxyConfig.getPort());
+
+    assertNull(proxyConfig.getUsername());
+    assertNull(proxyConfig.getPassword());
+  }
+
+  @Test
+  void shouldReturnNullWhenProxyAbsent() {
+    assertNull(ProxyHelper.toProxyConfig(fromYaml("swo_otlp:\n  endpoint: https://localhost\n")));
+  }
+
+  @Test
+  void shouldReturnNullWhenProxyHostAbsent() {
+    assertNull(ProxyHelper.toProxyConfig(fromYaml("swo_otlp:\n  proxy:\n    port: 3128\n")));
+  }
+
+  @Test
+  void shouldReturnNullWhenProxyPortAbsent() {
+    assertNull(ProxyHelper.toProxyConfig(fromYaml("swo_otlp:\n  proxy:\n    host: proxy.local\n")));
+  }
+
+  private DeclarativeConfigProperties fromYaml(String yaml) {
+    return DeclarativeConfiguration.toConfigProperties(
+            new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)))
+        .getStructured("swo_otlp");
   }
 }

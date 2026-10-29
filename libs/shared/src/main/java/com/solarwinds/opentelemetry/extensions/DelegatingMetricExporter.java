@@ -31,15 +31,24 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 
 public class DelegatingMetricExporter implements MetricExporter {
+
   private final MetricExporter delegate;
 
+  private final boolean exportMetrics;
+
   public DelegatingMetricExporter(MetricExporter delegate) {
+    this(delegate, true);
+  }
+
+  public DelegatingMetricExporter(MetricExporter delegate, boolean exportMetric) {
     this.delegate = delegate;
+    this.exportMetrics = exportMetric;
   }
 
   @Override
   public CompletableResultCode export(@NonNull Collection<MetricData> metrics) {
-    if (ConfigManager.getConfigOptional(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, true)) {
+    if (ConfigManager.getConfigOptional(
+        ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, exportMetrics)) {
       return delegate.export(metrics).whenComplete(TransactionNameManager::clearTransactionNames);
     }
 

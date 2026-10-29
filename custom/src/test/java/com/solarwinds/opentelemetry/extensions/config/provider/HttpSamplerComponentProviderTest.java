@@ -165,10 +165,7 @@ class HttpSamplerComponentProviderTest {
         SERVICE_KEY_ONLY + "  collector: ' '\n",
         SERVICE_KEY_ONLY + "  context_ttl: 0\n",
         SERVICE_KEY_ONLY + "  context_max_events: -1\n",
-        SERVICE_KEY_ONLY + "  context_max_backtraces: 0\n",
-        SERVICE_KEY_ONLY + "  proxy:\n    host: proxy.example.com\n",
-        SERVICE_KEY_ONLY + "  proxy:\n    port: 8080\n",
-        SERVICE_KEY_ONLY + "  proxy:\n    host: proxy.example.com\n    port: 70000\n");
+        SERVICE_KEY_ONLY + "  context_max_backtraces: 0\n");
   }
 
   @Test

@@ -21,6 +21,7 @@ import com.solarwinds.joboe.config.ConfigParser;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -28,6 +29,9 @@ import java.util.ServiceLoader;
 import java.util.Set;
 
 public final class DeclarativeConfigParser {
+  private static final Map<String, ConfigProperty> DECLARATIVE_KEYS =
+      Collections.singletonMap("logging", ConfigProperty.AGENT_LOGGING);
+
   private final ConfigContainer configContainer;
 
   private final Map<String, ConfigParser<DeclarativeConfigProperties, Object>> register =
@@ -49,7 +53,7 @@ public final class DeclarativeConfigParser {
     Set<String> unknownKeys = new HashSet<>();
 
     for (String key : propertyKeys) {
-      ConfigProperty configProperty = ConfigProperty.fromConfigFileKey(key);
+      ConfigProperty configProperty = DECLARATIVE_KEYS.get(key);
 
       if (configProperty == null) {
         unknownKeys.add(key);

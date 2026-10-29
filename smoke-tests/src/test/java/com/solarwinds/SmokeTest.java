@@ -104,11 +104,12 @@ public class SmokeTest {
         GenericContainer<?> k6 = new K6Container(NETWORK, agent, namingConventions).build();
         k6.start();
 
-        petClinic.execInContainer("kill", "1");
-        webMvc.execInContainer("kill", "1");
-        webMvcAo.execInContainer("kill", "1");
+        petClinic.stop();
+        webMvc.stop();
+        webMvcAo.stop();
 
-        squid.execInContainer("kill", "1");
+        k6.stop();
+        squid.stop();
         postgres.stop();
 
     }
