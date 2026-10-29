@@ -69,7 +69,7 @@ tracer_provider:
     # Configure sampler.
     swo_http:
       service_key: token:service
-      tracing_mode: enabled
+      tracing_enabled: true
 
 # Configure meter provider.
 meter_provider:

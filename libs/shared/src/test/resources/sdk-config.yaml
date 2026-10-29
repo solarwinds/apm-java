@@ -70,15 +70,15 @@ tracer_provider:
   sampler:
     # Configure sampler.
     swo_http:
-      tracing_mode: enabled
-      trigger_trace: true
+      tracing_enabled: true
+      trigger_trace_enabled: true
       transaction_settings:
         - regex: ".*/specialties"
           tracing: "disabled"
       url_sample_rates:
         - example.com/greet:
             sample_rate: 100000000
-            tracing_mode: "enabled"
+            tracing_enabled: true
       proxy:
         host: proxy.example.com
         port: 8080

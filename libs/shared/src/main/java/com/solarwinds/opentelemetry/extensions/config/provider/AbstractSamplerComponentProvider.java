@@ -45,9 +45,9 @@ import java.util.regex.PatternSyntaxException;
 public abstract class AbstractSamplerComponentProvider implements ComponentProvider {
   private static final Logger logger = LoggerFactory.getLogger();
 
-  private static final String TRACING_MODE = "tracing_mode";
+  private static final String TRACING_ENABLED = "tracing_enabled";
 
-  private static final String TRIGGER_TRACE = "trigger_trace";
+  private static final String TRIGGER_TRACE_ENABLED = "trigger_trace_enabled";
 
   private static final String TRANSACTION_SETTINGS = "transaction_settings";
 
@@ -75,7 +75,8 @@ public abstract class AbstractSamplerComponentProvider implements ComponentProvi
       SamplingConfiguration.SamplingConfigurationBuilder builder =
           SamplingConfiguration.builder()
               .tracingMode(parseTracingMode(declarativeConfigProperties))
-              .triggerTraceEnabled(declarativeConfigProperties.getBoolean(TRIGGER_TRACE, true))
+              .triggerTraceEnabled(
+                  declarativeConfigProperties.getBoolean(TRIGGER_TRACE_ENABLED, true))
               .internalTransactionSettings(parseTraceConfigs(declarativeConfigProperties));
 
       parseConfig(declarativeConfigProperties, builder);
@@ -97,19 +98,12 @@ public abstract class AbstractSamplerComponentProvider implements ComponentProvi
   protected abstract SettingsFetcher createSettingsFetcher(DeclarativeConfigProperties properties)
       throws InvalidConfigException;
 
-  private TracingMode parseTracingMode(DeclarativeConfigProperties properties)
-      throws InvalidConfigException {
-    String mode = properties.getString(TRACING_MODE);
-    if (mode == null) {
+  private TracingMode parseTracingMode(DeclarativeConfigProperties properties) {
+    Boolean tracingEnabled = properties.getBoolean(TRACING_ENABLED);
+    if (tracingEnabled == null) {
       return null;
     }
-
-    TracingMode tracingMode = TracingMode.fromString(mode);
-    if (tracingMode == null) {
-      throw new InvalidConfigException(
-          "Invalid " + TRACING_MODE + " : " + mode + ", must be \"disabled\" or \"enabled\"");
-    }
-    return tracingMode;
+    return tracingEnabled ? TracingMode.ENABLED : TracingMode.DISABLED;
   }
 
   private TraceConfigs parseTraceConfigs(DeclarativeConfigProperties properties)
@@ -255,28 +249,12 @@ public abstract class AbstractSamplerComponentProvider implements ComponentProvi
   private TraceConfig parseUrlTraceConfig(DeclarativeConfigProperties urlConfig, String url)
       throws InvalidConfigException {
     Integer sampleRate = urlConfig.getInt(SAMPLE_RATE);
-    String tracingModeString = urlConfig.getString(TRACING_MODE);
-    TracingMode tracingMode = null;
+    Boolean tracingEnabled = urlConfig.getBoolean(TRACING_ENABLED);
 
-    if (tracingModeString != null) {
-      tracingMode = TracingMode.fromString(tracingModeString);
-      if (tracingMode == null) {
-        throw new InvalidConfigException(
-            "Invalid "
-                + TRACING_MODE
-                + " value ["
-                + tracingModeString
-                + "], must be \"never\" if default is to be overridden; otherwise do not specify"
-                + " this property in ["
-                + url
-                + "]");
-      }
-    }
-
-    if (sampleRate == null && tracingMode == null) {
+    if (sampleRate == null && tracingEnabled == null) {
       throw new InvalidConfigException(
           "Need to define either "
-              + TRACING_MODE
+              + TRACING_ENABLED
               + " or "
               + SAMPLE_RATE
               + ", but found none in ["
@@ -285,16 +263,15 @@ public abstract class AbstractSamplerComponentProvider implements ComponentProvi
     }
 
     if (sampleRate == null) {
-      if (tracingMode == TracingMode.ALWAYS) {
+      if (tracingEnabled) {
         throw new InvalidConfigException(
-            "Define " + SAMPLE_RATE + " if " + TRACING_MODE + " is \"always\" in [" + url + "]");
+            "Define " + SAMPLE_RATE + " if " + TRACING_ENABLED + " is true in [" + url + "]");
       }
       sampleRate = 0;
     }
 
-    if (tracingMode == null) {
-      tracingMode = TracingMode.ALWAYS;
-    }
+    TracingMode tracingMode =
+        tracingEnabled == null || tracingEnabled ? TracingMode.ENABLED : TracingMode.DISABLED;
     return new TraceConfig(sampleRate, SampleRateSource.FILE, tracingMode.toFlags());
   }
 }

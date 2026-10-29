@@ -127,8 +127,14 @@ class AbstractSamplerComponentProviderTest {
 
   @Test
   void testCreateDisablesTriggerTrace() {
-    tested.create(fromYaml("swo_http:\n  trigger_trace: false\n"));
+    tested.create(fromYaml("swo_http:\n  trigger_trace_enabled: false\n"));
     assertFalse(samplingConfiguration().isTriggerTraceEnabled());
+  }
+
+  @Test
+  void testCreateDisablesTracing() {
+    tested.create(fromYaml("swo_http:\n  tracing_enabled: false\n"));
+    assertEquals(TracingMode.DISABLED, samplingConfiguration().getTracingMode());
   }
 
   @Test
@@ -140,7 +146,7 @@ class AbstractSamplerComponentProviderTest {
                 + "    - .*/greet:\n"
                 + "        sample_rate: 500000\n"
                 + "    - .*/health:\n"
-                + "        tracing_mode: never\n"));
+                + "        tracing_enabled: false\n"));
     TraceConfigs traceConfigs = internalTransactionSettings();
 
     TraceConfig greet =
@@ -172,7 +178,8 @@ class AbstractSamplerComponentProviderTest {
   @ParameterizedTest(name = "{0}")
   @MethodSource("invalidConfigs")
   void testCreateThrowsForInvalidConfig(String description, String yaml, String expectedMessage) {
-    tested.create(fromYaml("swo_http:\n  tracing_mode: disabled\n  trigger_trace: false\n"));
+    tested.create(
+        fromYaml("swo_http:\n  tracing_enabled: false\n  trigger_trace_enabled: false\n"));
     SamplingConfiguration previous = samplingConfiguration();
 
     RuntimeException exception =
@@ -189,10 +196,6 @@ class AbstractSamplerComponentProviderTest {
 
   static Stream<Arguments> invalidConfigs() {
     return Stream.of(
-        Arguments.of(
-            "unknown tracing_mode",
-            "swo_http:\n  tracing_mode: sometimes\n",
-            "Invalid tracing_mode : sometimes"),
         Arguments.of(
             "unknown transaction tracing value",
             "swo_http:\n  transaction_settings:\n    - regex: .*\n      tracing: maybe\n",
@@ -224,13 +227,13 @@ class AbstractSamplerComponentProviderTest {
             "swo_http:\n  url_sample_rates:\n    - '[A-Za-z{':\n        sample_rate: 1\n",
             "Failed to compile the url sample rate of url pattern [[A-Za-z{]"),
         Arguments.of(
-            "url sample rate without sample_rate or tracing_mode",
+            "url sample rate without sample_rate or tracing_enabled",
             "swo_http:\n  url_sample_rates:\n    - .*/greet:\n        other: 1\n",
-            "Need to define either tracing_mode or sample_rate"),
+            "Need to define either tracing_enabled or sample_rate"),
         Arguments.of(
-            "url sample rate with always and no sample_rate",
-            "swo_http:\n  url_sample_rates:\n    - .*/greet:\n        tracing_mode: always\n",
-            "Define sample_rate if tracing_mode is \"always\""));
+            "url sample rate with tracing enabled and no sample_rate",
+            "swo_http:\n  url_sample_rates:\n    - .*/greet:\n        tracing_enabled: true\n",
+            "Define sample_rate if tracing_enabled is true"));
   }
 
   private static SamplingConfiguration samplingConfiguration() {
