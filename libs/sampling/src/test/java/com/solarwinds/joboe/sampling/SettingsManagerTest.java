@@ -17,7 +17,11 @@
 package com.solarwinds.joboe.sampling;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,6 +43,48 @@ public class SettingsManagerTest {
   @Captor private ArgumentCaptor<SettingsListener> settingsListenerArgumentCaptor;
 
   @Mock private SettingsFetcher settingsFetcherMock;
+
+  @Test
+  public void testInitializedFetcherLatchIsExposed() {
+    CountDownLatch latch = new CountDownLatch(1);
+    when(settingsFetcherMock.isSettingsAvailableLatch()).thenReturn(latch);
+
+    SettingsManager.initializeFetcher(settingsFetcherMock);
+
+    assertTrue(SettingsManager.isInitialized());
+    assertSame(latch, SettingsManager.getSettingsAvailableLatch());
+  }
+
+  @Test
+  public void testReinitializeClosesPreviousFetcher() {
+    SettingsFetcher previous = mock(SettingsFetcher.class);
+    SettingsManager.initializeFetcher(previous);
+    SettingsManager.initializeFetcher(settingsFetcherMock);
+
+    verify(previous).close();
+    SettingsManager.reset();
+    verify(settingsFetcherMock).close();
+    assertFalse(SettingsManager.isInitialized());
+  }
+
+  @Test
+  public void testGetSettingsReturnsAwaitedFetcherSettingsWhenResetWhileWaiting() {
+    Settings settings = mock(Settings.class);
+    CountDownLatch latch =
+        new CountDownLatch(0) {
+          @Override
+          public boolean await(long timeout, TimeUnit unit) {
+            SettingsManager.reset();
+            return true;
+          }
+        };
+
+    when(settingsFetcherMock.isSettingsAvailableLatch()).thenReturn(latch);
+    when(settingsFetcherMock.getSettings()).thenReturn(settings);
+    SettingsManager.initializeFetcher(settingsFetcherMock);
+
+    assertSame(settings, SettingsManager.getSettings(1, TimeUnit.SECONDS));
+  }
 
   @Test
   public void testArgChangeListener() {

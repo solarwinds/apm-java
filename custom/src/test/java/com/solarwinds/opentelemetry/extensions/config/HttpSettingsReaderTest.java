@@ -19,6 +19,7 @@ package com.solarwinds.opentelemetry.extensions.config;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,7 +30,6 @@ import com.solarwinds.joboe.sampling.Settings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -40,11 +40,12 @@ class HttpSettingsReaderTest {
 
   @Mock private Settings mockSettings;
 
-  @InjectMocks private HttpSettingsReader tested;
+  private HttpSettingsReader tested;
 
   @BeforeEach
   void setUp() {
     ConfigManager.reset();
+    tested = HttpSettingsReader.forSystemConfig(delegate);
   }
 
   @Test
@@ -170,5 +171,29 @@ class HttpSettingsReaderTest {
     assertNotNull(result);
     assertEquals(mockSettings, result);
     verify(delegate).fetchSettings(expectedUrl, expectedTokenHeader);
+  }
+
+  @Test
+  void testGetSettingsSamplerScopedReaderUsesOnlyItsValues() {
+    HttpSettingsReader samplerScoped =
+        HttpSettingsReader.forFileConfig(
+            delegate, "sampler.collector.com", "sampler-key:sampler-service");
+    String expectedUrl = "https://sampler.collector.com/v1/settings/sampler-service";
+    String expectedTokenHeader = "Bearer sampler-key";
+
+    when(delegate.fetchSettings(eq(expectedUrl), eq(expectedTokenHeader))).thenReturn(mockSettings);
+    assertEquals(mockSettings, samplerScoped.getSettings());
+  }
+
+  @Test
+  void testGetSettingsSamplerScopedReaderUsesDefaultConfig() {
+    HttpSettingsReader samplerScoped =
+        HttpSettingsReader.forFileConfig(delegate, null, "sampler-key:sampler-service");
+    String expectedUrl =
+        "https://apm.collector.na-01.cloud.solarwinds.com/v1/settings/sampler-service";
+
+    when(delegate.fetchSettings(eq(expectedUrl), eq("Bearer sampler-key")))
+        .thenReturn(mockSettings);
+    assertEquals(mockSettings, samplerScoped.getSettings());
   }
 }

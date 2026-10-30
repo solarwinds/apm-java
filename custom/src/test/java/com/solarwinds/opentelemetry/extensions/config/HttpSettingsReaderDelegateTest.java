@@ -37,11 +37,14 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -223,5 +226,29 @@ class HttpSettingsReaderDelegateTest {
     verify(mockConnection).setRequestProperty("Accept", "application/json");
     verify(mockConnection).setConnectTimeout(10000);
     verify(mockConnection).setReadTimeout(10000);
+  }
+
+  @Test
+  void testGetHttpUrlConnectionUsesConfigureProxy() throws IOException {
+    HttpSettingsReaderDelegate samplerProxied =
+        new HttpSettingsReaderDelegate(new ProxyConfig("sampler.example.com", 2000, null, null));
+    when(mockUrl.openConnection(any())).thenReturn(mockConnection);
+
+    samplerProxied.getHttpUrlConnection(mockUrl, TEST_AUTH_HEADER);
+    ArgumentCaptor<Proxy> proxyCaptor = ArgumentCaptor.forClass(Proxy.class);
+    verify(mockUrl).openConnection(proxyCaptor.capture());
+
+    InetSocketAddress address = (InetSocketAddress) proxyCaptor.getValue().address();
+    assertEquals("sampler.example.com", address.getHostString());
+    assertEquals(2000, address.getPort());
+  }
+
+  @Test
+  void testGetHttpUrlConnectionNoProxy() throws IOException {
+    HttpSettingsReaderDelegate samplerScoped = new HttpSettingsReaderDelegate(null);
+    when(mockUrl.openConnection()).thenReturn(mockConnection);
+
+    samplerScoped.getHttpUrlConnection(mockUrl, TEST_AUTH_HEADER);
+    verify(mockUrl).openConnection();
   }
 }

@@ -96,7 +96,12 @@ tracer_provider:
       root:
         cel_based:
           fallback_sampler:
-            swo/sampler:
+            swo_http:
+              service_key: ${SW_APM_SERVICE_KEY}
+              collector: apm.collector.na-01.st-ssp.solarwinds.com
+              transaction_settings:
+                - regex: ".*/specialties"
+                  tracing: "disabled"
           expressions:
             - action: DROP
               expression: spanKind == 'SERVER' && attribute['http.request.method'] == 'HEAD'
@@ -176,9 +181,5 @@ instrumentation/development:
       sql_tag_databases:
         - postgresql
     solarwinds:
-      agent.transactionSettings:
-        -
-          regex: ".*/specialties"
-          tracing: "disabled"
       agent.serviceKey: ${SW_APM_SERVICE_KEY}
       agent.collector: apm.collector.na-01.st-ssp.solarwinds.com

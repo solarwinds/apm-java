@@ -43,7 +43,7 @@ import lombok.Getter;
  */
 @Getter
 public final class SettingsManager {
-  private static SettingsFetcher fetcher;
+  private static volatile SettingsFetcher fetcher;
   private static final Map<SettingsArg<?>, Set<SettingsArgChangeListener<?>>> listeners =
       new ConcurrentHashMap<SettingsArg<?>, Set<SettingsArgChangeListener<?>>>();
   private static final Logger logger = LoggerFactory.getLogger();
@@ -54,11 +54,31 @@ public final class SettingsManager {
 
   public static CountDownLatch initialize(
       SettingsFetcher fetcher, SamplingConfiguration samplingConfiguration) {
+    SettingsManager.samplingConfiguration = samplingConfiguration;
     initializeFetcher(fetcher);
     Metadata.setup(samplingConfiguration);
-    SettingsManager.samplingConfiguration = samplingConfiguration;
 
     return fetcher.isSettingsAvailableLatch();
+  }
+
+  public static boolean isInitialized() {
+    return fetcher != null;
+  }
+
+  /**
+   * @return the latch of the current fetcher, or null if this manager is not initialized
+   */
+  public static CountDownLatch getSettingsAvailableLatch() {
+    SettingsFetcher current = fetcher;
+    return current != null ? current.isSettingsAvailableLatch() : null;
+  }
+
+  public static void reset() {
+    SettingsFetcher previous = fetcher;
+    fetcher = null;
+    if (previous != null) {
+      previous.close();
+    }
   }
 
   /**
@@ -66,7 +86,12 @@ public final class SettingsManager {
    * for internal tests
    */
   public static void initializeFetcher(SettingsFetcher fetcher) {
+    SettingsFetcher previous = SettingsManager.fetcher;
     SettingsManager.fetcher = fetcher;
+    if (previous != null && previous != fetcher) {
+      previous.close();
+    }
+
     fetcher.registerListener(
         newSettings -> {
           // figure out the difference and notify listeners
@@ -134,10 +159,11 @@ public final class SettingsManager {
    * @return the current {@link Settings}, or null if not available within the timeout
    */
   public static Settings getSettings(long timeout, TimeUnit unit) {
-    if (fetcher != null) {
+    SettingsFetcher current = fetcher;
+    if (current != null) {
       if (timeout > 0) {
         try {
-          if (!fetcher.isSettingsAvailableLatch().await(timeout, unit)) {
+          if (!current.isSettingsAvailableLatch().await(timeout, unit)) {
             logger.warn("Settings are not avaialable after waiting for " + timeout + " " + unit);
             return null;
           }
@@ -146,7 +172,7 @@ public final class SettingsManager {
           return null;
         }
       }
-      return fetcher.getSettings();
+      return current.getSettings();
     } else {
       logger.debug("Settings are not yet available as initialization has not been completed yet");
       return null;

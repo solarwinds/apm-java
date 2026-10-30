@@ -69,7 +69,19 @@ tracer_provider:
 
   sampler:
     # Configure sampler.
-    swo/sampler:
+    swo_http:
+      tracing_enabled: true
+      trigger_trace_enabled: true
+      transaction_settings:
+        - regex: ".*/specialties"
+          tracing: "disabled"
+      url_sample_rates:
+        - example.com/greet:
+            sample_rate: 100000000
+            tracing_enabled: true
+      proxy:
+        host: proxy.example.com
+        port: 8080
 
 # Configure meter provider.
 meter_provider:
@@ -146,16 +158,7 @@ instrumentation/development:
     solarwinds:
       agent.logging:
         level: trace
-      agent.tracingMode: enabled
-      agent.transactionSettings:
-        -
-          regex: ".*/specialties"
-          tracing: "disabled"
-      agent.urlSampleRates:
-        -
-          example.com/greet:
-            sampleRate: 100000000
-            tracing: "enabled"
-      agent.triggerTrace: true
+      agent.spanStacktraceFilters:
+        - http.request.method
       agent.serviceKey: ${SW_APM_SERVICE_KEY}
       agent.collector: apm.collector.na-01.st-ssp.solarwinds.com

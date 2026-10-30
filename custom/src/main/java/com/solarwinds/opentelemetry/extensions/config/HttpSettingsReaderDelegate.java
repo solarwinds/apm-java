@@ -34,12 +34,23 @@ import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 public class HttpSettingsReaderDelegate {
 
   private static final Logger logger = LoggerFactory.getLogger();
 
   private static final Gson gson = new GsonBuilder().create();
+
+  private final Supplier<ProxyConfig> proxyConfig;
+
+  public HttpSettingsReaderDelegate() {
+    this.proxyConfig = () -> (ProxyConfig) ConfigManager.getConfig(ConfigProperty.AGENT_PROXY);
+  }
+
+  public HttpSettingsReaderDelegate(ProxyConfig proxyConfig) {
+    this.proxyConfig = () -> proxyConfig;
+  }
 
   public Settings fetchSettings(String url, String authorizationHeader) {
     AtomicReference<Settings> settings = new AtomicReference<>();
@@ -97,7 +108,7 @@ public class HttpSettingsReaderDelegate {
 
   HttpURLConnection getHttpUrlConnection(URL url, String authorizationHeader) throws IOException {
     HttpURLConnection connection;
-    ProxyConfig proxyConfig = (ProxyConfig) ConfigManager.getConfig(ConfigProperty.AGENT_PROXY);
+    ProxyConfig proxyConfig = this.proxyConfig.get();
     if (proxyConfig != null) {
       Proxy proxy =
           new Proxy(

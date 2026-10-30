@@ -67,7 +67,9 @@ tracer_provider:
 
   sampler:
     # Configure sampler.
-    swo/sampler:
+    swo_http:
+      service_key: token:service
+      tracing_enabled: true
 
 # Configure meter provider.
 meter_provider:
@@ -156,4 +158,3 @@ instrumentation/development:
     solarwinds:
       agent.logging:
         level: trace
-      agent.tracingMode: enabled

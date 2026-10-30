@@ -39,13 +39,11 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.MetricReaderMo
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PeriodicMetricReaderModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.PushMetricExporterModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SamplerModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanExporterModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.TracerProviderModel;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,8 +82,6 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
 
           addMetricExporter(configurationModel);
           if (tracerProvider != null) {
-            addSampler(tracerProvider);
-
             addSpanExporter(configurationModel);
           }
 
@@ -104,16 +100,6 @@ public class SharedConfigCustomizerProvider implements DeclarativeConfigurationC
     }
 
     return properties;
-  }
-
-  private void addSampler(TracerProviderModel model) {
-    SamplerModel sampler = model.getSampler();
-    if (sampler == null) {
-      model.setSampler(
-          new SamplerModel()
-              .setExtensionProperty(
-                  SamplerComponentProvider.COMPONENT_NAME, new HashMap<String, Object>()));
-    }
   }
 
   private void addSpanExporter(OpenTelemetryConfigurationModel model) {
