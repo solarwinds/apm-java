@@ -22,6 +22,7 @@ import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
 import com.solarwinds.joboe.config.ProxyConfig;
+import com.solarwinds.joboe.config.ServiceKeyUtils;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;
 import com.solarwinds.opentelemetry.extensions.SolarwindsProfilingSpanProcessor;
 import com.solarwinds.opentelemetry.extensions.config.ProxyHelper;
@@ -36,6 +37,10 @@ import java.util.List;
 public class ProfilingSpanProcessorComponentProvider implements ComponentProvider {
 
   public static final String COMPONENT_NAME = "swo_profiler";
+
+  private static final String SERVICE_KEY = "service_key";
+
+  private static final String COLLECTOR = "collector";
 
   private static final List<String> DEFAULT_EXCLUDE_PACKAGES =
       Arrays.asList("java", "javax", "com.sun", "sun", "sunw");
@@ -62,18 +67,20 @@ public class ProfilingSpanProcessorComponentProvider implements ComponentProvide
     return new SolarwindsProfilingSpanProcessor();
   }
 
-  ProfilerSetting convert(DeclarativeConfigProperties profilerSettings)
+  ProfilerSetting convert(DeclarativeConfigProperties profilerProperties)
       throws InvalidConfigException {
 
     boolean enabled =
         JavaRuntimeVersionChecker.isJdkVersionSupported()
-            && profilerSettings.getBoolean("enabled", false);
-    int circuitBreakerDurationThreshold =
-        profilerSettings.getInt("circuit_breaker_duration_threshold", 100);
-    int circuitBreakerCountThreshold =
-        profilerSettings.getInt("circuit_breaker_count_threshold", 2);
+            && profilerProperties.getBoolean("enabled", false);
 
-    int interval = profilerSettings.getInt("interval", 20);
+    int circuitBreakerDurationThreshold =
+        profilerProperties.getInt("circuit_breaker_duration_threshold", 100);
+
+    int circuitBreakerCountThreshold =
+        profilerProperties.getInt("circuit_breaker_count_threshold", 2);
+
+    int interval = profilerProperties.getInt("interval", 20);
     if (interval != 0
         && interval
             < ProfilerSetting
@@ -85,13 +92,38 @@ public class ProfilingSpanProcessorComponentProvider implements ComponentProvide
               + interval);
     }
 
-    ProxyConfig proxyConfig = ProxyHelper.toProxyConfig(profilerSettings);
+    ProxyConfig proxyConfig = ProxyHelper.toProxyConfig(profilerProperties);
     if (proxyConfig != null) {
       ConfigManager.setConfig(ConfigProperty.AGENT_PROXY, proxyConfig);
     }
 
+    String serviceKey = profilerProperties.getString(SERVICE_KEY);
+    if (serviceKey != null) {
+      if (serviceKey.trim().isEmpty()) {
+        throw new InvalidConfigException(
+            "Invalid profiler " + SERVICE_KEY + " config, value cannot be empty");
+      }
+
+      ConfigManager.setConfig(
+          ConfigProperty.AGENT_SERVICE_KEY, ServiceKeyUtils.transformServiceKey(serviceKey));
+
+    } else if (enabled) {
+      throw new InvalidConfigException("Missing required profiler " + SERVICE_KEY + " config");
+    }
+
+    String collector = profilerProperties.getString(COLLECTOR);
+    if (collector != null) {
+      if (collector.trim().isEmpty()) {
+        throw new InvalidConfigException(
+            "Invalid profiler " + COLLECTOR + " config, value cannot be empty");
+      }
+
+      ConfigManager.setConfig(ConfigProperty.AGENT_COLLECTOR, collector);
+    }
+
     List<String> excludePackages =
-        profilerSettings.getScalarList("exclude_packages", String.class, DEFAULT_EXCLUDE_PACKAGES);
+        profilerProperties.getScalarList(
+            "exclude_packages", String.class, DEFAULT_EXCLUDE_PACKAGES);
     return new ProfilerSetting(
         enabled,
         new HashSet<>(excludePackages),

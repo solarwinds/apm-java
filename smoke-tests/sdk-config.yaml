@@ -30,9 +30,7 @@ resource:
 # Provide shared config for multi-language deployment
 distribution:
   solarwinds:
-    agent.serviceKey: ${SW_APM_SERVICE_KEY}
-    agent.collector: apm.collector.na-01.st-ssp.solarwinds.com
-    agent.logging:
+    logging:
       level: trace
 
 # Configure general attribute limits. See also tracer_provider.limits, logger_provider.limits.
@@ -65,6 +63,8 @@ tracer_provider:
               - http.method
     - swo_profiler:
         enabled: true
+        service_key: ${SW_APM_SERVICE_KEY}
+        collector: apm.collector.na-01.st-ssp.solarwinds.com
         proxy:
           host: squid-proxy
           port: 3128
@@ -196,6 +196,3 @@ instrumentation/development:
       sql_tag_prepared: true
       sql_tag_databases:
         - postgresql
-    solarwinds:
-      agent.serviceKey: ${SW_APM_SERVICE_KEY}
-      agent.collector: apm.collector.na-01.st-ssp.solarwinds.com

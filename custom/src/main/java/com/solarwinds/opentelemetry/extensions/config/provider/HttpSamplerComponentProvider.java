@@ -44,12 +44,6 @@ public class HttpSamplerComponentProvider extends AbstractSamplerComponentProvid
 
   private static final String CONTEXT_MAX_BACKTRACES = "context_max_backtraces";
 
-  private static final String PROXY = "proxy";
-
-  private static final String PROXY_HOST = "host";
-
-  private static final String PROXY_PORT = "port";
-
   private static final long POLLING_INTERVAL_SECONDS = 60;
 
   private final Function<ProxyConfig, HttpSettingsReaderDelegate> delegateFactory;

@@ -40,8 +40,7 @@ class LogSettingParserTest {
           DeclarativeConfiguration.toConfigProperties(resourceAsStream);
       declarativeConfigProperties =
           configProperties
-              .getStructured("instrumentation/development", DeclarativeConfigProperties.empty())
-              .getStructured("java", DeclarativeConfigProperties.empty())
+              .getStructured("distribution", DeclarativeConfigProperties.empty())
               .getStructured("solarwinds");
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -56,6 +55,6 @@ class LogSettingParserTest {
 
   @Test
   void configKey() {
-    assertEquals("agent.logging", tested.configKey());
+    assertEquals("logging", tested.configKey());
   }
 }

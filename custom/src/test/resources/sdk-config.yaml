@@ -63,6 +63,7 @@ tracer_provider:
             headers_list: ${OTEL_EXPORTER_OTLP_HEADERS}
     - swo_profiler:
         enabled: true
+        service_key: token:service
     - swo_response_time:
 
   sampler:
@@ -147,12 +148,16 @@ logger_provider:
     # Configure max attribute count. Overrides .attribute_limits.attribute_count_limit.
     attribute_count_limit: 128
 
+# Provide shared config for multi-language deployment
+distribution:
+  solarwinds:
+    logging:
+      level: trace
+
+
 instrumentation/development:
   java:
     common:
       default-enabled: true
     swo_jdbc:
       sql_tag: true
-    solarwinds:
-      agent.logging:
-        level: trace

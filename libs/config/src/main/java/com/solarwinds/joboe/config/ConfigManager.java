@@ -28,7 +28,11 @@ public class ConfigManager {
   private ConfigManager() {}
 
   public static void initialize(ConfigContainer configs) {
-    SINGLETON.configs = configs;
+    if (SINGLETON.configs == null) {
+      SINGLETON.configs = configs;
+    } else {
+      logger.warn("ConfigManager has already been initialized");
+    }
   }
 
   /** For internal testing - reset the states of the ConfigManager */

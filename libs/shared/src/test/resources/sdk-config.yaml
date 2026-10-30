@@ -145,6 +145,13 @@ logger_provider:
     # Configure max attribute count. Overrides .attribute_limits.attribute_count_limit.
     attribute_count_limit: 128
 
+# Provide shared config for multi-language deployment
+distribution:
+  solarwinds:
+    logging:
+      level: trace
+
+
 instrumentation/development:
   java:
     common:
@@ -155,10 +162,3 @@ instrumentation/development:
       sql_tag_databases:
         - postgresql
       sql_query_max_length: 4096
-    solarwinds:
-      agent.logging:
-        level: trace
-      agent.spanStacktraceFilters:
-        - http.request.method
-      agent.serviceKey: ${SW_APM_SERVICE_KEY}
-      agent.collector: apm.collector.na-01.st-ssp.solarwinds.com

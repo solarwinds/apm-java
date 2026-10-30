@@ -16,14 +16,16 @@
 
 package com.solarwinds.opentelemetry.extensions.config;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.logging.LogSetting;
+import com.solarwinds.joboe.logging.Logger;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
@@ -68,57 +70,28 @@ class DeclarativeLoaderTest {
 
   @Test
   public void testCustomizeLoadsDistributionConfig() {
-    OpenTelemetryConfigurationModel model = model(distribution("token:service"), null);
-
+    OpenTelemetryConfigurationModel model = model(distribution("debug"), null);
     OpenTelemetryConfigurationModel returned = customize(model);
 
-    assertNotNull(ConfigManager.getConfig(ConfigProperty.AGENT_COLLECTOR));
-    assertNotNull(ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
+    assertEquals(Logger.Level.DEBUG, loggingLevel());
     assertEquals(model, returned);
   }
 
   @Test
-  public void testCustomizeLoadsInstrumentationConfig() {
-    OpenTelemetryConfigurationModel model = model(null, instrumentation("token:service"));
+  public void testCustomizeIgnoresInstrumentationConfig() {
+    OpenTelemetryConfigurationModel model = model(distribution("debug"), instrumentation("trace"));
 
     customize(model);
 
-    assertNotNull(ConfigManager.getConfig(ConfigProperty.AGENT_COLLECTOR));
-    assertNotNull(ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
+    assertEquals(Logger.Level.DEBUG, loggingLevel());
   }
 
   @Test
-  public void testDistributionTakesPrecedenceWhenBothNodesPresent() {
-    OpenTelemetryConfigurationModel model =
-        model(
-            distribution("distribution-token:distribution-service"),
-            instrumentation("instrumentation-token:inst-service"));
-
-    customize(model);
-
-    assertEquals(
-        "distribution-token:distribution-service",
-        ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
-  }
-
-  @Test
-  public void testCustomizeWithEmptyModelThrows() {
+  public void testCustomizeWithEmptyModelDoesNotThrows() {
     OpenTelemetryConfigurationModel model = new OpenTelemetryConfigurationModel();
 
-    assertThrows(NullPointerException.class, () -> customize(model));
-    assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
-  }
-
-  @Test
-  public void testCustomizeSkipsEmptySolarwindsNode() {
-    OpenTelemetryConfigurationModel model =
-        model(
-            new DistributionModel().setExtensionProperty("solarwinds", new HashMap<>()),
-            instrumentation("token:service"));
-
-    customize(model);
-
-    assertEquals("token:service", ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
+    assertDoesNotThrow(() -> customize(model));
+    assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_LOGGING));
   }
 
   @Test
@@ -134,17 +107,22 @@ class DeclarativeLoaderTest {
   }
 
   @Test
-  public void testCustomizeThrowsWhenServiceKeyMissing() {
+  public void testCustomizeThrowsOnServiceKey() {
     OpenTelemetryConfigurationModel model =
         model(
             new DistributionModel()
                 .setExtensionProperty(
                     "solarwinds",
                     Collections.singletonMap(
-                        ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(), "apm.collector.com")),
+                        ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(), "token:service")),
             null);
 
     assertThrows(RuntimeException.class, () -> customize(model));
+    assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
+  }
+
+  private static Logger.Level loggingLevel() {
+    return ((LogSetting) ConfigManager.getConfig(ConfigProperty.AGENT_LOGGING)).getLevel();
   }
 
   private static OpenTelemetryConfigurationModel model(
@@ -160,25 +138,24 @@ class DeclarativeLoaderTest {
     return model;
   }
 
-  private static DistributionModel distribution(String serviceKey) {
+  private static Map<String, Object> logging(String level) {
+    return Collections.singletonMap("level", level);
+  }
+
+  private static DistributionModel distribution(String loggingLevel) {
     Map<String, Object> properties = new HashMap<>();
-    properties.put(ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(), serviceKey);
-    properties.put(ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(), "apm.collector.com");
+    properties.put("logging", logging(loggingLevel));
     return new DistributionModel().setExtensionProperty("solarwinds", properties);
   }
 
-  private static ExperimentalInstrumentationModel instrumentation(String serviceKey) {
+  private static ExperimentalInstrumentationModel instrumentation(String loggingLevel) {
     return new ExperimentalInstrumentationModel()
         .setJava(
             new ExperimentalLanguageSpecificInstrumentationModel()
                 .setAdditionalProperty(
                     "solarwinds",
                     new ExperimentalLanguageSpecificInstrumentationPropertyModel()
-                        .setAdditionalProperty(
-                            ConfigProperty.AGENT_SERVICE_KEY.getConfigFileKey(), serviceKey)
-                        .setAdditionalProperty(
-                            ConfigProperty.AGENT_COLLECTOR.getConfigFileKey(),
-                            "apm.collector.com")));
+                        .setAdditionalProperty("logging", logging(loggingLevel))));
   }
 
   private OpenTelemetryConfigurationModel customize(OpenTelemetryConfigurationModel model) {

@@ -19,6 +19,7 @@ package com.solarwinds.opentelemetry.extensions.config;
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigContainer;
 import com.solarwinds.joboe.config.ConfigGroup;
+import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
 import com.solarwinds.joboe.logging.Logger;
@@ -30,7 +31,6 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigura
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
-import java.util.Objects;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
 public class DeclarativeLoader implements DeclarativeConfigurationCustomizerProvider {
@@ -49,13 +49,10 @@ public class DeclarativeLoader implements DeclarativeConfigurationCustomizerProv
     DeclarativeConfigProperties configProperties =
         DeclarativeConfiguration.toConfigProperties(configurationModel);
 
-    // SolarwindsConfigResolver merges the distribution and instrumentation nodes per key
-    // (distribution takes precedence, instrumentation fills the rest); it returns null when
-    // neither node carries any properties.
     DeclarativeConfigProperties solarwinds =
-        Objects.requireNonNull(
-            SolarwindsConfigResolver.resolve(configProperties),
-            "Solarwinds configuration cannot be null.");
+        configProperties
+            .getStructured("distribution", DeclarativeConfigProperties.empty())
+            .getStructured("solarwinds", DeclarativeConfigProperties.empty());
 
     ConfigContainer configContainer = new ConfigContainer();
     DeclarativeConfigParser declarativeConfigParser = new DeclarativeConfigParser(configContainer);
@@ -66,16 +63,11 @@ public class DeclarativeLoader implements DeclarativeConfigurationCustomizerProv
       throw new RuntimeException(e);
     }
 
-    try {
-      ConfigurationLoader.processConfigs(configContainer);
-      ConfigContainer agentConfig = configContainer.subset(ConfigGroup.AGENT);
-      LoggerFactory.init(LoggingConfigProvider.getLoggerConfiguration(agentConfig));
+    ConfigManager.initialize(configContainer);
+    ConfigContainer agentConfig = configContainer.subset(ConfigGroup.AGENT);
+    LoggerFactory.init(LoggingConfigProvider.getLoggerConfiguration(agentConfig));
 
-      logger.info("Loaded via declarative config");
-    } catch (InvalidConfigException e) {
-      throw new RuntimeException(e);
-    }
-
+    logger.info("Loaded via declarative config");
     if (!JavaRuntimeVersionChecker.isJdkVersionSupported()) {
       logger.warn(
           String.format(
