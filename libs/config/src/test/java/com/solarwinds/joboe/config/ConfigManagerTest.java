@@ -17,6 +17,8 @@
 package com.solarwinds.joboe.config;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,13 +46,13 @@ class ConfigManagerTest {
   }
 
   @Test
-  void initializeKeepsPreviouslySetConfigs() throws InvalidConfigException {
+  void initializeReplacesPreviouslySetConfigs() throws InvalidConfigException {
     ConfigManager.setConfig(ConfigProperty.AGENT_COLLECTOR, "apm.collector.com");
     ConfigContainer configs = new ConfigContainer();
     configs.put(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
 
     ConfigManager.initialize(configs);
-    assertEquals("apm.collector.com", ConfigManager.getConfig(ConfigProperty.AGENT_COLLECTOR));
+    assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_COLLECTOR));
     assertEquals("token:service", ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
   }
 
@@ -65,10 +67,17 @@ class ConfigManagerTest {
   }
 
   @Test
-  void initializeMergesSubsetWithMissingGroup() throws InvalidConfigException {
-    ConfigManager.setConfig(ConfigProperty.AGENT_COLLECTOR, "apm.collector.com");
+  void getConfigsReturnsInitializedContainer() {
+    ConfigContainer configs = new ConfigContainer();
+    ConfigManager.initialize(configs);
+    assertSame(configs, ConfigManager.getInstance().getConfigContainer());
+  }
 
-    ConfigManager.initialize(new ConfigContainer().subset(ConfigGroup.AGENT));
-    assertEquals("apm.collector.com", ConfigManager.getConfig(ConfigProperty.AGENT_COLLECTOR));
+  @Test
+  void getConfigsReturnsNullAfterReset() {
+    ConfigManager.initialize(new ConfigContainer());
+
+    ConfigManager.reset();
+    assertNull(ConfigManager.getInstance().getConfigContainer());
   }
 }

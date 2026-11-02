@@ -63,8 +63,15 @@ public class DeclarativeLoader implements DeclarativeConfigurationCustomizerProv
       throw new RuntimeException(e);
     }
 
-    ConfigManager.initialize(configContainer);
-    ConfigContainer agentConfig = configContainer.subset(ConfigGroup.AGENT);
+    ConfigContainer configs = ConfigManager.getInstance().getConfigContainer();
+    if (configs == null) {
+      configs = configContainer;
+    } else {
+      configs.merge(configContainer);
+    }
+
+    ConfigManager.initialize(configs);
+    ConfigContainer agentConfig = configs.subset(ConfigGroup.AGENT);
     LoggerFactory.init(LoggingConfigProvider.getLoggerConfiguration(agentConfig));
 
     logger.info("Loaded via declarative config");
