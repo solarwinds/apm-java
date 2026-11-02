@@ -23,6 +23,9 @@ import static org.mockito.Mockito.mockConstruction;
 
 import com.solarwinds.opentelemetry.extensions.DelegatingMetricExporter;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.sdk.metrics.Aggregation;
+import io.opentelemetry.sdk.metrics.InstrumentType;
+import io.opentelemetry.sdk.metrics.data.AggregationTemporality;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +71,36 @@ class MetricExporterComponentProviderTest {
     String description = arguments.get(0).toString();
     assertTrue(description.contains("proxyOptions=null"), description);
     assertEquals(true, arguments.get(1));
+  }
+
+  @Test
+  void testCreateUsesDeltaTemporalityAndBase2ExponentialHistogram() {
+    assertDeltaAndBase2(
+        createAndCaptureArguments("swo_otlp:\n  endpoint: https://localhost:4318/v1/metrics\n"));
+  }
+
+  @Test
+  void testCreateIgnoresConfiguredTemporalityAndHistogramAggregation() {
+    assertDeltaAndBase2(
+        createAndCaptureArguments(
+            "swo_otlp:\n"
+                + "  endpoint: https://localhost:4318/v1/metrics\n"
+                + "  temporality_preference: cumulative\n"
+                + "  default_histogram_aggregation: explicit_bucket_histogram\n"));
+  }
+
+  private static void assertDeltaAndBase2(List<?> arguments) {
+    MetricExporter delegate = (MetricExporter) arguments.get(0);
+
+    assertEquals(
+        AggregationTemporality.DELTA, delegate.getAggregationTemporality(InstrumentType.COUNTER));
+
+    assertEquals(
+        AggregationTemporality.DELTA, delegate.getAggregationTemporality(InstrumentType.HISTOGRAM));
+
+    assertEquals(
+        Aggregation.base2ExponentialBucketHistogram().toString(),
+        delegate.getDefaultAggregation(InstrumentType.HISTOGRAM).toString());
   }
 
   private List<?> createAndCaptureArguments(String yaml) {

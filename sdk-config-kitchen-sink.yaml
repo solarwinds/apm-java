@@ -1,0 +1,327 @@
+# sdk-config-kitchen-sink.yaml lists every option supported by the SolarWinds components of our custom distribution,
+# alongside the commonly used upstream options. Values shown are either defaults or illustrative examples.
+# See sdk-config.yaml for the minimum required configuration.
+#
+# Each option is marked Required, Recommended or Optional. Recommended options are optional but should be set.
+# An Optional section's children are only evaluated when the section is present, and a Required child of an
+# Optional section is only required when that section is used.
+
+# NOTE: With the exception of env var substitution syntax (i.e. ${MY_ENV}), SDKs ignore
+# environment variables when interpreting config files. This including ignoring all env
+# vars defined in https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/.
+
+# Required. The file format version.
+file_format: "1.1"
+
+# Optional. Configure if the SDK is disabled or not. Defaults to false.
+disabled: false
+
+# Optional. Configure resource for all signals.
+resource:
+  # Optional. Entries must contain .name and .value, and may optionally include .type, which defaults to "string".
+  # Values for .type include: string, bool, int, double, string_array, bool_array, int_array, double_array.
+  attributes:
+    - name: service.name
+      value: my-service
+    - name: deployment.environment.name
+      value: production
+  # Optional. SolarWinds detectors are listed first so upstream detectors can override their attributes.
+  detection/development:
+    detectors:
+      # Optional. Adds the APM module and distribution version attributes.
+      - swo_apm:
+      # Optional. Adds the UAMS client id attributes. Use when the UAMS host agent is installed.
+      - swo_uams:
+      # Optional. Adds kubernetes attributes. Use when running in kubernetes.
+      - swo_k8s:
+          # Optional. Overrides the auto-detected namespace.
+          namespace: my-namespace
+          # Optional. Overrides the auto-detected pod uid.
+          pod_uid: 00000000-0000-0000-0000-000000000000
+          # Optional. Overrides the auto-detected pod name.
+          pod_name: my-pod
+      # Recommended. Adds service.instance.id, and service.name from OTEL_SERVICE_NAME.
+      - service:
+      # Recommended. Adds host.name, host.arch and os attributes.
+      - host:
+      # Optional. Adds container.id.
+      - container:
+      # Recommended. Adds process.pid, process.executable.path and Java runtime attributes.
+      - process:
+
+# Optional. SolarWinds distribution settings.
+distribution:
+  solarwinds:
+    # Optional. Agent logging.
+    logging:
+      # Optional. One of: off, fatal, error, warn, info, debug, trace. Defaults to info.
+      level: info
+      # Optional. Defaults to true.
+      stdout: true
+      # Optional. Defaults to true.
+      stderr: true
+      # Optional. Log to a rotating file in addition to stdout/stderr.
+      file:
+        # Required.
+        location: /var/log/solarwinds-apm/agent.log
+        # Optional. Max file size in MB before rotation. Defaults to 10.
+        maxSize: 10
+        # Optional. Number of rotated files to keep. Defaults to 5.
+        maxBackup: 5
+
+# Optional. Configure attribute limits for all signals.
+attribute_limits:
+  # Optional. Defaults to no limit.
+  attribute_value_length_limit: 4096
+  # Optional. Defaults to 128.
+  attribute_count_limit: 128
+
+# Required. Configure text map context propagators.
+propagator:
+  composite:
+    # Required.
+    - tracecontext:
+    # Optional.
+    - baggage:
+    # Required. Needed for distributed tracing with other SolarWinds instrumented services.
+    - swo_tracestate:
+    # Required. Needed for trigger trace (X-Trace-Options) support.
+    - swo_xtraceoptions:
+
+# Required. Configure tracer provider.
+tracer_provider:
+  # Required.
+  processors:
+    # Optional. Captures stacktraces for spans that last at least min_duration and carry any of the selector
+    # attributes. db.system is always a selector.
+    - swo_stacktrace:
+        # Optional. Milliseconds. A negative value disables the processor. Defaults to 5.
+        min_duration: 5
+        # Optional. Span attribute keys that trigger capture.
+        selectors:
+          - http.request.method
+        # Optional. Setting a filter class name delegates to the upstream stacktrace processor and ignores selectors.
+        # filter: com.example.MyStacktraceFilter
+
+    # Required. Records response time metrics and transaction names for SolarWinds APM.
+    - swo_response_time:
+        # Optional. Forces a single transaction name for all spans.
+        transaction_name: my-transaction
+        # Optional. Evaluated in order; the first scheme that yields a name wins.
+        transaction_name_schemes:
+          # Required.
+          - scheme: spanAttribute
+            # Required.
+            delimiter: ":"
+            # Required. Span attribute values joined with the delimiter.
+            attributes:
+              - HandlerName
+              - http.request.method
+
+    # Optional. Code profiler. service_key, collector and proxy here are also used by the agent's gRPC client.
+    - swo_profiler:
+        # Optional. Defaults to false.
+        enabled: true
+        # Required when enabled. Format: <api_token>:<service_name>
+        service_key: ${SW_APM_SERVICE_KEY}
+        # Optional. Set to your data center's collector.
+        collector: apm.collector.na-01.cloud.solarwinds.com
+        # Optional. Both host and port (1-65535) are required, otherwise the proxy is ignored.
+        proxy:
+          host: proxy.example.com
+          port: 8080
+        # Optional. Sampling interval in milliseconds. Must be >= 10, or 0 for standby. Defaults to 20.
+        interval: 20
+        # Optional. Defaults to 100.
+        circuit_breaker_duration_threshold: 100
+        # Optional. Defaults to 2.
+        circuit_breaker_count_threshold: 2
+        # Optional. Package prefixes excluded from profiles. Defaults to the list below.
+        exclude_packages:
+          - java
+          - javax
+          - com.sun
+          - sun
+          - sunw
+
+    # Required. Exports spans.
+    - batch:
+        # Optional. Milliseconds. Defaults to 5000.
+        schedule_delay: 5000
+        # Optional. Milliseconds. Defaults to 30000.
+        export_timeout: 30000
+        # Optional. Defaults to 2048.
+        max_queue_size: 2048
+        # Optional. Defaults to 512.
+        max_export_batch_size: 512
+        # Required.
+        exporter:
+          # Use otlp_http unless you need a proxy. swo_otlp is OTLP/HTTP with proxy support.
+          swo_otlp:
+            # Required. Set to your data center's endpoint.
+            endpoint: https://otel.collector.na-01.cloud.solarwinds.com/v1/traces
+            # Required. Entries have higher priority than entries from headers_list.
+            headers:
+              - name: authorization
+                value: Bearer ${SW_APM_API_TOKEN}
+            # Optional. Comma separated key=value pairs.
+            headers_list: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+            # Recommended. One of: gzip, none. Defaults to none.
+            compression: gzip
+            # Optional. Milliseconds. Defaults to 10000.
+            timeout: 10000
+            # Optional. PEM files used for TLS and mTLS. The files must exist.
+            # tls:
+            #   ca_file: /path/to/ca.pem
+            #   key_file: /path/to/client-key.pem
+            #   cert_file: /path/to/client-cert.pem
+            # Optional. Both host and port (1-65535) are required, otherwise the proxy is ignored.
+            proxy:
+              host: proxy.example.com
+              port: 8080
+
+  # Required.
+  sampler:
+    # Required. Fetches sampling settings from the SolarWinds collector.
+    swo_http:
+      # Required. Format: <api_token>:<service_name>
+      service_key: ${SW_APM_SERVICE_KEY}
+      # Required. Set to your data center's collector. Falls back to apm.collector.na-01.cloud.solarwinds.com.
+      collector: apm.collector.na-01.cloud.solarwinds.com
+      # Optional. Both host and port (1-65535) are required, otherwise the proxy is ignored.
+      proxy:
+        host: proxy.example.com
+        port: 8080
+      # Optional. Overrides the tracing mode from the collector when set.
+      tracing_enabled: true
+      # Optional. Defaults to true.
+      trigger_trace_enabled: true
+      # Optional. Positive integer that overrides the collector supplied limit.
+      context_ttl: 600
+      # Optional. Positive integer that overrides the collector supplied limit.
+      context_max_events: 100000
+      # Optional. Positive integer that overrides the collector supplied limit.
+      context_max_backtraces: 1000
+      # Optional. Each entry needs tracing (enabled|disabled) and exactly one of regex or extensions.
+      transaction_settings:
+        - regex: ".*/healthcheck"
+          tracing: disabled
+        - extensions:
+            - png
+            - css
+            - js
+          tracing: disabled
+      # Optional. Legacy alternative to transaction_settings and ignored when transaction_settings is defined.
+      # Each entry maps a url regex to a sample_rate (out of 1000000) and/or tracing_enabled.
+      # url_sample_rates:
+      #   - ".*/greet":
+      #       sample_rate: 1000000
+      #       tracing_enabled: true
+
+    # AWS Lambda only, in place of swo_http: reads sampling settings from a file. Supports the same options as
+    # swo_http except service_key, collector, proxy and context_*.
+    # swo_json:
+    #   # Optional. Defaults to /tmp/solarwinds-apm-settings.json.
+    #   file: /tmp/solarwinds-apm-settings.json
+
+# Required. Configure meter provider.
+meter_provider:
+  # Required.
+  readers:
+    - periodic:
+        # Optional. Milliseconds. Defaults to 60000.
+        interval: 60000
+        # Optional. Milliseconds. Defaults to 30000.
+        timeout: 30000
+        # Required.
+        exporter:
+          # Recommended over otlp_http. swo_otlp is OTLP/HTTP with proxy support and resets transaction names after
+          # each export. Without the reset, transaction names beyond the first 200 are reported as "other".
+          # swo_otlp always uses delta temporality and base2 exponential histograms; temporality_preference and
+          # default_histogram_aggregation are ignored.
+          swo_otlp:
+            # Required. Set to your data center's endpoint.
+            endpoint: https://otel.collector.na-01.cloud.solarwinds.com/v1/metrics
+            # Required.
+            headers:
+              - name: authorization
+                value: Bearer ${SW_APM_API_TOKEN}
+            # Optional.
+            headers_list: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+            # Recommended. Defaults to none.
+            compression: gzip
+            # Optional. Milliseconds. Defaults to 10000.
+            timeout: 10000
+            # Optional.
+            # tls:
+            #   ca_file: /path/to/ca.pem
+            #   key_file: /path/to/client-key.pem
+            #   cert_file: /path/to/client-cert.pem
+            # Optional.
+            proxy:
+              host: proxy.example.com
+              port: 8080
+            # Optional. Set to false to export only SolarWinds metrics (sampling and request metrics). Defaults to true.
+            metric_export_enabled: true
+
+# Optional. Configure logger provider. Remove to disable log export.
+logger_provider:
+  # Required.
+  processors:
+    - batch:
+        # Optional. Milliseconds. Defaults to 1000.
+        schedule_delay: 1000
+        # Optional. Milliseconds. Defaults to 30000.
+        export_timeout: 30000
+        # Optional. Defaults to 2048.
+        max_queue_size: 2048
+        # Optional. Defaults to 512.
+        max_export_batch_size: 512
+        # Required.
+        exporter:
+          # Use otlp_http unless you need a proxy. swo_otlp is OTLP/HTTP with proxy support.
+          swo_otlp:
+            # Required. Set to your data center's endpoint.
+            endpoint: https://otel.collector.na-01.cloud.solarwinds.com/v1/logs
+            # Required.
+            headers:
+              - name: authorization
+                value: Bearer ${SW_APM_API_TOKEN}
+            # Optional.
+            headers_list: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+            # Recommended. Defaults to none.
+            compression: gzip
+            # Optional. Milliseconds. Defaults to 10000.
+            timeout: 10000
+            # Optional.
+            # tls:
+            #   ca_file: /path/to/ca.pem
+            #   key_file: /path/to/client-key.pem
+            #   cert_file: /path/to/client-cert.pem
+            # Optional.
+            proxy:
+              host: proxy.example.com
+              port: 8080
+
+# Optional. Instrumentation settings.
+instrumentation/development:
+  java:
+    common:
+      # Optional. Defaults to true.
+      default-enabled: true
+    # Recommended. JVM runtime metrics.
+    runtime_telemetry:
+      # Recommended. Adds JFR based runtime metrics. Defaults to false.
+      emit_experimental_jfr_metrics/development: true
+    # Optional. SQL tagging adds trace context comments to JDBC statements.
+    swo_jdbc:
+      # Optional. Defaults to false.
+      sql_tag: true
+      # Optional. Defaults to false.
+      sql_tag_prepared: true
+      # Optional. Databases to tag. Defaults to mysql.
+      sql_tag_databases:
+        - postgresql
+        - mysql
+      # Optional. Must be between 2048 and 131072.
+      sql_query_max_length: 4096
