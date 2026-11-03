@@ -25,12 +25,9 @@ resource:
       - swo_uams:
       - swo_k8s:
 
-# Provide shared config for multi-language deployment
 distribution:
   solarwinds:
-    agent.serviceKey: ""
-    agent.collector: ""
-    agent.logging:
+    logging:
       level: info
 
 # Configure general attribute limits. See also tracer_provider.limits, logger_provider.limits.

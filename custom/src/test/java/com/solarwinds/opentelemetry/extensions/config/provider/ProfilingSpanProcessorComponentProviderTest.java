@@ -18,18 +18,22 @@ package com.solarwinds.opentelemetry.extensions.config.provider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
+import com.solarwinds.joboe.config.ProxyConfig;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfiguration;
 import io.opentelemetry.sdk.trace.SpanProcessor;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -95,6 +99,112 @@ class ProfilingSpanProcessorComponentProviderTest {
   void testCreateWithInvalidConfigThrows() {
     DeclarativeConfigProperties config = loadProfilerConfig("/sdk-config-bad.yaml");
     assertThrows(RuntimeException.class, () -> tested.create(config));
+  }
+
+  @Test
+  void testConvertSetsProxyConfig() throws InvalidConfigException {
+    tested.convert(fromYaml("swo_profiler:\n  proxy:\n    host: proxy.local\n    port: 3128\n"));
+
+    ProxyConfig proxyConfig = (ProxyConfig) ConfigManager.getConfig(ConfigProperty.AGENT_PROXY);
+    assertEquals("proxy.local", proxyConfig.getHost());
+    assertEquals(3128, proxyConfig.getPort());
+  }
+
+  @Test
+  void testConvertWithoutProxyLeavesProxyConfigUnset() throws InvalidConfigException {
+    tested.convert(loadProfilerConfig("/sdk-config.yaml"));
+    assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_PROXY));
+  }
+
+  @Test
+  void testConvertWithIncompleteProxyLeavesProxyConfigUnset() throws InvalidConfigException {
+    tested.convert(fromYaml("swo_profiler:\n  proxy:\n    host: proxy.local\n"));
+    assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_PROXY));
+  }
+
+  @Test
+  void testConvertSetsServiceKey() throws InvalidConfigException {
+    tested.convert(fromYaml("swo_profiler:\n  service_key: token:my service\n"));
+
+    assertEquals("token:my-service", ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
+  }
+
+  @Test
+  void testConvertDisabledWithoutServiceKeyLeavesServiceKeyUnset() throws InvalidConfigException {
+    ProfilerSetting profilerSetting = tested.convert(fromYaml("swo_profiler:\n  enabled: false\n"));
+
+    assertEquals(new ProfilerSetting(false, DEFAULT_EXCLUDES, 20, 100, 2), profilerSetting);
+    assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
+  }
+
+  @Test
+  void testConvertEnabledWithoutServiceKeyThrows() {
+    try (MockedStatic<JavaRuntimeVersionChecker> checker =
+        Mockito.mockStatic(JavaRuntimeVersionChecker.class)) {
+      checker.when(JavaRuntimeVersionChecker::isJdkVersionSupported).thenReturn(true);
+
+      DeclarativeConfigProperties config = fromYaml("swo_profiler:\n  enabled: true\n");
+      assertThrows(InvalidConfigException.class, () -> tested.convert(config));
+    }
+  }
+
+  @Test
+  void testConvertEnabledOnUnsupportedJdkWithoutServiceKeyIsDisabled()
+      throws InvalidConfigException {
+    try (MockedStatic<JavaRuntimeVersionChecker> checker =
+        Mockito.mockStatic(JavaRuntimeVersionChecker.class)) {
+      checker.when(JavaRuntimeVersionChecker::isJdkVersionSupported).thenReturn(false);
+
+      ProfilerSetting profilerSetting =
+          tested.convert(fromYaml("swo_profiler:\n  enabled: true\n"));
+      assertEquals(new ProfilerSetting(false, DEFAULT_EXCLUDES, 20, 100, 2), profilerSetting);
+    }
+  }
+
+  @Test
+  void testCreateEnabledWithoutServiceKeyThrows() {
+    try (MockedStatic<JavaRuntimeVersionChecker> checker =
+        Mockito.mockStatic(JavaRuntimeVersionChecker.class)) {
+      checker.when(JavaRuntimeVersionChecker::isJdkVersionSupported).thenReturn(true);
+
+      DeclarativeConfigProperties config = fromYaml("swo_profiler:\n  enabled: true\n");
+      assertThrows(RuntimeException.class, () -> tested.create(config));
+      assertNull(ConfigManager.getConfig(ConfigProperty.PROFILER));
+    }
+  }
+
+  @Test
+  void testConvertWithEmptyServiceKeyThrows() {
+    DeclarativeConfigProperties config = fromYaml("swo_profiler:\n  service_key: \" \"\n");
+    assertThrows(InvalidConfigException.class, () -> tested.convert(config));
+    assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
+  }
+
+  @Test
+  void testConvertSetsCollector() throws InvalidConfigException {
+    tested.convert(fromYaml("swo_profiler:\n  collector: apm.collector.example.com:443\n"));
+
+    assertEquals(
+        "apm.collector.example.com:443", ConfigManager.getConfig(ConfigProperty.AGENT_COLLECTOR));
+  }
+
+  @Test
+  void testConvertWithoutCollectorLeavesCollectorUnset() throws InvalidConfigException {
+    tested.convert(loadProfilerConfig("/sdk-config.yaml"));
+    assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_COLLECTOR));
+  }
+
+  @Test
+  void testConvertWithEmptyCollectorThrows() {
+    DeclarativeConfigProperties config = fromYaml("swo_profiler:\n  collector: \" \"\n");
+    assertThrows(InvalidConfigException.class, () -> tested.convert(config));
+    assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_COLLECTOR));
+  }
+
+  private DeclarativeConfigProperties fromYaml(String yaml) {
+    return DeclarativeConfiguration.toConfigProperties(
+            new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)))
+        .getStructured("swo_profiler");
   }
 
   private DeclarativeConfigProperties loadProfilerConfig(String resource) {

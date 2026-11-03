@@ -34,18 +34,18 @@ import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DelegatingMetricExporterTest {
 
-  @InjectMocks private DelegatingMetricExporter tested;
+  private DelegatingMetricExporter tested;
 
   @Mock private MetricExporter metricExporterMock;
 
@@ -58,6 +58,11 @@ class DelegatingMetricExporterTest {
   @Captor private ArgumentCaptor<List<MetricData>> metricData;
 
   @Mock private Aggregation aggregationMock;
+
+  @BeforeEach
+  void setUp() {
+    tested = new DelegatingMetricExporter(metricExporterMock);
+  }
 
   @Test
   void verifyGetDefaultAggregationIsDelegated() {
@@ -112,6 +117,36 @@ class DelegatingMetricExporterTest {
     tested.export(Arrays.asList(metricDataMock, metricDataMock0, metricDataMock1));
     verify(metricExporterMock).export(metricData.capture());
     assertEquals(Arrays.asList(metricDataMock, metricDataMock0), metricData.getValue());
+
+    ConfigManager.removeConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED);
+  }
+
+  @Test
+  void verifyThatOnlySwoMetricDataAreExportedWhenMetricExportDisabled() {
+    tested = new DelegatingMetricExporter(metricExporterMock, false);
+    when(metricExporterMock.export(any())).thenReturn(CompletableResultCode.ofSuccess());
+
+    when(metricDataMock.getInstrumentationScopeInfo())
+        .thenReturn(InstrumentationScopeInfo.create(MeterProvider.requestMeterScopeName));
+    when(metricDataMock0.getInstrumentationScopeInfo())
+        .thenReturn(InstrumentationScopeInfo.create(MeterProvider.samplingMeterScopeName));
+    when(metricDataMock1.getInstrumentationScopeInfo())
+        .thenReturn(InstrumentationScopeInfo.create("test-scope"));
+
+    tested.export(Arrays.asList(metricDataMock, metricDataMock0, metricDataMock1));
+    verify(metricExporterMock).export(metricData.capture());
+    assertEquals(Arrays.asList(metricDataMock, metricDataMock0), metricData.getValue());
+  }
+
+  @Test
+  void verifyThatConfigOverridesMetricExportDisabled() throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED, true);
+    tested = new DelegatingMetricExporter(metricExporterMock, false);
+    when(metricExporterMock.export(any())).thenReturn(CompletableResultCode.ofSuccess());
+
+    List<MetricData> metrics = Arrays.asList(metricDataMock, metricDataMock1);
+    tested.export(metrics);
+    verify(metricExporterMock).export(metrics);
 
     ConfigManager.removeConfig(ConfigProperty.AGENT_EXPORT_METRICS_ENABLED);
   }

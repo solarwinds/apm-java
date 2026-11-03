@@ -27,7 +27,7 @@ import java.nio.file.Paths;
 
 @AutoService(DeclarativeConfigPropertyParser.class)
 public class LogSettingParser implements DeclarativeConfigPropertyParser {
-  private static final String CONFIG_KEY = "agent.logging";
+  private static final String CONFIG_KEY = "logging";
 
   @Override
   public LogSetting convert(DeclarativeConfigProperties declarativeConfigProperties)

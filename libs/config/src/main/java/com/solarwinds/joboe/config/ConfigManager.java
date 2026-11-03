@@ -31,6 +31,14 @@ public class ConfigManager {
     SINGLETON.configs = configs;
   }
 
+  public static ConfigManager getInstance() {
+    return SINGLETON;
+  }
+
+  public ConfigContainer getConfigContainer() {
+    return configs;
+  }
+
   /** For internal testing - reset the states of the ConfigManager */
   public static void reset() {
     SINGLETON.configs = null;

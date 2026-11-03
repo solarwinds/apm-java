@@ -101,6 +101,21 @@ public class ConfigContainer {
     }
   }
 
+  /**
+   * Copies every property of {@code other} into this container, overwriting values for keys that
+   * exist in both.
+   *
+   * @param other the container whose properties are copied
+   */
+  public void merge(ConfigContainer other) {
+    other.configMaps.forEach(
+        (group, configMap) -> {
+          if (configMap != null) {
+            configMaps.computeIfAbsent(group, key -> new HashMap<>()).putAll(configMap);
+          }
+        });
+  }
+
   public Object remove(ConfigProperty propertyKey) {
     Map<ConfigProperty, Object> configs = configMaps.get(propertyKey.getGroup());
     if (configs != null) {

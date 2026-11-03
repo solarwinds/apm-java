@@ -139,11 +139,6 @@ public class SolarwindsAgentListener implements AgentListener {
         new Thread("SolarwindsAPM-shutdown-hook") {
           @Override
           public void run() {
-            if (ReporterProvider.getEventReporter() != null) {
-              ReporterProvider.getEventReporter()
-                  .close(); // close event reporter properly to give it chance to send out pending
-              // events in queue
-            }
             ClientManagerProvider
                 .closeAllManagers(); // close all rpc client, this should flush out all messages or
             // stop immediately (if not connected)
