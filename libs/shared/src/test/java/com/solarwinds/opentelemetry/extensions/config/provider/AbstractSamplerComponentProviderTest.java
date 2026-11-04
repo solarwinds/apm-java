@@ -127,7 +127,7 @@ class AbstractSamplerComponentProviderTest {
 
   @Test
   void testCreateDisablesTriggerTrace() {
-    tested.create(fromYaml("swo_http:\n  trigger_trace_enabled: false\n"));
+    tested.create(fromYaml("swo_http:\n  trigger_tracing_enabled: false\n"));
     assertFalse(samplingConfiguration().isTriggerTraceEnabled());
   }
 
@@ -179,7 +179,7 @@ class AbstractSamplerComponentProviderTest {
   @MethodSource("invalidConfigs")
   void testCreateThrowsForInvalidConfig(String description, String yaml, String expectedMessage) {
     tested.create(
-        fromYaml("swo_http:\n  tracing_enabled: false\n  trigger_trace_enabled: false\n"));
+        fromYaml("swo_http:\n  tracing_enabled: false\n  trigger_tracing_enabled: false\n"));
     SamplingConfiguration previous = samplingConfiguration();
 
     RuntimeException exception =

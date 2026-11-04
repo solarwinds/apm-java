@@ -65,9 +65,9 @@ distribution:
         # Required.
         location: /var/log/solarwinds-apm/agent.log
         # Optional. Max file size in MB before rotation. Defaults to 10.
-        maxSize: 10
+        max_size: 10
         # Optional. Number of rotated files to keep. Defaults to 5.
-        maxBackup: 5
+        max_backup: 5
 
 # Optional. Configure attribute limits for all signals.
 attribute_limits:
@@ -195,7 +195,7 @@ tracer_provider:
       # Optional. Overrides the tracing mode from the collector when set.
       tracing_enabled: true
       # Optional. Defaults to true.
-      trigger_trace_enabled: true
+      trigger_tracing_enabled: true
       # Optional. Positive initial context lifetime in milliseconds. Collector MaxContextAge updates take precedence.
       context_ttl: 600000
       # Optional. Positive initial event limit. Collector MaxContextEvents updates take precedence.
