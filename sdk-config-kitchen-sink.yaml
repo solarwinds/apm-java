@@ -105,7 +105,7 @@ tracer_provider:
 
     # Required. Records response time metrics and transaction names for SolarWinds APM.
     - swo_response_time:
-        # Optional. Forces a single transaction name for all spans.
+        # Optional. Fallback transaction name when none of the configured transaction_name_schemes yields a name.
         transaction_name: my-transaction
         # Optional. Evaluated in order; the first scheme that yields a name wins.
         transaction_name_schemes:
