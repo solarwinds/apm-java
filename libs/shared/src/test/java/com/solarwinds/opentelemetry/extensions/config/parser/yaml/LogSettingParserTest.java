@@ -23,8 +23,11 @@ import com.solarwinds.joboe.logging.LogSetting;
 import com.solarwinds.joboe.logging.Logger;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfiguration;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -54,7 +57,31 @@ class LogSettingParserTest {
   }
 
   @Test
+  void testConvertWithFileSettings() throws InvalidConfigException {
+    LogSetting logSetting =
+        tested.convert(
+            fromYaml(
+                "logging:\n"
+                    + "  level: debug\n"
+                    + "  stdout: false\n"
+                    + "  stderr: false\n"
+                    + "  file:\n"
+                    + "    location: /tmp/agent.log\n"
+                    + "    max_size: 20\n"
+                    + "    max_backup: 3\n"));
+
+    assertEquals(
+        new LogSetting(Logger.Level.DEBUG, false, false, Paths.get("/tmp/agent.log"), 20, 3),
+        logSetting);
+  }
+
+  @Test
   void configKey() {
     assertEquals("logging", tested.configKey());
+  }
+
+  private static DeclarativeConfigProperties fromYaml(String yaml) {
+    return DeclarativeConfiguration.toConfigProperties(
+        new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)));
   }
 }

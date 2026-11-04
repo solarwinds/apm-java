@@ -47,7 +47,7 @@ public abstract class AbstractSamplerComponentProvider implements ComponentProvi
 
   private static final String TRACING_ENABLED = "tracing_enabled";
 
-  private static final String TRIGGER_TRACE_ENABLED = "trigger_trace_enabled";
+  private static final String TRIGGER_TRACING_ENABLED = "trigger_tracing_enabled";
 
   private static final String TRANSACTION_SETTINGS = "transaction_settings";
 
@@ -76,7 +76,7 @@ public abstract class AbstractSamplerComponentProvider implements ComponentProvi
           SamplingConfiguration.builder()
               .tracingMode(parseTracingMode(declarativeConfigProperties))
               .triggerTraceEnabled(
-                  declarativeConfigProperties.getBoolean(TRIGGER_TRACE_ENABLED, true))
+                  declarativeConfigProperties.getBoolean(TRIGGER_TRACING_ENABLED, true))
               .internalTransactionSettings(parseTraceConfigs(declarativeConfigProperties));
 
       parseConfig(declarativeConfigProperties, builder);

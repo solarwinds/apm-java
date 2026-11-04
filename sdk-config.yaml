@@ -1,41 +1,35 @@
-# sdk-config.yaml is a typical starting point for configuring our custom distribution, including exporting to
-# localhost via OTLP.
+# sdk-config.yaml is the minimum configuration required to report traces, metrics and logs to SolarWinds Observability
+# with our custom distribution. See sdk-config-kitchen-sink.yaml for every supported option, including the swo_otlp
+# exporter for proxy support and exporting only service-level system metrics.
 
 # NOTE: With the exception of env var substitution syntax (i.e. ${MY_ENV}), SDKs ignore
 # environment variables when interpreting config files. This including ignoring all env
 # vars defined in https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/.
 
+# Required environment variables:
+#   SW_APM_SERVICE_KEY: <api_token>:<service_name>
+#   SW_APM_API_TOKEN:   <api_token>
+
+# Replace na-01 in the sampler collector and exporter endpoints with your SolarWinds Observability data center.
+
 # The file format version.
 file_format: "1.1"
 
-# Configure if the SDK is disabled or not. This setting is optional, the default value when not provided is for the SDK to be enabled
-disabled: false
-
 # Configure resource for all signals.
 resource:
-  # Configure resource attributes. Entries have higher priority than entries from .resource.attributes_list.
-  # Entries must contain .name nand .value, and may optionally include .type, which defaults ot "string" if not set. The value must match the type. Values for .type include: string, bool, int, double, string_array, bool_array, int_array, double_array.
   attributes:
     - name: service.name
-      value: swi-test-app
-  # Configure resource detectors. SolarWinds detectors are listed first so upstream detectors can override their attributes.
+      value: my-service
+  # SolarWinds detectors are listed first so upstream detectors can override their attributes.
   detection/development:
     detectors:
       - swo_apm:
-      - swo_uams:
-      - swo_k8s:
-
-distribution:
-  solarwinds:
-    logging:
-      level: info
-
-# Configure general attribute limits. See also tracer_provider.limits, logger_provider.limits.
-attribute_limits:
+      - service:
+      - host:
+      - process:
 
 # Configure text map context propagators.
 propagator:
-  # Configure the set of propagators to include in the composite text map propagator.
   composite:
     - tracecontext:
     - baggage:
@@ -45,29 +39,51 @@ propagator:
 # Configure tracer provider.
 tracer_provider:
   processors:
-    - swo_stacktrace:
     - swo_response_time:
-    - swo_profiler:
-        enabled: false
-        interval: 20
-        exclude_packages:
-          - java
-          - javax
-          - com.sun
-          - sun
-          - sunw
+    - batch:
+        exporter:
+          otlp_http:
+            endpoint: https://otel.collector.na-01.cloud.solarwinds.com/v1/traces
+            headers:
+              - name: authorization
+                value: Bearer ${SW_APM_API_TOKEN}
+            # Recommended.
+            compression: gzip
+  sampler:
+    swo_http:
+      service_key: ${SW_APM_SERVICE_KEY}
+      collector: apm.collector.na-01.cloud.solarwinds.com
 
 # Configure meter provider.
 meter_provider:
   readers:
+    - periodic:
+        exporter:
+          # swo_otlp resets transaction names after each export, and always uses delta temporality and base2
+          # exponential histograms.
+          swo_otlp:
+            endpoint: https://otel.collector.na-01.cloud.solarwinds.com/v1/metrics
+            headers:
+              - name: authorization
+                value: Bearer ${SW_APM_API_TOKEN}
+            # Recommended.
+            compression: gzip
 
-# Configure logger provider. Remove to disable log export
+# Configure logger provider. Remove to disable log export.
 logger_provider:
   processors:
+    - batch:
+        exporter:
+          otlp_http:
+            endpoint: https://otel.collector.na-01.cloud.solarwinds.com/v1/logs
+            headers:
+              - name: authorization
+                value: Bearer ${SW_APM_API_TOKEN}
+            # Recommended.
+            compression: gzip
 
+# Recommended. JVM runtime metrics.
 instrumentation/development:
   java:
     runtime_telemetry:
       emit_experimental_jfr_metrics/development: true
-    common:
-      default-enabled: true

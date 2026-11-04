@@ -29,7 +29,10 @@ import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporterBuilder
 import io.opentelemetry.exporter.otlp.internal.OtlpDeclarativeConfigUtil;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.common.export.ProxyOptions;
+import io.opentelemetry.sdk.metrics.Aggregation;
+import io.opentelemetry.sdk.metrics.InstrumentType;
 import io.opentelemetry.sdk.metrics.export.AggregationTemporalitySelector;
+import io.opentelemetry.sdk.metrics.export.DefaultAggregationSelector;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import java.net.InetSocketAddress;
 
@@ -69,6 +72,9 @@ public class MetricExporterComponentProvider implements ComponentProvider {
         () -> builder.setMeterProvider(MeterProvider::noop));
 
     builder.setAggregationTemporalitySelector(AggregationTemporalitySelector.deltaPreferred());
+    builder.setDefaultAggregationSelector(
+        DefaultAggregationSelector.getDefault()
+            .with(InstrumentType.HISTOGRAM, Aggregation.base2ExponentialBucketHistogram()));
 
     ProxyConfig proxyConfig = ProxyHelper.toProxyConfig(config);
     if (proxyConfig != null) {

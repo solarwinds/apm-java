@@ -52,8 +52,8 @@ public class LogSettingParser implements DeclarativeConfigPropertyParser {
         loggingSettings.getBoolean("stdout", true),
         loggingSettings.getBoolean("stderr", true),
         filePath,
-        fileInfo.getInt("maxSize"),
-        fileInfo.getInt("maxBackup"));
+        fileInfo.getInt("max_size"),
+        fileInfo.getInt("max_backup"));
   }
 
   @Override
