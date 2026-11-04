@@ -73,6 +73,6 @@ dependencies {
     api("io.opentelemetry:opentelemetry-sdk-extension-declarative-config:$opentelemetryAlpha")
 
     api("org.junit.jupiter:junit-jupiter-params:$junit5")
-    api("dev.cel:cel:0.14.0")
+    api("dev.cel:cel:0.15.0")
   }
 }
