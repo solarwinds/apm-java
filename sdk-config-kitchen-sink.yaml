@@ -196,11 +196,11 @@ tracer_provider:
       tracing_enabled: true
       # Optional. Defaults to true.
       trigger_trace_enabled: true
-      # Optional. Positive integer that overrides the collector supplied limit.
-      context_ttl: 600
-      # Optional. Positive integer that overrides the collector supplied limit.
+      # Optional. Positive initial context lifetime in milliseconds. Collector MaxContextAge updates take precedence.
+      context_ttl: 600000
+      # Optional. Positive initial event limit. Collector MaxContextEvents updates take precedence.
       context_max_events: 100000
-      # Optional. Positive integer that overrides the collector supplied limit.
+      # Optional. Positive initial backtrace limit. Collector MaxContextBacktraces updates take precedence.
       context_max_backtraces: 1000
       # Optional. Each entry needs tracing (enabled|disabled) and exactly one of regex or extensions.
       transaction_settings:
