@@ -153,6 +153,6 @@ distribution:
 instrumentation/development:
   java:
     common:
-      default-enabled: true
+      default_enabled: true
     swo_jdbc:
       sql_tag: true

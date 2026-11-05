@@ -185,7 +185,7 @@ instrumentation/development:
     runtime_telemetry:
       emit_experimental_jfr_metrics/development: true
     common:
-      default-enabled: true
+      default_enabled: true
     swo_jdbc:
       sql_tag: true
       sql_tag_prepared: true

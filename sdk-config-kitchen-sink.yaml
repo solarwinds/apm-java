@@ -308,7 +308,7 @@ instrumentation/development:
   java:
     common:
       # Optional. Defaults to true.
-      default-enabled: true
+      default_enabled: true
     # Recommended. JVM runtime metrics.
     runtime_telemetry:
       # Recommended. Adds JFR based runtime metrics. Defaults to false.
