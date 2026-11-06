@@ -74,5 +74,6 @@ dependencies {
 
     api("org.junit.jupiter:junit-jupiter-params:$junit5")
     api("dev.cel:cel:0.15.0")
+    api("com.google.guava:guava:33.8.0-jre")
   }
 }
