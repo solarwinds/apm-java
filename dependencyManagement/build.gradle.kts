@@ -2,7 +2,7 @@ plugins {
   `java-platform`
 }
 
-val otelAgentVersion = "2.32.0"
+val otelAgentVersion = "2.33.1"
 val otelSdkVersion = "1.66.0"
 
 val mockitoVersion = "5.2.0"
