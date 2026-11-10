@@ -62,6 +62,7 @@ public class SpanExporterComponentProvider implements ComponentProvider {
         builder::setClientTls,
         builder::setRetryPolicy,
         builder::setMemoryMode,
+        builder::setMaxRequestBodySize,
         true,
         builder::setInternalTelemetryVersion,
         () -> builder.setMeterProvider(MeterProvider::noop));
