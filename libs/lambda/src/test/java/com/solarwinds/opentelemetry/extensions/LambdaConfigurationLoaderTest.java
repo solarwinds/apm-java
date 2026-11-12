@@ -17,14 +17,20 @@
 package com.solarwinds.opentelemetry.extensions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.solarwinds.joboe.config.ConfigContainer;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.logging.LoggerConfiguration;
+import com.solarwinds.joboe.logging.LoggerFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junitpioneer.jupiter.StdErr;
+import org.junitpioneer.jupiter.StdIo;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -60,5 +66,32 @@ class LambdaConfigurationLoaderTest {
             Collections.singletonList("http.method"));
 
     assertEquals(expected, TransactionNameManager.getNamingScheme());
+  }
+
+  @Test
+  @StdIo
+  void processConfigsWarnsThatLogFileSettingIsIgnored(StdErr stdErr) throws InvalidConfigException {
+    LoggerFactory.init(LoggerConfiguration.builder().build());
+    ConfigContainer configContainer = new ConfigContainer();
+
+    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
+    configContainer.putByStringValue(ConfigProperty.AGENT_LOG_FILE, "/tmp/agent.log");
+    LambdaConfigurationLoader.processConfigs(configContainer);
+
+    assertTrue(
+        stdErr
+            .capturedString()
+            .contains("Logging to a file is no longer supported, ignoring SW_APM_JAVA_LOG_FILE"));
+  }
+
+  @Test
+  @StdIo
+  void processConfigsDoesNotWarnWithoutLogFileSetting(StdErr stdErr) throws InvalidConfigException {
+    LoggerFactory.init(LoggerConfiguration.builder().build());
+    ConfigContainer configContainer = new ConfigContainer();
+    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
+
+    LambdaConfigurationLoader.processConfigs(configContainer);
+    assertFalse(stdErr.capturedString().contains("Logging to a file is no longer supported"));
   }
 }

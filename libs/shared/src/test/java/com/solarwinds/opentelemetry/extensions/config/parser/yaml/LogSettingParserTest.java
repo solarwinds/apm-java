@@ -27,7 +27,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -53,11 +52,11 @@ class LogSettingParserTest {
   @Test
   void testConvert() throws InvalidConfigException {
     LogSetting logSetting = tested.convert(declarativeConfigProperties);
-    assertEquals(new LogSetting(Logger.Level.TRACE, true, true, null, 10, 5), logSetting);
+    assertEquals(new LogSetting(Logger.Level.TRACE, true, true), logSetting);
   }
 
   @Test
-  void testConvertWithFileSettings() throws InvalidConfigException {
+  void testConvertIgnoresFileSettingsAndKeepsStdStreamsEnabled() throws InvalidConfigException {
     LogSetting logSetting =
         tested.convert(
             fromYaml(
@@ -70,9 +69,16 @@ class LogSettingParserTest {
                     + "    max_size: 20\n"
                     + "    max_backup: 3\n"));
 
-    assertEquals(
-        new LogSetting(Logger.Level.DEBUG, false, false, Paths.get("/tmp/agent.log"), 20, 3),
-        logSetting);
+    assertEquals(new LogSetting(Logger.Level.DEBUG, true, true), logSetting);
+  }
+
+  @Test
+  void testConvertWithStdStreamSettings() throws InvalidConfigException {
+    LogSetting logSetting =
+        tested.convert(
+            fromYaml("logging:\n" + "  level: warn\n" + "  stdout: false\n" + "  stderr: true\n"));
+
+    assertEquals(new LogSetting(Logger.Level.WARNING, false, true), logSetting);
   }
 
   @Test

@@ -23,9 +23,6 @@ import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.LogSetting;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,23 +35,13 @@ public class LogSettingParser implements ConfigParser<String, LogSetting> {
   public static final String STDOUT_KEY = "stdout";
   public static final String STDERR_KEY = "stderr";
   public static final String FILE_KEY = "file";
-  public static final String FILE_LOCATION_KEY = "location";
-  public static final String FILE_MAX_SIZE_KEY = "maxSize";
-  public static final String FILE_MAX_BACKUP_KEY = "maxBackup";
 
   private static final List<String> VALID_CONFIG_KEYS =
       Arrays.asList(LEVEL_KEY, STDERR_KEY, STDOUT_KEY, FILE_KEY);
-  private static final List<String> VALID_FILE_CONFIG_KEYS =
-      Arrays.asList(FILE_LOCATION_KEY, FILE_MAX_SIZE_KEY, FILE_MAX_BACKUP_KEY);
 
   public static final LogSettingParser INSTANCE = new LogSettingParser();
   static final boolean DEFAULT_STDOUT_ENABLED = true;
   static final boolean DEFAULT_STDERR_ENABLED = true;
-
-  public static final int MAX_BACKUP_MIN = 1;
-  public static final int MAX_BACKUP_MAX = 100;
-  public static final int MAX_SIZE_MIN = 1;
-  public static final int MAX_SIZE_MAX = 1024;
 
   private LogSettingParser() {}
 
@@ -78,7 +65,7 @@ public class LogSettingParser implements ConfigParser<String, LogSetting> {
               + "] is invalid. Using default logging level instead...");
     }
 
-    return new LogSetting(level, true, true, null, null, null);
+    return new LogSetting(level, true, true);
   }
 
   private LogSetting convertJsonValue(String stringValue) throws InvalidConfigException {
@@ -101,88 +88,16 @@ public class LogSettingParser implements ConfigParser<String, LogSetting> {
       boolean stdOutEnabled = getEnabled(jsonObject, STDOUT_KEY, DEFAULT_STDOUT_ENABLED);
       boolean stdErrEnabled = getEnabled(jsonObject, STDERR_KEY, DEFAULT_STDERR_ENABLED);
 
-      Object fileRawObject = jsonObject.opt(FILE_KEY);
-
-      String locationString = null;
-      Integer maxSize = null;
-      Integer maxBackup = null;
-      Path logFilePath = null;
-
-      if (fileRawObject != null) {
-        if (fileRawObject instanceof JSONObject) {
-          JSONObject fileObject = (JSONObject) fileRawObject;
-          checkUnknownKeys(fileObject, VALID_FILE_CONFIG_KEYS);
-
-          locationString = fileObject.getString(FILE_LOCATION_KEY); // mandatory
-
-          try {
-            logFilePath = Paths.get(locationString);
-
-            maxSize =
-                fileObject.has(FILE_MAX_SIZE_KEY) ? fileObject.getInt(FILE_MAX_SIZE_KEY) : null;
-            maxBackup =
-                fileObject.has(FILE_MAX_BACKUP_KEY) ? fileObject.getInt(FILE_MAX_BACKUP_KEY) : null;
-
-            if (maxSize != null) {
-              if (maxSize < MAX_SIZE_MIN || maxSize > MAX_SIZE_MAX) {
-                throw new InvalidConfigException(
-                    "Invalid value ["
-                        + maxSize
-                        + "] for "
-                        + getKeyDisplayString(FILE_MAX_SIZE_KEY)
-                        + ". The value should be in range of ["
-                        + MAX_SIZE_MIN
-                        + " , "
-                        + MAX_SIZE_MAX
-                        + "]");
-              }
-            }
-
-            if (maxBackup != null) {
-              if (maxBackup < MAX_BACKUP_MIN || maxBackup > MAX_BACKUP_MAX) {
-                throw new InvalidConfigException(
-                    "Invalid value ["
-                        + maxBackup
-                        + "] for "
-                        + getKeyDisplayString(FILE_MAX_BACKUP_KEY)
-                        + ". The value should be in range of ["
-                        + MAX_BACKUP_MIN
-                        + " , "
-                        + MAX_BACKUP_MAX
-                        + "]");
-              }
-            }
-          } catch (InvalidPathException e) {
-            throw new InvalidConfigException(
-                "Log file path [" + locationString + "] is invalid : " + e.getMessage(), e);
-          }
-        } else {
-          throw new InvalidConfigException(
-              "Expect json value for key ["
-                  + FILE_KEY
-                  + "] but found value ["
-                  + fileRawObject
-                  + "]");
-        }
+      if (jsonObject.has(FILE_KEY)) {
+        // stdout/stderr could only be disabled when a file was set, so keep logs from going silent
+        logger.warn(
+            "Logging to a file is no longer supported, ignoring "
+                + getKeyDisplayString(FILE_KEY)
+                + ". Agent logs are written to stdout and stderr.");
+        return new LogSetting(level, true, true);
       }
 
-      // validate whether stderr or stdout can be disabled
-      if (locationString == null) {
-        if (!stdErrEnabled) {
-          throw new InvalidConfigException(
-              "Cannot disable stderr on logging while no log file is defined in ["
-                  + ConfigProperty.AGENT_LOGGING.getConfigFileKey()
-                  + "]");
-        }
-        if (!stdOutEnabled) {
-          throw new InvalidConfigException(
-              "Cannot disable stdout on logging while no log file is defined in ["
-                  + ConfigProperty.AGENT_LOGGING.getConfigFileKey()
-                  + "]");
-        }
-      }
-
-      return new LogSetting(level, stdOutEnabled, stdErrEnabled, logFilePath, maxSize, maxBackup);
+      return new LogSetting(level, stdOutEnabled, stdErrEnabled);
     } catch (JSONException e) {
       throw new InvalidConfigException(
           "Failed parsing log settings from config file: " + e.getMessage(), e);

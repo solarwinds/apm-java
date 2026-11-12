@@ -20,7 +20,6 @@ import com.solarwinds.joboe.config.ConfigContainer;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.logging.LogSetting;
 import com.solarwinds.joboe.logging.LoggerConfiguration;
-import java.nio.file.Path;
 
 public final class LoggingConfigProvider {
   private LoggingConfigProvider() {}
@@ -33,13 +32,7 @@ public final class LoggingConfigProvider {
     }
 
     if (container.containsProperty(ConfigProperty.AGENT_DEBUG)) {
-      loggerConfiguration
-          .debug((Boolean) container.get(ConfigProperty.AGENT_DEBUG))
-          .logFile((Path) container.get(ConfigProperty.AGENT_LOG_FILE));
-    }
-
-    if (container.containsProperty(ConfigProperty.AGENT_LOG_FILE)) {
-      loggerConfiguration.logFile((Path) container.get(ConfigProperty.AGENT_LOG_FILE));
+      loggerConfiguration.debug((Boolean) container.get(ConfigProperty.AGENT_DEBUG));
     }
 
     return loggerConfiguration.build();

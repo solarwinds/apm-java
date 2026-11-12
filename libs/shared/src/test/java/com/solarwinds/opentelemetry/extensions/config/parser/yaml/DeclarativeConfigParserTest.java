@@ -85,7 +85,6 @@ class DeclarativeConfigParserTest {
     when(declarativeConfigPropertiesMock.getStructured(any(), any()))
         .thenReturn(declarativeConfigPropertiesMock);
 
-    when(declarativeConfigPropertiesMock.getString(any())).thenReturn(null);
     when(declarativeConfigPropertiesMock.getString(eq("level"), any())).thenReturn("debug");
     parser.parse(declarativeConfigPropertiesMock);
 

@@ -30,7 +30,6 @@ import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.TraceConfigs;
-import com.solarwinds.opentelemetry.extensions.config.parser.json.LogFileStringParser;
 import com.solarwinds.opentelemetry.extensions.config.parser.json.LogSettingParser;
 import com.solarwinds.opentelemetry.extensions.config.parser.json.ModeStringToBooleanParser;
 import com.solarwinds.opentelemetry.extensions.config.parser.json.RangeValidationParser;
@@ -46,9 +45,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,7 +61,6 @@ public class LambdaConfigurationLoader {
 
   static {
     ConfigProperty.AGENT_LOGGING.setParser(LogSettingParser.INSTANCE);
-    ConfigProperty.AGENT_LOG_FILE.setParser(new LogFileStringParser());
     ConfigProperty.AGENT_TRACING_MODE.setParser(new TracingModeParser());
     ConfigProperty.AGENT_SQL_QUERY_MAX_LENGTH.setParser(
         new RangeValidationParser<>(
@@ -92,26 +87,6 @@ public class LambdaConfigurationLoader {
     logger.info(
         "Successfully loaded SolarwindsAPM OpenTelemetry extensions configurations. Service key: "
             + ServiceKeyUtils.maskServiceKey(serviceKey));
-  }
-
-  /**
-   * Checks the OpenTelemetry Java agent's logger settings. If the NH custom distro doesn't set a
-   * log file but the Otel has this config option, we just follow the Otel's config.
-   *
-   * @param configs the configuration container to hold configs
-   */
-  private static void maybeFollowOtelConfigProperties(ConfigContainer configs) {
-    if (configs.get(ConfigProperty.AGENT_LOG_FILE) == null
-        && System.getProperty("io.opentelemetry.javaagent.slf4j.simpleLogger.logFile") != null) {
-      try {
-        Path path =
-            Paths.get(System.getProperty("io.opentelemetry.javaagent.slf4j.simpleLogger.logFile"));
-        configs.put(ConfigProperty.AGENT_LOG_FILE, path);
-      } catch (InvalidConfigException | InvalidPathException e) {
-        logger.info(
-            "failed to follow Otel's log file config." + LogSanitizer.sanitize(e.getMessage()));
-      }
-    }
   }
 
   static Map<String, String> mergeEnvWithSysProperties(Map<String, String> env, Properties props) {
@@ -164,7 +139,6 @@ public class LambdaConfigurationLoader {
       throw e; // rethrow the exception
     } finally {
       if (configs != null) {
-        maybeFollowOtelConfigProperties(configs);
         ConfigContainer config = configs.subset(ConfigGroup.AGENT);
         LoggerFactory.init(
             LoggingConfigProvider.getLoggerConfiguration(
@@ -300,6 +274,14 @@ public class LambdaConfigurationLoader {
    * @param configs contains loaded agent configuration
    */
   public static void processConfigs(ConfigContainer configs) throws InvalidConfigException {
+    if (configs.containsProperty(ConfigProperty.AGENT_LOG_FILE)) {
+      logger.warn(
+          String.format(
+              "Logging to a file is no longer supported, ignoring %s. Agent logs are written to"
+                  + " stdout and stderr.",
+              ConfigProperty.AGENT_LOG_FILE.getEnvironmentVariableKey()));
+    }
+
     if (configs.containsProperty(ConfigProperty.AGENT_DEBUG)) { // legacy flag
       configs.put(ConfigProperty.AGENT_LOGGING, false);
     }

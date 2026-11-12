@@ -33,9 +33,6 @@ import com.solarwinds.joboe.logging.LogSetting;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerConfiguration;
 import com.solarwinds.joboe.logging.LoggerFactory;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -56,7 +53,7 @@ import java.util.concurrent.TimeoutException;
  * <p>For example: java -Djava.security.debug=certpath,provider -Djavax.net.debug=ssl:session -cp
  * solarwinds-apm-agent.jar com.solarwinds.joboe.core.util.diagnostic.DiagnosticTools
  * service_key=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef:my-service
- * timeout=10000 log_file=solarwinds-apm-diagnostics.log
+ * timeout=10000
  *
  * @author Patson
  */
@@ -68,7 +65,7 @@ public class DiagnosticTools {
 
   private static int timeout = DEFAULT_TIMEOUT;
   private static final LogSetting DEFAULT_LOG_SETTING =
-      new LogSetting(Logger.Level.DEBUG, true, true, null, null, null);
+      new LogSetting(Logger.Level.DEBUG, true, true);
 
   public static void main(String[] args) {
     if (!JavaRuntimeVersionChecker.isJdkVersionSupported()) {
@@ -87,15 +84,6 @@ public class DiagnosticTools {
         printUsage();
       } else {
         Map<ParameterKey, String> parameters = parseParameters(args);
-        String logFileString = parameters.get(ParameterKey.LOG_FILE);
-
-        if (logFileString != null) {
-          PrintStream logFileStream = getLogFile(logFileString);
-          if (logFileStream != null) {
-            System.setOut(logFileStream);
-            System.setErr(logFileStream);
-          }
-        }
 
         serviceKey = parameters.get(ParameterKey.SERVICE_KEY);
         String timeoutFromParameter = parameters.get(ParameterKey.TIMEOUT);
@@ -124,7 +112,6 @@ public class DiagnosticTools {
       ConfigContainer subset = container.subset(ConfigGroup.AGENT);
       LoggerFactory.init(
           LoggerConfiguration.builder()
-              .logFile((Path) subset.get(ConfigProperty.AGENT_LOG_FILE))
               .logSetting((LogSetting) subset.get(ConfigProperty.AGENT_LOGGING))
               .debug(
                   subset.get(ConfigProperty.AGENT_DEBUG) != null
@@ -152,12 +139,10 @@ public class DiagnosticTools {
         "All other program parameters except for the service_key are optional and in format of [key]=[value], available parameters are:");
     logger.info("service_key : Service key to be used for the diagnostics");
     logger.info("timeout     : Max time to wait for the diagnostics to finish");
-    logger.info(
-        "log_file    : File location to print the logs to, could either be relative or absolute path");
     logger.info("collector   : The collector endpoint for the diagnostics tool to connect to");
   }
 
-  private enum ParameterKey {
+  enum ParameterKey {
     SERVICE_KEY("service_key"),
     COLLECTOR("collector"),
     TIMEOUT("timeout"),
@@ -183,16 +168,7 @@ public class DiagnosticTools {
     }
   }
 
-  private static PrintStream getLogFile(String logFileString) {
-    try {
-      return new PrintStream(logFileString);
-    } catch (FileNotFoundException e) {
-      logger.warn("Cannot write to log file [" + LogSanitizer.sanitize(logFileString) + "]");
-      return null;
-    }
-  }
-
-  private static Map<ParameterKey, String> parseParameters(String[] argments)
+  static Map<ParameterKey, String> parseParameters(String[] argments)
       throws InvalidArgumentsException {
     Map<ParameterKey, String> parameters = new HashMap<ParameterKey, String>();
     for (String keyValue : argments) {
@@ -208,6 +184,13 @@ public class DiagnosticTools {
         if (key == null) {
           throw new InvalidArgumentsException(
               "parameter key [" + keyString + "] is not a valid parameter key");
+        }
+        if (key == ParameterKey.LOG_FILE) {
+          logger.warn(
+              "Logging to a file is no longer supported, ignoring parameter ["
+                  + key.key
+                  + "]. Logs are written to stdout and stderr.");
+          continue;
         }
         parameters.put(key, keyValue.substring(separator + 1));
       }
