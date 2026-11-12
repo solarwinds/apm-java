@@ -19,6 +19,7 @@ package com.solarwinds.opentelemetry.extensions.config.parser.json;
 import com.solarwinds.joboe.config.ConfigParser;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.LogSetting;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
@@ -73,7 +74,7 @@ public class LogSettingParser implements ConfigParser<String, LogSetting> {
     if (level == null) { // but do warn about it
       logger.warn(
           "Agent logging level value ["
-              + stringValue
+              + LogSanitizer.sanitize(stringValue)
               + "] is invalid. Using default logging level instead...");
     }
 

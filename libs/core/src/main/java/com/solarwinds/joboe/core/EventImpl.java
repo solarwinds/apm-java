@@ -35,6 +35,7 @@ import com.solarwinds.joboe.core.ebson.MultiValList;
 import com.solarwinds.joboe.core.util.HostInfoUtils;
 import com.solarwinds.joboe.core.util.JavaProcessUtils;
 import com.solarwinds.joboe.core.util.TimeUtils;
+import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.Metadata;
@@ -244,7 +245,7 @@ public class EventImpl extends Event {
     try {
       addEdge(new Metadata(hexstr));
     } catch (SamplingException ex) {
-      logger.debug(() -> "Invalid XTrace ID: " + hexstr, ex);
+      logger.debug(() -> "Invalid XTrace ID: " + LogSanitizer.sanitize(hexstr), ex);
     }
   }
 

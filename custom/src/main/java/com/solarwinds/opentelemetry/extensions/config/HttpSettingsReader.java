@@ -20,6 +20,7 @@ import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.ServiceKeyUtils;
 import com.solarwinds.joboe.core.settings.SettingsReader;
+import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.Settings;
@@ -74,14 +75,16 @@ public class HttpSettingsReader implements SettingsReader {
     String serviceName = ServiceKeyUtils.getServiceName(serviceKey);
 
     String apiToken = ServiceKeyUtils.getApiKey(serviceKey);
-    String settingsUrl = String.format("%s/v1/settings/%s", collectorUrl, serviceName);
+    String settingsUrl =
+        LogSanitizer.sanitize(String.format("%s/v1/settings/%s", collectorUrl, serviceName));
 
     String tokenHeader = String.format("Bearer %s", apiToken);
     Settings fetchedSettings = delegate.fetchSettings(settingsUrl, tokenHeader);
     logger.debug(
         () ->
             String.format(
-                "Got settings from http: %s, serviceName: %s", fetchedSettings, serviceName));
+                "Got settings from http: %s, serviceName: %s",
+                fetchedSettings, LogSanitizer.sanitize(serviceName)));
 
     return fetchedSettings;
   }

@@ -16,6 +16,8 @@
 
 package com.solarwinds.joboe.config;
 
+import com.solarwinds.joboe.logging.LogSanitizer;
+
 public class ServiceKeyUtils {
   public static final char SEPARATOR_CHARACTER =
       ':'; // char that separates customer key and service name within the service key
@@ -47,7 +49,8 @@ public class ServiceKeyUtils {
               + customerKey.substring(customerKey.length() - tailCharacterCount);
     }
 
-    return serviceName != null ? customerKey + SEPARATOR_CHARACTER + serviceName : customerKey;
+    return LogSanitizer.sanitize(
+        serviceName != null ? customerKey + SEPARATOR_CHARACTER + serviceName : customerKey);
   }
 
   public static String getServiceName(String serviceKey) {

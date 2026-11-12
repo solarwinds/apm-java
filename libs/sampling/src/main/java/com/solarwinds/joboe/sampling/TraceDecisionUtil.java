@@ -16,6 +16,7 @@
 
 package com.solarwinds.joboe.sampling;
 
+import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import java.util.AbstractMap;
@@ -161,19 +162,28 @@ public class TraceDecisionUtil {
 
   private static Metadata validateMetadata(String inXtraceId) {
     if (!Metadata.isCompatible(inXtraceId)) {
-      logger.debug(() -> "Not accepting X-Trace ID [" + inXtraceId + "] for trace continuation");
+      logger.debug(
+          () ->
+              "Not accepting X-Trace ID ["
+                  + LogSanitizer.sanitize(inXtraceId)
+                  + "] for trace continuation");
       return null;
     }
 
     try {
       Metadata inMetadata = new Metadata(inXtraceId);
       if (!inMetadata.isValid()) {
-        logger.debug(() -> "Invalid incoming x-trace ID [" + inXtraceId + "]");
+        logger.debug(
+            () -> "Invalid incoming x-trace ID [" + LogSanitizer.sanitize(inXtraceId) + "]");
         return null;
       }
       return inMetadata;
     } catch (SamplingException e) {
-      logger.warn("Failed to parse x-trace ID [" + inXtraceId + "] " + e.getMessage());
+      logger.warn(
+          "Failed to parse x-trace ID ["
+              + LogSanitizer.sanitize(inXtraceId)
+              + "] "
+              + e.getMessage());
       return null;
     }
   }

@@ -16,6 +16,7 @@
 
 package com.solarwinds.joboe.sampling;
 
+import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import java.security.GeneralSecurityException;
@@ -132,7 +133,10 @@ public class XtraceOptions {
         if (!optionEntry.isEmpty()) {
           String emptyKeyEntry = optionEntry;
           logger.debug(
-              () -> "Skipped entry [" + emptyKeyEntry + "] in X-Trace-Options as the key is empty");
+              () ->
+                  "Skipped entry ["
+                      + LogSanitizer.sanitize(emptyKeyEntry)
+                      + "] in X-Trace-Options as the key is empty");
         }
         continue;
       }
@@ -167,7 +171,7 @@ public class XtraceOptions {
                       "Duplicated option ["
                           + option.getKey()
                           + "] with value ["
-                          + optionValueString
+                          + LogSanitizer.sanitize(optionValueString)
                           + "] found in X-Trace-Options, ignoring...");
             }
           } catch (InvalidValueXtraceOptionException e) {
@@ -192,7 +196,7 @@ public class XtraceOptions {
           Collections.emptyMap(), Collections.emptyList(), authenticationStatus);
     } else {
       for (XtraceOptionException exception : exceptions) {
-        logger.debug(exception.getMessage());
+        logger.debug(LogSanitizer.sanitize(exception.getMessage()));
       }
       return new XtraceOptions(options, exceptions, authenticationStatus);
     }

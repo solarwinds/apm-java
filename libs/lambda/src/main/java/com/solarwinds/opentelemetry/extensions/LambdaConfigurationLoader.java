@@ -26,6 +26,7 @@ import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.config.InvalidConfigReadSourceException;
 import com.solarwinds.joboe.config.JsonConfigReader;
 import com.solarwinds.joboe.config.ServiceKeyUtils;
+import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.TraceConfigs;
@@ -107,7 +108,8 @@ public class LambdaConfigurationLoader {
             Paths.get(System.getProperty("io.opentelemetry.javaagent.slf4j.simpleLogger.logFile"));
         configs.put(ConfigProperty.AGENT_LOG_FILE, path);
       } catch (InvalidConfigException | InvalidPathException e) {
-        logger.info("failed to follow Otel's log file config." + e.getMessage());
+        logger.info(
+            "failed to follow Otel's log file config." + LogSanitizer.sanitize(e.getMessage()));
       }
     }
   }
@@ -131,7 +133,13 @@ public class LambdaConfigurationLoader {
       if (envKey.endsWith("SERVICE_KEY")) {
         value = ServiceKeyUtils.maskServiceKey(value);
       }
-      logger.info("System property " + key + "=" + value + ", override " + envKey);
+      logger.info(
+          "System property "
+              + LogSanitizer.sanitize(key)
+              + "="
+              + LogSanitizer.sanitize(value)
+              + ", override "
+              + LogSanitizer.sanitize(envKey));
     }
     return res;
   }
@@ -230,7 +238,8 @@ public class LambdaConfigurationLoader {
       }
       if (config != null) {
         new JsonConfigReader(config).read(container);
-        logger.info("Finished reading configs from config file: " + location);
+        logger.info(
+            "Finished reading configs from config file: " + LogSanitizer.sanitize(location));
       }
 
       new JsonConfigReader(LambdaConfigurationLoader.class.getResourceAsStream("/" + CONFIG_FILE))

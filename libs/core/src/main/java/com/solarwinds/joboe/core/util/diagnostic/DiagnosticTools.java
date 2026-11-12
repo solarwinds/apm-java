@@ -28,6 +28,7 @@ import com.solarwinds.joboe.core.rpc.ClientException;
 import com.solarwinds.joboe.core.rpc.ResultCode;
 import com.solarwinds.joboe.core.rpc.RpcClientManager;
 import com.solarwinds.joboe.core.rpc.RpcClientManager.OperationType;
+import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.LogSetting;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerConfiguration;
@@ -104,7 +105,7 @@ public class DiagnosticTools {
           } catch (NumberFormatException e) {
             logger.warn(
                 "Cannot parse timeout from argument ["
-                    + timeoutFromParameter
+                    + LogSanitizer.sanitize(timeoutFromParameter)
                     + "]. Using default "
                     + DEFAULT_TIMEOUT
                     + " ms instead.");
@@ -133,12 +134,12 @@ public class DiagnosticTools {
       ConfigManager.initialize(container);
       result = testServiceKey(serviceKey);
     } catch (InvalidArgumentsException | InvalidConfigException e) {
-      logger.warn(e.getMessage());
+      logger.warn(LogSanitizer.sanitize(e.getMessage()));
       printUsage();
       result = Result.invalidArguments(args);
     } finally {
       if (result != null) {
-        logger.info(result.toString());
+        logger.info(LogSanitizer.sanitize(result.toString()));
         System.exit(result.resultType.exitCode);
       }
     }
@@ -186,7 +187,7 @@ public class DiagnosticTools {
     try {
       return new PrintStream(logFileString);
     } catch (FileNotFoundException e) {
-      logger.warn("Cannot write to log file [" + logFileString + "]");
+      logger.warn("Cannot write to log file [" + LogSanitizer.sanitize(logFileString) + "]");
       return null;
     }
   }

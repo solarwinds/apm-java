@@ -16,6 +16,7 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
+import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import io.opentelemetry.api.common.Attributes;
@@ -47,7 +48,7 @@ public abstract class NamingScheme {
         logger.warn(
             String.format(
                 "Configured scheme(%s) is missing required fields. Hence, scheme has no effect",
-                scheme.getScheme()));
+                LogSanitizer.sanitize(scheme.getScheme())));
       }
     }
 

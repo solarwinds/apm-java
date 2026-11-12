@@ -16,6 +16,7 @@
 
 package com.solarwinds.joboe.config;
 
+import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import java.io.Serializable;
@@ -128,8 +129,13 @@ public class ConfigContainer {
     put(propertyKey, value, false);
   }
 
-  public void put(ConfigProperty propertyKey, Object value, boolean override)
+  /**
+   * Inserts the value for the given key. Free-form {@code String} values are sanitized with {@link
+   * LogSanitizer} so config values are safe to log wherever they are used.
+   */
+  public void put(ConfigProperty propertyKey, Object rawValue, boolean override)
       throws InvalidConfigException {
+    Object value = rawValue instanceof String ? LogSanitizer.sanitize((String) rawValue) : rawValue;
     Map<ConfigProperty, Object> configMap = configMaps.get(propertyKey.getGroup());
 
     if (configMap == null) { // The Group is not initialized, put a new map into the configMap
@@ -147,9 +153,9 @@ public class ConfigContainer {
                 "key ["
                     + propertyKey
                     + "] is already defined with value ["
-                    + existingValue
+                    + LogSanitizer.sanitize(String.valueOf(existingValue))
                     + "]. Ignoring new value ["
-                    + value
+                    + LogSanitizer.sanitize(String.valueOf(value))
                     + "]");
       }
     } else {
@@ -272,7 +278,7 @@ public class ConfigContainer {
         list.add((String) stringArray.get(i));
       }
     } catch (JSONException e) {
-      logger.warn(e.getMessage());
+      logger.warn(LogSanitizer.sanitize(e.getMessage()));
       throw new IllegalArgumentException(
           "Cannot parse the string value "
               + stringArrayValue

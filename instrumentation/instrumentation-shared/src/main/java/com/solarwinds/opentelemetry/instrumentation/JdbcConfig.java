@@ -19,6 +19,7 @@ package com.solarwinds.opentelemetry.instrumentation;
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
@@ -74,7 +75,7 @@ final class JdbcConfig {
     try {
       ConfigManager.setConfig(property, value);
     } catch (InvalidConfigException e) {
-      logger.warn("Failed to apply " + property + ": " + e.getMessage());
+      logger.warn("Failed to apply " + property + ": " + LogSanitizer.sanitize(e.getMessage()));
     }
   }
 }
