@@ -86,7 +86,7 @@ public class LoggerLazyLoggingBenchmark {
     Logger.Level level = Logger.Level.fromLabel(loggerLevel.toLowerCase(Locale.ROOT));
     // stdoutEnabled=false, stderrEnabled=false => the logger's output stream is a no-op, so we do
     // not measure console I/O even in the DEBUG (enabled) scenario.
-    LogSetting logSetting = new LogSetting(level, false, false, null, null, null);
+    LogSetting logSetting = new LogSetting(level, false, false);
     LoggerFactory.init(LoggerConfiguration.builder().logSetting(logSetting).build());
     logger = LoggerFactory.getLogger();
 

@@ -29,6 +29,7 @@ import com.solarwinds.joboe.config.JsonConfigReader;
 import com.solarwinds.joboe.config.ServiceKeyUtils;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;
 import com.solarwinds.joboe.core.util.DaemonThreadFactory;
+import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.TraceConfigs;
@@ -38,7 +39,6 @@ import com.solarwinds.opentelemetry.extensions.NamingScheme;
 import com.solarwinds.opentelemetry.extensions.TransactionNameManager;
 import com.solarwinds.opentelemetry.extensions.TransactionNamingScheme;
 import com.solarwinds.opentelemetry.extensions.config.livereload.ConfigurationFileWatcher;
-import com.solarwinds.opentelemetry.extensions.config.parser.json.LogFileStringParser;
 import com.solarwinds.opentelemetry.extensions.config.parser.json.LogSettingParser;
 import com.solarwinds.opentelemetry.extensions.config.parser.json.ModeStringToBooleanParser;
 import com.solarwinds.opentelemetry.extensions.config.parser.json.ProfilerSettingParser;
@@ -57,8 +57,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystems;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
@@ -88,7 +86,6 @@ public class ConfigurationLoader {
 
   static {
     ConfigProperty.AGENT_LOGGING.setParser(LogSettingParser.INSTANCE);
-    ConfigProperty.AGENT_LOG_FILE.setParser(new LogFileStringParser());
     ConfigProperty.AGENT_TRACING_MODE.setParser(new TracingModeParser());
     ConfigProperty.AGENT_SQL_QUERY_MAX_LENGTH.setParser(
         new RangeValidationParser<Integer>(
@@ -139,30 +136,11 @@ public class ConfigurationLoader {
                 logger.info(
                     String.format(
                         "Invalid configuration found on reload. Error - %s",
-                        invalidConfigException));
+                        LogSanitizer.sanitize(invalidConfigException.toString())));
               }
             });
       } catch (Throwable e) {
         logger.warn(String.format("Failed to attach configuration file watcher due error: %s", e));
-      }
-    }
-  }
-
-  /**
-   * Checks the OpenTelemetry Java agent's logger settings. If the NH custom distro doesn't set a
-   * log file but the Otel has this config option, we just follow the Otel's config.
-   *
-   * @param configs the configuration container to hold configs
-   */
-  private static void maybeFollowOtelConfigProperties(ConfigContainer configs) {
-    if (configs.get(ConfigProperty.AGENT_LOG_FILE) == null
-        && System.getProperty("io.opentelemetry.javaagent.slf4j.simpleLogger.logFile") != null) {
-      try {
-        Path path =
-            Paths.get(System.getProperty("io.opentelemetry.javaagent.slf4j.simpleLogger.logFile"));
-        configs.put(ConfigProperty.AGENT_LOG_FILE, path);
-      } catch (InvalidConfigException | InvalidPathException e) {
-        logger.info("failed to follow Otel's log file config." + e.getMessage());
       }
     }
   }
@@ -223,7 +201,13 @@ public class ConfigurationLoader {
       if (envKey.endsWith("SERVICE_KEY")) {
         value = ServiceKeyUtils.maskServiceKey(value);
       }
-      logger.info("System property " + key + "=" + value + ", override " + envKey);
+      logger.info(
+          "System property "
+              + LogSanitizer.sanitize(key)
+              + "="
+              + LogSanitizer.sanitize(value)
+              + ", override "
+              + LogSanitizer.sanitize(envKey));
     }
     return res;
   }
@@ -248,7 +232,6 @@ public class ConfigurationLoader {
       throw e; // rethrow the exception
     } finally {
       if (configs != null) {
-        maybeFollowOtelConfigProperties(configs);
         ConfigContainer config = configs.subset(ConfigGroup.AGENT);
         LoggerFactory.init(
             LoggingConfigProvider.getLoggerConfiguration(
@@ -325,7 +308,8 @@ public class ConfigurationLoader {
       if (config != null) {
         new JsonConfigReader(config).read(container);
         setWatchedPaths(location, File.separatorChar);
-        logger.info("Finished reading configs from config file: " + location);
+        logger.info(
+            "Finished reading configs from config file: " + LogSanitizer.sanitize(location));
       }
 
       new JsonConfigReader(ConfigurationLoader.class.getResourceAsStream("/" + CONFIG_FILE))
@@ -403,6 +387,14 @@ public class ConfigurationLoader {
    * @param configs contains loaded agent configuration
    */
   public static void processConfigs(ConfigContainer configs) throws InvalidConfigException {
+    if (configs.containsProperty(ConfigProperty.AGENT_LOG_FILE)) {
+      logger.warn(
+          String.format(
+              "Logging to a file is no longer supported, ignoring %s. Agent logs are written to"
+                  + " stdout and stderr.",
+              ConfigProperty.AGENT_LOG_FILE.getEnvironmentVariableKey()));
+    }
+
     if (configs.containsProperty(ConfigProperty.AGENT_DEBUG)) { // legacy flag
       configs.put(ConfigProperty.AGENT_LOGGING, false);
     }

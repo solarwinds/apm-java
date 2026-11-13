@@ -42,6 +42,7 @@ dependencies {
   testImplementation(project(":libs:config"))
   testImplementation(project(":libs:sampling"))
   testImplementation(project(":libs:shared"))
+  testImplementation(project(":libs:logging"))
   testImplementation("io.opentelemetry:opentelemetry-api-incubator")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-declarative-config")
 }

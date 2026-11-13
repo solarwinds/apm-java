@@ -20,6 +20,7 @@ import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.config.ProxyConfig;
 import com.solarwinds.joboe.config.ServiceKeyUtils;
+import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.sampling.SamplingConfiguration;
 import com.solarwinds.joboe.sampling.SettingsFetcher;
 import com.solarwinds.opentelemetry.extensions.SharedNames;
@@ -87,7 +88,7 @@ public class HttpSamplerComponentProvider extends AbstractSamplerComponentProvid
   protected SettingsFetcher createSettingsFetcher(DeclarativeConfigProperties properties)
       throws InvalidConfigException {
 
-    String collector = parseNonEmpty(properties, COLLECTOR);
+    String collector = LogSanitizer.sanitize(parseNonEmpty(properties, COLLECTOR));
     String serviceKey = parseNonEmpty(properties, SERVICE_KEY);
     if (serviceKey == null) {
       throw new InvalidConfigException("Missing required sampler " + SERVICE_KEY + " config");

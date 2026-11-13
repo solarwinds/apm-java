@@ -16,9 +16,6 @@
 
 package com.solarwinds.joboe.logging;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -51,44 +48,15 @@ public class Logger {
           return new SimpleDateFormat("MMM dd, yyyy hh:mm:ss.SSS aa");
         }
       };
-  private static final LogSetting DEFAULT_LOG_SETTING =
-      new LogSetting(DEFAULT_LOGGING, true, true, null, null, null);
+  private static final LogSetting DEFAULT_LOG_SETTING = new LogSetting(DEFAULT_LOGGING, true, true);
 
   static final Logger INSTANCE = new Logger();
-  static final Logger STD_STREAM_LOGGER =
-      new Logger(); // an internal logger that uses stderr and stdout streams only
 
   private Level loggerLevel = DEFAULT_LOGGING;
   private LoggerStream errorStream = new SystemErrStream();
   private LoggerStream infoStream = new SystemOutStream();
 
-  private static final String INSTANCE_ID_ENV_VARIABLE = "WEBSITE_INSTANCE_ID";
-
   Logger() {}
-
-  LoggerStream getLogFileStream(Path logFilePath, int logFileMaxSize, int logFileMaxBackup) {
-    // special case for azure, prefix the instance id to the log file name
-    String azureInstanceId = System.getenv(INSTANCE_ID_ENV_VARIABLE);
-    ;
-    if (azureInstanceId != null) {
-      Path fileName = logFilePath.getFileName();
-      String prefixedFileName = azureInstanceId + "-" + fileName.toString();
-      logFilePath =
-          logFilePath.getParent() != null
-              ? Paths.get(logFilePath.getParent().toString(), prefixedFileName)
-              : Paths.get(prefixedFileName);
-    }
-
-    try {
-      info("Java agent log location: " + logFilePath.toAbsolutePath());
-      return new FileLoggerStream(logFilePath, logFileMaxSize * 1024 * 1024, logFileMaxBackup);
-    } catch (IOException e) {
-      warn(
-          "Failed to redirect logs to [" + logFilePath.toAbsolutePath() + "] : " + e.getMessage(),
-          e);
-      return null;
-    }
-  }
 
   LoggerStream getErrorStream() {
     return errorStream;
@@ -251,27 +219,6 @@ public class Logger {
       loggerLevel = logSetting.getLevel() != null ? logSetting.getLevel() : DEFAULT_LOGGING;
     }
 
-    // log file location
-    Path path = config.getLogFile();
-    if (path == null) {
-      path = logSetting.getLogFilePath();
-    }
-
-    // other log file parameters
-    LoggerStream logFileStream = null;
-    if (path != null) {
-      String javaVersion = System.getProperty("java.version");
-
-      if (javaVersion.startsWith("1.6")) {
-
-        info("Cannot set up log file at [" + path + "] as it is only supported for JDK 7 or later");
-      } else {
-        logFileStream =
-            getLogFileStream(
-                path, logSetting.getLogFileMaxSize(), logSetting.getLogFileMaxBackup());
-      }
-    }
-
     List<LoggerStream> errorStreams = new ArrayList<LoggerStream>();
     List<LoggerStream> infoStreams = new ArrayList<LoggerStream>();
 
@@ -280,10 +227,6 @@ public class Logger {
     }
     if (logSetting.isStdoutEnabled()) {
       infoStreams.add(SystemOutStream.INSTANCE);
-    }
-    if (logFileStream != null) {
-      errorStreams.add(logFileStream);
-      infoStreams.add(logFileStream);
     }
 
     if (errorStreams.size() == 1) {

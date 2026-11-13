@@ -16,6 +16,7 @@
 
 package com.solarwinds.joboe.sampling;
 
+import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import io.opentelemetry.api.trace.SpanContext;
@@ -548,7 +549,12 @@ public class Metadata {
       new Metadata(traceIdHex);
       return true;
     } catch (SamplingException e) {
-      logger.debug(() -> "X-Trace ID [" + traceIdHex + "] not compatible : " + e.getMessage());
+      logger.debug(
+          () ->
+              "X-Trace ID ["
+                  + LogSanitizer.sanitize(traceIdHex)
+                  + "] not compatible : "
+                  + e.getMessage());
       return false;
     }
   }

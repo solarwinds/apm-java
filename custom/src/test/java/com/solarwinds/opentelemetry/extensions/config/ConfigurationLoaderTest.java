@@ -18,13 +18,17 @@ package com.solarwinds.opentelemetry.extensions.config;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.solarwinds.joboe.config.ConfigContainer;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.joboe.logging.LoggerConfiguration;
+import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.opentelemetry.extensions.DefaultNamingScheme;
 import com.solarwinds.opentelemetry.extensions.NamingScheme;
 import com.solarwinds.opentelemetry.extensions.SpanAttributeNamingScheme;
@@ -37,6 +41,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junitpioneer.jupiter.ClearSystemProperty;
 import org.junitpioneer.jupiter.SetSystemProperty;
+import org.junitpioneer.jupiter.StdErr;
+import org.junitpioneer.jupiter.StdIo;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -173,6 +179,33 @@ class ConfigurationLoaderTest {
 
     assertThrows(
         InvalidConfigException.class, () -> ConfigurationLoader.configureOtel(configContainer));
+  }
+
+  @Test
+  @StdIo
+  void processConfigsWarnsThatLogFileSettingIsIgnored(StdErr stdErr) throws InvalidConfigException {
+    LoggerFactory.init(LoggerConfiguration.builder().build());
+    ConfigContainer configContainer = new ConfigContainer();
+
+    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
+    configContainer.putByStringValue(ConfigProperty.AGENT_LOG_FILE, "/tmp/agent.log");
+    ConfigurationLoader.processConfigs(configContainer);
+
+    assertTrue(
+        stdErr
+            .capturedString()
+            .contains("Logging to a file is no longer supported, ignoring SW_APM_JAVA_LOG_FILE"));
+  }
+
+  @Test
+  @StdIo
+  void processConfigsDoesNotWarnWithoutLogFileSetting(StdErr stdErr) throws InvalidConfigException {
+    LoggerFactory.init(LoggerConfiguration.builder().build());
+    ConfigContainer configContainer = new ConfigContainer();
+    configContainer.putByStringValue(ConfigProperty.AGENT_SERVICE_KEY, "token:service");
+
+    ConfigurationLoader.processConfigs(configContainer);
+    assertFalse(stdErr.capturedString().contains("Logging to a file is no longer supported"));
   }
 
   @Test

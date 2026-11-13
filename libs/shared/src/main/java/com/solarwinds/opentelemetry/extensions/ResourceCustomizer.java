@@ -20,6 +20,7 @@ import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.config.ServiceKeyUtils;
+import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
@@ -62,7 +63,7 @@ public class ResourceCustomizer implements BiFunction<Resource, ConfigProperties
     updateServiceKey(serviceName);
     resourceBuilder.put(ServiceAttributes.SERVICE_NAME, serviceName);
 
-    LoggerFactory.getLogger().info("Resolved service name: " + serviceName);
+    LoggerFactory.getLogger().info("Resolved service name: " + LogSanitizer.sanitize(serviceName));
     ResourceCustomizer.resource = resourceBuilder.build();
     return ResourceCustomizer.resource;
   }
@@ -98,7 +99,10 @@ public class ResourceCustomizer implements BiFunction<Resource, ConfigProperties
             ConfigProperty.AGENT_SERVICE_KEY, String.format("%s:%s", apiKey, serviceName));
       } catch (InvalidConfigException ignore) {
         LoggerFactory.getLogger()
-            .debug(() -> "Failed to update service key with name: " + serviceName);
+            .debug(
+                () ->
+                    "Failed to update service key with name: "
+                        + LogSanitizer.sanitize(serviceName));
       }
     }
   }

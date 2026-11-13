@@ -20,10 +20,8 @@ import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.logging.LogSetting;
 import com.solarwinds.joboe.logging.Logger;
+import com.solarwinds.joboe.logging.LoggerFactory;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @AutoService(DeclarativeConfigPropertyParser.class)
 public class LogSettingParser implements DeclarativeConfigPropertyParser {
@@ -34,26 +32,20 @@ public class LogSettingParser implements DeclarativeConfigPropertyParser {
       throws InvalidConfigException {
     DeclarativeConfigProperties loggingSettings =
         declarativeConfigProperties.getStructured(CONFIG_KEY, DeclarativeConfigProperties.empty());
-    DeclarativeConfigProperties fileInfo =
-        loggingSettings.getStructured("file", DeclarativeConfigProperties.empty());
-
-    Path filePath = null;
-    String location = fileInfo.getString("location");
-    if (location != null) {
-      try {
-        filePath = Paths.get(location);
-      } catch (InvalidPathException e) {
-        throw new InvalidConfigException(e);
-      }
+    Logger.Level level = Logger.Level.fromLabel(loggingSettings.getString("level", "info"));
+    if (loggingSettings.getPropertyKeys().contains("file")) {
+      LoggerFactory.getLogger()
+          .warn(
+              "Logging to a file is no longer supported, ignoring logging.file. Agent logs are"
+                  + " written to stdout and stderr.");
+      // stdout/stderr may have been disabled in favor of the file, so keep logs from going silent
+      return new LogSetting(level, true, true);
     }
 
     return new LogSetting(
-        Logger.Level.fromLabel(loggingSettings.getString("level", "info")),
+        level,
         loggingSettings.getBoolean("stdout", true),
-        loggingSettings.getBoolean("stderr", true),
-        filePath,
-        fileInfo.getInt("max_size"),
-        fileInfo.getInt("max_backup"));
+        loggingSettings.getBoolean("stderr", true));
   }
 
   @Override

@@ -440,6 +440,6 @@ public class LoggerTest {
   }
 
   private static LogSetting getLogSetting(Logger.Level logLevel) {
-    return new LogSetting(logLevel, true, true, null, null, null);
+    return new LogSetting(logLevel, true, true);
   }
 }

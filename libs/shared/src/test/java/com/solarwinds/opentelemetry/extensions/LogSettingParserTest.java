@@ -23,7 +23,6 @@ import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.logging.LogSetting;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.opentelemetry.extensions.config.parser.json.LogSettingParser;
-import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,29 +35,41 @@ class LogSettingParserTest {
 
   @Test
   void returnLogSettingObjectGivenValidJson() throws InvalidConfigException {
+    String json = "{\"level\": \"debug\", \"stdout\":\"enabled\", \"stderr\":\"enabled\"}";
+
+    assertEquals(new LogSetting(Logger.Level.DEBUG, true, true), tested.convert(json));
+  }
+
+  @Test
+  void ignoreFileSettingsAndKeepStdStreamsEnabled() throws InvalidConfigException {
     String json =
         "{"
             + "\"level\": \"info\","
-            + "\"stdout\":\"enabled\","
+            + "\"stdout\":\"disabled\","
             + "\"stderr\":\"disabled\","
             + "\"file\":{\"location\":\"hello.txt\",\"maxSize\":\"20\",\"maxBackup\":\"100\"}"
             + "}";
 
-    LogSetting expected =
-        new LogSetting(Logger.Level.INFO, true, false, Paths.get("hello.txt"), 20, 100);
-    LogSetting actual = tested.convert(json);
-    assertEquals(expected, actual);
+    assertEquals(new LogSetting(Logger.Level.INFO, true, true), tested.convert(json));
   }
 
   @Test
-  void throwExceptionGivenInvalidJsonConfig() throws InvalidConfigException {
-    String json =
-        "{"
-            + "\"level\": \"info\","
-            + "\"stdout\":\"enabled\","
-            + "\"stderr\":\"disabled\","
-            + "\"file\":{}"
-            + "}";
+  void returnLogSettingWithStdStreamsDisabled() throws InvalidConfigException {
+    String json = "{\"level\": \"warn\", \"stdout\":\"disabled\", \"stderr\":\"enabled\"}";
+
+    assertEquals(new LogSetting(Logger.Level.WARNING, false, true), tested.convert(json));
+  }
+
+  @Test
+  void stdStreamsDefaultToEnabled() throws InvalidConfigException {
+    String json = "{\"level\": \"info\"}";
+
+    assertEquals(new LogSetting(Logger.Level.INFO, true, true), tested.convert(json));
+  }
+
+  @Test
+  void throwExceptionGivenUnknownKey() {
+    String json = "{\"level\": \"info\", \"unknown\":\"value\"}";
     assertThrows(InvalidConfigException.class, () -> tested.convert(json));
   }
 

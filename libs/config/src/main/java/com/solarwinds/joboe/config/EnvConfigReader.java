@@ -16,6 +16,7 @@
 
 package com.solarwinds.joboe.config;
 
+import com.solarwinds.joboe.logging.LogSanitizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,12 +56,16 @@ public class EnvConfigReader extends ConfigReader {
               "System environment variable ["
                   + envName
                   + "] value ["
-                  + maskedValue
+                  + LogSanitizer.sanitize(maskedValue)
                   + "] maps to agent property "
                   + envNameEntry.getValue());
         } catch (InvalidConfigException e) {
           logger.warn(
-              "Invalid System environment variable [" + envName + "] value [" + value + "]");
+              "Invalid System environment variable ["
+                  + envName
+                  + "] value ["
+                  + LogSanitizer.sanitize(value)
+                  + "]");
           exceptions.add(e);
         }
       }

@@ -22,6 +22,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.SettingsArg;
@@ -156,9 +157,9 @@ public class TransactionNameManager {
       logger.debug(
           () ->
               "Transaction name ["
-                  + inputTransactionName
+                  + LogSanitizer.sanitize(inputTransactionName)
                   + "] was truncated to ["
-                  + truncatedName
+                  + LogSanitizer.sanitize(truncatedName)
                   + "] because it exceeds "
                   + MAX_TRANSACTION_NAME_LENGTH
                   + " characters.");
@@ -173,13 +174,19 @@ public class TransactionNameManager {
     if (transactionName != null && !transactionName.isEmpty()) {
       String preComputedName = transactionName;
       logger.trace(
-          () -> String.format("Using pre-computed transaction name -> %s", preComputedName));
+          () ->
+              String.format(
+                  "Using pre-computed transaction name -> %s",
+                  LogSanitizer.sanitize(preComputedName)));
       return transactionName;
     }
 
     String customName = CustomTransactionNameDict.get(spanData.getTraceId());
     if (customName != null) {
-      logger.trace(() -> String.format("Using custom transaction name -> %s", customName));
+      logger.trace(
+          () ->
+              String.format(
+                  "Using custom transaction name -> %s", LogSanitizer.sanitize(customName)));
       return customName;
     }
 

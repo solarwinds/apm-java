@@ -196,4 +196,19 @@ class HttpSettingsReaderTest {
         .thenReturn(mockSettings);
     assertEquals(mockSettings, samplerScoped.getSettings());
   }
+
+  @Test
+  void testGetSettingsSanitizesSettingsUrl() {
+    HttpSettingsReader fileConfigReader =
+        HttpSettingsReader.forFileConfig(
+            delegate, "apm.collector.example.com", "test-api-key:test-service\r\nINFO forged");
+
+    String expectedUrl =
+        "https://apm.collector.example.com/v1/settings/test-service\\r\\nINFO forged";
+    String expectedTokenHeader = "Bearer test-api-key";
+
+    when(delegate.fetchSettings(expectedUrl, expectedTokenHeader)).thenReturn(mockSettings);
+    assertEquals(mockSettings, fileConfigReader.getSettings());
+    verify(delegate).fetchSettings(expectedUrl, expectedTokenHeader);
+  }
 }
