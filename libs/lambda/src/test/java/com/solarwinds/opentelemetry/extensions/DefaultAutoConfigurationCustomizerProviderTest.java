@@ -17,6 +17,7 @@
 package com.solarwinds.opentelemetry.extensions;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -47,7 +48,9 @@ class DefaultAutoConfigurationCustomizerProviderTest {
 
     tested.customize(autoConfigurationCustomizerMock);
 
-    verify(autoConfigurationCustomizerMock).addPropertiesSupplier(any());
+    verify(autoConfigurationCustomizerMock)
+        .addPropertiesSupplier(isA(SharedPropertiesSupplier.class));
+    verify(autoConfigurationCustomizerMock).addPropertiesSupplier(isA(PropertiesSupplier.class));
     verify(autoConfigurationCustomizerMock).addTracerProviderCustomizer(any());
     verify(autoConfigurationCustomizerMock).addResourceCustomizer(any());
 

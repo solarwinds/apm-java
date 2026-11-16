@@ -51,6 +51,7 @@ public class DefaultAutoConfigurationCustomizerProvider
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {
     autoConfiguration
+        .addPropertiesSupplier(new SharedPropertiesSupplier())
         .addPropertiesSupplier(new PropertiesSupplier())
         .addTracerProviderCustomizer(new TraceProviderCustomizer())
         .addResourceCustomizer(new ResourceCustomizer())

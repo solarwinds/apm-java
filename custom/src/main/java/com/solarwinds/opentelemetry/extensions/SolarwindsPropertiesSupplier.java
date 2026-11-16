@@ -17,7 +17,6 @@
 package com.solarwinds.opentelemetry.extensions;
 
 import static com.solarwinds.opentelemetry.extensions.SharedNames.COMPONENT_NAME;
-import static com.solarwinds.opentelemetry.extensions.SharedNames.SPAN_STACKTRACE_FILTER_CLASS;
 import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 
 import java.util.HashMap;
@@ -33,22 +32,12 @@ public class SolarwindsPropertiesSupplier implements Supplier<Map<String, String
       PROPERTIES.put("otel.logs.exporter", "none");
       PROPERTIES.put("otel.exporter.otlp.compression", "gzip");
 
-      PROPERTIES.put("otel.java.experimental.span-stacktrace.filter", SPAN_STACKTRACE_FILTER_CLASS);
       PROPERTIES.put("otel.propagators", String.format("tracecontext,baggage,%s", COMPONENT_NAME));
-      PROPERTIES.put("otel.semconv-stability.opt-in", "database/dup");
 
-      PROPERTIES.put("otel.exporter.otlp.metrics.temporality.preference", "delta");
-      PROPERTIES.put(
-          "otel.exporter.otlp.metrics.default.histogram.aggregation",
-          "base2_exponential_bucket_histogram");
       PROPERTIES.put(
           "otel.instrumentation.runtime-telemetry.emit-experimental-jfr-metrics", "true");
       PROPERTIES.put("otel.resource.providers.azure.enabled", "true");
       PROPERTIES.put("otel.resource.providers.aws.enabled", "true");
-
-      PROPERTIES.put(
-          "otel.java.disabled.resource.providers",
-          "io.opentelemetry.sdk.autoconfigure.ServiceInstanceIdResourceProvider");
 
     } else {
       PROPERTIES.put("otel.sdk.disabled", "true");

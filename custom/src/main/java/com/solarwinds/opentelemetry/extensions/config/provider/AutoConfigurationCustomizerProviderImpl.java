@@ -23,6 +23,7 @@ import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.opentelemetry.extensions.MetricExporterCustomizer;
 import com.solarwinds.opentelemetry.extensions.ResourceCustomizer;
+import com.solarwinds.opentelemetry.extensions.SharedPropertiesSupplier;
 import com.solarwinds.opentelemetry.extensions.SolarwindsPropertiesSupplier;
 import com.solarwinds.opentelemetry.extensions.SolarwindsTracerProviderCustomizer;
 import com.solarwinds.opentelemetry.extensions.config.ConfigurationLoader;
@@ -71,6 +72,7 @@ public class AutoConfigurationCustomizerProviderImpl
     }
 
     autoConfiguration
+        .addPropertiesSupplier(new SharedPropertiesSupplier())
         .addPropertiesSupplier(new SolarwindsPropertiesSupplier())
         .addTracerProviderCustomizer(new SolarwindsTracerProviderCustomizer())
         .addMetricExporterCustomizer(new MetricExporterCustomizer())
