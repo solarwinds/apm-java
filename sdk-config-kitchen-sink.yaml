@@ -61,13 +61,6 @@ distribution:
       # Optional. Defaults to true.
       stderr: true
       # Optional. Log to a rotating file in addition to stdout/stderr.
-      file:
-        # Required.
-        location: /var/log/solarwinds-apm/agent.log
-        # Optional. Max file size in MB before rotation. Defaults to 10.
-        max_size: 10
-        # Optional. Number of rotated files to keep. Defaults to 5.
-        max_backup: 5
 
 # Optional. Configure attribute limits for all signals.
 attribute_limits:
