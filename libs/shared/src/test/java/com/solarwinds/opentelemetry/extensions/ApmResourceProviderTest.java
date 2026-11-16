@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.semconv.ServiceAttributes;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,5 +42,6 @@ class ApmResourceProviderTest {
 
     assertNotNull(module);
     assertNotNull(version);
+    assertNotNull(resource.getAttribute(ServiceAttributes.SERVICE_INSTANCE_ID));
   }
 }
