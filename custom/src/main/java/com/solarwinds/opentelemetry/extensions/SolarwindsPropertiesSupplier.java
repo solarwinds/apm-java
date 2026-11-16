@@ -45,6 +45,11 @@ public class SolarwindsPropertiesSupplier implements Supplier<Map<String, String
           "otel.instrumentation.runtime-telemetry.emit-experimental-jfr-metrics", "true");
       PROPERTIES.put("otel.resource.providers.azure.enabled", "true");
       PROPERTIES.put("otel.resource.providers.aws.enabled", "true");
+
+      PROPERTIES.put(
+          "otel.java.disabled.resource.providers",
+          "io.opentelemetry.sdk.autoconfigure.ServiceInstanceIdResourceProvider");
+
     } else {
       PROPERTIES.put("otel.sdk.disabled", "true");
     }
