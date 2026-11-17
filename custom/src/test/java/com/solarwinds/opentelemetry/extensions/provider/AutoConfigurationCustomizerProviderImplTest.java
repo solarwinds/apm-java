@@ -17,10 +17,13 @@
 package com.solarwinds.opentelemetry.extensions.provider;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.solarwinds.opentelemetry.extensions.SharedPropertiesSupplier;
+import com.solarwinds.opentelemetry.extensions.SolarwindsPropertiesSupplier;
 import com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import java.lang.invoke.MethodHandle;
@@ -79,6 +82,10 @@ class AutoConfigurationCustomizerProviderImplTest {
     tested.customize(autoConfigurationCustomizerMock);
 
     verify(autoConfigurationCustomizerMock, atMostOnce()).addPropertiesCustomizer(any());
+    verify(autoConfigurationCustomizerMock)
+        .addPropertiesSupplier(isA(SharedPropertiesSupplier.class));
+    verify(autoConfigurationCustomizerMock)
+        .addPropertiesSupplier(isA(SolarwindsPropertiesSupplier.class));
     verify(autoConfigurationCustomizerMock, atMostOnce()).addTracerProviderCustomizer(any());
 
     verify(autoConfigurationCustomizerMock, atMostOnce()).addResourceCustomizer(any());
