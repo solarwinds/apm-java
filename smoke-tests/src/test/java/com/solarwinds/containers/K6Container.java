@@ -18,6 +18,7 @@ package com.solarwinds.containers;
 
 import com.solarwinds.agents.Agent;
 import com.solarwinds.util.NamingConventions;
+import com.solarwinds.util.ServiceNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
@@ -54,7 +55,7 @@ public class K6Container {
             .withEnv("SWO_COOKIE", System.getenv("SWO_COOKIE"))
             .withEnv("SWO_XSR_TOKEN", System.getenv("SWO_XSR_TOKEN"))
             .withEnv("LAMBDA", System.getenv("LAMBDA"))
-            .withEnv("SERVICE_NAME", "java-apm-smoke-test")
+            .withEnv("SERVICE_NAME", ServiceNames.SMOKE_TEST)
         .withCommand(
             "run",
             "--summary-export",

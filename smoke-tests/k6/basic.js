@@ -177,6 +177,7 @@ function getEntityId() {
       }
     }
   }
+  throw new Error(`Service entity not found: ${__ENV.SERVICE_NAME}`)
 }
 
 function verify_logs_export() {
@@ -226,7 +227,7 @@ function silence(fn) {
 }
 
 export default function () {
-    const service = "java-apm-smoke-test"
+    const service = `${__ENV.SERVICE_NAME}`
     silence(function () {
         verify_that_metrics_are_reported("jvm.memory.used",
             (measurement) => check(measurement, {"otel-metrics": mrs => mrs.value > 0}),
