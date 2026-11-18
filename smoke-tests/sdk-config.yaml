@@ -17,7 +17,7 @@ resource:
   # Entries must contain .name nand .value, and may optionally include .type, which defaults ot "string" if not set. The value must match the type. Values for .type include: string, bool, int, double, string_array, bool_array, int_array, double_array.
   attributes:
     - name: service.name
-      value: java-apm-smoke-test
+      value: ${SERVICE_NAME}
     - name: test.app
       value: java-apm-smoke-test-v2
   # Configure resource detectors. SolarWinds detectors are listed first so upstream detectors can override their attributes.

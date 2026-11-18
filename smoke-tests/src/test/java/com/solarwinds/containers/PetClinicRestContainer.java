@@ -18,6 +18,7 @@ package com.solarwinds.containers;
 
 import com.solarwinds.agents.Agent;
 import com.solarwinds.agents.AgentResolver;
+import com.solarwinds.util.ServiceNames;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -98,6 +99,7 @@ public class PetClinicRestContainer implements Container {
               .withExposedPorts(PETCLINIC_PORT)
               .withFileSystemBind("./sdk-config.yaml", "/app/sdk-config.yaml")
               .withEnv("OTEL_CONFIG_FILE", "/app/sdk-config.yaml")
+              .withEnv("SERVICE_NAME", ServiceNames.SMOKE_TEST)
               .withEnv("OTEL_JAVAAGENT_DEBUG", "true")
               .waitingFor(Wait.forHttp("/petclinic/actuator/health").withReadTimeout(Duration.ofMinutes(5)).forPort(PETCLINIC_PORT))
               .withEnv("spring_profiles_active", "postgresql,spring-data-jpa")
@@ -107,7 +109,7 @@ public class PetClinicRestContainer implements Container {
               .withEnv("spring_datasource_username", PostgresContainer.USERNAME)
               .withEnv("spring_datasource_password", PostgresContainer.PASSWORD)
               .withEnv("spring_jpa_hibernate_ddl-auto", "none")
-              .withEnv("SW_APM_SERVICE_KEY", String.format("%s:java-apm-smoke-test", System.getenv("SW_APM_SERVICE_KEY")))
+              .withEnv("SW_APM_SERVICE_KEY", String.format("%s:%s", System.getenv("SW_APM_SERVICE_KEY"), ServiceNames.SMOKE_TEST))
               .withEnv("OTEL_EXPORTER_OTLP_HEADERS",
                       String.format("authorization=Bearer %s", System.getenv("SW_APM_SERVICE_KEY")))
               .withStartupTimeout(Duration.ofMinutes(5))
@@ -142,7 +144,7 @@ public class PetClinicRestContainer implements Container {
             .withEnv("SW_APM_EXPORT_LOGS_ENABLED", "true")
             .withEnv("SW_APM_EXPORT_METRICS_ENABLED", "true")
             .withEnv("SW_APM_COLLECTOR", System.getenv("SW_APM_COLLECTOR"))
-            .withEnv("SW_APM_SERVICE_KEY", String.format("%s:java-apm-smoke-test", System.getenv("SW_APM_SERVICE_KEY")))
+            .withEnv("SW_APM_SERVICE_KEY", String.format("%s:%s", System.getenv("SW_APM_SERVICE_KEY"), ServiceNames.SMOKE_TEST))
             .withStartupTimeout(Duration.ofMinutes(5))
             .withCopyFileToContainer(
                     MountableFile.forHostPath(agentPath),
