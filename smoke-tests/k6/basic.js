@@ -26,7 +26,7 @@ export const options = {
   iterations: 25,
 };
 
-function verify_that_metrics_are_reported(metric, checkFn, query) {
+function verify_that_metrics_are_reported(metric, checkName, query) {
   let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
   for (let i = 0; i < retryCount; i++) {
     const newOwner = names.randomOwner();
@@ -109,13 +109,14 @@ function verify_that_metrics_are_reported(metric, checkFn, query) {
         for (let k = 0; k < measurements.length; k++) {
           const measurement = measurements[k];
           if (measurement.value > 0) {
-            checkFn(measurement)
+            check(measurement, {[checkName]: mrs => mrs.value > 0})
             return
           }
         }
       }
     }
   }
+  check(null, {[checkName]: () => false})
 }
 
 function getEntityId() {
@@ -238,14 +239,14 @@ export default function () {
     const entityQuery = `sw.entity.service.id:\"${entityId}\"`
     silence(function () {
         verify_that_metrics_are_reported("jvm.memory.used",
-            (measurement) => check(measurement, {"otel-metrics": mrs => mrs.value > 0}),
+            "otel-metrics",
             entityQuery
         )
     })
 
     silence(function () {
         verify_that_metrics_are_reported("jvm.network.time",
-            (measurement) => check(measurement, {"otel-metrics-17": mrs => mrs.value > 0}),
+            "otel-metrics-17",
             entityQuery
         )
     })
