@@ -22,6 +22,8 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ResourceProvider;
 import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.semconv.ServiceAttributes;
+import java.util.UUID;
 
 @AutoService(ResourceProvider.class)
 public class ApmResourceProvider implements ResourceProvider {
@@ -31,10 +33,14 @@ public class ApmResourceProvider implements ResourceProvider {
 
   @Override
   public Resource createResource(ConfigProperties configProperties) {
-    // TODO(revert): service.instance.id temporarily removed so the upstream service.instance
-    // entity is exported, reproducing v3.3.0 for the smoke test.
     Attributes resourceAttributes =
-        Attributes.of(moduleKey, "apm", versionKey, BuildConfig.SOLARWINDS_AGENT_VERSION);
+        Attributes.of(
+            moduleKey,
+            "apm",
+            versionKey,
+            BuildConfig.SOLARWINDS_AGENT_VERSION,
+            ServiceAttributes.SERVICE_INSTANCE_ID,
+            UUID.randomUUID().toString());
     return Resource.create(resourceAttributes);
   }
 }

@@ -35,11 +35,9 @@ public class SharedPropertiesSupplier implements Supplier<Map<String, String>> {
         "otel.exporter.otlp.metrics.default.histogram.aggregation",
         "base2_exponential_bucket_histogram");
 
-    // TODO(revert): temporarily re-enabled to verify the smoke test catches entity inference
-    // breakage.
-    // PROPERTIES.put(
-    //     "otel.java.disabled.resource.providers",
-    //     "io.opentelemetry.sdk.autoconfigure.ServiceInstanceIdResourceProvider");
+    PROPERTIES.put(
+        "otel.java.disabled.resource.providers",
+        "io.opentelemetry.sdk.autoconfigure.ServiceInstanceIdResourceProvider");
   }
 
   @Override
