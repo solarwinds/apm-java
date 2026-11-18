@@ -26,7 +26,7 @@ export const options = {
   iterations: 25,
 };
 
-function verify_that_metrics_are_reported(metric, checkFn, service="lambda-e2e") {
+function verify_that_metrics_are_reported(metric, checkFn, query) {
   let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
   for (let i = 0; i < retryCount; i++) {
     const newOwner = names.randomOwner();
@@ -54,7 +54,7 @@ function verify_that_metrics_are_reported(metric, checkFn, service="lambda-e2e")
           "fillIfResultEmpty": false
         },
         "filter": null,
-        "query": `service.name:\"${service}\"`,
+        "query": query,
         "groupBy": [
           "service.name"
         ],
@@ -71,7 +71,7 @@ function verify_that_metrics_are_reported(metric, checkFn, service="lambda-e2e")
           "fillIfResultEmpty": false
         },
         "filter": null,
-        "query": `service.name:\"${service}\"`,
+        "query": query,
         "groupBy": [
           "service.name"
         ],
@@ -127,7 +127,14 @@ function getEntityId() {
       "filter": {
         "types": [
           "Service"
-        ]
+        ],
+        "filter": {
+          "operation": "IN",
+          "propertyName": "name",
+          "propertyValues": [
+            `${__ENV.SERVICE_NAME}`
+          ]
+        }
       },
       "timeFilter": {
         "startTime": "1 hour ago",
@@ -180,7 +187,7 @@ function getEntityId() {
   throw new Error(`Service entity not found: ${__ENV.SERVICE_NAME}`)
 }
 
-function verify_logs_export() {
+function verify_logs_export(entityId) {
   let retryCount = Number.parseInt(`${__ENV.SWO_RETRY_COUNT}`) || 1000;
   const logQueryPayload = {
     "operationName": "getLogEvents",
@@ -189,7 +196,7 @@ function verify_logs_export() {
         "direction": "BACKWARD",
         "searchLimit": 500,
         "entityIds": [
-          getEntityId()
+          entityId
         ],
         "query": ""
       }
@@ -227,20 +234,21 @@ function silence(fn) {
 }
 
 export default function () {
-    const service = `${__ENV.SERVICE_NAME}`
+    const entityId = getEntityId()
+    const entityQuery = `sw.entity.service.id:\"${entityId}\"`
     silence(function () {
         verify_that_metrics_are_reported("jvm.memory.used",
             (measurement) => check(measurement, {"otel-metrics": mrs => mrs.value > 0}),
-            service
+            entityQuery
         )
     })
 
     silence(function () {
         verify_that_metrics_are_reported("jvm.network.time",
             (measurement) => check(measurement, {"otel-metrics-17": mrs => mrs.value > 0}),
-            service
+            entityQuery
         )
     })
 
-    silence(verify_logs_export)
+    silence(() => verify_logs_export(entityId))
 };
