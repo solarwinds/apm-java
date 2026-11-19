@@ -51,6 +51,8 @@ import java.util.List;
  * <p>Also inject various Solarwinds specific sampling KVs into the `SampleResult`
  */
 public class SolarwindsSampler implements Sampler {
+  private static final String DESCRIPTION = "Solarwinds Observability Sampler";
+
   private static final SamplingResult PARENT_SAMPLED =
       SamplingResult.create(
           SamplingDecision.RECORD_AND_SAMPLE,
@@ -198,7 +200,19 @@ public class SolarwindsSampler implements Sampler {
 
   @Override
   public String getDescription() {
-    return "Solarwinds Observability Sampler";
+    return DESCRIPTION;
+  }
+
+  /**
+   * Checks whether the given sampler is, or delegates to, a {@link SolarwindsSampler}. Wrapping
+   * samplers such as {@code parentBased} expose their delegates only through their description.
+   *
+   * @param sampler the sampler to check
+   * @return true if the sampler is or wraps a {@link SolarwindsSampler}
+   */
+  public static boolean isSolarwindsSampler(Sampler sampler) {
+    return sampler instanceof SolarwindsSampler
+        || (sampler != null && sampler.getDescription().contains(DESCRIPTION));
   }
 
   SamplingResult toOtSamplingResult(

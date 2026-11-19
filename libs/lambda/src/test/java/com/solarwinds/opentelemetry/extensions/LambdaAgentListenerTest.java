@@ -25,6 +25,8 @@ import static org.mockito.Mockito.when;
 import com.solarwinds.joboe.sampling.SettingsManager;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.samplers.Sampler;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,6 +42,12 @@ class LambdaAgentListenerTest {
 
   @Mock private OpenTelemetrySdk openTelemetrySdkMock;
 
+  private static OpenTelemetrySdk sdkWithSampler(Sampler sampler) {
+    return OpenTelemetrySdk.builder()
+        .setTracerProvider(SdkTracerProvider.builder().setSampler(sampler).build())
+        .build();
+  }
+
   @Test
   void verifySettingsManagerIsInitializedWhenConditionsAreMet() {
     try (MockedStatic<SettingsManager> settingsManagerMock = mockStatic(SettingsManager.class);
@@ -51,8 +59,30 @@ class LambdaAgentListenerTest {
           .when(DefaultAutoConfigurationCustomizerProvider::isAgentEnabled)
           .thenReturn(true);
 
+      when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk())
+          .thenReturn(sdkWithSampler(Sampler.parentBased(new SolarwindsSampler())));
+
       tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
       settingsManagerMock.verify(() -> SettingsManager.initialize(any(), any()));
+    }
+  }
+
+  @Test
+  void verifySettingsManagerIsNotInitializedWhenSolarwindsSamplerIsNotUsed() {
+    try (MockedStatic<SettingsManager> settingsManagerMock = mockStatic(SettingsManager.class);
+        MockedStatic<DefaultAutoConfigurationCustomizerProvider>
+            defaultAutoConfigurationCustomizerProviderMock =
+                mockStatic(DefaultAutoConfigurationCustomizerProvider.class)) {
+
+      defaultAutoConfigurationCustomizerProviderMock
+          .when(DefaultAutoConfigurationCustomizerProvider::isAgentEnabled)
+          .thenReturn(true);
+
+      when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk())
+          .thenReturn(sdkWithSampler(Sampler.parentBased(Sampler.alwaysOn())));
+
+      tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
+      settingsManagerMock.verify(() -> SettingsManager.initialize(any(), any()), never());
     }
   }
 

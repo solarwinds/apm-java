@@ -17,7 +17,9 @@
 package com.solarwinds.opentelemetry.extensions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mockStatic;
@@ -36,6 +38,7 @@ import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.IdGenerator;
+import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.sdk.trace.samplers.SamplingDecision;
 import io.opentelemetry.sdk.trace.samplers.SamplingResult;
 import io.opentelemetry.semconv.ServerAttributes;
@@ -303,5 +306,23 @@ class SolarwindsSamplerTest {
                 "http",
                 UrlAttributes.URL_PATH,
                 "/path")));
+  }
+
+  @Test
+  void returnTrueWhenSamplerIsSolarwindsSampler() {
+    assertTrue(SolarwindsSampler.isSolarwindsSampler(new SolarwindsSampler()));
+  }
+
+  @Test
+  void returnTrueWhenSolarwindsSamplerIsWrapped() {
+    assertTrue(SolarwindsSampler.isSolarwindsSampler(Sampler.parentBased(new SolarwindsSampler())));
+  }
+
+  @Test
+  void returnFalseWhenSamplerIsNotSolarwindsSampler() {
+    assertFalse(SolarwindsSampler.isSolarwindsSampler(Sampler.alwaysOn()));
+    assertFalse(SolarwindsSampler.isSolarwindsSampler(Sampler.parentBased(Sampler.alwaysOn())));
+    assertFalse(SolarwindsSampler.isSolarwindsSampler(Sampler.traceIdRatioBased(0.5)));
+    assertFalse(SolarwindsSampler.isSolarwindsSampler(null));
   }
 }

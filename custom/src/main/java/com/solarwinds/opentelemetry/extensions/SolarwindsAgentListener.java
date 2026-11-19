@@ -55,7 +55,7 @@ public class SolarwindsAgentListener implements AgentListener {
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     if (isAgentEnabled()) {
-      executeStartupTasks();
+      executeStartupTasks(usesSolarwindsSampler(autoConfiguredOpenTelemetrySdk));
       registerShutdownTasks();
       logger.info(
           "Successfully submitted SolarwindsAPM OpenTelemetry extensions initialization tasks");
@@ -65,7 +65,12 @@ public class SolarwindsAgentListener implements AgentListener {
     }
   }
 
-  private void executeStartupTasks() {
+  private static boolean usesSolarwindsSampler(AutoConfiguredOpenTelemetrySdk sdk) {
+    return SolarwindsSampler.isSolarwindsSampler(
+        sdk.getOpenTelemetrySdk().getSdkTracerProvider().getSampler());
+  }
+
+  private void executeStartupTasks(boolean solarwindsSampler) {
     ExecutorService service =
         Executors.newSingleThreadExecutor(DaemonThreadFactory.newInstance("post-startup-tasks"));
 
@@ -91,7 +96,9 @@ public class SolarwindsAgentListener implements AgentListener {
                             + " ip addresses: "
                             + ipAddresses);
 
-                if (!SettingsManager.isInitialized()) {
+                if (!solarwindsSampler) {
+                  logger.info("Not fetching settings as the Solarwinds sampler is not in use");
+                } else if (!SettingsManager.isInitialized()) {
                   SettingsManager.initialize(
                       new HttpSettingsFetcher(
                           HttpSettingsReader.forSystemConfig(new HttpSettingsReaderDelegate()), 60),

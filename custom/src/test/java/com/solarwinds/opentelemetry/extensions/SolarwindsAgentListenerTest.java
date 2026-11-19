@@ -16,17 +16,24 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.solarwinds.joboe.sampling.SettingsManager;
+import com.solarwinds.opentelemetry.core.AgentState;
 import com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.samplers.Sampler;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,6 +63,7 @@ class SolarwindsAgentListenerTest {
   void teardown() throws Throwable {
     // Reset the static agentEnabled field to true so it doesn't affect other tests
     AGENT_ENABLED_SETTER.invokeExact(true);
+    SettingsManager.reset();
   }
 
   @Mock private AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdkMock;
@@ -90,8 +98,36 @@ class SolarwindsAgentListenerTest {
           .when(AutoConfigurationCustomizerProviderImpl::isAgentEnabled)
           .thenReturn(true);
 
+      when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk())
+          .thenReturn(sdkWithSampler(Sampler.alwaysOn()));
+
       tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
       verify(openTelemetrySdkMock, never()).shutdown();
     }
+  }
+
+  @Test
+  void verifySettingsAreNotFetchedWhenSolarwindsSamplerIsNotUsed() {
+    try (MockedStatic<AutoConfigurationCustomizerProviderImpl>
+        autoConfigurationCustomizerProviderMockedStatic =
+            mockStatic(AutoConfigurationCustomizerProviderImpl.class)) {
+
+      autoConfigurationCustomizerProviderMockedStatic
+          .when(AutoConfigurationCustomizerProviderImpl::isAgentEnabled)
+          .thenReturn(true);
+
+      when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk())
+          .thenReturn(sdkWithSampler(Sampler.parentBased(Sampler.alwaysOn())));
+
+      tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
+      assertTrue(AgentState.waitForReady(10, TimeUnit.SECONDS));
+      assertFalse(SettingsManager.isInitialized());
+    }
+  }
+
+  private static OpenTelemetrySdk sdkWithSampler(Sampler sampler) {
+    return OpenTelemetrySdk.builder()
+        .setTracerProvider(SdkTracerProvider.builder().setSampler(sampler).build())
+        .build();
   }
 }

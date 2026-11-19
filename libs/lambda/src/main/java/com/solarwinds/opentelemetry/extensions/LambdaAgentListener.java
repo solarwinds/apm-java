@@ -36,7 +36,13 @@ public class LambdaAgentListener implements AgentListener {
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     if (isAgentEnabled()) {
-      if (!SettingsManager.isInitialized()) {
+      if (!SolarwindsSampler.isSolarwindsSampler(
+          autoConfiguredOpenTelemetrySdk
+              .getOpenTelemetrySdk()
+              .getSdkTracerProvider()
+              .getSampler())) {
+        logger.info("Not fetching settings as the Solarwinds sampler is not in use");
+      } else if (!SettingsManager.isInitialized()) {
         SettingsManager.initialize(
             new AwsLambdaSettingsFetcher(
                 new FileSettingsReader(JsonSamplerComponentProvider.DEFAULT_SETTINGS_FILE)),
