@@ -247,7 +247,7 @@ public class TraceDecisionUtilTest {
     SettingsManager.initialize(
         settingsFetcherMock,
         SamplingConfiguration.builder()
-            .internalTransactionSettings(testingUrlSampleRateConfigs)
+            .transactionSettings(testingUrlSampleRateConfigs)
             .tracingMode(TracingMode.DISABLED)
             .build());
 
@@ -284,7 +284,7 @@ public class TraceDecisionUtilTest {
     SettingsManager.initialize(
         settingsFetcherMock,
         SamplingConfiguration.builder()
-            .internalTransactionSettings(new TraceConfigs(urlTraceConfigsByMatcher))
+            .transactionSettings(new TraceConfigs(urlTraceConfigsByMatcher))
             .tracingMode(TracingMode.DISABLED)
             .build());
 
@@ -350,9 +350,7 @@ public class TraceDecisionUtilTest {
         buildUrlConfigs(url -> url.endsWith(".html"), TracingMode.ALWAYS, 0);
     SettingsManager.initialize(
         settingsFetcherMock,
-        SamplingConfiguration.builder()
-            .internalTransactionSettings(testingUrlSampleRateConfigs)
-            .build());
+        SamplingConfiguration.builder().transactionSettings(testingUrlSampleRateConfigs).build());
 
     // pattern match, should all have sample rate 0% for new traces, but continuing/AVW trace should
     // still go on
@@ -394,9 +392,7 @@ public class TraceDecisionUtilTest {
         buildUrlConfigs(url -> url.endsWith(".html"), TracingMode.NEVER, 0);
     SettingsManager.initialize(
         settingsFetcherMock,
-        SamplingConfiguration.builder()
-            .internalTransactionSettings(testingUrlSampleRateConfigs)
-            .build());
+        SamplingConfiguration.builder().transactionSettings(testingUrlSampleRateConfigs).build());
 
     // pattern match, should block all traffic even for continuing traces since the url tracingMode
     // is never
@@ -448,7 +444,7 @@ public class TraceDecisionUtilTest {
     SettingsManager.initialize(
         settingsFetcherMock,
         SamplingConfiguration.builder()
-            .internalTransactionSettings(new TraceConfigs(urlTraceConfigsByMatcher))
+            .transactionSettings(new TraceConfigs(urlTraceConfigsByMatcher))
             .build());
     TraceDecision traceDecision;
 
@@ -1138,9 +1134,7 @@ public class TraceDecisionUtilTest {
         buildUrlConfigs(url -> url.endsWith("html"), TracingMode.NEVER, 0);
     SettingsManager.initialize(
         settingsFetcherMock,
-        SamplingConfiguration.builder()
-            .internalTransactionSettings(testingUrlSampleRateConfigs)
-            .build());
+        SamplingConfiguration.builder().transactionSettings(testingUrlSampleRateConfigs).build());
     TraceDecisionUtil.consumeLastTraceConfigs(); // clear it
 
     when(settingsFetcherMock.getSettings())
@@ -1197,7 +1191,7 @@ public class TraceDecisionUtilTest {
     SettingsManager.initialize(
         settingsFetcherMock,
         SamplingConfiguration.builder()
-            .internalTransactionSettings(testingUrlSampleRateConfigs)
+            .transactionSettings(testingUrlSampleRateConfigs)
             .sampleRate(500000)
             .tracingMode(TracingMode.ALWAYS)
             .build());

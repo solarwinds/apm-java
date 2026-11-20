@@ -81,7 +81,7 @@ class AbstractSamplerComponentProviderTest {
 
     assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_TRACING_MODE));
     assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_TRIGGER_TRACE_ENABLED));
-    assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_INTERNAL_TRANSACTION_SETTINGS));
+    assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_TRANSACTION_SETTINGS));
   }
 
   @Test
@@ -105,7 +105,7 @@ class AbstractSamplerComponentProviderTest {
   @Test
   void testTransactionSettingsTakePrecedenceOverUrlSampleRates() {
     tested.create(loadConfig());
-    TraceConfigs traceConfigs = internalTransactionSettings();
+    TraceConfigs traceConfigs = transactionSettings();
 
     TraceConfig specialties =
         traceConfigs.getTraceConfig(Collections.singletonList("http://localhost/specialties"));
@@ -121,7 +121,7 @@ class AbstractSamplerComponentProviderTest {
     tested.create(DeclarativeConfigProperties.empty());
 
     assertNull(samplingConfiguration().getTracingMode());
-    assertNull(samplingConfiguration().getInternalTransactionSettings());
+    assertNull(samplingConfiguration().getTransactionSettings());
     assertTrue(samplingConfiguration().isTriggerTraceEnabled());
   }
 
@@ -147,7 +147,7 @@ class AbstractSamplerComponentProviderTest {
                 + "        sample_rate: 500000\n"
                 + "    - .*/health:\n"
                 + "        tracing_enabled: false\n"));
-    TraceConfigs traceConfigs = internalTransactionSettings();
+    TraceConfigs traceConfigs = transactionSettings();
 
     TraceConfig greet =
         traceConfigs.getTraceConfig(Collections.singletonList("http://example.com/greet"));
@@ -168,7 +168,7 @@ class AbstractSamplerComponentProviderTest {
                 + "  transaction_settings:\n"
                 + "    - extensions: [png, jpg]\n"
                 + "      tracing: disabled\n"));
-    TraceConfigs traceConfigs = internalTransactionSettings();
+    TraceConfigs traceConfigs = transactionSettings();
 
     assertNotNull(
         traceConfigs.getTraceConfig(Collections.singletonList("http://example.com/logo.png")));
@@ -240,8 +240,8 @@ class AbstractSamplerComponentProviderTest {
     return SettingsManager.getSamplingConfiguration();
   }
 
-  private static TraceConfigs internalTransactionSettings() {
-    return samplingConfiguration().getInternalTransactionSettings();
+  private static TraceConfigs transactionSettings() {
+    return samplingConfiguration().getTransactionSettings();
   }
 
   private DeclarativeConfigProperties fromYaml(String yaml) {
