@@ -36,15 +36,16 @@
 
   <!--
     ResourceCustomizer and ResourceComponentProvider intentionally cache the built Resource in
-    a static field so that it can be retrieved later. AutoConfigurationCustomizerProviderImpl
-    sets a static flag from a lifecycle callback. These write-to-static-from-instance patterns
-    are deliberate.
+    a static field so that it can be retrieved later. AutoConfigurationCustomizerProviderImpl and
+    DefaultAutoConfigurationCustomizerProvider set a static flag from a lifecycle callback. These
+    write-to-static-from-instance patterns are deliberate.
   -->
   <Match>
     <Or>
       <Class name="com.solarwinds.opentelemetry.extensions.ResourceCustomizer"/>
       <Class name="com.solarwinds.opentelemetry.extensions.config.provider.ResourceComponentProvider"/>
       <Class name="com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl"/>
+      <Class name="com.solarwinds.opentelemetry.extensions.DefaultAutoConfigurationCustomizerProvider"/>
     </Or>
     <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"/>
   </Match>

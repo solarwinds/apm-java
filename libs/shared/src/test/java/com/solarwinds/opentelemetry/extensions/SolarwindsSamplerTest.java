@@ -18,12 +18,18 @@ package com.solarwinds.opentelemetry.extensions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.solarwinds.joboe.sampling.SamplingConfiguration;
+import com.solarwinds.joboe.sampling.Settings;
+import com.solarwinds.joboe.sampling.SettingsFetcher;
+import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.joboe.sampling.TraceConfig;
 import com.solarwinds.joboe.sampling.TraceDecision;
 import com.solarwinds.joboe.sampling.TraceDecisionUtil;
@@ -42,6 +48,8 @@ import io.opentelemetry.semconv.ServerAttributes;
 import io.opentelemetry.semconv.UrlAttributes;
 import java.util.Collections;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,7 +58,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -59,7 +66,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class SolarwindsSamplerTest {
 
-  @InjectMocks private SolarwindsSampler tested;
+  private SolarwindsSampler tested;
+
+  @Mock private SettingsFetcher settingsFetcherMock;
+
+  @Mock private Settings settingsMock;
 
   @Mock private TraceDecision traceDecisionMock;
 
@@ -76,6 +87,24 @@ class SolarwindsSamplerTest {
   @Captor private ArgumentCaptor<String> stringArgumentCaptor;
 
   private final IdGenerator idGenerator = IdGenerator.random();
+
+  @BeforeEach
+  void setUp() {
+    tested = new SolarwindsSampler(settingsFetcherMock, SamplingConfiguration.builder().build());
+  }
+
+  @AfterEach
+  void tearDown() {
+    SettingsManager.reset();
+  }
+
+  @Test
+  void verifySettingsAreFetchedThroughTheFetcherOnceSamplerIsCreated() {
+    when(settingsFetcherMock.getSettings()).thenReturn(settingsMock);
+
+    assertTrue(SettingsManager.isInitialized());
+    assertSame(settingsMock, SettingsManager.getSettings());
+  }
 
   @Test
   void returnSamplingResultGivenTraceDecisionIsSampled() {

@@ -537,6 +537,6 @@ public class ConfigurationLoader {
   }
 
   private static boolean isDeclarativeConfigOff() {
-    return isConfigNotSet("otel.experimental.config.file");
+    return isConfigNotSet("otel.experimental.config.file") && isConfigNotSet("otel.config.file");
   }
 }

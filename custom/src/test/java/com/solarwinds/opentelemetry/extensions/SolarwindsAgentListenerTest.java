@@ -19,7 +19,6 @@ package com.solarwinds.opentelemetry.extensions;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -61,24 +60,6 @@ class SolarwindsAgentListenerTest {
   @Mock private AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdkMock;
 
   @Mock private OpenTelemetrySdk openTelemetrySdkMock;
-
-  @Test
-  void verifySdkIsShutdownWhenBranchIsNotTaken() {
-    try (MockedStatic<AutoConfigurationCustomizerProviderImpl>
-        autoConfigurationCustomizerProviderMockedStatic =
-            mockStatic(AutoConfigurationCustomizerProviderImpl.class)) {
-
-      autoConfigurationCustomizerProviderMockedStatic
-          .when(AutoConfigurationCustomizerProviderImpl::isAgentEnabled)
-          .thenReturn(false);
-
-      when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk())
-          .thenReturn(openTelemetrySdkMock);
-
-      tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
-      verify(openTelemetrySdkMock).shutdown();
-    }
-  }
 
   @Test
   void verifySdkIsNotShutdownWhenBranchIsTaken() {

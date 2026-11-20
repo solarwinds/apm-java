@@ -23,6 +23,9 @@ import static com.solarwinds.opentelemetry.extensions.SharedNames.LAYER_NAME_PLA
 
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
+import com.solarwinds.joboe.sampling.SamplingConfiguration;
+import com.solarwinds.joboe.sampling.SettingsFetcher;
+import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.joboe.sampling.TraceDecision;
 import com.solarwinds.joboe.sampling.XtraceOptions;
 import com.solarwinds.joboe.sampling.XtraceOptionsResponse;
@@ -84,7 +87,15 @@ public class SolarwindsSampler implements Sampler {
 
   private static final Logger logger = LoggerFactory.getLogger();
 
-  public SolarwindsSampler() {
+  /**
+   * Creates the sampler and starts fetching the settings it samples with.
+   *
+   * @param settingsFetcher the fetcher providing remote settings
+   * @param samplingConfiguration the local sampling configuration
+   */
+  public SolarwindsSampler(
+      SettingsFetcher settingsFetcher, SamplingConfiguration samplingConfiguration) {
+    SettingsManager.initialize(settingsFetcher, samplingConfiguration);
     logger.info("Attached Solarwinds' Sampler");
   }
 

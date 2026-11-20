@@ -30,26 +30,26 @@ public class DefaultAutoConfigurationCustomizerProvider
 
   private static boolean agentEnabled = true;
 
-  static {
-    try {
-      LambdaConfigurationLoader.load();
-
-    } catch (InvalidConfigException invalidConfigException) {
-      logger.warn("Error loading agent config", invalidConfigException);
-      agentEnabled = false;
-    }
-
-    if (!agentEnabled) {
-      logger.warn("Solarwinds' extension is disabled");
-    }
-  }
-
   public static boolean isAgentEnabled() {
     return agentEnabled;
   }
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {
+
+    try {
+      LambdaConfigurationLoader.load();
+
+    } catch (InvalidConfigException invalidConfigException) {
+      logger.warn("Error loading agent config", invalidConfigException);
+      agentEnabled = false;
+
+      logger.warn("Solarwinds' extension is disabled");
+      // This is fine because this method is invoked before the SDK configuration is loaded
+      System.setProperty("otel.sdk.disabled", "true");
+      return;
+    }
+
     autoConfiguration
         .addPropertiesSupplier(new SharedPropertiesSupplier())
         .addPropertiesSupplier(new PropertiesSupplier())

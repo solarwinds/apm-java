@@ -21,11 +21,13 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.solarwinds.joboe.sampling.SettingsManager;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import java.util.Collections;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -44,6 +46,11 @@ class TraceProviderCustomizerTest {
   @Captor private ArgumentCaptor<Sampler> samplerArgumentCaptor;
   @Captor private ArgumentCaptor<SpanProcessor> processorArgumentCaptor;
 
+  @AfterEach
+  void tearDown() {
+    SettingsManager.reset();
+  }
+
   @Test
   void verifyThatSdkTracerProviderBuilderIsCustomized() {
     when(sdkTracerProviderBuilderMock.setSampler(any())).thenReturn(sdkTracerProviderBuilderMock);
@@ -58,5 +65,6 @@ class TraceProviderCustomizerTest {
 
     assertTrue(samplerArgumentCaptor.getValue() instanceof SolarwindsSampler);
     assertTrue(processorArgumentCaptor.getValue() instanceof ResponseTimeSpanProcessor);
+    assertTrue(SettingsManager.isInitialized());
   }
 }

@@ -21,7 +21,6 @@ import static com.solarwinds.opentelemetry.extensions.DefaultAutoConfigurationCu
 import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
-import com.solarwinds.joboe.sampling.SettingsManager;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 
@@ -36,17 +35,8 @@ public class LambdaAgentListener implements AgentListener {
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     if (isAgentEnabled()) {
-      if (!SettingsManager.isInitialized()) {
-        SettingsManager.initialize(
-            new AwsLambdaSettingsFetcher(
-                new FileSettingsReader(JsonSamplerComponentProvider.DEFAULT_SETTINGS_FILE)),
-            SamplingConfigProvider.getSamplingConfiguration());
-      }
-
       logger.info("Successfully submitted SolarwindsAPM OpenTelemetry extensions settings");
     } else {
-      autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk().shutdown();
-      SettingsManager.reset();
       logger.info("SolarwindsAPM OpenTelemetry extensions is disabled");
     }
   }

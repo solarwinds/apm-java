@@ -19,11 +19,8 @@ package com.solarwinds.opentelemetry.extensions;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.solarwinds.joboe.sampling.SettingsManager;
-import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,24 +35,6 @@ class LambdaAgentListenerTest {
 
   @Mock private AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdkMock;
 
-  @Mock private OpenTelemetrySdk openTelemetrySdkMock;
-
-  @Test
-  void verifySettingsManagerIsInitializedWhenConditionsAreMet() {
-    try (MockedStatic<SettingsManager> settingsManagerMock = mockStatic(SettingsManager.class);
-        MockedStatic<DefaultAutoConfigurationCustomizerProvider>
-            defaultAutoConfigurationCustomizerProviderMock =
-                mockStatic(DefaultAutoConfigurationCustomizerProvider.class)) {
-
-      defaultAutoConfigurationCustomizerProviderMock
-          .when(DefaultAutoConfigurationCustomizerProvider::isAgentEnabled)
-          .thenReturn(true);
-
-      tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
-      settingsManagerMock.verify(() -> SettingsManager.initialize(any(), any()));
-    }
-  }
-
   @Test
   void verifySettingsManagerIsNotInitialized() {
     try (MockedStatic<SettingsManager> settingsManagerMock = mockStatic(SettingsManager.class);
@@ -67,29 +46,8 @@ class LambdaAgentListenerTest {
           .when(DefaultAutoConfigurationCustomizerProvider::isAgentEnabled)
           .thenReturn(false);
 
-      when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk())
-          .thenReturn(openTelemetrySdkMock);
-
       tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
       settingsManagerMock.verify(() -> SettingsManager.initialize(any(), any()), never());
-    }
-  }
-
-  @Test
-  void verifySdkIsShutdownWhenBranchIsNotTaken() {
-    try (MockedStatic<DefaultAutoConfigurationCustomizerProvider>
-        defaultAutoConfigurationCustomizerProviderMock =
-            mockStatic(DefaultAutoConfigurationCustomizerProvider.class)) {
-
-      defaultAutoConfigurationCustomizerProviderMock
-          .when(DefaultAutoConfigurationCustomizerProvider::isAgentEnabled)
-          .thenReturn(false);
-
-      when(autoConfiguredOpenTelemetrySdkMock.getOpenTelemetrySdk())
-          .thenReturn(openTelemetrySdkMock);
-
-      tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
-      verify(openTelemetrySdkMock).shutdown();
     }
   }
 }

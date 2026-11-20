@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.solarwinds.joboe.config.ConfigContainer;
+import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.logging.LoggerConfiguration;
@@ -278,5 +279,21 @@ class ConfigurationLoaderTest {
     assertEquals(
         "OTEL_EXPORTER_OTLP_ENDPOINT",
         ConfigurationLoader.normalize("otel.exporter.otlp.endpoint"));
+  }
+
+  @Test
+  @SetSystemProperty(key = "otel.config.file", value = "sdk-config.yaml")
+  void skipLegacyConfigLoadingWhenConfigFileIsSet() throws InvalidConfigException {
+    ConfigManager.reset();
+    ConfigurationLoader.load();
+    assertNull(ConfigManager.getConfig(ConfigProperty.PROFILER));
+  }
+
+  @Test
+  @SetSystemProperty(key = "otel.experimental.config.file", value = "sdk-config.yaml")
+  void skipLegacyConfigLoadingWhenExperimentalConfigFileIsSet() throws InvalidConfigException {
+    ConfigManager.reset();
+    ConfigurationLoader.load();
+    assertNull(ConfigManager.getConfig(ConfigProperty.PROFILER));
   }
 }

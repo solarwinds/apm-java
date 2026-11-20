@@ -16,6 +16,9 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -24,6 +27,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
+import com.solarwinds.joboe.sampling.Settings;
+import com.solarwinds.joboe.sampling.SettingsFetcher;
+import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
@@ -33,7 +39,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -41,7 +46,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class SolarwindsTracerProviderCustomizerTest {
 
-  @InjectMocks private SolarwindsTracerProviderCustomizer tested;
+  private SolarwindsTracerProviderCustomizer tested;
+
+  @Mock private SettingsFetcher settingsFetcherMock;
+
+  @Mock private Settings settingsMock;
 
   @Mock private SdkTracerProviderBuilder tracerProviderBuilderMock;
 
@@ -54,11 +63,31 @@ class SolarwindsTracerProviderCustomizerTest {
   void setUp() {
     autoConfigurationCustomizerProviderImplMockedStatic =
         mockStatic(AutoConfigurationCustomizerProviderImpl.class);
+    tested = new SolarwindsTracerProviderCustomizer(() -> settingsFetcherMock);
   }
 
   @AfterEach
   void tearDown() {
     autoConfigurationCustomizerProviderImplMockedStatic.close();
+    SettingsManager.reset();
+  }
+
+  @Test
+  void verifySettingsAreFetchedWhenSamplerIsAttached() {
+    autoConfigurationCustomizerProviderImplMockedStatic
+        .when(AutoConfigurationCustomizerProviderImpl::isAgentEnabled)
+        .thenReturn(true);
+
+    when(tracerProviderBuilderMock.addSpanProcessor(any(SpanProcessor.class)))
+        .thenReturn(tracerProviderBuilderMock);
+    when(tracerProviderBuilderMock.setSampler(any(Sampler.class)))
+        .thenReturn(tracerProviderBuilderMock);
+
+    when(settingsFetcherMock.getSettings()).thenReturn(settingsMock);
+    tested.apply(tracerProviderBuilderMock, configPropertiesMock);
+
+    assertTrue(SettingsManager.isInitialized());
+    assertSame(settingsMock, SettingsManager.getSettings());
   }
 
   @Test
@@ -123,5 +152,6 @@ class SolarwindsTracerProviderCustomizerTest {
 
     verify(tracerProviderBuilderMock, never()).addSpanProcessor(any(SpanProcessor.class));
     verify(tracerProviderBuilderMock, never()).setSampler(any(Sampler.class));
+    assertFalse(SettingsManager.isInitialized());
   }
 }

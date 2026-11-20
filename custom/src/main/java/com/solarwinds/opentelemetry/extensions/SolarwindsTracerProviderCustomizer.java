@@ -19,12 +19,33 @@ package com.solarwinds.opentelemetry.extensions;
 import static com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl.isAgentEnabled;
 
 import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
+import com.solarwinds.joboe.sampling.SettingsFetcher;
+import com.solarwinds.opentelemetry.extensions.config.HttpSettingsFetcher;
+import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReader;
+import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReaderDelegate;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 public class SolarwindsTracerProviderCustomizer
     implements BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder> {
+
+  private static final long POLLING_INTERVAL_SECONDS = 60;
+
+  private final Supplier<SettingsFetcher> settingsFetcherFactory;
+
+  public SolarwindsTracerProviderCustomizer() {
+    this(
+        () ->
+            new HttpSettingsFetcher(
+                HttpSettingsReader.forSystemConfig(new HttpSettingsReaderDelegate()),
+                POLLING_INTERVAL_SECONDS));
+  }
+
+  SolarwindsTracerProviderCustomizer(Supplier<SettingsFetcher> settingsFetcherFactory) {
+    this.settingsFetcherFactory = settingsFetcherFactory;
+  }
 
   @Override
   public SdkTracerProviderBuilder apply(
@@ -35,7 +56,9 @@ public class SolarwindsTracerProviderCustomizer
       }
 
       tracerProvider
-          .setSampler(new SolarwindsSampler())
+          .setSampler(
+              new SolarwindsSampler(
+                  settingsFetcherFactory.get(), SamplingConfigProvider.getSamplingConfiguration()))
           .addSpanProcessor(new ResponseTimeSpanProcessor());
     }
 

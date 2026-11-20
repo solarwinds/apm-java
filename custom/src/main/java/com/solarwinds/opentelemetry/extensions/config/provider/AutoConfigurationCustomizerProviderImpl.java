@@ -64,9 +64,9 @@ public class AutoConfigurationCustomizerProviderImpl
     } catch (InvalidConfigException invalidConfigException) {
       logger.warn("Error loading agent config", invalidConfigException);
       agentEnabled = false;
-    }
 
-    if (!agentEnabled) {
+      // This is fine because this method is invoked before the SDK configuration is loaded
+      System.setProperty("otel.sdk.disabled", "true");
       logger.warn("Solarwinds' extension is disabled");
       return;
     }
