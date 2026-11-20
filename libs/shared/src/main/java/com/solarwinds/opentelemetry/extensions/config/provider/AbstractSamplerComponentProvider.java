@@ -23,7 +23,6 @@ import com.solarwinds.joboe.sampling.ResourceMatcher;
 import com.solarwinds.joboe.sampling.SampleRateSource;
 import com.solarwinds.joboe.sampling.SamplingConfiguration;
 import com.solarwinds.joboe.sampling.SettingsFetcher;
-import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.joboe.sampling.TraceConfig;
 import com.solarwinds.joboe.sampling.TraceConfigs;
 import com.solarwinds.joboe.sampling.TracingMode;
@@ -80,14 +79,12 @@ public abstract class AbstractSamplerComponentProvider implements ComponentProvi
               .internalTransactionSettings(parseTraceConfigs(declarativeConfigProperties));
 
       parseConfig(declarativeConfigProperties, builder);
-      SettingsManager.initialize(
+      return new SolarwindsSampler(
           createSettingsFetcher(declarativeConfigProperties), builder.build());
 
     } catch (InvalidConfigException e) {
       throw new RuntimeException(e);
     }
-
-    return new SolarwindsSampler();
   }
 
   protected void parseConfig(

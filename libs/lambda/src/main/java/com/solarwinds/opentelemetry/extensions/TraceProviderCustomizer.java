@@ -27,7 +27,11 @@ public class TraceProviderCustomizer
   public SdkTracerProviderBuilder apply(
       SdkTracerProviderBuilder sdkTracerProviderBuilder, ConfigProperties configProperties) {
     return sdkTracerProviderBuilder
-        .setSampler(new SolarwindsSampler())
+        .setSampler(
+            new SolarwindsSampler(
+                new AwsLambdaSettingsFetcher(
+                    new FileSettingsReader(JsonSamplerComponentProvider.DEFAULT_SETTINGS_FILE)),
+                SamplingConfigProvider.getSamplingConfiguration()))
         .addSpanProcessor(new ResponseTimeSpanProcessor());
   }
 }

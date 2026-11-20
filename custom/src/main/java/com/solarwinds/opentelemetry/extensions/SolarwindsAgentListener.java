@@ -33,9 +33,6 @@ import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.opentelemetry.core.AgentState;
-import com.solarwinds.opentelemetry.extensions.config.HttpSettingsFetcher;
-import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReader;
-import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReaderDelegate;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import java.util.Collections;
@@ -59,9 +56,6 @@ public class SolarwindsAgentListener implements AgentListener {
       registerShutdownTasks();
       logger.info(
           "Successfully submitted SolarwindsAPM OpenTelemetry extensions initialization tasks");
-    } else {
-      autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk().shutdown();
-      SettingsManager.reset();
     }
   }
 
@@ -90,13 +84,6 @@ public class SolarwindsAgentListener implements AgentListener {
                             + HostInfoUtils.getHostId()
                             + " ip addresses: "
                             + ipAddresses);
-
-                if (!SettingsManager.isInitialized()) {
-                  SettingsManager.initialize(
-                      new HttpSettingsFetcher(
-                          HttpSettingsReader.forSystemConfig(new HttpSettingsReaderDelegate()), 60),
-                      SamplingConfigProvider.getSamplingConfiguration());
-                }
 
                 CountDownLatch settingsLatch = SettingsManager.getSettingsAvailableLatch();
                 logger.debug("Initialized HostUtils");

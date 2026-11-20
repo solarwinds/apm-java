@@ -16,14 +16,20 @@
 
 package com.solarwinds.opentelemetry.extensions.provider;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atMostOnce;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.opentelemetry.extensions.SharedPropertiesSupplier;
 import com.solarwinds.opentelemetry.extensions.SolarwindsPropertiesSupplier;
+import com.solarwinds.opentelemetry.extensions.config.ConfigurationLoader;
 import com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import java.lang.invoke.MethodHandle;
@@ -34,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -59,6 +66,22 @@ class AutoConfigurationCustomizerProviderImplTest {
   void teardown() throws Throwable {
     // Reset the static agentEnabled field to true so it doesn't affect other tests
     AGENT_ENABLED_SETTER.invokeExact(true);
+    System.clearProperty("otel.sdk.disabled");
+  }
+
+  @Test
+  void disableSdkWhenConfigFailsToLoad() {
+    try (MockedStatic<ConfigurationLoader> loaderMock = mockStatic(ConfigurationLoader.class)) {
+      loaderMock
+          .when(ConfigurationLoader::load)
+          .thenThrow(new InvalidConfigException("bad config"));
+
+      tested.customize(autoConfigurationCustomizerMock);
+
+      assertFalse(AutoConfigurationCustomizerProviderImpl.isAgentEnabled());
+      assertEquals("true", System.getProperty("otel.sdk.disabled"));
+      verifyNoInteractions(autoConfigurationCustomizerMock);
+    }
   }
 
   @Test

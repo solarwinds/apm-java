@@ -16,16 +16,24 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.solarwinds.joboe.config.InvalidConfigException;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
+import java.lang.reflect.Field;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +41,30 @@ class DefaultAutoConfigurationCustomizerProviderTest {
   @InjectMocks private DefaultAutoConfigurationCustomizerProvider tested;
 
   @Mock private AutoConfigurationCustomizer autoConfigurationCustomizerMock;
+
+  @AfterEach
+  void tearDown() throws ReflectiveOperationException {
+    Field field = DefaultAutoConfigurationCustomizerProvider.class.getDeclaredField("agentEnabled");
+    field.setAccessible(true);
+    field.set(null, true);
+    System.clearProperty("otel.sdk.disabled");
+  }
+
+  @Test
+  void disableSdkWhenConfigFailsToLoad() {
+    try (MockedStatic<LambdaConfigurationLoader> loaderMock =
+        mockStatic(LambdaConfigurationLoader.class)) {
+      loaderMock
+          .when(LambdaConfigurationLoader::load)
+          .thenThrow(new InvalidConfigException("bad config"));
+
+      tested.customize(autoConfigurationCustomizerMock);
+
+      assertFalse(DefaultAutoConfigurationCustomizerProvider.isAgentEnabled());
+      assertEquals("true", System.getProperty("otel.sdk.disabled"));
+      verifyNoInteractions(autoConfigurationCustomizerMock);
+    }
+  }
 
   @Test
   void ensureExpectedCustomization() {
