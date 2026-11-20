@@ -18,11 +18,15 @@ package com.solarwinds.opentelemetry.extensions;
 
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.logging.Logger;
+import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.SamplingConfiguration;
 import com.solarwinds.joboe.sampling.TraceConfigs;
 import com.solarwinds.joboe.sampling.TracingMode;
 
 public final class SamplingConfigProvider {
+  private static final Logger logger = LoggerFactory.getLogger();
+
   private SamplingConfigProvider() {}
 
   private static SamplingConfiguration samplingConfiguration;
@@ -32,9 +36,7 @@ public final class SamplingConfigProvider {
       SamplingConfiguration.SamplingConfigurationBuilder samplingConfigurationBuilder =
           SamplingConfiguration.builder()
               .tracingMode((TracingMode) ConfigManager.getConfig(ConfigProperty.AGENT_TRACING_MODE))
-              .internalTransactionSettings(
-                  (TraceConfigs)
-                      ConfigManager.getConfig(ConfigProperty.AGENT_INTERNAL_TRANSACTION_SETTINGS))
+              .transactionSettings(resolveTransactionSettings())
               .triggerTraceEnabled(
                   ConfigManager.getConfigOptional(
                       ConfigProperty.AGENT_TRIGGER_TRACE_ENABLED, true));
@@ -57,5 +59,25 @@ public final class SamplingConfigProvider {
       samplingConfiguration = samplingConfigurationBuilder.build();
     }
     return samplingConfiguration;
+  }
+
+  static TraceConfigs resolveTransactionSettings() {
+    TraceConfigs transactionSettings =
+        (TraceConfigs) ConfigManager.getConfig(ConfigProperty.AGENT_TRANSACTION_SETTINGS);
+    TraceConfigs urlSampleRates =
+        (TraceConfigs) ConfigManager.getConfig(ConfigProperty.AGENT_URL_SAMPLE_RATE);
+
+    if (transactionSettings == null) {
+      return urlSampleRates;
+    }
+
+    if (urlSampleRates != null) {
+      logger.warn(
+          ConfigProperty.AGENT_URL_SAMPLE_RATE.getConfigFileKey()
+              + " is ignored as "
+              + ConfigProperty.AGENT_TRANSACTION_SETTINGS.getConfigFileKey()
+              + " is also defined");
+    }
+    return transactionSettings;
   }
 }

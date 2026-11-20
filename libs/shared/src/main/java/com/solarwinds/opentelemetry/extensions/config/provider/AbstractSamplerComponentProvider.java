@@ -76,7 +76,7 @@ public abstract class AbstractSamplerComponentProvider implements ComponentProvi
               .tracingMode(parseTracingMode(declarativeConfigProperties))
               .triggerTraceEnabled(
                   declarativeConfigProperties.getBoolean(TRIGGER_TRACING_ENABLED, true))
-              .internalTransactionSettings(parseTraceConfigs(declarativeConfigProperties));
+              .transactionSettings(parseTraceConfigs(declarativeConfigProperties));
 
       parseConfig(declarativeConfigProperties, builder);
       return new SolarwindsSampler(

@@ -66,9 +66,7 @@ class TransactionFilteringTest {
 
     SettingsManager.initialize(
         new SimpleSettingsFetcher(reader),
-        SamplingConfiguration.builder()
-            .internalTransactionSettings(new TraceConfigs(urlConfigs))
-            .build());
+        SamplingConfiguration.builder().transactionSettings(new TraceConfigs(urlConfigs)).build());
   }
 
   @AfterEach

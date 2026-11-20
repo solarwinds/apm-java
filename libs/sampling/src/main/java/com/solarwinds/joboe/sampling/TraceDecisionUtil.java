@@ -347,9 +347,9 @@ public class TraceDecisionUtil {
    */
   private static TraceConfig getLocalSpecificTraceConfig(List<String> signals) {
     if (signals != null
-        && SettingsManager.getSamplingConfiguration().getInternalTransactionSettings() != null) {
+        && SettingsManager.getSamplingConfiguration().getTransactionSettings() != null) {
       return SettingsManager.getSamplingConfiguration()
-          .getInternalTransactionSettings()
+          .getTransactionSettings()
           .getTraceConfig(signals);
     } else {
       return null;
