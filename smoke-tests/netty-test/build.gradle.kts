@@ -65,6 +65,9 @@ tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadSwoAgent")
 }
 
 tasks.named("run", JavaExec::class) {
-    setEnvironment("SW_APM_SERVICE_KEY" to "${System.getenv("SW_APM_SERVICE_KEY")}:netty-pipeline-test-app")
+    setEnvironment(
+        "SW_APM_SERVICE_KEY" to System.getenv("SW_APM_SERVICE_KEY"),
+        "OTEL_SERVICE_NAME" to (System.getenv("OTEL_SERVICE_NAME") ?: "netty-pipeline-test-app")
+    )
     dependsOn("downloadSwoAgent")
 }
