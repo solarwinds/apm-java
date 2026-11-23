@@ -211,12 +211,6 @@ tracer_provider:
             - css
             - js
           tracing: disabled
-      # Optional. Legacy alternative to transaction_settings and ignored when transaction_settings is defined.
-      # Each entry maps a url regex to a sample_rate (out of 1000000) and/or tracing_enabled.
-      # url_sample_rates:
-      #   - ".*/greet":
-      #       sample_rate: 1000000
-      #       tracing_enabled: true
 
     # AWS Lambda only, in place of swo_http: reads sampling settings from a file. Supports the same options as
     # swo_http except service_key, collector, proxy and context_*.

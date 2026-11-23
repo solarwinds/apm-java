@@ -48,7 +48,6 @@ import com.solarwinds.opentelemetry.extensions.config.parser.json.StacktraceFilt
 import com.solarwinds.opentelemetry.extensions.config.parser.json.TracingModeParser;
 import com.solarwinds.opentelemetry.extensions.config.parser.json.TransactionNamingSchemesParser;
 import com.solarwinds.opentelemetry.extensions.config.parser.json.TransactionSettingsConfigParser;
-import com.solarwinds.opentelemetry.extensions.config.parser.json.UrlSampleRateConfigParser;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -90,7 +89,6 @@ public class ConfigurationLoader {
         new RangeValidationParser<Integer>(
             Constants.MAX_SQL_QUERY_LENGTH_LOWER_LIMIT,
             Constants.MAX_SQL_QUERY_LENGTH_UPPER_LIMIT));
-    ConfigProperty.AGENT_URL_SAMPLE_RATE.setParser(UrlSampleRateConfigParser.INSTANCE);
     ConfigProperty.AGENT_TRANSACTION_SETTINGS.setParser(TransactionSettingsConfigParser.INSTANCE);
     ConfigProperty.AGENT_TRIGGER_TRACE_ENABLED.setParser(ModeStringToBooleanParser.INSTANCE);
     ConfigProperty.AGENT_PROXY.setParser(ProxyConfigParser.INSTANCE);
