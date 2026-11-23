@@ -16,13 +16,28 @@
 
 package com.solarwinds.opentelemetry.extensions;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.solarwinds.joboe.config.ConfigManager;
+import com.solarwinds.joboe.config.ConfigProperty;
+import com.solarwinds.joboe.config.InvalidConfigException;
+import com.solarwinds.opentelemetry.extensions.config.SdkResourceServiceName;
 import com.solarwinds.opentelemetry.extensions.config.provider.AutoConfigurationCustomizerProviderImpl;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.internal.ExtendedOpenTelemetrySdk;
+import io.opentelemetry.sdk.internal.SdkConfigProvider;
+import io.opentelemetry.sdk.logs.SdkLoggerProvider;
+import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.semconv.ServiceAttributes;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
@@ -55,6 +70,8 @@ class SolarwindsAgentListenerTest {
   void teardown() throws Throwable {
     // Reset the static agentEnabled field to true so it doesn't affect other tests
     AGENT_ENABLED_SETTER.invokeExact(true);
+    ConfigManager.reset();
+    SdkResourceServiceName.reset();
   }
 
   @Mock private AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdkMock;
@@ -74,5 +91,75 @@ class SolarwindsAgentListenerTest {
       tested.afterAgent(autoConfiguredOpenTelemetrySdkMock);
       verify(openTelemetrySdkMock, never()).shutdown();
     }
+  }
+
+  @Test
+  void resolveServiceNameReadsDeclarativeSdkResource() {
+    try (OpenTelemetrySdk sdk = declarativeSdk("SDK Service")) {
+      assertEquals("SDK Service", SolarwindsAgentListener.resolveServiceName(sdk));
+    }
+  }
+
+  @Test
+  void resolveServiceNameReadsSystemConfigSdkResource() {
+    try (OpenTelemetrySdk sdk = sdk(resource("System Service"))) {
+      assertEquals("System Service", SolarwindsAgentListener.resolveServiceName(sdk));
+    }
+  }
+
+  @Test
+  void resolveServiceNameReturnsDefaultResourceServiceName() {
+    try (OpenTelemetrySdk sdk = declarativeSdk(null)) {
+      assertEquals("unknown_service:java", SolarwindsAgentListener.resolveServiceName(sdk));
+    }
+  }
+
+  @Test
+  void resolveServiceNameReturnsNullWithoutSdk() {
+    assertNull(SolarwindsAgentListener.resolveServiceName(null));
+  }
+
+  @Test
+  void profilingServiceKeyAttachesNormalizedServiceNameWithoutChangingConfig()
+      throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.AGENT_SERVICE_KEY, "token");
+
+    assertEquals("token:sdk-service", SolarwindsAgentListener.profilingServiceKey("SDK Service"));
+    assertEquals("token", ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
+  }
+
+  @Test
+  void profilingServiceKeyReplacesServiceKeyName() throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.AGENT_SERVICE_KEY, "token:key-service");
+
+    assertEquals("token:sdk-service", SolarwindsAgentListener.profilingServiceKey("sdk-service"));
+  }
+
+  @Test
+  void profilingServiceKeyUsesDefaultServiceNameWhenNoneIsAvailable()
+      throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.AGENT_SERVICE_KEY, "token");
+
+    assertEquals("token:unknown_service:java", SolarwindsAgentListener.profilingServiceKey(null));
+  }
+
+  private static OpenTelemetrySdk declarativeSdk(String serviceName) {
+    return ExtendedOpenTelemetrySdk.create(
+        sdk(resource(serviceName)), SdkConfigProvider.create(DeclarativeConfigProperties.empty()));
+  }
+
+  private static OpenTelemetrySdk sdk(Resource resource) {
+    return OpenTelemetrySdk.builder()
+        .setTracerProvider(SdkTracerProvider.builder().setResource(resource).build())
+        .setMeterProvider(SdkMeterProvider.builder().setResource(resource).build())
+        .setLoggerProvider(SdkLoggerProvider.builder().setResource(resource).build())
+        .build();
+  }
+
+  private static Resource resource(String serviceName) {
+    return serviceName == null
+        ? Resource.getDefault()
+        : Resource.getDefault()
+            .merge(Resource.create(Attributes.of(ServiceAttributes.SERVICE_NAME, serviceName)));
   }
 }

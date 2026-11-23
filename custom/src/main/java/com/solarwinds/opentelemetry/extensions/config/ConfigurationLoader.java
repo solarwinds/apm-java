@@ -410,6 +410,7 @@ public class ConfigurationLoader {
         && !((String) configs.get(ConfigProperty.AGENT_SERVICE_KEY)).isEmpty()) {
       // Customer access key (UUID)
       String rawServiceKey = (String) configs.get(ConfigProperty.AGENT_SERVICE_KEY);
+      ServiceKeyUtils.warnIfServiceNameInServiceKey(rawServiceKey);
       String serviceKey = ServiceKeyUtils.transformServiceKey(rawServiceKey);
 
       if (!serviceKey.equalsIgnoreCase(rawServiceKey)) {

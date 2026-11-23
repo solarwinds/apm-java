@@ -197,32 +197,18 @@ class ResourceCustomizerTest {
   }
 
   @Test
-  void verifyThatServiceKeyIsUpdatedWithConfiguredServiceNameWhenNotOnAppService()
-      throws InvalidConfigException {
-    ConfigManager.setConfig(ConfigProperty.AGENT_SERVICE_KEY, "token:old-name");
+  void verifyThatServiceKeyIsNotModified() throws InvalidConfigException {
+    ConfigManager.setConfig(ConfigProperty.AGENT_SERVICE_KEY, "token");
     Resource resource =
         Resource.create(
-            Attributes.builder().put(ServiceAttributes.SERVICE_NAME, "new-name").build());
+            Attributes.builder().put(ServiceAttributes.SERVICE_NAME, "otel-service").build());
 
-    tested.apply(
-        resource,
-        DefaultConfigProperties.createFromMap(
-            Collections.singletonMap("otel.service.name", "new-name")));
-    assertEquals("token:new-name", ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
-  }
-
-  @Test
-  void verifyThatServiceKeyIsUpdatedWithServiceNameWhenOnAppService()
-      throws InvalidConfigException {
-    ConfigManager.setConfig(ConfigProperty.AGENT_SERVICE_KEY, "token:old-name");
-    Resource resource =
-        Resource.create(
-            Attributes.builder()
-                .put(CloudIncubatingAttributes.CLOUD_PLATFORM, "azure.app_service")
-                .put(ServiceAttributes.SERVICE_NAME, "new-name")
-                .build());
-
-    tested.apply(resource, DefaultConfigProperties.createFromMap(Collections.emptyMap()));
-    assertEquals("token:new-name", ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
+    Resource actual =
+        tested.apply(
+            resource,
+            DefaultConfigProperties.createFromMap(
+                Collections.singletonMap("otel.service.name", "otel-service")));
+    assertEquals("otel-service", actual.getAttribute(ServiceAttributes.SERVICE_NAME));
+    assertEquals("token", ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
   }
 }

@@ -36,8 +36,6 @@ public class HttpSettingsReader implements SettingsReader {
 
   private static final String DEFAULT_COLLECTOR = "apm.collector.na-01.cloud.solarwinds.com";
 
-  private static final String DEFAULT_SERVICE_KEY = ":unknown-java";
-
   private final HttpSettingsReaderDelegate delegate;
 
   private final Supplier<String> collector;
@@ -45,17 +43,29 @@ public class HttpSettingsReader implements SettingsReader {
   private final Supplier<String> serviceKey;
 
   public static HttpSettingsReader forSystemConfig(HttpSettingsReaderDelegate delegate) {
+    return forSystemConfig(delegate, SdkResourceServiceName::get);
+  }
+
+  static HttpSettingsReader forSystemConfig(
+      HttpSettingsReaderDelegate delegate, Supplier<String> serviceName) {
     return new HttpSettingsReader(
         delegate,
         () -> ConfigManager.getConfigOptional(ConfigProperty.AGENT_COLLECTOR, DEFAULT_COLLECTOR),
         () ->
-            ConfigManager.getConfigOptional(ConfigProperty.AGENT_SERVICE_KEY, DEFAULT_SERVICE_KEY));
+            ServiceKeyUtils.withServiceName(
+                ConfigManager.getConfigOptional(ConfigProperty.AGENT_SERVICE_KEY, ""),
+                serviceName.get()));
   }
 
   public static HttpSettingsReader forFileConfig(
       HttpSettingsReaderDelegate delegate, String collector, String serviceKey) {
+    return forFileConfig(delegate, collector, () -> serviceKey);
+  }
+
+  public static HttpSettingsReader forFileConfig(
+      HttpSettingsReaderDelegate delegate, String collector, Supplier<String> serviceKey) {
     return new HttpSettingsReader(
-        delegate, () -> collector != null ? collector : DEFAULT_COLLECTOR, () -> serviceKey);
+        delegate, () -> collector != null ? collector : DEFAULT_COLLECTOR, serviceKey);
   }
 
   private HttpSettingsReader(
@@ -72,7 +82,8 @@ public class HttpSettingsReader implements SettingsReader {
   public Settings getSettings() {
     String collectorUrl = constructSettingsEndpoint(collector.get());
     String serviceKey = this.serviceKey.get();
-    String serviceName = ServiceKeyUtils.getServiceName(serviceKey);
+    String serviceName =
+        ServiceKeyUtils.serviceNameOrDefault(ServiceKeyUtils.getServiceName(serviceKey));
 
     String apiToken = ServiceKeyUtils.getApiKey(serviceKey);
     String settingsUrl =

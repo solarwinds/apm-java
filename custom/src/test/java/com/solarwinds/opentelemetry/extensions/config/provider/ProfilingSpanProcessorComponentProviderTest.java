@@ -226,4 +226,11 @@ class ProfilingSpanProcessorComponentProviderTest {
         .findFirst()
         .orElseThrow(() -> new IllegalStateException("swo_profiler not found in " + name));
   }
+
+  @Test
+  void testConvertAcceptsTokenOnlyServiceKey() throws InvalidConfigException {
+    tested.convert(fromYaml("swo_profiler:\n  service_key: token\n"));
+
+    assertEquals("token", ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
+  }
 }

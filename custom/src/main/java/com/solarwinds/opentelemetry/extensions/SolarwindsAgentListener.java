@@ -22,6 +22,7 @@ import com.google.auto.service.AutoService;
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
 import com.solarwinds.joboe.config.JavaRuntimeVersionChecker;
+import com.solarwinds.joboe.config.ServiceKeyUtils;
 import com.solarwinds.joboe.core.ReporterFactory;
 import com.solarwinds.joboe.core.profiler.Profiler;
 import com.solarwinds.joboe.core.profiler.ProfilerSetting;
@@ -29,12 +30,17 @@ import com.solarwinds.joboe.core.rpc.ClientManagerProvider;
 import com.solarwinds.joboe.core.rpc.RpcClientManager;
 import com.solarwinds.joboe.core.util.DaemonThreadFactory;
 import com.solarwinds.joboe.core.util.HostInfoUtils;
+import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
 import com.solarwinds.joboe.sampling.SettingsManager;
 import com.solarwinds.opentelemetry.core.AgentState;
+import com.solarwinds.opentelemetry.extensions.config.SdkResourceServiceName;
 import io.opentelemetry.javaagent.extension.AgentListener;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.trace.internal.SdkTracerProviderUtil;
+import io.opentelemetry.semconv.ServiceAttributes;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -52,14 +58,43 @@ public class SolarwindsAgentListener implements AgentListener {
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     if (isAgentEnabled()) {
-      executeStartupTasks();
+      String serviceName = resolveServiceName(autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk());
+      logger.info("Resolved service name: " + LogSanitizer.sanitize(serviceName));
+      SdkResourceServiceName.set(serviceName);
+
+      executeStartupTasks(serviceName);
       registerShutdownTasks();
       logger.info(
           "Successfully submitted SolarwindsAPM OpenTelemetry extensions initialization tasks");
     }
   }
 
-  private void executeStartupTasks() {
+  /**
+   * Reads the final {@code service.name} from the built SDK's resource. Works for both declarative
+   * and system config since the tracer provider always carries the merged resource.
+   */
+  static String resolveServiceName(OpenTelemetrySdk sdk) {
+    if (sdk == null) {
+      return null;
+    }
+
+    try {
+      return SdkTracerProviderUtil.getSdkResourceProvider(sdk.getSdkTracerProvider())
+          .getResource()
+          .getAttribute(ServiceAttributes.SERVICE_NAME);
+    } catch (RuntimeException e) {
+      logger.warn("Unable to read the service name from the SDK resource", e);
+      return null;
+    }
+  }
+
+  /** The service key for the profiling client, carrying the final, normalized service name. */
+  static String profilingServiceKey(String serviceName) {
+    return ServiceKeyUtils.withServiceName(
+        ConfigManager.getConfigOptional(ConfigProperty.AGENT_SERVICE_KEY, ""), serviceName);
+  }
+
+  private void executeStartupTasks(String serviceName) {
     ExecutorService service =
         Executors.newSingleThreadExecutor(DaemonThreadFactory.newInstance("post-startup-tasks"));
 
@@ -99,7 +134,8 @@ public class SolarwindsAgentListener implements AgentListener {
                       ReporterFactory.getInstance()
                           .createQueuingEventReporter(
                               RpcClientManager.getClient(
-                                  RpcClientManager.OperationType.PROFILING)));
+                                  RpcClientManager.OperationType.PROFILING,
+                                  profilingServiceKey(serviceName))));
                 } else {
                   logger.info("Profiler is disabled, local settings : " + profilerSetting);
                 }

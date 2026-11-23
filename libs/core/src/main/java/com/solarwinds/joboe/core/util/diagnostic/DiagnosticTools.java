@@ -48,7 +48,7 @@ import java.util.concurrent.TimeoutException;
  *
  * <p>java -Djava.security.debug=certpath,provider -Djavax.net.debug=ssl:session -cp
  * solarwinds-apm-agent.jar com.solarwinds.joboe.core.util.diagnostic.DiagnosticTools
- * service_key=YourSolarWindsApiToken:YourServiceName [optional parameters]
+ * service_key=YourSolarWindsApiToken [optional parameters]
  *
  * <p>For example: java -Djava.security.debug=certpath,provider -Djavax.net.debug=ssl:session -cp
  * solarwinds-apm-agent.jar com.solarwinds.joboe.core.util.diagnostic.DiagnosticTools
@@ -134,7 +134,7 @@ public class DiagnosticTools {
 
   private static void printUsage() {
     logger.info(
-        "Usage example : java -Djava.security.debug=certpath,provider -Djavax.net.debug=ssl:session -cp solarwinds-apm-agent.jar com.solarwinds.joboe.core.util.diagnostic.DiagnosticTools service_key=YourSolarWindsApiToken:YourServiceName");
+        "Usage example : java -Djava.security.debug=certpath,provider -Djavax.net.debug=ssl:session -cp solarwinds-apm-agent.jar com.solarwinds.joboe.core.util.diagnostic.DiagnosticTools service_key=YourSolarWindsApiToken");
     logger.info(
         "All other program parameters except for the service_key are optional and in format of [key]=[value], available parameters are:");
     logger.info("service_key : Service key to be used for the diagnostics");
@@ -370,17 +370,8 @@ public class DiagnosticTools {
       return false;
     }
 
-    String[] tokens = serviceKey.split(":", 2);
-    if (tokens.length != 2) {
-      logger.warn(
-          "Service Key ["
-              + ServiceKeyUtils.maskServiceKey(serviceKey)
-              + "] format is incorrect - not in <API Token>:<Service Name>");
-      return false;
-    }
-
-    String apiToken = tokens[0];
-    String serviceName = tokens[1];
+    ServiceKeyUtils.warnIfServiceNameInServiceKey(serviceKey);
+    String apiToken = ServiceKeyUtils.getApiKey(serviceKey);
 
     if (apiToken.length() != APPOPTICS_API_TOKEN_LENGTH
         && apiToken.length() != SWOKEN_API_TOKEN_LENGTH) {
@@ -394,14 +385,6 @@ public class DiagnosticTools {
               + " characters. Found "
               + apiToken.length()
               + " character(s)");
-      return false;
-    }
-
-    if (serviceName.trim().isEmpty()) {
-      logger.warn(
-          "Service Name should not be empty in Service Key ["
-              + ServiceKeyUtils.maskServiceKey(serviceKey)
-              + "]");
       return false;
     }
 
