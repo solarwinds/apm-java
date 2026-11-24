@@ -92,4 +92,18 @@ class ServiceKeyUtilsTest {
   void transformServiceKeyKeepsTokenOnlyKey() {
     assertEquals("token", ServiceKeyUtils.transformServiceKey("token"));
   }
+
+  @Test
+  void withServiceNameUsesDefaultWhenNormalizedNameIsEmpty() {
+    assertEquals("token:unknown_service:java", ServiceKeyUtils.withServiceName("token", "!!!"));
+    assertEquals("token:unknown_service:java", ServiceKeyUtils.withServiceName("token", "中文"));
+  }
+
+  @Test
+  void withServiceNameNormalizesLegacyServiceKeyName() {
+    assertEquals(
+        "token:legacy-name",
+        ServiceKeyUtils.withServiceName(
+            "token:Legacy Name", ServiceKeyUtils.getServiceName("token:Legacy Name")));
+  }
 }

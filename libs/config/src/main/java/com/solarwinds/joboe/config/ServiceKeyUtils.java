@@ -72,9 +72,9 @@ public class ServiceKeyUtils {
    * #DEFAULT_SERVICE_NAME} when there's none.
    */
   public static String withServiceName(String serviceKey, String serviceName) {
-    return getApiKey(serviceKey)
-        + SEPARATOR_CHARACTER
-        + transformServiceName(serviceNameOrDefault(serviceName));
+    // Normalization can empty a name (e.g. only unsupported characters), so default afterwards.
+    String normalized = isNotBlank(serviceName) ? transformServiceName(serviceName) : null;
+    return getApiKey(serviceKey) + SEPARATOR_CHARACTER + serviceNameOrDefault(normalized);
   }
 
   public static String serviceNameOrDefault(String serviceName) {

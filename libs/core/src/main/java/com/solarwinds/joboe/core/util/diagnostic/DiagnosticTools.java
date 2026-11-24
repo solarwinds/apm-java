@@ -328,7 +328,11 @@ public class DiagnosticTools {
 
     Client client = null;
     try {
-      client = RpcClientManager.getClient(OperationType.STATUS, serviceKey);
+      client =
+          RpcClientManager.getClient(
+              OperationType.STATUS,
+              ServiceKeyUtils.withServiceName(
+                  serviceKey, ServiceKeyUtils.getServiceName(serviceKey)));
       com.solarwinds.joboe.core.rpc.Result rpcCallResult =
           client.postStatus(generateDiagnosticMessage(), null).get(timeout, TimeUnit.MILLISECONDS);
 
