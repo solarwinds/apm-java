@@ -65,7 +65,7 @@ public class JsonConfigReader extends ConfigReader {
 
         ConfigProperty key =
             ConfigProperty.fromConfigFileKey(
-                    keyAsObject); // attempt to retrieve the corresponding ConfigProperty as key
+                keyAsObject); // attempt to retrieve the corresponding ConfigProperty as key
 
         if (key == null) {
           exceptions.add(

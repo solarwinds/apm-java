@@ -56,10 +56,10 @@ public class JsonConfigReaderTest {
   @Test
   public void testRemovedKeyIsIgnored() throws InvalidConfigException {
     String json =
-            "{\"agent.urlSampleRates\": [{\".*/greet\": {\"sampleRate\": 1000000}}],"
-                    + " \"agent.serviceKey\": \"some key\"}";
+        "{\"agent.urlSampleRates\": [{\".*/greet\": {\"sampleRate\": 1000000}}],"
+            + " \"agent.serviceKey\": \"some key\"}";
     JsonConfigReader reader =
-            new JsonConfigReader(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
+        new JsonConfigReader(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
     ConfigContainer container = new ConfigContainer();
     reader.read(container);
 
