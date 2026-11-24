@@ -61,7 +61,7 @@ dependencies {
     api("com.google.auto.service:auto-service:$autoservice")
 
     api("org.json:json:20260814")
-    api("com.google.code.gson:gson:2.14.0")
+    api("com.google.code.gson:gson:2.15.0")
     api("com.github.ben-manes.caffeine:caffeine:2.9.3")
 
     api("io.opentelemetry.contrib:opentelemetry-span-stacktrace:$otelJavaContribVersion")
