@@ -27,7 +27,7 @@ import java.util.concurrent.TimeoutException;
  * wait for the name to be published.
  */
 public final class SdkResourceServiceName {
-  private static final long DEFAULT_WAIT_SECONDS = 10;
+  private static final long DEFAULT_WAIT_SECONDS = 1;
 
   private static volatile CompletableFuture<String> serviceName = new CompletableFuture<>();
 
@@ -39,7 +39,7 @@ public final class SdkResourceServiceName {
     serviceName.complete(name);
   }
 
-  /** Returns the published service name, waiting up to 10 seconds on the first call. */
+  /** Returns the published service name, waiting up to 1 second on the first call. */
   public static String get() {
     return get(DEFAULT_WAIT_SECONDS, TimeUnit.SECONDS);
   }
