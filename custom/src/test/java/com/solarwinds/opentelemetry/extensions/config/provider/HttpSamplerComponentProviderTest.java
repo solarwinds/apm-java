@@ -61,7 +61,8 @@ class HttpSamplerComponentProviderTest {
           proxy -> {
             proxyConfig.set(proxy);
             return delegate;
-          });
+          },
+          () -> "sampler-service");
 
   @BeforeEach
   void setUp() {
@@ -185,5 +186,80 @@ class HttpSamplerComponentProviderTest {
     return DeclarativeConfiguration.toConfigProperties(
             new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)))
         .getStructured("swo_http");
+  }
+
+  @Test
+  void testCreateUsesFinalServiceNameOverServiceKeyName() throws InterruptedException {
+    new HttpSamplerComponentProvider(proxy -> delegate, () -> "configured-service")
+        .create(fromYaml(SERVICE_KEY_ONLY));
+    awaitFirstPoll();
+
+    verify(delegate)
+        .fetchSettings(
+            "https://apm.collector.na-01.cloud.solarwinds.com/v1/settings/configured-service",
+            "Bearer sampler-key");
+  }
+
+  @Test
+  void testCreateUsesFinalServiceNameWithTokenOnlyServiceKey() throws InterruptedException {
+    new HttpSamplerComponentProvider(proxy -> delegate, () -> "configured-service")
+        .create(fromYaml("swo_http:\n  service_key: sampler-key\n"));
+    awaitFirstPoll();
+
+    verify(delegate)
+        .fetchSettings(
+            "https://apm.collector.na-01.cloud.solarwinds.com/v1/settings/configured-service",
+            "Bearer sampler-key");
+  }
+
+  @Test
+  void testCreateUsesDefaultServiceNameWhenNoneIsAvailable() throws InterruptedException {
+    new HttpSamplerComponentProvider(proxy -> delegate, () -> null)
+        .create(fromYaml(SERVICE_KEY_ONLY));
+    awaitFirstPoll();
+
+    verify(delegate)
+        .fetchSettings(
+            "https://apm.collector.na-01.cloud.solarwinds.com/v1/settings/unknown_service:java",
+            "Bearer sampler-key");
+  }
+
+  @Test
+  void testCreateResolvesServiceNameWhenPolling() throws InterruptedException {
+    CountDownLatch serviceNamePublished = new CountDownLatch(1);
+    AtomicReference<String> serviceName = new AtomicReference<>();
+
+    new HttpSamplerComponentProvider(
+            proxy -> delegate,
+            () -> {
+              try {
+                serviceNamePublished.await(5, TimeUnit.SECONDS);
+              } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+              }
+              return serviceName.get();
+            })
+        .create(fromYaml("swo_http:\n  service_key: sampler-key\n"));
+
+    serviceName.set("sdk-service");
+    serviceNamePublished.countDown();
+    awaitFirstPoll();
+
+    verify(delegate)
+        .fetchSettings(
+            "https://apm.collector.na-01.cloud.solarwinds.com/v1/settings/sdk-service",
+            "Bearer sampler-key");
+  }
+
+  @Test
+  void testCreateNormalizesFinalServiceName() throws InterruptedException {
+    new HttpSamplerComponentProvider(proxy -> delegate, () -> "My Service")
+        .create(fromYaml("swo_http:\n  service_key: sampler-key\n"));
+    awaitFirstPoll();
+
+    verify(delegate)
+        .fetchSettings(
+            "https://apm.collector.na-01.cloud.solarwinds.com/v1/settings/my-service",
+            "Bearer sampler-key");
   }
 }

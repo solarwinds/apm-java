@@ -28,9 +28,11 @@ import com.solarwinds.opentelemetry.extensions.config.HttpSettingsFetcher;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReader;
 import com.solarwinds.opentelemetry.extensions.config.HttpSettingsReaderDelegate;
 import com.solarwinds.opentelemetry.extensions.config.ProxyHelper;
+import com.solarwinds.opentelemetry.extensions.config.SdkResourceServiceName;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 @AutoService(ComponentProvider.class)
 public class HttpSamplerComponentProvider extends AbstractSamplerComponentProvider {
@@ -49,12 +51,17 @@ public class HttpSamplerComponentProvider extends AbstractSamplerComponentProvid
 
   private final Function<ProxyConfig, HttpSettingsReaderDelegate> delegateFactory;
 
+  private final Supplier<String> serviceNameSupplier;
+
   public HttpSamplerComponentProvider() {
-    this(HttpSettingsReaderDelegate::new);
+    this(HttpSettingsReaderDelegate::new, SdkResourceServiceName::get);
   }
 
-  HttpSamplerComponentProvider(Function<ProxyConfig, HttpSettingsReaderDelegate> delegateFactory) {
+  HttpSamplerComponentProvider(
+      Function<ProxyConfig, HttpSettingsReaderDelegate> delegateFactory,
+      Supplier<String> serviceNameSupplier) {
     this.delegateFactory = delegateFactory;
+    this.serviceNameSupplier = serviceNameSupplier;
   }
 
   @Override
@@ -94,10 +101,13 @@ public class HttpSamplerComponentProvider extends AbstractSamplerComponentProvid
       throw new InvalidConfigException("Missing required sampler " + SERVICE_KEY + " config");
     }
 
-    serviceKey = ServiceKeyUtils.transformServiceKey(serviceKey);
+    ServiceKeyUtils.warnIfServiceNameInServiceKey(serviceKey);
+    // Resolved on the polling thread: the SDK resource is only available after the SDK is built.
     return new HttpSettingsFetcher(
         HttpSettingsReader.forFileConfig(
-            delegateFactory.apply(ProxyHelper.toProxyConfig(properties)), collector, serviceKey),
+            delegateFactory.apply(ProxyHelper.toProxyConfig(properties)),
+            collector,
+            () -> ServiceKeyUtils.withServiceName(serviceKey, serviceNameSupplier.get())),
         POLLING_INTERVAL_SECONDS);
   }
 

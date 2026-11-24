@@ -7,7 +7,7 @@
 # vars defined in https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/.
 
 # Required environment variables:
-#   SW_APM_SERVICE_KEY: <api_token>:<service_name>
+#   SW_APM_SERVICE_KEY: <api_token> (the service name comes from the service.name resource attribute)
 #   SW_APM_API_TOKEN:   <api_token>
 
 # Replace na-01 in the sampler collector and exporter endpoints with your SolarWinds Observability data center.

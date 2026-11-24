@@ -108,11 +108,6 @@ public abstract class RpcClientManager {
             + "] for RPC client creation");
   }
 
-  public static Client getClient(OperationType operationType) throws ClientException {
-    return getClient(
-        operationType, (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY));
-  }
-
   public static Client getClient(OperationType operationType, String serviceKey)
       throws ClientException {
     return ClientManagerProvider.getClientManager(ClientType.GRPC)

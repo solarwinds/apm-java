@@ -107,6 +107,7 @@ public class ProfilingSpanProcessorComponentProvider implements ComponentProvide
             "Invalid profiler " + SERVICE_KEY + " config, value cannot be empty");
       }
 
+      ServiceKeyUtils.warnIfServiceNameInServiceKey(serviceKey);
       ConfigManager.setConfig(
           ConfigProperty.AGENT_SERVICE_KEY, ServiceKeyUtils.transformServiceKey(serviceKey));
 

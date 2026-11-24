@@ -122,7 +122,8 @@ tracer_provider:
     - swo_profiler:
         # Optional. Defaults to false.
         enabled: true
-        # Required when enabled. Format: <api_token>:<service_name>
+        # Required when enabled. Format: <api_token>. The service name comes from the service.name resource attribute;
+        # <api_token>:<service_name> is deprecated.
         service_key: ${SW_APM_SERVICE_KEY}
         # Optional. Set to your data center's collector.
         collector: apm.collector.na-01.cloud.solarwinds.com
@@ -184,7 +185,8 @@ tracer_provider:
   sampler:
     # Required. Fetches sampling settings from the SolarWinds collector.
     swo_http:
-      # Required. Format: <api_token>:<service_name>
+      # Required. Format: <api_token>. The service name comes from the service.name resource attribute;
+      # <api_token>:<service_name> is deprecated.
       service_key: ${SW_APM_SERVICE_KEY}
       # Required. Set to your data center's collector. Falls back to apm.collector.na-01.cloud.solarwinds.com.
       collector: apm.collector.na-01.cloud.solarwinds.com

@@ -58,7 +58,8 @@ public class ExtensionContainer implements Container{
                 .waitingFor(Wait.forHttp("/actuator/health").withReadTimeout(Duration.ofMinutes(5)).forPort(SERVER_PORT))
                 .withEnv("SERVER_PORT", String.format("%d", SERVER_PORT))
                 .withEnv("SW_APM_DEBUG_LEVEL", "trace")
-                .withEnv("SW_APM_SERVICE_KEY", System.getenv("SW_APM_SERVICE_KEY") + ":java-apm-smoke-test-webmvc-ext")
+                .withEnv("SW_APM_SERVICE_KEY", System.getenv("SW_APM_SERVICE_KEY"))
+                .withEnv("OTEL_SERVICE_NAME", "java-apm-smoke-test-webmvc-ext")
                 .withStartupTimeout(Duration.ofMinutes(5))
                 .withCopyFileToContainer(
                         MountableFile.forHostPath(agentPath),

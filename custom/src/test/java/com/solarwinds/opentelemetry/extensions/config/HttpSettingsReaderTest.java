@@ -42,10 +42,13 @@ class HttpSettingsReaderTest {
 
   private HttpSettingsReader tested;
 
+  private String serviceName;
+
   @BeforeEach
   void setUp() {
     ConfigManager.reset();
-    tested = HttpSettingsReader.forSystemConfig(delegate);
+    serviceName = "test-service";
+    tested = HttpSettingsReader.forSystemConfig(delegate, () -> serviceName);
   }
 
   @Test
@@ -107,8 +110,9 @@ class HttpSettingsReaderTest {
 
   @Test
   void testGetSettings_WithDefaultValues() {
+    serviceName = null;
     String expectedUrl =
-        "https://apm.collector.na-01.cloud.solarwinds.com/v1/settings/unknown-java";
+        "https://apm.collector.na-01.cloud.solarwinds.com/v1/settings/unknown_service:java";
     String expectedTokenHeader = "Bearer ";
 
     when(delegate.fetchSettings(expectedUrl, expectedTokenHeader)).thenReturn(mockSettings);
@@ -122,7 +126,8 @@ class HttpSettingsReaderTest {
   @Test
   void testGetSettings_WithCustomServiceKey() throws InvalidConfigException {
     String collectorUrl = "custom.collector.com";
-    String serviceKey = "my-api-key:my-service";
+    String serviceKey = "my-api-key";
+    serviceName = "my-service";
 
     String expectedUrl = "https://custom.collector.com/v1/settings/my-service";
     String expectedTokenHeader = "Bearer my-api-key";
@@ -158,7 +163,8 @@ class HttpSettingsReaderTest {
   @Test
   void testGetSettings_UrlWithPortAndPath() throws InvalidConfigException {
     String collectorUrl = "https://custom.collector.com:8080/api";
-    String serviceKey = "test-key:test-app";
+    String serviceKey = "test-key";
+    serviceName = "test-app";
     String expectedUrl = "https://custom.collector.com:8080/api/v1/settings/test-app";
     String expectedTokenHeader = "Bearer test-key";
 
@@ -210,5 +216,29 @@ class HttpSettingsReaderTest {
     when(delegate.fetchSettings(expectedUrl, expectedTokenHeader)).thenReturn(mockSettings);
     assertEquals(mockSettings, fileConfigReader.getSettings());
     verify(delegate).fetchSettings(expectedUrl, expectedTokenHeader);
+  }
+
+  @Test
+  void testGetSettings_WithTokenOnlyServiceKeyUsesDefaultServiceName() {
+    HttpSettingsReader reader =
+        HttpSettingsReader.forFileConfig(delegate, "apm.collector.com", "token-only");
+    String expectedUrl = "https://apm.collector.com/v1/settings/unknown_service:java";
+
+    when(delegate.fetchSettings(expectedUrl, "Bearer token-only")).thenReturn(mockSettings);
+
+    assertEquals(mockSettings, reader.getSettings());
+  }
+
+  @Test
+  void testGetSettings_SystemConfigUsesPublishedServiceNameOverServiceKeyName()
+      throws InvalidConfigException {
+    serviceName = "Published Service";
+    ConfigManager.setConfig(ConfigProperty.AGENT_SERVICE_KEY, "test-api-key:key-service");
+    String expectedUrl =
+        "https://apm.collector.na-01.cloud.solarwinds.com/v1/settings/published-service";
+
+    when(delegate.fetchSettings(expectedUrl, "Bearer test-api-key")).thenReturn(mockSettings);
+
+    assertEquals(mockSettings, tested.getSettings());
   }
 }

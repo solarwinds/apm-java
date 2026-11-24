@@ -109,7 +109,7 @@ public class PetClinicRestContainer implements Container {
               .withEnv("spring_datasource_username", PostgresContainer.USERNAME)
               .withEnv("spring_datasource_password", PostgresContainer.PASSWORD)
               .withEnv("spring_jpa_hibernate_ddl-auto", "none")
-              .withEnv("SW_APM_SERVICE_KEY", String.format("%s:%s", System.getenv("SW_APM_SERVICE_KEY"), ServiceNames.SMOKE_TEST))
+              .withEnv("SW_APM_SERVICE_KEY", System.getenv("SW_APM_SERVICE_KEY"))
               .withEnv("OTEL_EXPORTER_OTLP_HEADERS",
                       String.format("authorization=Bearer %s", System.getenv("SW_APM_SERVICE_KEY")))
               .withStartupTimeout(Duration.ofMinutes(5))
@@ -144,7 +144,8 @@ public class PetClinicRestContainer implements Container {
             .withEnv("SW_APM_EXPORT_LOGS_ENABLED", "true")
             .withEnv("SW_APM_EXPORT_METRICS_ENABLED", "true")
             .withEnv("SW_APM_COLLECTOR", System.getenv("SW_APM_COLLECTOR"))
-            .withEnv("SW_APM_SERVICE_KEY", String.format("%s:%s", System.getenv("SW_APM_SERVICE_KEY"), ServiceNames.SMOKE_TEST))
+            .withEnv("SW_APM_SERVICE_KEY", System.getenv("SW_APM_SERVICE_KEY"))
+            .withEnv("OTEL_SERVICE_NAME", ServiceNames.SMOKE_TEST)
             .withStartupTimeout(Duration.ofMinutes(5))
             .withCopyFileToContainer(
                     MountableFile.forHostPath(agentPath),

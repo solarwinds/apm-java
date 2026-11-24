@@ -18,10 +18,7 @@ package com.solarwinds.opentelemetry.extensions;
 
 import com.solarwinds.joboe.config.ConfigManager;
 import com.solarwinds.joboe.config.ConfigProperty;
-import com.solarwinds.joboe.config.InvalidConfigException;
 import com.solarwinds.joboe.config.ServiceKeyUtils;
-import com.solarwinds.joboe.logging.LogSanitizer;
-import com.solarwinds.joboe.logging.LoggerFactory;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.resources.ResourceBuilder;
@@ -60,10 +57,8 @@ public class ResourceCustomizer implements BiFunction<Resource, ConfigProperties
     }
 
     String serviceName = getServiceName(resource, configProperties);
-    updateServiceKey(serviceName);
     resourceBuilder.put(ServiceAttributes.SERVICE_NAME, serviceName);
 
-    LoggerFactory.getLogger().info("Resolved service name: " + LogSanitizer.sanitize(serviceName));
     ResourceCustomizer.resource = resourceBuilder.build();
     return ResourceCustomizer.resource;
   }
@@ -87,23 +82,5 @@ public class ResourceCustomizer implements BiFunction<Resource, ConfigProperties
     }
 
     return serviceName;
-  }
-
-  private void updateServiceKey(String serviceName) {
-    if (serviceName != null) {
-      String serviceKey = ConfigManager.getConfigOptional(ConfigProperty.AGENT_SERVICE_KEY, ":");
-      String apiKey = ServiceKeyUtils.getApiKey(serviceKey);
-
-      try {
-        ConfigManager.setConfig(
-            ConfigProperty.AGENT_SERVICE_KEY, String.format("%s:%s", apiKey, serviceName));
-      } catch (InvalidConfigException ignore) {
-        LoggerFactory.getLogger()
-            .debug(
-                () ->
-                    "Failed to update service key with name: "
-                        + LogSanitizer.sanitize(serviceName));
-      }
-    }
   }
 }

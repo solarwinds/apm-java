@@ -84,6 +84,7 @@ public class LambdaConfigurationLoader {
 
     loadConfigurations();
     String serviceKey = (String) ConfigManager.getConfig(ConfigProperty.AGENT_SERVICE_KEY);
+    ServiceKeyUtils.warnIfServiceNameInServiceKey(serviceKey);
     logger.info(
         "Successfully loaded SolarwindsAPM OpenTelemetry extensions configurations. Service key: "
             + ServiceKeyUtils.maskServiceKey(serviceKey));

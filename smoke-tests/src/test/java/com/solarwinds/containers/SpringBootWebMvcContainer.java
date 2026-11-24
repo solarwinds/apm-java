@@ -82,7 +82,8 @@ public class SpringBootWebMvcContainer implements Container {
             .withEnv("SW_APM_CONFIG_FILE", "/app/apm-config.json")
             .withEnv("SW_APM_DEBUG_LEVEL", "trace")
             .withEnv("SW_APM_COLLECTOR", System.getenv("SW_APM_COLLECTOR"))
-            .withEnv("SW_APM_SERVICE_KEY", System.getenv("SW_APM_SERVICE_KEY") + ":java-apm-smoke-test-webmvc")
+            .withEnv("SW_APM_SERVICE_KEY", System.getenv("SW_APM_SERVICE_KEY"))
+            .withEnv("OTEL_SERVICE_NAME", "java-apm-smoke-test-webmvc")
             .withStartupTimeout(Duration.ofMinutes(5))
             .withCopyFileToContainer(
                     MountableFile.forHostPath(agentPath),

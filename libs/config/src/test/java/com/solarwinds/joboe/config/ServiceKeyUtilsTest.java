@@ -46,4 +46,64 @@ class ServiceKeyUtilsTest {
   void returnsNullForNull() {
     assertNull(ServiceKeyUtils.maskServiceKey(null));
   }
+
+  @Test
+  void withServiceNameAppendsNameToTokenOnlyKey() {
+    assertEquals("token:my-service", ServiceKeyUtils.withServiceName("token", "My Service"));
+  }
+
+  @Test
+  void withServiceNameReplacesServiceKeyName() {
+    assertEquals(
+        "token:final-name", ServiceKeyUtils.withServiceName("token:key-name", "final-name"));
+  }
+
+  @Test
+  void withServiceNameUsesDefaultWhenNameIsMissing() {
+    assertEquals(
+        "token:unknown_service:java", ServiceKeyUtils.withServiceName("token:key-name", null));
+    assertEquals("token:unknown_service:java", ServiceKeyUtils.withServiceName("token", " "));
+  }
+
+  @Test
+  void transformServiceNameNormalizesName() {
+    assertEquals(
+        "my-service.v1:prod_a", ServiceKeyUtils.transformServiceName("My Service.v1:prod_a!"));
+  }
+
+  @Test
+  void transformServiceNameTruncatesLongName() {
+    StringBuilder name = new StringBuilder();
+    for (int i = 0; i < ServiceKeyUtils.SERVICE_NAME_MAX_LENGTH + 10; i++) {
+      name.append('a');
+    }
+
+    assertEquals(
+        ServiceKeyUtils.SERVICE_NAME_MAX_LENGTH,
+        ServiceKeyUtils.transformServiceName(name.toString()).length());
+  }
+
+  @Test
+  void transformServiceKeyNormalizesServiceName() {
+    assertEquals("token:my-service", ServiceKeyUtils.transformServiceKey("token:My Service"));
+  }
+
+  @Test
+  void transformServiceKeyKeepsTokenOnlyKey() {
+    assertEquals("token", ServiceKeyUtils.transformServiceKey("token"));
+  }
+
+  @Test
+  void withServiceNameUsesDefaultWhenNormalizedNameIsEmpty() {
+    assertEquals("token:unknown_service:java", ServiceKeyUtils.withServiceName("token", "!!!"));
+    assertEquals("token:unknown_service:java", ServiceKeyUtils.withServiceName("token", "中文"));
+  }
+
+  @Test
+  void withServiceNameNormalizesLegacyServiceKeyName() {
+    assertEquals(
+        "token:legacy-name",
+        ServiceKeyUtils.withServiceName(
+            "token:Legacy Name", ServiceKeyUtils.getServiceName("token:Legacy Name")));
+  }
 }
