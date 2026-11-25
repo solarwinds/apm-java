@@ -36,5 +36,5 @@ public class SamplingConfiguration {
 
   TracingMode tracingMode;
 
-  TraceConfigs internalTransactionSettings;
+  TraceConfigs transactionSettings;
 }

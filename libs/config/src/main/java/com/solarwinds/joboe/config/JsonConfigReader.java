@@ -18,7 +18,10 @@ package com.solarwinds.joboe.config;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -29,6 +32,9 @@ import org.json.JSONTokener;
  * @author Patson Luk
  */
 public class JsonConfigReader extends ConfigReader {
+  private static final Set<String> REMOVED_KEYS =
+      Collections.unmodifiableSet(new HashSet<>(Collections.singletonList("agent.urlSampleRates")));
+
   private final InputStream configStream;
 
   /**
@@ -50,11 +56,16 @@ public class JsonConfigReader extends ConfigReader {
     try {
       jsonObject = new JSONObject(new JSONTokener(configStream));
 
-      for (Object keyAsObject : jsonObject.keySet()) {
+      for (String keyAsObject : jsonObject.keySet()) {
+        if (REMOVED_KEYS.contains(keyAsObject)) {
+          logger.warn(
+              "Configuration key [" + keyAsObject + "] is no longer supported and will be ignored");
+          continue;
+        }
+
         ConfigProperty key =
             ConfigProperty.fromConfigFileKey(
-                (String)
-                    keyAsObject); // attempt to retrieve the corresponding ConfigProperty as key
+                keyAsObject); // attempt to retrieve the corresponding ConfigProperty as key
 
         if (key == null) {
           exceptions.add(
@@ -62,7 +73,7 @@ public class JsonConfigReader extends ConfigReader {
                   "Invalid line in configuration file : key [" + keyAsObject + "] is invalid"));
         } else {
           try {
-            Object value = jsonObject.get((String) keyAsObject);
+            Object value = jsonObject.get(keyAsObject);
             if (value != null) {
               container.putByStringValue(key, value.toString());
             } else {

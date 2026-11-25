@@ -19,6 +19,8 @@ package com.solarwinds.joboe.config;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
 public class JsonConfigReaderTest {
@@ -48,6 +50,19 @@ public class JsonConfigReaderTest {
 
     // the rest of the values should be read
     assertEquals("info", container.get(ConfigProperty.AGENT_LOGGING));
+    assertEquals("some key", container.get(ConfigProperty.AGENT_SERVICE_KEY));
+  }
+
+  @Test
+  public void testRemovedKeyIsIgnored() throws InvalidConfigException {
+    String json =
+        "{\"agent.urlSampleRates\": [{\".*/greet\": {\"sampleRate\": 1000000}}],"
+            + " \"agent.serviceKey\": \"some key\"}";
+    JsonConfigReader reader =
+        new JsonConfigReader(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
+    ConfigContainer container = new ConfigContainer();
+    reader.read(container);
+
     assertEquals("some key", container.get(ConfigProperty.AGENT_SERVICE_KEY));
   }
 }

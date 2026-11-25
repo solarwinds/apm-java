@@ -58,8 +58,6 @@ public abstract class AbstractSamplerComponentProvider implements ComponentProvi
 
   private static final String EXTENSIONS = "extensions";
 
-  private static final String SAMPLE_RATE = "sample_rate";
-
   private static final List<String> TRANSACTION_SETTING_KEYS =
       Arrays.asList(TRACING, REGEX, EXTENSIONS);
 
@@ -76,7 +74,7 @@ public abstract class AbstractSamplerComponentProvider implements ComponentProvi
               .tracingMode(parseTracingMode(declarativeConfigProperties))
               .triggerTraceEnabled(
                   declarativeConfigProperties.getBoolean(TRIGGER_TRACING_ENABLED, true))
-              .internalTransactionSettings(parseTraceConfigs(declarativeConfigProperties));
+              .transactionSettings(parseTraceConfigs(declarativeConfigProperties));
 
       parseConfig(declarativeConfigProperties, builder);
       return new SolarwindsSampler(
@@ -105,23 +103,13 @@ public abstract class AbstractSamplerComponentProvider implements ComponentProvi
 
   private TraceConfigs parseTraceConfigs(DeclarativeConfigProperties properties)
       throws InvalidConfigException {
+    if (properties.getStructuredList(URL_SAMPLE_RATES) != null) {
+      logger.warn(URL_SAMPLE_RATES + " is no longer supported and will be ignored");
+    }
+
     List<DeclarativeConfigProperties> transactionSettings =
         properties.getStructuredList(TRANSACTION_SETTINGS);
-    List<DeclarativeConfigProperties> urlSampleRates =
-        properties.getStructuredList(URL_SAMPLE_RATES);
-
-    if (transactionSettings != null) {
-      if (urlSampleRates != null) {
-        logger.warn(
-            URL_SAMPLE_RATES + " is ignored as " + TRANSACTION_SETTINGS + " is also defined");
-      }
-      return parseTransactionSettings(transactionSettings);
-    }
-
-    if (urlSampleRates != null) {
-      return parseUrlSampleRates(urlSampleRates);
-    }
-    return null;
+    return transactionSettings == null ? null : parseTransactionSettings(transactionSettings);
   }
 
   private TraceConfigs parseTransactionSettings(List<DeclarativeConfigProperties> settings)
@@ -210,65 +198,5 @@ public abstract class AbstractSamplerComponentProvider implements ComponentProvi
       return new TraceConfig(null, SampleRateSource.FILE, tracingMode.toFlags());
     }
     return new TraceConfig(0, SampleRateSource.FILE, tracingMode.toFlags());
-  }
-
-  private TraceConfigs parseUrlSampleRates(List<DeclarativeConfigProperties> urlSampleRates)
-      throws InvalidConfigException {
-    Map<ResourceMatcher, TraceConfig> result = new LinkedHashMap<>();
-    for (DeclarativeConfigProperties urlSampleRate : urlSampleRates) {
-      Set<String> propertyKeys = urlSampleRate.getPropertyKeys();
-      if (propertyKeys.size() != 1) {
-        throw new InvalidConfigException(
-            "Invalid \"" + URL_SAMPLE_RATES + "\" entry " + urlSampleRate);
-      }
-
-      String url = propertyKeys.iterator().next();
-      Pattern pattern;
-      try {
-        pattern = Pattern.compile(url, Pattern.CASE_INSENSITIVE);
-      } catch (PatternSyntaxException e) {
-        throw new InvalidConfigException(
-            "Failed to compile the url sample rate of url pattern ["
-                + url
-                + "], error message ["
-                + e.getMessage()
-                + "].",
-            e);
-      }
-
-      DeclarativeConfigProperties urlConfig =
-          urlSampleRate.getStructured(url, DeclarativeConfigProperties.empty());
-      result.put(new StringPatternMatcher(pattern), parseUrlTraceConfig(urlConfig, url));
-    }
-    return new TraceConfigs(result);
-  }
-
-  private TraceConfig parseUrlTraceConfig(DeclarativeConfigProperties urlConfig, String url)
-      throws InvalidConfigException {
-    Integer sampleRate = urlConfig.getInt(SAMPLE_RATE);
-    Boolean tracingEnabled = urlConfig.getBoolean(TRACING_ENABLED);
-
-    if (sampleRate == null && tracingEnabled == null) {
-      throw new InvalidConfigException(
-          "Need to define either "
-              + TRACING_ENABLED
-              + " or "
-              + SAMPLE_RATE
-              + ", but found none in ["
-              + url
-              + "]");
-    }
-
-    if (sampleRate == null) {
-      if (tracingEnabled) {
-        throw new InvalidConfigException(
-            "Define " + SAMPLE_RATE + " if " + TRACING_ENABLED + " is true in [" + url + "]");
-      }
-      sampleRate = 0;
-    }
-
-    TracingMode tracingMode =
-        tracingEnabled == null || tracingEnabled ? TracingMode.ENABLED : TracingMode.DISABLED;
-    return new TraceConfig(sampleRate, SampleRateSource.FILE, tracingMode.toFlags());
   }
 }

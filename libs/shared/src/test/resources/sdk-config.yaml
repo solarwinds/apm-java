@@ -75,10 +75,6 @@ tracer_provider:
       transaction_settings:
         - regex: ".*/specialties"
           tracing: "disabled"
-      url_sample_rates:
-        - example.com/greet:
-            sample_rate: 100000000
-            tracing_enabled: true
       proxy:
         host: proxy.example.com
         port: 8080

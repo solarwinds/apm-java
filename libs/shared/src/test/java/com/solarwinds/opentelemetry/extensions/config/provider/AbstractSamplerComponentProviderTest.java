@@ -81,7 +81,7 @@ class AbstractSamplerComponentProviderTest {
 
     assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_TRACING_MODE));
     assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_TRIGGER_TRACE_ENABLED));
-    assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_INTERNAL_TRANSACTION_SETTINGS));
+    assertNull(ConfigManager.getConfig(ConfigProperty.AGENT_TRANSACTION_SETTINGS));
   }
 
   @Test
@@ -103,9 +103,9 @@ class AbstractSamplerComponentProviderTest {
   }
 
   @Test
-  void testTransactionSettingsTakePrecedenceOverUrlSampleRates() {
+  void testCreateAppliesTransactionSettings() {
     tested.create(loadConfig());
-    TraceConfigs traceConfigs = internalTransactionSettings();
+    TraceConfigs traceConfigs = transactionSettings();
 
     TraceConfig specialties =
         traceConfigs.getTraceConfig(Collections.singletonList("http://localhost/specialties"));
@@ -121,7 +121,7 @@ class AbstractSamplerComponentProviderTest {
     tested.create(DeclarativeConfigProperties.empty());
 
     assertNull(samplingConfiguration().getTracingMode());
-    assertNull(samplingConfiguration().getInternalTransactionSettings());
+    assertNull(samplingConfiguration().getTransactionSettings());
     assertTrue(samplingConfiguration().isTriggerTraceEnabled());
   }
 
@@ -138,26 +138,15 @@ class AbstractSamplerComponentProviderTest {
   }
 
   @Test
-  void testCreateAppliesUrlSampleRates() {
+  void testCreateIgnoresUrlSampleRates() {
     tested.create(
         fromYaml(
             "swo_http:\n"
                 + "  url_sample_rates:\n"
                 + "    - .*/greet:\n"
-                + "        sample_rate: 500000\n"
-                + "    - .*/health:\n"
-                + "        tracing_enabled: false\n"));
-    TraceConfigs traceConfigs = internalTransactionSettings();
+                + "        sample_rate: 500000\n"));
 
-    TraceConfig greet =
-        traceConfigs.getTraceConfig(Collections.singletonList("http://example.com/greet"));
-    assertEquals(500000, greet.getSampleRate());
-    assertTrue(greet.hasSampleStartFlag());
-
-    TraceConfig health =
-        traceConfigs.getTraceConfig(Collections.singletonList("http://example.com/health"));
-    assertEquals(0, health.getSampleRate());
-    assertFalse(health.hasSampleStartFlag());
+    assertNull(transactionSettings());
   }
 
   @Test
@@ -168,7 +157,7 @@ class AbstractSamplerComponentProviderTest {
                 + "  transaction_settings:\n"
                 + "    - extensions: [png, jpg]\n"
                 + "      tracing: disabled\n"));
-    TraceConfigs traceConfigs = internalTransactionSettings();
+    TraceConfigs traceConfigs = transactionSettings();
 
     assertNotNull(
         traceConfigs.getTraceConfig(Collections.singletonList("http://example.com/logo.png")));
@@ -221,27 +210,15 @@ class AbstractSamplerComponentProviderTest {
         Arguments.of(
             "transaction setting with invalid regex",
             "swo_http:\n  transaction_settings:\n    - regex: '[A-Za-z{'\n      tracing: disabled\n",
-            "Failed to compile pattern [A-Za-z{"),
-        Arguments.of(
-            "url sample rate with invalid regex",
-            "swo_http:\n  url_sample_rates:\n    - '[A-Za-z{':\n        sample_rate: 1\n",
-            "Failed to compile the url sample rate of url pattern [[A-Za-z{]"),
-        Arguments.of(
-            "url sample rate without sample_rate or tracing_enabled",
-            "swo_http:\n  url_sample_rates:\n    - .*/greet:\n        other: 1\n",
-            "Need to define either tracing_enabled or sample_rate"),
-        Arguments.of(
-            "url sample rate with tracing enabled and no sample_rate",
-            "swo_http:\n  url_sample_rates:\n    - .*/greet:\n        tracing_enabled: true\n",
-            "Define sample_rate if tracing_enabled is true"));
+            "Failed to compile pattern [A-Za-z{"));
   }
 
   private static SamplingConfiguration samplingConfiguration() {
     return SettingsManager.getSamplingConfiguration();
   }
 
-  private static TraceConfigs internalTransactionSettings() {
-    return samplingConfiguration().getInternalTransactionSettings();
+  private static TraceConfigs transactionSettings() {
+    return samplingConfiguration().getTransactionSettings();
   }
 
   private DeclarativeConfigProperties fromYaml(String yaml) {

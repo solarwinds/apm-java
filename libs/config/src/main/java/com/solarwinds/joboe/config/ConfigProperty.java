@@ -69,7 +69,6 @@ public enum ConfigProperty {
       new ConfigKey("agent.sqlQueryMaxLength", EnvPrefix.PRODUCT + "MAX_SQL_QUERY_LENGTH"),
       ConfigGroup.AGENT,
       Integer.class),
-  AGENT_URL_SAMPLE_RATE(new ConfigKey("agent.urlSampleRates"), ConfigGroup.AGENT, String.class),
   AGENT_TIME_ADJUST_INTERVAL(
       new ConfigKey("agent.timeAdjustInterval"), ConfigGroup.AGENT, Integer.class),
   AGENT_CONTEXT_TTL(new ConfigKey("agent.contextTtl"), ConfigGroup.AGENT, Integer.class),
@@ -103,11 +102,6 @@ public enum ConfigProperty {
       new ConfigKey("agent.transactionSettings"), ConfigGroup.AGENT, String.class),
   AGENT_TRANSACTION_NAMING_SCHEMES(
       new ConfigKey("agent.transactionNameSchemes"), ConfigGroup.AGENT, String.class),
-  // AGENT_INTERNAL_TRANSACTION_SETTINGS should NOT be specified directly in the json file. This is
-  // used to store the result after comparing AGENT_TRANSACTION_SETTINGS and AGENT_URL_SAMPLE_RATE -
-  // not an ideal solution as this is confusing
-  AGENT_INTERNAL_TRANSACTION_SETTINGS(
-      new ConfigKey("agent.internal.transactionSettings"), ConfigGroup.AGENT, String.class),
   AGENT_EC2_METADATA_TIMEOUT(
       new ConfigKey("agent.ec2MetadataTimeout", EnvPrefix.PRODUCT + "EC2_METADATA_TIMEOUT"),
       ConfigGroup.AGENT,

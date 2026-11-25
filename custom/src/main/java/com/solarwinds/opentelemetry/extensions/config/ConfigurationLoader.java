@@ -32,7 +32,6 @@ import com.solarwinds.joboe.core.util.DaemonThreadFactory;
 import com.solarwinds.joboe.logging.LogSanitizer;
 import com.solarwinds.joboe.logging.Logger;
 import com.solarwinds.joboe.logging.LoggerFactory;
-import com.solarwinds.joboe.sampling.TraceConfigs;
 import com.solarwinds.opentelemetry.extensions.Constants;
 import com.solarwinds.opentelemetry.extensions.LoggingConfigProvider;
 import com.solarwinds.opentelemetry.extensions.NamingScheme;
@@ -49,7 +48,6 @@ import com.solarwinds.opentelemetry.extensions.config.parser.json.StacktraceFilt
 import com.solarwinds.opentelemetry.extensions.config.parser.json.TracingModeParser;
 import com.solarwinds.opentelemetry.extensions.config.parser.json.TransactionNamingSchemesParser;
 import com.solarwinds.opentelemetry.extensions.config.parser.json.TransactionSettingsConfigParser;
-import com.solarwinds.opentelemetry.extensions.config.parser.json.UrlSampleRateConfigParser;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -91,7 +89,6 @@ public class ConfigurationLoader {
         new RangeValidationParser<Integer>(
             Constants.MAX_SQL_QUERY_LENGTH_LOWER_LIMIT,
             Constants.MAX_SQL_QUERY_LENGTH_UPPER_LIMIT));
-    ConfigProperty.AGENT_URL_SAMPLE_RATE.setParser(UrlSampleRateConfigParser.INSTANCE);
     ConfigProperty.AGENT_TRANSACTION_SETTINGS.setParser(TransactionSettingsConfigParser.INSTANCE);
     ConfigProperty.AGENT_TRIGGER_TRACE_ENABLED.setParser(ModeStringToBooleanParser.INSTANCE);
     ConfigProperty.AGENT_PROXY.setParser(ProxyConfigParser.INSTANCE);
@@ -440,25 +437,6 @@ public class ConfigurationLoader {
                 + " or via env variable.");
         throw new InvalidConfigServiceKeyException("Service key is empty");
       }
-    }
-
-    TraceConfigs traceConfigs = null;
-    if (configs.containsProperty(ConfigProperty.AGENT_TRANSACTION_SETTINGS)) {
-      if (configs.containsProperty(ConfigProperty.AGENT_URL_SAMPLE_RATE)) {
-        logger.warn(
-            ConfigProperty.AGENT_URL_SAMPLE_RATE.getConfigFileKey()
-                + " is ignored as "
-                + ConfigProperty.AGENT_TRANSACTION_SETTINGS.getConfigFileKey()
-                + " is also defined");
-      }
-      traceConfigs = (TraceConfigs) configs.get(ConfigProperty.AGENT_TRANSACTION_SETTINGS);
-
-    } else if (configs.containsProperty(ConfigProperty.AGENT_URL_SAMPLE_RATE)) {
-      traceConfigs = (TraceConfigs) configs.get(ConfigProperty.AGENT_URL_SAMPLE_RATE);
-    }
-
-    if (traceConfigs != null) {
-      configs.put(ConfigProperty.AGENT_INTERNAL_TRANSACTION_SETTINGS, traceConfigs);
     }
 
     if (configs.containsProperty(ConfigProperty.AGENT_TRANSACTION_NAMING_SCHEMES)) {

@@ -242,12 +242,12 @@ public class TraceDecisionUtilTest {
     // local URL : ENBALED/100%
     // local universal : DISABLED/null
     // remote : ENABLED/100%
-    TraceConfigs testingUrlSampleRateConfigs =
+    TraceConfigs testingTransactionSettings =
         buildUrlConfigs(url -> true, TracingMode.ALWAYS, 1000000);
     SettingsManager.initialize(
         settingsFetcherMock,
         SamplingConfiguration.builder()
-            .internalTransactionSettings(testingUrlSampleRateConfigs)
+            .transactionSettings(testingTransactionSettings)
             .tracingMode(TracingMode.DISABLED)
             .build());
 
@@ -284,7 +284,7 @@ public class TraceDecisionUtilTest {
     SettingsManager.initialize(
         settingsFetcherMock,
         SamplingConfiguration.builder()
-            .internalTransactionSettings(new TraceConfigs(urlTraceConfigsByMatcher))
+            .transactionSettings(new TraceConfigs(urlTraceConfigsByMatcher))
             .tracingMode(TracingMode.DISABLED)
             .build());
 
@@ -346,13 +346,11 @@ public class TraceDecisionUtilTest {
             .isReportMetrics());
 
     // Add local URL rate, should override the SRv1 rate if pattern matches
-    TraceConfigs testingUrlSampleRateConfigs =
+    TraceConfigs testingTransactionSettings =
         buildUrlConfigs(url -> url.endsWith(".html"), TracingMode.ALWAYS, 0);
     SettingsManager.initialize(
         settingsFetcherMock,
-        SamplingConfiguration.builder()
-            .internalTransactionSettings(testingUrlSampleRateConfigs)
-            .build());
+        SamplingConfiguration.builder().transactionSettings(testingTransactionSettings).build());
 
     // pattern match, should all have sample rate 0% for new traces, but continuing/AVW trace should
     // still go on
@@ -390,13 +388,11 @@ public class TraceDecisionUtilTest {
             .isReportMetrics());
 
     // Add local URL rate, should override the SRv1 rate if pattern matches
-    testingUrlSampleRateConfigs =
+    testingTransactionSettings =
         buildUrlConfigs(url -> url.endsWith(".html"), TracingMode.NEVER, 0);
     SettingsManager.initialize(
         settingsFetcherMock,
-        SamplingConfiguration.builder()
-            .internalTransactionSettings(testingUrlSampleRateConfigs)
-            .build());
+        SamplingConfiguration.builder().transactionSettings(testingTransactionSettings).build());
 
     // pattern match, should block all traffic even for continuing traces since the url tracingMode
     // is never
@@ -448,7 +444,7 @@ public class TraceDecisionUtilTest {
     SettingsManager.initialize(
         settingsFetcherMock,
         SamplingConfiguration.builder()
-            .internalTransactionSettings(new TraceConfigs(urlTraceConfigsByMatcher))
+            .transactionSettings(new TraceConfigs(urlTraceConfigsByMatcher))
             .build());
     TraceDecision traceDecision;
 
@@ -1134,13 +1130,11 @@ public class TraceDecisionUtilTest {
         .thenReturn(SettingsStub.builder().withFlags(true, false, true, true, false).build());
 
     // Add local URL rate, should override the SRv1 rate if pattern matches
-    TraceConfigs testingUrlSampleRateConfigs =
+    TraceConfigs testingTransactionSettings =
         buildUrlConfigs(url -> url.endsWith("html"), TracingMode.NEVER, 0);
     SettingsManager.initialize(
         settingsFetcherMock,
-        SamplingConfiguration.builder()
-            .internalTransactionSettings(testingUrlSampleRateConfigs)
-            .build());
+        SamplingConfiguration.builder().transactionSettings(testingTransactionSettings).build());
     TraceDecisionUtil.consumeLastTraceConfigs(); // clear it
 
     when(settingsFetcherMock.getSettings())
@@ -1197,7 +1191,7 @@ public class TraceDecisionUtilTest {
     SettingsManager.initialize(
         settingsFetcherMock,
         SamplingConfiguration.builder()
-            .internalTransactionSettings(testingUrlSampleRateConfigs)
+            .transactionSettings(testingTransactionSettings)
             .sampleRate(500000)
             .tracingMode(TracingMode.ALWAYS)
             .build());

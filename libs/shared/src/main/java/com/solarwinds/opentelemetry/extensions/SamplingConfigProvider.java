@@ -32,9 +32,8 @@ public final class SamplingConfigProvider {
       SamplingConfiguration.SamplingConfigurationBuilder samplingConfigurationBuilder =
           SamplingConfiguration.builder()
               .tracingMode((TracingMode) ConfigManager.getConfig(ConfigProperty.AGENT_TRACING_MODE))
-              .internalTransactionSettings(
-                  (TraceConfigs)
-                      ConfigManager.getConfig(ConfigProperty.AGENT_INTERNAL_TRANSACTION_SETTINGS))
+              .transactionSettings(
+                  (TraceConfigs) ConfigManager.getConfig(ConfigProperty.AGENT_TRANSACTION_SETTINGS))
               .triggerTraceEnabled(
                   ConfigManager.getConfigOptional(
                       ConfigProperty.AGENT_TRIGGER_TRACE_ENABLED, true));
